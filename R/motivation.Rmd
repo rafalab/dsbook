@@ -1,0 +1,55 @@
+# R Basics 
+
+In this book we will be using the
+[R software environment](https://cran.r-project.org/) for all our
+analysis. Throughout the book you will learn R and data analysis techniques simultaneously. However, we need to introduce basic R syntax to get you started. In this chapter, rather than cover every R skill you need, we introduce just enough so that you can understand subsequent chapters where we provide more in depth coverage, building upon what you learn in this chapter. We find that we better retain R knowledge when we learn it to solve a specific problem.
+
+In this chapter, as done throughout the book, we will use a motivating case study. We ask a specific question related to crime in United States and provide a relevant dataset. Some basic R skills will permit us to answer the motivating question. 
+
+
+## Motivating Case Study
+
+Imagine you live in Europe and are offered a job in a US company with many locations across all states. It is a great job but news with headlines such as [**US Gun Homicide Rate Higher Than Other Developed Countries**](http://abcnews.go.com/blogs/headlines/2012/12/us-gun-ownership-homicide-rate-higher-than-other-developed-countries/) have you worried. Charts like this make you worry even more:
+
+
+```{r, echo=FALSE}
+##from http://abcnews.go.com/images/International/homocides_g8_countries_640x360_wmain.jpg
+knitr::include_graphics("R/img/homocides_g8_countries_640x360_wmain.jpg")
+```
+
+Or even worse, this version from [everytown.org](https://everytownresearch.org/us-gun-violence-trends/):
+
+```{r, echo=FALSE}
+# from https://everytownresearch.org/wp-content/uploads/2016/07/GunTrends_murders_per_1000.png
+knitr::include_graphics("R/img/GunTrends_murders_per_1000.png")
+```
+
+But then you remember that the US is a large and diverse country with 50 very different states as well as the District of Columbia (DC). 
+ 
+```{r, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(fiftystater)
+library(dslabs)
+data("fifty_states") # this line is optional due to lazy data loading
+
+data(murders) 
+murders %>% mutate(murder_rate = total/population*10^5,
+                  state = tolower(state), 
+                  colors= factor(ceiling(pmin(murder_rate, 9)))) %>%
+  ggplot(aes(map_id = state)) + 
+  geom_map(aes(fill = colors), color = "black", map = fifty_states) + 
+  expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+  coord_map() +
+  scale_x_continuous(breaks = NULL) + 
+  scale_y_continuous(breaks = NULL) +
+  labs(x = "", y = "") +
+  theme(panel.background = element_blank()) + 
+  scale_fill_brewer(guide=FALSE) +
+  theme_minimal()
+```
+
+
+California, for example, has a larger population than Canada and 20 US states have populations larger than that of Norway. In some respects the variability across states in the US is akin to the variability across countries in Europe. Furthermore, although not included in the charts above, the murder rates in Lithuania, Ukraine, and Russia are higher than 4 per 100,000. So perhaps the news reports that worried you are too superficial. You have options of where to live and want to find out how safe each state is. We will gain some insights by examining data related to gun homicides in the US using R. 
+
+Before we get started with our example, we need to cover logistics as well as some of the very basic building blocks that are required to gain more advanced R skills. Be aware that the usefulness of some of these building blocks may not be immediately obvious, but later in the book you will appreciate having mastered these skills.
+

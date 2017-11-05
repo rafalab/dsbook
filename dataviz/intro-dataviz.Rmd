@@ -1,0 +1,128 @@
+# Data Visualization
+
+
+## Introduction
+
+Looking at the numbers and character strings that define a dataset is rarely useful. To convince yourself, print and stare at the US murders data table:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(tidyverse)
+library(dslabs)
+data(murders)
+head(murders)
+```
+
+What do you learn from staring at this table? How quickly can you determine which states have the largest populations? Which states have the smallest? How large is a typical state? Is there a relationship between population size and total murders? How do murder rates vary across regions of the country?  For most human brains it is quite difficult to extract this information just from looking at the numbers. In contrast, the answer to all the questions above are readily available from examining this plot: 
+
+```{r ggplot-example-plot-0, fig.cap = "Murder totals versus population size by state.", echo=FALSE}
+library(ggthemes)
+library(ggrepel)
+
+r <- murders %>% 
+  summarize(pop=sum(population), tot=sum(total)) %>% 
+  mutate(rate = tot/pop*10^6) %>% .$rate
+
+murders %>% ggplot(aes(x = population/10^6, y = total, label = abb)) +  
+  geom_abline(intercept = log10(r), lty=2, col="darkgrey") +
+  geom_point(aes(color=region), size = 3) +
+  geom_text_repel() + 
+  scale_x_log10() +
+  scale_y_log10() +
+  xlab("Populations in millions (log scale)") + 
+  ylab("Total number of murders (log scale)") +
+  ggtitle("US Gun Murders in US 2010") +
+  scale_color_discrete(name="Region") +
+  theme_economist()
+```
+
+We are reminded of the saying "a picture is worth a thousand words". Data visualization provides a powerful way to communicate a data-driven finding. In some cases, the visualization is so convincing that no follow-up analysis is required. 
+
+The growing availability of informative datasets and software tools has led to increased reliance on data visualizations across many industries, academia, and government. A salient example is news organizations, which are increasingly embracing _data journalism_ and including effective _infographics_ as part of their reporting. 
+
+A particularly effective example is a Wall Street Journal [article](http://graphics.wsj.com/infectious-diseases-and-vaccines/?mc_cid=711ddeb86e) showing data related to the impact of vaccines on battling infectious diseases. One of the graphs shows measles cases by US state through the years with a vertical line demonstrating when the vaccine was introduced.
+
+<img src="img/wsj-vaccines.png" width="600" align="middle">
+
+Another striking example comes from the New York Times showing data on  
+scores from the NYC Regents Exams. These scores are collected for several reasons including to determine if a student graduates from high school. In New York City you need a 65 to pass. The distribution of the test scores forces us to notice something somewhat problematic:
+
+<img src="img/nythist.gif" width="800" align="middle">
+
+The most common test score is the minimum passing grade, with a few just below. This unexpected result is consistent with students close to passing having their scores bumped up.
+
+This is an example of how data visualization can lead to discoveries which would otherwise be missed if we simply subjected the data to a battery of data analysis tools or procedures. Data visualization is the strongest tool of what we call exploratory data analysis (EDA). [John W. Tukey](https://en.wikipedia.org/wiki/John_Tukey), considered the father of EDA, once said,
+
+>> "The greatest value of a picture is when it forces us to notice what we never 
+expected to see." 
+
+```{r, echo=FALSE, fig.cap="John W. Tukey (source: Wikipedia)."}
+knitr::include_graphics("http://upload.wikimedia.org/wikipedia/en/e/e9/John_Tukey.jpg")
+```
+
+
+Many widely used data analysis tools were initiated by discoveries made via EDA. EDA is perhaps the most important part of data analysis, yet it is one that is often overlooked.
+
+Data visualization is also now pervasive in philanthropic and educational organizations. In the talks [New Insights on Poverty](https://www.ted.com/talks/hans_rosling_reveals_new_insights_on_poverty?language=en) and [The Best Stats You've Ever Seen](https://www.ted.com/talks/hans_rosling_shows_the_best_stats_you_ve_ever_seen), Hans Rosling forced us to to notice the unexpected with a series of plots related to world health and economics. In his videos, he used animated graphs to show us how the world was changing and how old narratives were no longer true.
+
+
+```{r gampnider-example-plot, fig.cap="Life expectancy versus fertility for two 1962 and 2013", echo=FALSE, warning=FALSE}
+data(gapminder)
+
+west <- c("Western Europe","Northern Europe","Southern Europe",
+          "Northern America","Australia and New Zealand")
+
+gapminder <- gapminder %>% 
+  mutate(group = case_when(
+    .$region %in% west ~ "The West",
+    .$region %in% c("Eastern Asia", "South-Eastern Asia") ~ "East Asia",
+    .$region %in% c("Caribbean", "Central America", "South America") ~ "Latin America",
+    .$continent == "Africa" & .$region != "Northern Africa" ~ "Sub-Saharan Africa",
+    TRUE ~ "Others"))
+gapminder <- gapminder %>% 
+  mutate(group = factor(group, levels = rev(c("Others", "Latin America", "East Asia","Sub-Saharan Africa", "The West"))))
+
+years <- c(1962, 2013)
+p <- filter(gapminder, year%in%years & !is.na(group) & 
+         !is.na(fertility) & !is.na(life_expectancy)) %>%
+  mutate(population_in_millions = population/10^6) %>%
+  ggplot( aes(fertility, y=life_expectancy, col = group, size = population_in_millions)) +
+  geom_point(alpha = 0.8) +
+  guides(size=FALSE) +
+  theme(plot.title = element_blank(), legend.title = element_blank()) + 
+  coord_cartesian(ylim = c(30, 85)) + 
+  xlab("Fertility rate (births per woman)") +
+  ylab("Life Expectancy") + 
+  geom_text(aes(x=7, y=82, label=year), cex=12, color="grey") +
+  facet_grid(. ~ year)
+    
+p + theme(strip.background = element_blank(),
+    strip.text.x = element_blank(),
+   strip.text.y = element_blank(),
+   legend.position = "top")
+```
+
+It is also important to note that mistakes, biases, systematic errors and other unexpected problems often lead to data that should be handled with care. Failure to discover these problems often leads to flawed analyses and false discoveries. As an example, consider that measurement devices sometimes fail and that most data analysis procedures are not designed to detect these. 
+Yet, these data analysis procedures will still give you an answer. The fact that it can be difficult or impossible to notice an error just from the 
+reported results makes data visualization particularly important.
+
+Data visualization is a powerful approach to detecting these problems. 
+We refer to this particular task as _exploratory data analysis_ (EDA).
+
+In this chapter we will learn the basics of data visualization and exploratory data analysis. We will use three motivating examples. We will use the ggplot2 package to code. To learn the very basics, we will start with a somewhat artificial example: heights reported by students. Then we will cover the two examples mentioned above 1) world health and economics and 2) infectious disease trends in the United States.
+
+Of course, there is much more to data visualization than what we cover here. The following are references for those who wish to learn more: 
+
+- ER Tufte (1983) The visual display of quantitative information. Graphics Press.
+- ER Tufte (1990) Envisioning information. Graphics Press.
+- ER Tufte (1997) Visual explanations. Graphics Press.
+- A Gelman, C Pasarica, R Dodhia (2002) Let’s practice what we preach: Turning tables into graphs. The American Statistician 56:121-130
+- NB Robbins (2004) Creating more effective graphs. Wiley
+
+We also do not cover interactive graphics, a topic that is too advanced for this book. Some useful resources for those interested in learning more can be found below:
+
+- https://shiny.rstudio.com/
+- https://d3js.org/
+
+
+
+

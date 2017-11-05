@@ -1,0 +1,262 @@
+## The Very Basics
+
+Before we get started with the motivating dataset we need to cover the very basics of R.
+
+### Objects
+
+Suppose a high school student asks us for help solving several quadratic equations of the form $ax^2+bx+c = 0$. The quadratic formula gives us the solutions:
+
+$$
+\frac{-b - \sqrt{b^2 - 4ac}}{2a}\,\, \mbox{ and } \frac{-b + \sqrt{b^2 - 4ac}}{2a}
+$$
+which of course change depending on the values of $a$, $b$, and $c$. One advantage of programming languages is that we can define variables and write expressions with these variables, similar to how we do so in math, but obtain a numeric solution. We will write out general code for the quadratic equation below, but if we are asked to solve $x^2 + x -1 = 0$ then we define:
+
+```{r}
+a <- 1
+b <- 1
+c <- -1
+```
+
+which stores the values to use later. Note that we use `<-` to assign values to the variables. 
+
+*Note*: We can assign using `=` instead of `<-` but we recommend against using `=` to avoid confusion.
+
+Copy and paste the code above into your console to define the three variables. Note that R does not print anything when we make this assignment. This means the objects were defined successfully. Had you made a mistake you would have received an error message. 
+
+To see the value stored in a variable we simply ask R to evaluate `a` and it shows the stored value:
+
+```{r}
+a
+```
+
+A more explicit way to ask R to show us the value stored in `a` is using `print` like this:
+
+```{r}
+print(a)
+```
+
+We use the term _object_ to describe stuff that is stored in R. Variables are examples, but objects can also be more complicated entities such as functions, which are described later.
+
+
+
+### The Workspace
+As we define object in the console, we are actually changing the _workspace_. You can see all the variables saved in your workspace by typing:
+
+```{r}
+ls()
+```
+
+In RStudio the _Environment_ tab shows the values
+
+```{r, echo=FALSE}
+knitr::include_graphics("R/img/rstudio-environment.png")
+```
+
+We should see  `a`, `b`, and `c`. If you try to recover the value of a variable that is not in your workspace, you receive an error. For example, if you type `x` you will receive the following message: `Error: object 'x' not found`.
+
+Now since these values are saved in variables, to obtain a solution to our equation we use the quadratic formula to obtain the answer:  
+
+```{r}
+(-b + sqrt(b^2 - 4*a*c) ) / ( 2*a )
+(-b - sqrt(b^2 - 4*a*c) ) / ( 2*a )
+```
+
+
+### Functions 
+
+Once you define variables, the data analysis process can usually be described as a series of _functions_ applied to the data. R includes several predefined functions and most of the analysis pipelines we construct make extensive use of these. 
+
+Note that we already used the `install.packages`, `library`, and `ls` functions. And we used the function `sqrt` to solve the quadratic equation above. There are many more prebuild functions and even more can be added through packages. These functions do not appear in the workspace because you did not define them, but they are available for immediate use.
+
+In general, to evaluate a function we need to uses parentheses. If you type `ls` the function is not evaluated and instead R shows you the code that defines the function. If you type `ls()` the function is evaluated and, as seen above, we see objects in the workspace.
+
+Unlike `ls`, most functions require one or more _arguments_. Here is an example of how we assign object to the argument of the function `log`. Remember that we defined `a` to be 1 above:
+
+```{r}
+log(8)
+log(a) 
+```
+
+You can find out what the function expects and what it does by reviewing the very useful manuals included in R. You can get help by using the `help` function like this:
+
+```{r, eval=FALSE}
+help("log")
+```
+
+and for most functions we can use the shorthand:
+
+```{r, eval=FALSE}
+?log
+```
+
+The help file will show you what arguments the function is expecting. For example, `log` needs `x` and `base` to run. However, some arguments are required and others are optional. You can determine which arguments are optional by noting, in the help document, that a default value is assigned with `=`. Defining these is optional. For example, the base of the function `log` defaults to `base = exp(1)` making `log` the natural log by default. 
+
+If you want a quick look at the arguments without opening the help system you can type:
+
+```{r}
+args(log)
+```
+
+You can change the default values by simply assigning another object:
+
+```{r}
+log(8, base = 2)
+```
+
+Note that we have not been specifying the argument `x` as such:
+```{r}
+log(x = 8, base = 2)
+```
+
+The above code works, but we can save ourselves some typing because, if no argument name is used, R assumes you are entering arguments in the order shown in the help file or by `args`. So by not using the names, it assumes the arguments are `x` followed by `base`:
+
+```{r}
+log(8,2)
+```
+
+If using the arguments' names, then we can include them in whatever order we want:
+
+```{r}
+log(base = 2, x = 8)
+```
+
+To specify arguments we must use `=`, and cannot use `<-`.
+
+There are some exceptions to the rule that functions need the parenthesis to be evaluated. Among these, the most commonly used are the arithmetic and relational operators. For example:
+
+```{r}
+2 ^ 3
+```
+
+You can see the arithmetic operators by typing:
+
+```{r, eval = TRUE}
+help("+") 
+```
+
+or 
+
+```{r, eval = TRUE}
+?"+"
+```
+
+and the relational operators typing 
+
+```{r, eval = TRUE}
+help(">") 
+```
+
+or 
+
+```{r}
+?">"
+```
+
+### Other prebuilt objects
+
+There are several datasets that are included for users to practice and test out functions. You can see all the available datasets by typing
+
+```{r}
+data()
+```
+
+This shows you the object name for these datasets. These datasets are objects that can be used by simply typing the name, for example typing
+
+```{r, eval=FALSE}
+co2
+```
+will show you Mauna Loa atmospheric CO2 concentration data.
+
+Other prebuilt objects are mathematical quantities such as the constant $\pi$ and $\infty$
+ 
+```{r}
+pi
+Inf+1
+```
+
+### Variable names
+
+Here we used the letters _a_, _b_, and _c_ as variable names, but variable names can be almost anything. Some basic rules in R is that they have to start with a letter, can't contain spaces and we avoid variables that are predefined in R, for example don't use `install.packages` as a variable name. Don't type 
+`install.packages <- 2`!
+
+A nice convention to follow is to use meaningful words that describe what is stored, use only lower case, and use underscores as a substitute for spaces. For example, for the quadratic equations we could use something like this:
+
+```{r}
+solution_1 <- (-b + sqrt(b^2 - 4*a*c) ) / ( 2*a )
+solution_2 <- (-b - sqrt(b^2 - 4*a*c) ) / ( 2*a )
+```
+
+
+### Saving your workspace
+
+Values remain in the workspace until you end your session or you erase them with the function `rm`. But workspaces can be saved for later use. In fact, when you quit R, the programs asks you if you want to do this. If you do, the next time you start R, the program will restore the workspace. 
+
+We actually recommend against saving the workspace this way because as you start working on different projects, it will become harder to keep track of what is saved. Instead we recommend you assign the workspace a specific name. You can do this by using 
+the function `save` or `save.image`. To load you use the function `load`. When saving a workspace we recommend the suffix `rda` or `RData`. In RStudio, you can also do this by navigating to the _Session_ tab and _Save Workspace as_. You can later load it using the _Load Workspace_ options in the same tab.
+You can read the help pages on  `save`, `save.image` and  `load` to learn more. 
+
+
+### Scripts
+
+To solve another equation such as $3x^2 + 2x -1$ we can copy and paste the code above but this time redefine the variables and recompute the solution:
+
+```{r, eval=FALSE}
+a <- 3
+b <- 2
+c <- -1
+(-b + sqrt(b^2 - 4*a*c) ) / ( 2*a )
+(-b - sqrt(b^2 - 4*a*c) ) / ( 2*a )
+```
+
+By creating and saving a script with the code above, we would not need to retype everything each time and instead simply change the variable names. Try writing the script above into an editor and notice how much easier it is to change the variables and receive an answer.
+
+### Comments 
+
+If a line of R code starts with the symbol `#` it is not evaluated. We can use this to write reminders of why we wrote a particular code. For example, in the script above we could add
+
+
+```{r, eval=FALSE}
+## Code to compute solution to quadratic equation of the form ax^2 + bx + c
+## define the variables
+a <- 3 
+b <- 2
+c <- -1
+
+## now compute the solution
+(-b + sqrt(b^2 - 4*a*c) ) / ( 2*a )
+(-b - sqrt(b^2 - 4*a*c) ) / ( 2*a )
+```
+
+
+### Exercises {-}
+
+1. What is the sum of the first 100 positive integers? There is a formula that tells us the sum of integers $1$ through $n$. It is $n (n-1)/2$. Define $n=100$ and then use R to compute the sum of $1$ through $100$ using the formula. What is the sum?
+
+2. Now use the same formula to compute the sum of the integers from 1 through 1,000.
+
+
+3. Look at the result of typing the following code into R:
+
+    ```{r, eval=FALSE}
+    n <- 1000
+    x <- seq(1, n)
+    sum(x)
+    ```
+
+    Based on the result, what do you think the functions `seq` and `sum` do?  You can use the help system:
+
+    A) `sum` creates a list of numbers and `seq` adds them up.
+    B) `seq` creates a list of numbers and `sum` adds them up.
+    C) `seq` computes the difference between two arguments and `sum` computes     the sum of 1 through 1000.
+    D) `sum` always returns the same number
+
+4. In math and programming we say we evaluate a function when we replace the argument with a given number. So if we type `sqrt(4)`, we evaluate the `sqrt` function. In R you can evaluate a function inside another function. The evaluations happen from the inside out.  Use one line of code to compute the log, in base 10, of the square root of 100.
+
+
+5. Which of the following will always return the numeric value stored in `x`? You can try out examples and use the help system if you want.
+
+    A) `log(10^x)`
+    B) `log10(x^10)`
+    C) `log(exp(x))`
+    D) `exp(log(x, base = 2))`
+

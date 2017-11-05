@@ -1,0 +1,93 @@
+## Vector arithmetics
+
+California had the most murders, but does this mean it is the most dangerous state? What if it just has many more people than any other state? We can very quickly confirm that, indeed, California has the largest population:
+
+```{r}
+murders$state[which.max(murders$population)]
+```
+
+with over `r floor(max(murders$population)/10^6)` million inhabitants. It is therefore unfair to compare the totals if we are interested in learning how safe the state is.
+
+What we really should be computing is the murders per capita. The reports we describe in the motivating section used murders per 100,000 as the unit. To compute this quantity, the powerful vector arithmetic capabilities of R come in handy.
+
+### Rescaling
+
+In R, arithmetic operations on vectors occur _element wise_. For a quick example suppose we have height in inches:
+
+```{r}
+heights <- c(69, 62, 66, 70, 70, 73, 67, 73, 67, 70)
+```
+and want to covert to centimeters. Notice what happens when we multiply `heights` by 2.54:
+
+```{r}
+heights * 2.54
+```
+
+It multiplied each element by 2.54.  Similarly, if we want to compute how many inches taller or shorter than 69 inches, the average height for males, we can subtract it from every entry like this:
+
+```{r}
+heights - 69
+```
+
+
+### Two vectors
+
+If we have two vectors of the same length, and we sum them in R, they will be added entry by entry as follows:
+
+$$
+\begin{pmatrix}
+a\\
+b\\
+c\\
+d
+\end{pmatrix}
++
+\begin{pmatrix}
+e\\
+f\\
+g\\
+h
+\end{pmatrix}
+=
+\begin{pmatrix}
+a +e\\
+b + f\\
+c + g\\
+d + h
+\end{pmatrix}
+$$
+
+The same holds for other mathematical operations, such as `-`, `*` and `/`.
+
+This implies that to compute the murder rates we can simply type:
+
+```{r}
+murder_rate <- murders$total / murders$population * 100000
+```
+
+Once we do this, we notice that California is no longer near the top of the list. In fact, we can use what we have learned to order the states by murder rate:
+
+```{r}
+murders$state[order(murder_rate)]
+```
+
+
+
+### Exercises {-}
+
+1. Previously we created this data frame:
+
+    ```{r}
+    temp <- c(35, 88, 42, 84, 81, 30)
+    city <- c("Beijing", "Lagos", "Paris", "Rio de Janeiro", "San Juan", "Toronto")
+    city_temps <- data.frame(name = city, temperature = temp)
+    ```     
+  
+    Remake the data frame using the code above, but add a line that converts the temperature from Fahrenheit to Celsius.
+    
+2. What is the following sum $1+1/2^2 + 1/3^2 + \dots 1/100^2$? Hint: thanks to Euler we know it should be close to $\pi^2/6$.
+
+3. Compute the per 100,000 murder rate for each state and store it in the object `murder_rate`. Then compute the average murder rate for the US using the function `mean`. What is the average?
+
+
+

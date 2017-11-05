@@ -1,0 +1,246 @@
+## Summarizing data with dplyr
+
+An important part of exploratory data analysis is summarizing data. We learned about the average and standard deviation as a two summary statistic that provides all the necessary information to summarize data that is normally distributed. We also learned that better summaries can be achieved by splitting data into groups before using the normal approximation. For example, in our heights dataset we described the height of men and women separately. In this section we cover two new dplyr verbs that make these computations easier: `summarize` and `group_by`. We learn to access resulting values using what we call the _dot placeholder_.  Finally, we also learn to use `arrange` which helps us examine data after sorting.
+
+```{r, message=FALSE, echo=FALSE}
+library(tidyverse)
+```
+
+### Summarize
+
+The `summarize` function in dplyr provides a way to compute summary statistics with intuitive and readable code. We start with a simple example based on heights:
+
+```{r}
+library(dslabs)
+data(heights)
+```
+
+that computes the average and standard deviation for males:
+
+```{r}
+s <- heights %>% 
+  filter(sex == "Male") %>%
+  summarize(average = mean(height), standard_deviation = sd(height))
+s
+```
+
+This takes our original data table as input, filters it to keep only males and then produces a new, summarized table with just the average and the standard deviation of heights. We get to choose the names of the columns of the resulting table. For example, above we decided to use `average` and `standard_deviation`, but we could have used other names just the same.
+
+Because the resulting table, stored in `s`, is a data frame, we can access the components with the accessor `$`, which in this case will be a numeric:
+
+```{r}
+s$average
+s$standard_deviation
+```
+
+As with most other dplyr functions, `summarize` is aware of the variable names and we can use them directly. So when inside the call to the `summarize` function we write `mean(height)`, it is accessing the column with the name, and then computing the average of the respective numeric vector. We can compute any other summary that operates on vectors and returns a single value. For example, we can add the median, min and max like this:
+
+```{r}
+heights %>% 
+  filter(sex == "Male") %>%
+  summarize(median = median(height), minimum = min(height), maximum = max(height))
+```
+
+We can obtain these three values with just one line using the `quantiles` function. For example, `quantile(x, c(0,0.5,1))` returns the min, median, and max of the vector `x`.
+However, if we attempt to use a function that returns two or more values:
+
+```{r, eval=FALSE}
+heights %>% 
+  filter(sex == "Male") %>%
+  summarize(range = quantile(height, c(0, 0.5, 1)))
+```
+
+we will receive an error: `Error: expecting result of length one, got : 2`. With the function `summarize` we can only call functions that return a single value. In a later chapter, we will learn how to deal with functions that return more than one value.
+
+For another example of how we can use the `summarize` function, let's compute the average murder rate for the United States. Remember our data table includes total murders and population size for each state and we have already used dplyr to add a murder rate column:
+
+```{r}
+data(murders)
+murders <- murders %>% mutate(murder_rate = total/population*100000)
+```
+
+Remember that the US murder is **not** the average of the state murder rates:
+
+```{r}
+summarize(murders, mean(murder_rate))
+```
+
+This is because in the computation above the small states are given the same weight as the large ones. The US murder rate is the totalUS murders divided by the total US population. So the correct computation is:
+
+```{r}
+us_murder_rate <- murders %>% summarize(rate = sum(total) / sum(population) * 100000)
+us_murder_rate
+```
+
+This computation counts larger states proportionally to their size which results in a larger value.
+
+### Using the dot to access the piped data 
+
+The `us_murder_rate` object defined above represents just one number. Yet we are storing it in a data frame:
+
+```{r}
+class(us_murder_rate)
+```
+
+since, as most dplyr functions, `summarize` always returns a data frame.
+
+This might be problematic if we want to use the result with functions that require a numeric value. Here we show a useful trick for accessing values stored in data piped via `%>%`: when a data object is piped it can be accessed using the dot `.`. To understand what we mean take a look at this line of code:
+
+```{r}
+us_murder_rate %>% .$rate 
+```
+
+This returns the value in the `rate` column of `us_murder_rate` making it equivalent to `us_murder_rate$rate`. To understand this line, you just need to think of `.` as a placeholder for the data that is being passed through the pipe. Because this data object is a data frame, we can access its columns with the `$`. 
+
+To get a number from the original data table with one line of code we can type:
+
+```{r}
+us_murder_rate <- murders %>% 
+  summarize(rate = sum(total) / sum(population) * 100000) %>%
+  .$rate
+
+us_murder_rate
+```
+
+which is now a numeric:
+
+```{r}
+class(us_murder_rate)
+```
+
+We will see other instances in which using the `.` is useful. For now, we will only use it to produce numeric vectors from pipelines constructed with dplyr.
+
+### Group then summarize
+
+A common operation in data exploration is to first split data into groups and then compute summaries for each group. For example, we may want to compute the average and standard deviation for men's and women's heights separately. The `group_by` function helps us do this. 
+
+If we type this:
+
+```{r}
+heights %>% group_by(sex)
+```
+
+the result does not look very different from `heights`, except we see this `Groups: sex [2]` when we print the object. Although not immediately obvious from its appearance, this is now a special data frame called a _grouped data frame_ and dplyr functions, in particular `summarize`, will behave differently when acting on this object. Conceptually you can think of this table as many tables, with the same columns but not necessarily the same number of rows, stacked together in one object. When we summarize the data after grouping, this is what happens:
+
+```{r}
+heights %>% 
+  group_by(sex) %>%
+  summarize(average = mean(height), standard_deviation = sd(height))
+```
+
+The `summarize` function applies the summarization to each group separately.
+
+For another example, let's compute the median murder rate in the four regions of the country:
+
+```{r}
+murders %>% 
+  group_by(region) %>%
+  summarize(median_rate = median(murder_rate))
+```
+
+### Sorting data tables
+
+When examining a dataset it is often convenient to sort the table by the different columns. We know about the `order` and `sort` function, but for ordering entire tables, the dplyr function `arrange` is useful. For example, here we order the states by population size when we type:
+
+```{r}
+murders %>% arrange(population) %>% head()
+```
+
+We get to decide which column to sort by. To see the states by population, from smallest to largest, we arrange by `murder_rate` instead:
+
+```{r}
+murders %>% 
+  arrange(murder_rate) %>% 
+  head()
+```
+
+Note that the default behavior is to order in ascending order. In dplyr, the function `desc` transforms a vector so that it is in descending order. To sort the table in descending order we can type:
+
+```{r}
+murders %>% 
+  arrange(desc(murder_rate)) %>% 
+  head()
+```
+
+#### Nested sorting
+
+If we are ordering by a column with ties, we can use a second column to break the tie. Similarly, a third column can be used to break ties between first and second and so on. Here we order by `region` then, within region, we order by murder rate:
+
+```{r}
+murders %>% 
+  arrange(region, murder_rate) %>% 
+  head()
+```
+
+
+#### The top $n$
+In the code above we have used the function `head` to avoid having the page fill up with the entire dataset. If we want to see a larger proportion, we can use the `top_n` function. Here are the first 10 rows:
+
+```{r}
+murders %>% top_n(10, murder_rate)
+```
+
+`top_n` picks the highest `n` based on the column given as a second argument. However, the rows are not sorted. 
+
+If the second argument is left blank, then it returns the first `n` columns. This means that to see the 10 states with the highest murder rates we can type:
+
+
+```{r}
+murders %>% 
+  arrange(desc(murder_rate)) %>%
+  top_n(10)
+```
+
+
+### Exercises {-}
+
+
+For these exercesis we will be using the data from the survey collected by the United States National Center for Health Statistics (NCHS). This center has conducted a series of health and nutrition surveys since the 1960’s. Starting in 1999 about 5,000 individuals of all ages have been interviewed every year and they complete the health examination component of the survey. Part of the data is made avaialble via the NHANES package which can install using
+
+```{r, eval = FALSE}
+install.packages("NHANES")
+```
+
+Once you install it you can load the data this way:
+
+```{r}
+library(NHANES)
+data(NHANES)
+```
+
+The NHANES data has many missing values. Remember that the main summarization function in R will return `NA` if any of the entries of the input vector is an `NA`. Here is an example:
+
+```{r}
+library(dslabs)
+data(na_example)
+mean(na_example)
+sd(na_example)
+```
+
+To ignore the `NA`s we can use the `na.rm` argument:
+
+```{r}
+mean(na_example, na.rm=TRUE)
+sd(na_example, na.rm=TRUE)
+```
+
+Let's now explore the NHANES data.
+
+1. We will provide some basic facts about blood pressure. First let's select a group to set the standard. We will use 20-29 year old females. Note that the category is coded with ` 20-29`, with a space in front! The `AgeDecade` is a categorical variable with these ages. What is the average and standard deviation of systolic blood pressure, as saved in the `BPSysAve` variable? Save it to a variable called `ref`. Hint: Use `filter` and `summarize` and use the `na.rm=TRUE` argument when computing the average and standard deviation. You can also filter the NA values using `filter`.
+
+
+2. Using only one line of code, assign the average to a numeric variable `ref_avg`. Hint: Use the code similar to above and then the dot.
+
+
+3. Now report the min and max values for the same group.
+
+
+4. Now compute the average and standard deviation for females, but for each age group separately. Note that the age groups are defined by `AgeDecade`. Hint: rather than filtering by age, filter by `Gender` and then use `group_by`.
+
+5. Now do the same for males. 
+
+6. We can actually combine both these summaries into one line of code. This is because `group_by` permits us to group by more than one variable. Obtain one big summary table using `group_by(AgeDecade, Gender)`.
+
+
+7. For males between the ages of 40-49, compare systolic blood pressure across race as reported in the `Race1` variable. Order the resulting table from lowest to highest average systolic blood pressure.
+

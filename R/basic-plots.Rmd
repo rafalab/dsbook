@@ -1,0 +1,64 @@
+## Basic plots
+
+Exploratory data visualization is perhaps the strength of R. One can quickly go from idea to data to plot with a unique balance of flexibility and ease. For example, Excel may be easier than R, but it is nowhere near as flexible. D3.js may be more flexible and powerful than R, but it takes much longer to generate a plot. Before we focus on data visualization in the next chapter, we first we want to introduce some very basic plotting functions.
+
+### Scatter plots
+
+Earlier we inferred that states with larger populations are likely to have more murders. This can be confirmed with an exploratory visualization that plots these two quantities against each other:
+
+```{r first-plot}
+population_in_millions <- murders$population/10^6
+total_gun_murders <- murders$total
+plot(population_in_millions, total_gun_murders)
+```
+
+We can clearly see a relationship.
+**Advanced**: For a quick plot that avoids accessing variables twice, we can use the `with` function:
+```{r, eval=FALSE}
+with(murders, plot(population, total))
+```
+
+
+### Histograms
+
+We will describe histograms as they relate to distribution in the next chapter. Here we will simply note that histograms are a powerful graphical summary of a list of numbers that gives you a general overview of the types of values you have. We can make a histogram of our murder rates by simply typing:
+
+```{r r-base-hist}
+hist(murders$rate)
+```
+We can see that there is a wide range of values with most of them between 2 and 3 and one very extreme case with a murder rate of more than 15:
+
+```{r}
+murders$state[which.max(murders$rate)]
+```
+
+### Boxplot
+
+Boxplots will be described in more detail in the next chapter as well. Boxplots provide a more terse summary than histograms, but they are easier to stack with other boxplots. For example, here we can use them to compare the different regions:
+
+```{r r-base-boxplot}
+boxplot(rate~region, data = murders)
+```
+We can see that the South has larger murder rates than the other three regions.
+
+### Exercises {-}
+
+1. We made a plot of total murders versus population and noted a strong relationship: not surprisingly states with larger populations had more murders. 
+
+    ```{r, eval = FALSE}
+    library(dslabs)
+    data(murders)
+    population_in_millions <- murders$population/10^6
+    total_gun_murders <- murders$total
+    plot(population_in_millions, total_gun_murders)
+    ```
+
+    Keep in mind that many states have populations below 5 million and are bunched up. We may gain further insights from making this plot in the log scale. Transform the variables using the `log10` transformation and then plot them.
+    
+    
+2. Create a histogram of the state populations.
+
+    
+3. Generate boxplots of the state populations by region.
+   
+    
