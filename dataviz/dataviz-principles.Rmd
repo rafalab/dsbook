@@ -11,7 +11,6 @@ We will be using these libraries:
 library(tidyverse)
 library(gridExtra)
 library(dslabs)
-ds_theme_set()
 ```
 
 
@@ -71,7 +70,7 @@ browsers %>% spread(Year, Percentage) %>% knitr::kable()
 
 The preferred way to plot these quantities is to use length and position as visual cues since humans are much better at judging linear measures. The bar plot uses this approach by using bars of length proportional to the quantities of interest. By adding horizontal lines at strategically chosen values, in this case at every multiple of 10, we ease the visual burden of quantifying through the position of the top of the bars. Compare and contrast the information we can extract from the two figures.
 
-```{r bar plot, fig.cap="Barplot of browser usage.", echo=FALSE}
+```{r two-barplots, fig.cap="Barplot of browser usage.", echo=FALSE}
 p2 <-browsers %>%
   ggplot(aes(Browser, Percentage)) + 
   geom_bar(stat = "identity", width=0.5, fill=4, col = 1) +
@@ -84,7 +83,7 @@ Notice how much easier it is to see the differences in the bar plot. In fact, we
 
 If for some reason you need to make a pie chart, label each pie slice with its respective percentage so viewers do not have to infer them from the angles or area:
 
-```{r, eaco = FALSE, warning = FALSE, message=FALSE, echo=FALSE}
+```{r excel-barplot, eaco = FALSE, warning = FALSE, message=FALSE, echo=FALSE}
 library(scales)
 browsers <- filter(browsers, Year == 2015)
 at <- with(browsers, 100 - cumsum(c(0,Percentage[-length(Percentage)])) - 0.5*Percentage)  
@@ -107,15 +106,16 @@ In general, when displaying quantities, position and length are preferred over a
 
 When using bar plots it is dishonest not to start the bars at 0. This is because, by using a bar plot, we are implying the length is proportional to the quantities being displayed. By avoiding 0, relatively small differences can be made to look much bigger than they actually are. This approach is often used by politicians or media organizations trying to exaggerate a difference. Below is an illustrative example:
 
-```{r}
-knitr::include_graphics("http://paldhous.github.io/ucb/2016/dataviz/img/class2_8.jpg")
+```{r echo=FALSE}
+## http://paldhous.github.io/ucb/2016/dataviz/img/class2_8.jpg
+knitr::include_graphics("img/class2_8.jpg")
 ```
 
 (Source: Fox News, via [Peter Aldhous](http://paldhous.github.io/ucb/2016/dataviz/week2.html) via Media Matters via Fox News) via [Media Matters](http://mediamatters.org/blog/2013/04/05/fox-news-newest-dishonest-chart-immigration-enf/193507). 
 
 From the plot above, it appears that apprehensions have almost tripled when, in fact, they have only increased by about 16%. Starting the graph at 0 illustrates this clearly:
 
-```{r,echo=FALSE}
+```{r barplot-from-zero-1,echo=FALSE}
 data.frame(Year = as.character(c(2011, 2012, 2013)),Southwest_Border_Apprehensions = c(165244,170223,192298)) %>%
   ggplot(aes(Year, Southwest_Border_Apprehensions )) +
   geom_bar(stat = "identity", fill = "yellow", col = "black", width = 0.65) 
@@ -123,15 +123,14 @@ data.frame(Year = as.character(c(2011, 2012, 2013)),Southwest_Border_Apprehensio
 
 Here is another example, described in detail: [here](http://flowingdata.com/2012/08/06/fox-news-continues-charting-excellence/).
 
-```{r}
-knitr::include_graphics("http://i2.wp.com/flowingdata.com/wp-content/uploads/2012/08/Bush-cuts.png")
+```{r, echo=FALSE}
+## http://i2.wp.com/flowingdata.com/wp-content/uploads/2012/08/Bush-cuts.png
+knitr::include_graphics("img/Bush-cuts.png")
 ```
-
-
 
 which makes a 13% increase look like a five fold change. Here is the appropriate plot:
 
-```{r, echo=FALSE}
+```{r barplot-from-zero-2, echo=FALSE}
 data.frame(date = c("Now", "Jan 1, 2013"), tax_rate = c(35, 39.6)) %>%
   mutate(date = reorder(date, tax_rate)) %>%
   ggplot(aes(date, tax_rate)) + ylab("") + xlab("") +
@@ -142,7 +141,7 @@ data.frame(date = c("Now", "Jan 1, 2013"), tax_rate = c(35, 39.6)) %>%
 
 When using position rather than length, then it is not necessary to include 0. This is particularly the case when we want to compare differences between groups relative to the within the group variability. Here is an illustrative example showing country average life expectancy stratified across continents in 2012:
 
-```{r}
+```{r points-plot-not-fromw-zero}
 p1 <- gapminder %>% filter(year == 2012) %>%
   ggplot(aes(continent, life_expectancy)) +
   geom_point()
@@ -158,14 +157,15 @@ Note that in the plot on the left, which includes 0, the space between 0 and 43 
 
 During President Barack Obama’s 2011 State of the Union Address the following chart was used to compare the US GDP to the GDP of four competing nations:
 
-```{r}
-knitr::include_graphics("http://paldhous.github.io/ucb/2016/dataviz/img/class2_30.jpg")
+```{r, echo=FALSE}
+## http://paldhous.github.io/ucb/2016/dataviz/img/class2_30.jpg
+knitr::include_graphics("img/class2_30.jpg")
 ```
 
 
 Judging by the area of the circles, the US appears to have an economy over five times larger than China's and over 30 times larger than France's. However, if we look at the actual numbers, we see that this is not the case. The actual ratios are 2.6 and 5.8 times bigger than China and France respectively. The reason for this distortion is that the radius, rather than the area, was made to be proportional to the quantity. which implies that the proportion between the areas is squared: 2.6 turns into 6.5 and 5.8 turns into 34.1. Here is a comparison of the circles we get if we make the value proportional to the radius and to the area:
 
-```{r, echo = FALSE}
+```{r area-not-radius, echo = FALSE}
 gdp <- c(14.6, 5.7, 5.3, 3.3, 2.5)
 gdp_data <- data.frame(Country = rep(c("United States", "China", "Japan", "Germany", "France"),2),
            y = factor(rep(c("Radius","Area"),each=5), levels = c("Radius", "Area")),
@@ -180,8 +180,12 @@ gdp_data %>%
 
 Not surprisingly, ggplot defaults to using area rather than radius. Of course, in this case, we really should not be using area at all since we can use position and length:
 
-```{r, echo=FALSE}
-gdp_data %>% filter(y == "Area") %>% ggplot(aes(Country, GDP)) + geom_bar(stat = "identity") + ylab("GDP in trillions of US dollars")
+```{r barplot-better-than-area, echo=FALSE}
+gdp_data %>% 
+  filter(y == "Area") %>%
+  ggplot(aes(Country, GDP)) + 
+  geom_bar(stat = "identity") + 
+  ylab("GDP in trillions of US dollars")
 ```
 
 
@@ -193,13 +197,14 @@ When one of the axes is used to show categories, as is done in bar plots, the de
 We previously learned how to use the `reorder` function, which helps us achieve this goal.
 To appreciate how the right order can help convey a message, suppose we want to create a plot to compare the murder rate across states. We are particularly interested in the most dangerous and safest states. Note the difference when we order alphabetically (the default) versus when we order by the actual rate:
 
-```{r}
+```{r do-not-order-alphabetically}
 data(murders)
 p1 <- murders %>% mutate(murder_rate = total / population * 100000) %>%
   ggplot(aes(state, murder_rate)) +
   geom_bar(stat="identity") +
   coord_flip() +
   xlab("")
+
 p2 <- murders %>% mutate(murder_rate = total / population * 100000) %>%
   mutate(state = reorder(state, murder_rate)) %>%
   ggplot(aes(state, murder_rate)) +
@@ -241,7 +246,7 @@ We have focused on displaying single quantities across categories. We now shift 
 
 To motivate our first principle, 'show the data', we go back to our artificial example of describing heights to ET, an extraterrestrial. This time let's assume ET is interested in the difference in heights between males and females. A commonly seen plot used for comparisons between groups, popularized by software such as Microsoft Excel, shows the average and standard errors (standard errors are defined in a later chapter, but do not confuse them with the standard deviation of the data). The plot looks like this:
 
-```{r, echo=FALSE}
+```{r show-data-1, echo=FALSE}
 data(heights)
 p1 <- heights %>% group_by(sex) %>% summarize(average = mean(height), se=sd(height)/sqrt(n())) %>%
   ggplot(aes(sex, average)) + theme_excel() + 
@@ -255,7 +260,7 @@ The average of each group is represented by the top of each bar and the antennae
 
 This brings us to our first principle: show the data. This simple ggplot2 code already generates a more informative plot than the bar plot by simply showing all the data points:
 
-```{r show-data}
+```{r show-data-2}
 heights %>% 
   ggplot(aes(sex, height)) + 
   geom_point() 
@@ -636,14 +641,14 @@ dat %>% ggplot(aes(year, state,  fill = rate)) +
 
 This plot makes a very striking argument for the contribution of vaccines. However, one limitation of this plot is that it uses color to represent quantity which we earlier explained makes it harder to know exactly how high it is going. Position and lengths are better cues. If we are willing to lose state information, we can make a version of the plot that shows the values with position. We can also show the average for the US which we compute like this:
 
-```{r time-series-vaccines-plot}
+```{r}
 avg <- us_contagious_diseases %>%
   filter(disease==the_disease) %>% group_by(year) %>%
   summarize(us_rate = sum(count, na.rm=TRUE)/sum(population, na.rm=TRUE)*10000)
 ```
 
 Now to make the plot we simply use the `geom_line` geometry:
-```{r}
+```{r time-series-vaccines-plot}
 dat %>% ggplot() +
   geom_line(aes(year, rate, group = state),  color = "grey50", 
             show.legend = FALSE, alpha = 0.2, size = 1) +
@@ -788,7 +793,7 @@ data(us_contagious_diseases)
    
 2. What is the problem with the plot below:
 
-    ```{r echo=FALSE, message=FALSE}
+    ```{r baplot-not-from-zero-exercises, echo=FALSE, message=FALSE}
 library(tidyverse)
     ds_theme_set()
     data.frame(candidate=c("Clinton","Trump"), electoral_votes = c(232, 306)) %>%
@@ -808,7 +813,7 @@ library(tidyverse)
   
 3. Take a look at the following two plots. They show the same information: 1928 rates of Measles across the 50 states.
 
-    ```{r, echo=FALSE}
+    ```{r measels-exercise, echo=FALSE}
 library(gridExtra)
 p1 <- us_contagious_diseases %>% 
   filter(year == 1928 & disease=="Measles" & count>0 & !is.na(population)) %>% 
@@ -817,6 +822,7 @@ p1 <- us_contagious_diseases %>%
   geom_bar(stat="identity") +
   coord_flip() +
   xlab("")
+
 p2 <- us_contagious_diseases %>% 
   filter(year == 1928 & disease=="Measles" & count>0 & !is.na(population)) %>% 
   mutate(rate = count / population * 10000*52 / weeks_reporting) %>%
@@ -847,7 +853,7 @@ dat <- us_contagious_diseases %>%
 
     Note what happens when we make a bar plot:
 
-    ```{r}
+    ```{r barplot-plot-exercise-example}
 dat %>% ggplot(aes(state, rate)) +
   geom_bar(stat="identity") +
   coord_flip() 
@@ -869,7 +875,7 @@ Redefine the `state` object so that the levels are re-ordered. Print the new obj
 6. Say we are interested in comparing gun homicide rates across regions of the US. We see this plot:
 
   
-    ```{r}
+    ```{r us-murders-barplot}
 library(dslabs)
 data("murders")
 murders %>% mutate(rate = total/population*100000) %>%
@@ -905,7 +911,7 @@ murders %>% mutate(rate = total/population*100000)
   
 7. The plots below shows the for three continuous variables. 
 
-    ```{r, echo=FALSE}
+    ```{r pseudo-3d-exercise, echo=FALSE}
 library(scatterplot3d)
 library(RColorBrewer)
 rafalib::mypar(1,1)
@@ -923,7 +929,7 @@ abline(v=4, col=3)
 
 The line $x=2$ appears to separate the points. But it is actually not the case, which we can see by plotting the data in a couple of two dimensinal points.
       
-   ```{r, echo=FALSE}
+   ```{r pseud-3d-exercise-2, echo=FALSE}
 rafalib::mypar(1,1)
 plot(x,y, col=group, pch =16)
 abline(v=2, col=3)
