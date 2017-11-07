@@ -3,7 +3,7 @@ This is the code for the [Introduction to Data Science](https://rafalab.github.i
 
 We will be adding chapters during the next few months.
 
-For updates 
+For updates follow
 <a class="twitter-follow-button"
   href="https://twitter.com/rafalab">
-follow @rafalab</a>
+ @rafalab</a>
