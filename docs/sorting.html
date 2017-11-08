@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="introduction.html">
+<link rel="prev" href="vectors.html">
+<link rel="next" href="vector-arithmetics.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -345,26 +345,163 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Introduction to Data Science</h1>
-<h4 class="author"><em>Rafael A. Irizarry</em></h4>
-<h4 class="date"><em>2017-11-08</em></h4>
+<div id="sorting" class="section level1">
+<h1><span class="header-section-number">Chapter 7</span> Sorting</h1>
+<p>Now that we have mastered some basic R knowledge, let’s try to gain some insights into the safety of different states in the context of gun murders.</p>
+<div id="sort" class="section level2">
+<h2><span class="header-section-number">7.1</span> <code>sort</code></h2>
+<p>Say we want to rank the states from least to most gun murders. The function <code>sort</code> sorts a vector in increasing order. We can therefore see the largest number of gun murders by typing:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(murders)
+<span class="kw">sort</span>(murders<span class="op">$</span>total)
+<span class="co">#&gt;  [1]    2    4    5    5    7    8   11   12   12   16   19   21   22   27</span>
+<span class="co">#&gt; [15]   32   36   38   53   63   65   67   84   93   93   97   97   99  111</span>
+<span class="co">#&gt; [29]  116  118  120  135  142  207  219  232  246  250  286  293  310  321</span>
+<span class="co">#&gt; [43]  351  364  376  413  457  517  669  805 1257</span></code></pre></div>
+<p>However, this does not give us information about which states have which murder totals. For example, we don’t know which state had 1257 murders in 2010.</p>
 </div>
-<div id="preface" class="section level1 unnumbered">
-<h1>Preface</h1>
-<p>These are the class notes used in the <a href="https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x">HarvardX Data Science Series</a>. The code to generate the notes are available on <a href="https://github.com/rafalab/dsbook">GitHub</a>.</p>
-<p>We will be adding chapters during the next few months.</p>
-<p>For updates follow <a href="https://twitter.com/rafalab">@rafalab</a></p>
-<p>This work is licensed under the <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0</a> United States License.</p>
+<div id="order" class="section level2">
+<h2><span class="header-section-number">7.2</span> <code>order</code></h2>
+<p>The function <code>order</code> is closer to what we want. It takes a vector as input and returns the vector of indexes that sorts the input vector. This may sound confusing so let’s look at a simple example. We can create a vector and sort it:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">31</span>, <span class="dv">4</span>, <span class="dv">15</span>, <span class="dv">92</span>, <span class="dv">65</span>)
+<span class="kw">sort</span>(x)
+<span class="co">#&gt; [1]  4 15 31 65 92</span></code></pre></div>
+<p>Rather than sort the input vector, the function <code>order</code> returns the index that sorts input vector:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">index &lt;-<span class="st"> </span><span class="kw">order</span>(x)
+x[index]
+<span class="co">#&gt; [1]  4 15 31 65 92</span></code></pre></div>
+<p>This is the same output as that returned by <code>sort(x)</code>. If we look at this index, we see why it works:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x
+<span class="co">#&gt; [1] 31  4 15 92 65</span>
+<span class="kw">order</span>(x)
+<span class="co">#&gt; [1] 2 3 1 5 4</span></code></pre></div>
+<p>The second and fourth entry of <code>x</code> are the smallest, so <code>order(x)</code> starts with <code>2</code>. The next smallest is the third entry, so the second entry is <code>3</code> and so on.</p>
+<p>How does this help us order the states by murders? First remember that the entries of vectors you access with <code>$</code> follow the same order as the rows in the table. So, for example, these two vectors, containing the state names and abbreviations respectively, are matched by their order:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders<span class="op">$</span>state[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]
+<span class="co">#&gt;  [1] &quot;Alabama&quot;              &quot;Alaska&quot;               &quot;Arizona&quot;             </span>
+<span class="co">#&gt;  [4] &quot;Arkansas&quot;             &quot;California&quot;           &quot;Colorado&quot;            </span>
+<span class="co">#&gt;  [7] &quot;Connecticut&quot;          &quot;Delaware&quot;             &quot;District of Columbia&quot;</span>
+<span class="co">#&gt; [10] &quot;Florida&quot;</span>
+murders<span class="op">$</span>abb[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]
+<span class="co">#&gt;  [1] &quot;AL&quot; &quot;AK&quot; &quot;AZ&quot; &quot;AR&quot; &quot;CA&quot; &quot;CO&quot; &quot;CT&quot; &quot;DE&quot; &quot;DC&quot; &quot;FL&quot;</span></code></pre></div>
+<p>This means we can now order the state names by their total murders by first obtaining the index that orders the vectors according to murder totals, and then indexing the state names or abbreviation vector:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span><span class="kw">order</span>(murders<span class="op">$</span>total) 
+murders<span class="op">$</span>abb[ind] 
+<span class="co">#&gt;  [1] &quot;VT&quot; &quot;ND&quot; &quot;NH&quot; &quot;WY&quot; &quot;HI&quot; &quot;SD&quot; &quot;ME&quot; &quot;ID&quot; &quot;MT&quot; &quot;RI&quot; &quot;AK&quot; &quot;IA&quot; &quot;UT&quot; &quot;WV&quot;</span>
+<span class="co">#&gt; [15] &quot;NE&quot; &quot;OR&quot; &quot;DE&quot; &quot;MN&quot; &quot;KS&quot; &quot;CO&quot; &quot;NM&quot; &quot;NV&quot; &quot;AR&quot; &quot;WA&quot; &quot;CT&quot; &quot;WI&quot; &quot;DC&quot; &quot;OK&quot;</span>
+<span class="co">#&gt; [29] &quot;KY&quot; &quot;MA&quot; &quot;MS&quot; &quot;AL&quot; &quot;IN&quot; &quot;SC&quot; &quot;TN&quot; &quot;AZ&quot; &quot;NJ&quot; &quot;VA&quot; &quot;NC&quot; &quot;MD&quot; &quot;OH&quot; &quot;MO&quot;</span>
+<span class="co">#&gt; [43] &quot;LA&quot; &quot;IL&quot; &quot;GA&quot; &quot;MI&quot; &quot;PA&quot; &quot;NY&quot; &quot;FL&quot; &quot;TX&quot; &quot;CA&quot;</span></code></pre></div>
+<p>According to the above, California had the most murders.</p>
+</div>
+<div id="max-and-which.max" class="section level2">
+<h2><span class="header-section-number">7.3</span> <code>max</code> and <code>which.max</code></h2>
+<p>If we are only interested in the entry with the largest value we can use <code>max</code> for the value:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">max</span>(murders<span class="op">$</span>total)
+<span class="co">#&gt; [1] 1257</span></code></pre></div>
+<p>and <code>which.max</code> for the index of the largest value:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">i_max &lt;-<span class="st"> </span><span class="kw">which.max</span>(murders<span class="op">$</span>total)
+murders<span class="op">$</span>state[i_max]
+<span class="co">#&gt; [1] &quot;California&quot;</span></code></pre></div>
+<p>For the minimum we can use <code>min</code> and <code>which.min</code> in the same way.</p>
+<p>So is California the most dangerous state? In an upccoming section we argue that we should be considering rates not totals. Before doing that we introduce one last order related function: <code>rank</code></p>
+</div>
+<div id="rank" class="section level2">
+<h2><span class="header-section-number">7.4</span> <code>rank</code></h2>
+<p>Although not as frequently used as <code>order</code> and <code>sort</code>, the function <code>rank</code> is also related to order and can be useful. For any given vector it returns a vector with the rank of the first entry, second entry, etc., of the input vector. Here is a simple example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">31</span>, <span class="dv">4</span>, <span class="dv">15</span>, <span class="dv">92</span>, <span class="dv">65</span>)
+<span class="kw">rank</span>(x)
+<span class="co">#&gt; [1] 3 1 2 5 4</span></code></pre></div>
+<p>To summarize let’s look at the results of the three functions we have introduced:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">original</th>
+<th align="right">sort</th>
+<th align="right">order</th>
+<th align="right">rank</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">31</td>
+<td align="right">4</td>
+<td align="right">2</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">15</td>
+<td align="right">3</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">15</td>
+<td align="right">31</td>
+<td align="right">1</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="right">92</td>
+<td align="right">65</td>
+<td align="right">5</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="right">65</td>
+<td align="right">92</td>
+<td align="right">4</td>
+<td align="right">4</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="beware-of-recycling" class="section level2">
+<h2><span class="header-section-number">7.5</span> Beware of recycling</h2>
+<p>Another common source of unnoticed errors in R is the use of <em>recycling</em>. We saw that vectors are added elementwise. So if the vectors don’t match in length it is natural to assume that we should get an error. But we don’t. Notice what happens:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>)
+y &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>, <span class="dv">40</span>, <span class="dv">50</span>, <span class="dv">60</span>, <span class="dv">70</span>)
+x<span class="op">+</span>y
+<span class="co">#&gt; Warning in x + y: longer object length is not a multiple of shorter object</span>
+<span class="co">#&gt; length</span>
+<span class="co">#&gt; [1] 11 22 33 41 52 63 71</span></code></pre></div>
+<p>We do get a warning but no error. For the output, R has recycled the numbers in <code>x</code>: notice the last digit of numbers in the output.</p>
+</div>
+<div id="exercise" class="section level2 unnumbered">
+<h2>Exercise</h2>
+<p>For these exercises we will use the US murders dataset. Make sure you load it.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(murders)</code></pre></div>
+<ol style="list-style-type: decimal">
+<li><p>Use the <code>$</code> operator to access the population size data and store it the object <code>pop</code>. Then use the <code>sort</code> function to redefine <code>pop</code> so that it is sorted. Finally use the <code>[</code> operator to report the smallest population size.</p></li>
+<li><p>Now instead of the smallest population size, find the index of the entry with the smallest population size. Hint: use <code>order</code> instead of <code>sort</code>.</p></li>
+<li><p>We can actually perform the same operation as in the previous exercise using the function <code>which.min</code>. Write one line of code that does this.</p></li>
+<li><p>Now we know how small the smallest state is and we know which row represents it. However, which state is it? Define a variable <code>states</code> to be the state names from the <code>murders</code> data frame. Report the name of the state with the smallest population.</p></li>
+<li><p>You can create a data frame using the <code>data.frame</code> function. Here is a quick example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">temp &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">35</span>, <span class="dv">88</span>, <span class="dv">42</span>, <span class="dv">84</span>, <span class="dv">81</span>, <span class="dv">30</span>)
+city &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Beijing&quot;</span>, <span class="st">&quot;Lagos&quot;</span>, <span class="st">&quot;Paris&quot;</span>, <span class="st">&quot;Rio de Janeiro&quot;</span>, <span class="st">&quot;San Juan&quot;</span>, <span class="st">&quot;Toronto&quot;</span>)
+city_temps &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">name =</span> city, <span class="dt">temperature =</span> temp)</code></pre></div>
+<p>Use the <code>rank</code> function to determine the population size rank (from smallest to biggest) of each state. Save these ranks in an object called <code>ranks</code>, then create a data frame with the state name and its rank. Call the data frame <code>my_df</code>.</p></li>
+<li><p>Repeat the previous exercise but this time order <code>my_df</code> so that the states are ordered from least populous to most populous. Hint: create an object <code>ind</code> that stores the indexes needed to order the population values. Then use the bracket operator <code>[</code> to re-order each column in the data frame.</p></li>
+<li><p>The <code>na_example</code> represents a series of counts. You can quickly examine the object using:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(na_example)  
+<span class="kw">str</span>(na_example)
+<span class="co">#&gt;  int [1:1000] 2 1 3 2 1 3 1 4 3 2 ...</span></code></pre></div>
+<p>However, when we compute the average we obtain an <code>NA</code></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(na_example)
+<span class="co">#&gt; [1] NA</span></code></pre></div>
+<p>The <code>is.na</code> returns a logical vector that tells us which entries are <code>NA</code>. Assign this logical vector to an object called <code>ind</code> and determine how many <code>NA</code>s does <code>na_example</code> have.</p></li>
+<li><p>Now compute the average again, but only for the entries that are not <code>NA</code>. Hint: remember the <code>!</code> operator.</p></li>
+</ol>
 
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="vectors.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="vector-arithmetics.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -393,7 +530,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/R/sorting.Rmd",
 "text": "Edit"
 },
 "download": null,

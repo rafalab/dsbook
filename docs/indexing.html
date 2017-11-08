@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="introduction.html">
+<link rel="prev" href="vector-arithmetics.html">
+<link rel="next" href="basic-data-wrangling.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -345,26 +345,104 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Introduction to Data Science</h1>
-<h4 class="author"><em>Rafael A. Irizarry</em></h4>
-<h4 class="date"><em>2017-11-08</em></h4>
+<div id="indexing" class="section level1">
+<h1><span class="header-section-number">Chapter 9</span> Indexing</h1>
+<p>R provides a powerful and convenient way of indexing vectors. We can, for example, subset a vector based on properties of another vector. We continue our US murders example to demonstrate:</p>
+<div id="subsetting-with-logicals" class="section level2">
+<h2><span class="header-section-number">9.1</span> Subsetting with logicals</h2>
+<p>We have now calculated the murder rate using:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murder_rate &lt;-<span class="st"> </span>murders<span class="op">$</span>total <span class="op">/</span><span class="st"> </span>murders<span class="op">$</span>population <span class="op">*</span><span class="st"> </span><span class="dv">100000</span> </code></pre></div>
+<p>Imagine you are moving from Italy where, according to the ABC news report, the murder rate is only 0.71 per 100,000. You would prefer to move to a state with a similar murder rate. Another powerful feature of R is that we can we can use logicals to index vectors. If we compare a vector to a single number, it actually performs the test for each entry. The following is an example related to the question above:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span>murder_rate <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.71</span></code></pre></div>
+<p>Or if we want to know if its less or equal we can use:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span>murder_rate <span class="op">&lt;=</span><span class="st"> </span><span class="fl">0.71</span>
+ind
+<span class="co">#&gt;  [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE</span>
+<span class="co">#&gt; [12]  TRUE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE</span>
+<span class="co">#&gt; [23] FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE</span>
+<span class="co">#&gt; [34] FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE</span>
+<span class="co">#&gt; [45] FALSE  TRUE FALSE FALSE FALSE FALSE FALSE</span></code></pre></div>
+<p>Note that we get back a logical vector with <code>TRUE</code> for each entry smaller than or equal to 0.71. To see which states these are, we can leverage the fact that vectors can be indexed with logicals.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders<span class="op">$</span>state[ind]
+<span class="co">#&gt; [1] &quot;Hawaii&quot;        &quot;Iowa&quot;          &quot;New Hampshire&quot; &quot;North Dakota&quot; </span>
+<span class="co">#&gt; [5] &quot;Vermont&quot;</span></code></pre></div>
+<p>In order to count how many are TRUE, the function <code>sum</code> returns the sum of the entries of a vector and logical vectors get <em>coerced</em> to numeric with <code>TRUE</code> coded as 1 and <code>FALSE</code> as 0. Thus we can count the states using:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(ind)
+<span class="co">#&gt; [1] 5</span></code></pre></div>
 </div>
-<div id="preface" class="section level1 unnumbered">
-<h1>Preface</h1>
-<p>These are the class notes used in the <a href="https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x">HarvardX Data Science Series</a>. The code to generate the notes are available on <a href="https://github.com/rafalab/dsbook">GitHub</a>.</p>
-<p>We will be adding chapters during the next few months.</p>
-<p>For updates follow <a href="https://twitter.com/rafalab">@rafalab</a></p>
-<p>This work is licensed under the <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0</a> United States License.</p>
+<div id="logical-operators" class="section level2">
+<h2><span class="header-section-number">9.2</span> Logical operators</h2>
+<p>Suppose we like the mountains and we want to move to a safe state in the western region of the country. We want the murder rate to be at most 1. So we want two different things to be true. Here we can use the logical operator <em>and</em>, which in R is represented with <code>&amp;</code>. This operation results in <code>TRUE</code>, only when both logicals are <code>TRUE</code>. To see this consider this example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="ot">TRUE</span> <span class="op">&amp;</span><span class="st"> </span><span class="ot">TRUE</span>
+<span class="co">#&gt; [1] TRUE</span>
+<span class="ot">TRUE</span> <span class="op">&amp;</span><span class="st"> </span><span class="ot">FALSE</span>
+<span class="co">#&gt; [1] FALSE</span>
+<span class="ot">FALSE</span> <span class="op">&amp;</span><span class="st"> </span><span class="ot">FALSE</span>
+<span class="co">#&gt; [1] FALSE</span></code></pre></div>
+<p>For our exmaple, we can form two logicals:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">west &lt;-<span class="st"> </span>murders<span class="op">$</span>region <span class="op">==</span><span class="st"> &quot;West&quot;</span>
+safe &lt;-<span class="st"> </span>murder_rate <span class="op">&lt;=</span><span class="st"> </span><span class="dv">1</span></code></pre></div>
+<p>and we can use the <code>&amp;</code> to get a vector of logicals that tells us which states satisfy both conditions:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span>safe <span class="op">&amp;</span><span class="st"> </span>west
+murders<span class="op">$</span>state[ind]
+<span class="co">#&gt; [1] &quot;Hawaii&quot;  &quot;Idaho&quot;   &quot;Oregon&quot;  &quot;Utah&quot;    &quot;Wyoming&quot;</span></code></pre></div>
+</div>
+<div id="which" class="section level2">
+<h2><span class="header-section-number">9.3</span> <code>which</code></h2>
+<p>Suppose we want to look up California’s murder rate. For this type of operation, it is convenient to convert vectors of logicals into indexes instead of keeping long vectors of logicals. The function <code>which</code> tells us which entries of a logical vector are TRUE. So we can type:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span><span class="kw">which</span>(murders<span class="op">$</span>state <span class="op">==</span><span class="st"> &quot;California&quot;</span>)
+ind <span class="co">#this is the index that matches the California entry</span>
+<span class="co">#&gt; [1] 5</span>
+murder_rate[ind]
+<span class="co">#&gt; [1] 3.37</span></code></pre></div>
+</div>
+<div id="match" class="section level2">
+<h2><span class="header-section-number">9.4</span> <code>match</code></h2>
+<p>If instead of just one state we want to find out the murder rates for several, say New York, Florida, and Texas, we can use the function <code>match</code>. This function tells us which indexes of a second vector match each of the entries of a first vector:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span><span class="kw">match</span>(<span class="kw">c</span>(<span class="st">&quot;New York&quot;</span>, <span class="st">&quot;Florida&quot;</span>, <span class="st">&quot;Texas&quot;</span>), murders<span class="op">$</span>state)
+ind
+<span class="co">#&gt; [1] 33 10 44</span></code></pre></div>
+<p>Now we can look at the murder rates:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murder_rate[ind]
+<span class="co">#&gt; [1] 2.67 3.40 3.20</span></code></pre></div>
+</div>
+<div id="in" class="section level2">
+<h2><span class="header-section-number">9.5</span> <code>%in%</code></h2>
+<p>If rather than an index we want a logical that tells us whether or not each element of a first vector is in a second, we can use the function <code>%in%</code>. So, say you are not sure if Boston, Dakota and Washington are states, you can find out like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">c</span>(<span class="st">&quot;Boston&quot;</span>, <span class="st">&quot;Dakota&quot;</span>, <span class="st">&quot;Washington&quot;</span>) <span class="op">%in%</span><span class="st"> </span>murders<span class="op">$</span>state
+<span class="co">#&gt; [1] FALSE FALSE  TRUE</span></code></pre></div>
+<p>We will be using <code>%in%</code> often throughout the book.</p>
+<p><strong>Advanced</strong>: There is a connection between <code>match</code> and <code>%in%</code> through <code>which</code>. To see this, notice that the following two lines of code are equivalent:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">match</span>(<span class="kw">c</span>(<span class="st">&quot;New York&quot;</span>, <span class="st">&quot;Florida&quot;</span>, <span class="st">&quot;Texas&quot;</span>), murders<span class="op">$</span>state)
+<span class="co">#&gt; [1] 33 10 44</span>
+<span class="kw">which</span>(murders<span class="op">$</span>state<span class="op">%in%</span><span class="kw">c</span>(<span class="st">&quot;New York&quot;</span>, <span class="st">&quot;Florida&quot;</span>, <span class="st">&quot;Texas&quot;</span>))
+<span class="co">#&gt; [1] 10 33 44</span></code></pre></div>
+</div>
+<div id="exercises-4" class="section level2 unnumbered">
+<h2>Exercises</h2>
+<p>Start by loading the library and data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(murders)</code></pre></div>
+<ol style="list-style-type: decimal">
+<li><p>Compute the per 100,000 murder rate for each state and store it in an object called <code>murder_rate</code>. Then use the logical operators to create a logical vector, name it <code>low</code>; that tells us which entries of <code>murder_rate</code> are lower than</p></li>
+<li><p>Now use the results from the previous exercise and the function <code>which</code> to determine the indices of <code>murder_rate</code> associated with values lower than 1.</p></li>
+<li><p>Use the results from the previous exercise to report the names of the states with murder rates lower than 1.</p></li>
+<li><p>Now extend the code from exercise 2 and 3 to report the states in the Northeast with murder rates lower than 1. Hint: use the previously defined logical vector <code>low</code> and the logical operator <code>&amp;</code>.</p></li>
+<li><p>In a previous exercise we computed the murder rate for each rate and the average of these numbers. How many states are below the average?</p></li>
+<li><p>Use the match function to identify the states with abbreviations AK, MI, and IA. Hint: start by defining an index of the entries of <code>murders$abb</code> that match the three abbreviations, then use the <code>[</code> operator to extract the states.</p></li>
+<li><p>Use the <code>%in%</code> operator to create a logical vector that answers the question: which of the following are actual abbreviations: MA, ME, MI, MO, MU ?</p></li>
+<li><p>Extend the code you used in exercise 7 to report the one entry that is <strong>not</strong> an actual abbreviation. Hint: use the <code>!</code> operator, which turns <code>FALSE</code> into <code>TRUE</code> and vice versa, then <code>which</code> to obtain an index.</p></li>
+</ol>
 
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="vector-arithmetics.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="basic-data-wrangling.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -393,7 +471,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/R/indexing.Rmd",
 "text": "Edit"
 },
 "download": null,

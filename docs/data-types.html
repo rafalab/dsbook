@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="introduction.html">
+<link rel="prev" href="the-very-basics.html">
+<link rel="next" href="vectors.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -345,26 +345,155 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Introduction to Data Science</h1>
-<h4 class="author"><em>Rafael A. Irizarry</em></h4>
-<h4 class="date"><em>2017-11-08</em></h4>
+<div id="data-types" class="section level1">
+<h1><span class="header-section-number">Chapter 5</span> Data types</h1>
+<p>Variables in R can be of different types. For example, we need to distinguish numbers from character strings and tables from simple lists of numbers. The function <code>class</code> helps us determine what type of object we have:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">a &lt;-<span class="st"> </span><span class="dv">2</span>
+<span class="kw">class</span>(a)
+<span class="co">#&gt; [1] &quot;numeric&quot;</span></code></pre></div>
+<p>To work efficiently in R it is important to learn the different types of variables and what we can do with these.</p>
+<div id="data-frames" class="section level2">
+<h2><span class="header-section-number">5.1</span> Data frames</h2>
+<p>Up to now, the variables we have defined are just one number. This is not very useful for storing data. The most common way of storing a dataset in R is in a <em>data frame</em>. Conceptually, we can think of a data frame as a table with rows representing observations and the different variables reported for each observation defining the columns. Data frames are particularly useful for datasets because we can combine different data types into one object.</p>
+<p>We stored the data for our motivating example in a data frame. You can access this dataset by loading the <code>dslabs</code> library and loading the <code>murders</code> dataset using the <code>data</code> function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(murders)</code></pre></div>
+<p>To see that this is in fact a data frame we type:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(murders)
+<span class="co">#&gt; [1] &quot;data.frame&quot;</span></code></pre></div>
 </div>
-<div id="preface" class="section level1 unnumbered">
-<h1>Preface</h1>
-<p>These are the class notes used in the <a href="https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x">HarvardX Data Science Series</a>. The code to generate the notes are available on <a href="https://github.com/rafalab/dsbook">GitHub</a>.</p>
-<p>We will be adding chapters during the next few months.</p>
-<p>For updates follow <a href="https://twitter.com/rafalab">@rafalab</a></p>
-<p>This work is licensed under the <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0</a> United States License.</p>
+<div id="examining-an-object" class="section level2">
+<h2><span class="header-section-number">5.2</span> Examining an object</h2>
+<p>The function <code>str</code> is useful to find out more about the structure of an object:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(murders)
+<span class="co">#&gt; &#39;data.frame&#39;:    51 obs. of  5 variables:</span>
+<span class="co">#&gt;  $ state     : chr  &quot;Alabama&quot; &quot;Alaska&quot; &quot;Arizona&quot; &quot;Arkansas&quot; ...</span>
+<span class="co">#&gt;  $ abb       : chr  &quot;AL&quot; &quot;AK&quot; &quot;AZ&quot; &quot;AR&quot; ...</span>
+<span class="co">#&gt;  $ region    : Factor w/ 4 levels &quot;Northeast&quot;,&quot;South&quot;,..: 2 4 4 2 4 4 1 2 2 2 ...</span>
+<span class="co">#&gt;  $ population: num  4779736 710231 6392017 2915918 37253956 ...</span>
+<span class="co">#&gt;  $ total     : num  135 19 232 93 1257 ...</span></code></pre></div>
+<p>This tells us much more about the object. We see that the table has 51 rows (50 states plus DC) and five variables. We can show the first six lines using the function <code>head</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(murders)
+<span class="co">#&gt;        state abb region population total</span>
+<span class="co">#&gt; 1    Alabama  AL  South    4779736   135</span>
+<span class="co">#&gt; 2     Alaska  AK   West     710231    19</span>
+<span class="co">#&gt; 3    Arizona  AZ   West    6392017   232</span>
+<span class="co">#&gt; 4   Arkansas  AR  South    2915918    93</span>
+<span class="co">#&gt; 5 California  CA   West   37253956  1257</span>
+<span class="co">#&gt; 6   Colorado  CO   West    5029196    65</span></code></pre></div>
+<p>In this dataset each state is considered an observation and five variables are reported for each state.</p>
+<p>Before we go any further in answering our original question about different states, let’s learn more aboutthe components of this object.</p>
+</div>
+<div id="the-accessor" class="section level2">
+<h2><span class="header-section-number">5.3</span> The accessor</h2>
+<p>For our analysis we will need to access the different variables represented by columns included in this data frame. To access these variables we use the accessor operator <code>$</code> in the following way:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders<span class="op">$</span>population
+<span class="co">#&gt;  [1]  4779736   710231  6392017  2915918 37253956  5029196  3574097</span>
+<span class="co">#&gt;  [8]   897934   601723 19687653  9920000  1360301  1567582 12830632</span>
+<span class="co">#&gt; [15]  6483802  3046355  2853118  4339367  4533372  1328361  5773552</span>
+<span class="co">#&gt; [22]  6547629  9883640  5303925  2967297  5988927   989415  1826341</span>
+<span class="co">#&gt; [29]  2700551  1316470  8791894  2059179 19378102  9535483   672591</span>
+<span class="co">#&gt; [36] 11536504  3751351  3831074 12702379  1052567  4625364   814180</span>
+<span class="co">#&gt; [43]  6346105 25145561  2763885   625741  8001024  6724540  1852994</span>
+<span class="co">#&gt; [50]  5686986   563626</span></code></pre></div>
+<p>But how did we know to use population? Above, by applying the function <code>str</code> to the object <code>murders</code>, we revealed the names for each of the five variables stored in this table. We can quickly access the variable names using:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(murders)
+<span class="co">#&gt; [1] &quot;state&quot;      &quot;abb&quot;        &quot;region&quot;     &quot;population&quot; &quot;total&quot;</span></code></pre></div>
+<p>It is important to know that the order of the entries in <code>murders$population</code> preserves the order of the rows in our data table. This will later permit us to manipulate one variable based on the results of another. For example, we will be able to order the state names by the number of murders.</p>
+<p><strong>Tip</strong>: R comes with a very nice auto-complete functionality that saves us the trouble of typing out all the names. Try typing <code>murders$p</code> then hitting the <em>tab</em> key on your keyboard. This functionality and many other useful auto-complete features are availalbe when working in RStudio.</p>
+</div>
+<div id="vectors-numerics-characters-and-logical" class="section level2">
+<h2><span class="header-section-number">5.4</span> Vectors: numerics, characters, and logical</h2>
+<p>Note that the object <code>murders$population</code> is not one number, but several. We call these types of objects <em>vectors</em>. A single number is technically a vector, but in general we use vectors to refer to objects with several entries. The function <code>length</code> tells you how many entries are in the vector:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pop &lt;-<span class="st"> </span>murders<span class="op">$</span>population
+<span class="kw">length</span>(pop)
+<span class="co">#&gt; [1] 51</span></code></pre></div>
+<p>This particular vector is <em>numeric</em> since population sizes are numbers:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(pop)
+<span class="co">#&gt; [1] &quot;numeric&quot;</span></code></pre></div>
+<p>In a numeric vector, every entry must be a number.</p>
+<p>To store character strings, vectors can also be of class <em>character</em>. For example, the state names are characters:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(murders<span class="op">$</span>state)
+<span class="co">#&gt; [1] &quot;character&quot;</span></code></pre></div>
+<p>As with numeric vectors, all entries in a character vector need to be a character.</p>
+<p>Another important type are <em>logical vectors</em>. These must be either <code>TRUE</code> or <code>FALSE</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">z &lt;-<span class="st"> </span><span class="dv">3</span> <span class="op">==</span><span class="st"> </span><span class="dv">2</span>
+z
+<span class="co">#&gt; [1] FALSE</span>
+<span class="kw">class</span>(z)
+<span class="co">#&gt; [1] &quot;logical&quot;</span></code></pre></div>
+<p>Here the <code>==</code> is a relational operator asking if 3 is equal to 2. Remember that in R, if you just use one <code>=</code> you actually assign.</p>
+<p>You can see the other <em>relational operators</em> by typing:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">?Comparison</code></pre></div>
+<p>In future sections you will see how useful relational operators can be.</p>
+<p><strong>Advanced</strong>: Mathematically, the values in <code>pop</code> are integers and there is an integer class in R. However, by default, numbers are assigned class numeric even when they are round integers. For example, <code>class(1)</code> returns numeric. You can turn them into class integer with <code>as.integer(1)</code> or add by adding an <code>L</code> like this: <code>1L</code>. Note the class by typing: <code>class(1L)</code></p>
+</div>
+<div id="factors" class="section level2">
+<h2><span class="header-section-number">5.5</span> Factors</h2>
+<p>In the <code>murders</code> dataset we might expect the region to also be a character vector. However it is not:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(murders<span class="op">$</span>region)
+<span class="co">#&gt; [1] &quot;factor&quot;</span></code></pre></div>
+<p>It is a <em>factor</em>. Factors are useful for storing categorical data. We can notice that there are only 4 regions by using the <code>levels</code> function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">levels</span>(murders<span class="op">$</span>region)
+<span class="co">#&gt; [1] &quot;Northeast&quot;     &quot;South&quot;         &quot;North Central&quot; &quot;West&quot;</span></code></pre></div>
+<p>So, in the background, R stores these <em>levels</em> as integers and keeps a map to keep track of the labels. This is more memory efficient than storing all the characters. However, factors are also a source of confusion as they can easily be confused with characters, but behave differently in different contexts. Remember that factors and characters sometimes result in different behavior from R and that this is a common source of hard to find bugs in our code.</p>
+<p>In general, we recommend avoiding factors as much as possible, although they are sometimes necessary to fit models containing categorical data.</p>
+</div>
+<div id="lists" class="section level2">
+<h2><span class="header-section-number">5.6</span> Lists</h2>
+<p>Data frames are a special case of <em>lists</em>. We will cover lists in more detail later, but know that they are useful because you can store any combination of different types. Below is an example of a list we created for you:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">record
+<span class="co">#&gt; $name</span>
+<span class="co">#&gt; [1] &quot;John Doe&quot;</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $student_id</span>
+<span class="co">#&gt; [1] 1234</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $grades</span>
+<span class="co">#&gt; [1] 95 82 91 97 93</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $final_grade</span>
+<span class="co">#&gt; [1] &quot;A&quot;</span>
+<span class="kw">class</span>(record)
+<span class="co">#&gt; [1] &quot;list&quot;</span></code></pre></div>
+<p>We won’t be using lists until later, but you might encounter one in your own exploration of R. For this reason we show you some basics here.</p>
+<p>As with data frames, you can extract the components of a list with the accessor <code>$</code>. In fact, data frames are a type of list.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">record<span class="op">$</span>student_id
+<span class="co">#&gt; [1] 1234</span></code></pre></div>
+<p>We can also use double brackets like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">record[[<span class="st">&quot;student_id&quot;</span>]]
+<span class="co">#&gt; [1] 1234</span></code></pre></div>
+<p>You should get used to the fact that in R there are several ways to do the same thing, in particular accessing entries.</p>
+</div>
+<div id="exercises-1" class="section level2 unnumbered">
+<h2>Exercises</h2>
+<ol style="list-style-type: decimal">
+<li><p>Load the US murders dataset.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(<span class="st">&quot;murders&quot;</span>)</code></pre></div>
+<p>Use the function <code>str</code> to examine the structure of the <code>murders</code> object. We can see that this object is a data frame with 51 rows and five columns. Which of the following best describes the variables represented in this data frame:</p>
+<ol style="list-style-type: upper-alpha">
+<li>The 51 states</li>
+<li>The murder rates for all 50 states and DC</li>
+<li>The state name, the abbreviation of the state name, the state’s region, and the state’s population and total number of murders for 2010</li>
+<li><code>str</code> shows no relevant information</li>
+</ol></li>
+<li><p>What are the column names used by the data frame for these five variables?</p></li>
+<li><p>Use the accessor <code>$</code> to extract the state abbreviations and assign them to the object <code>a</code>. What is the class of this object?</p></li>
+<li><p>Now use the square brackets to extract the state abbreviations and assign them to the object <code>b</code>. Use the <code>identical</code> function to determine if <code>a</code> and <code>b</code> are the same.</p></li>
+<li><p>We saw that the <code>regions</code> column stores a factor. You can corroborate this by typing:</p></li>
+<li><p>The function <code>table</code> takes a vector and returns the frequency of each element. You can quickly see how many states are in each region by applying this function. Use this function in one line of code to create a table of states per region.</p></li>
+</ol>
 
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="the-very-basics.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="vectors.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -393,7 +522,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/R/data-types.Rmd",
 "text": "Edit"
 },
 "download": null,

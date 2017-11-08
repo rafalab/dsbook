@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="introduction.html">
+<link rel="prev" href="basic-data-wrangling.html">
+<link rel="next" href="importing-data.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -345,26 +345,56 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Introduction to Data Science</h1>
-<h4 class="author"><em>Rafael A. Irizarry</em></h4>
-<h4 class="date"><em>2017-11-08</em></h4>
+<div id="basic-plots" class="section level1">
+<h1><span class="header-section-number">Chapter 11</span> Basic plots</h1>
+<p>Exploratory data visualization is perhaps the strength of R. One can quickly go from idea to data to plot with a unique balance of flexibility and ease. For example, Excel may be easier than R, but it is nowhere near as flexible. D3.js may be more flexible and powerful than R, but it takes much longer to generate a plot. Before we focus on data visualization in the next chapter, we first we want to introduce some very basic plotting functions.</p>
+<div id="scatter-plots" class="section level2">
+<h2><span class="header-section-number">11.1</span> Scatter plots</h2>
+<p>Earlier we inferred that states with larger populations are likely to have more murders. This can be confirmed with an exploratory visualization that plots these two quantities against each other:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">population_in_millions &lt;-<span class="st"> </span>murders<span class="op">$</span>population<span class="op">/</span><span class="dv">10</span><span class="op">^</span><span class="dv">6</span>
+total_gun_murders &lt;-<span class="st"> </span>murders<span class="op">$</span>total
+<span class="kw">plot</span>(population_in_millions, total_gun_murders)</code></pre></div>
+<p><img src="book_files/figure-html/first-plot-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>We can clearly see a relationship. <strong>Advanced</strong>: For a quick plot that avoids accessing variables twice, we can use the <code>with</code> function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">with</span>(murders, <span class="kw">plot</span>(population, total))</code></pre></div>
 </div>
-<div id="preface" class="section level1 unnumbered">
-<h1>Preface</h1>
-<p>These are the class notes used in the <a href="https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x">HarvardX Data Science Series</a>. The code to generate the notes are available on <a href="https://github.com/rafalab/dsbook">GitHub</a>.</p>
-<p>We will be adding chapters during the next few months.</p>
-<p>For updates follow <a href="https://twitter.com/rafalab">@rafalab</a></p>
-<p>This work is licensed under the <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0</a> United States License.</p>
+<div id="histograms" class="section level2">
+<h2><span class="header-section-number">11.2</span> Histograms</h2>
+<p>We will describe histograms as they relate to distribution in the next chapter. Here we will simply note that histograms are a powerful graphical summary of a list of numbers that gives you a general overview of the types of values you have. We can make a histogram of our murder rates by simply typing:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(murders<span class="op">$</span>rate)</code></pre></div>
+<p><img src="book_files/figure-html/r-base-hist-1.png" width="70%" style="display: block; margin: auto;" /> We can see that there is a wide range of values with most of them between 2 and 3 and one very extreme case with a murder rate of more than 15:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders<span class="op">$</span>state[<span class="kw">which.max</span>(murders<span class="op">$</span>rate)]
+<span class="co">#&gt; [1] &quot;District of Columbia&quot;</span></code></pre></div>
+</div>
+<div id="boxplot" class="section level2">
+<h2><span class="header-section-number">11.3</span> Boxplot</h2>
+<p>Boxplots will be described in more detail in the next chapter as well. Boxplots provide a more terse summary than histograms, but they are easier to stack with other boxplots. For example, here we can use them to compare the different regions:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">boxplot</span>(rate<span class="op">~</span>region, <span class="dt">data =</span> murders)</code></pre></div>
+<p><img src="book_files/figure-html/r-base-boxplot-1.png" width="70%" style="display: block; margin: auto;" /> We can see that the South has larger murder rates than the other three regions.</p>
+</div>
+<div id="exercises-6" class="section level2 unnumbered">
+<h2>Exercises</h2>
+<ol style="list-style-type: decimal">
+<li><p>We made a plot of total murders versus population and noted a strong relationship: not surprisingly states with larger populations had more murders.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(murders)
+population_in_millions &lt;-<span class="st"> </span>murders<span class="op">$</span>population<span class="op">/</span><span class="dv">10</span><span class="op">^</span><span class="dv">6</span>
+total_gun_murders &lt;-<span class="st"> </span>murders<span class="op">$</span>total
+<span class="kw">plot</span>(population_in_millions, total_gun_murders)</code></pre></div>
+<p>Keep in mind that many states have populations below 5 million and are bunched up. We may gain further insights from making this plot in the log scale. Transform the variables using the <code>log10</code> transformation and then plot them.</p></li>
+<li><p>Create a histogram of the state populations.</p></li>
+<li><p>Generate boxplots of the state populations by region.</p></li>
+</ol>
 
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="basic-data-wrangling.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="importing-data.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -393,7 +423,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/R/basic-plots.Rmd",
 "text": "Edit"
 },
 "download": null,

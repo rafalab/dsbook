@@ -1,11 +1,11 @@
-## Robust summaries
+# Robust summaries
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 ds_theme_set()
 ```
 
-### Outliers
+## Outliers
 
 We previously described how boxplots show _outliers_, but we did not provide a precise definition. Here we discuss outliers, approaches that can help detect them, and summaries that take into account their presence.
 
@@ -42,7 +42,7 @@ There appears to be at least one value that is nonsensical, since we know that a
 boxplot(outlier_example)
 ```
 
-### Median
+## Median
 
 When we have an outlier like this, the average can become very large. Keep in mind that mathematically we can make the average as large as we want by simply changing one number: with `r length(outlier_example)` data points, we can increase the average by any amount $\Delta$ by adding $\Delta \times$ `r length(outlier_example)` to a single number. The median, defined as the value for which half the values are smaller and the other half are bigger, is robust to such outliers. No matter how large we make the largest point, the median remains the same. 
 
@@ -55,7 +55,7 @@ which is about `r floor(median(outlier_example))` feet and `r round(12*(median(o
 
 The median is what boxplots display as a horizontal line.
 
-### The inter quartile range
+## The inter quartile range (IQR)
 
 The box in boxplots are defined by the first and third quartile. These are meant to provide an idea of the variability in the data: 50% of the data is within this range. The difference between the 3rd and 1st quartile (or 75th and 25th percentiles) is referred to as the inter quartile range (IQR). As is the case with the median, this quantity will be robust to outliers as large values do not affect it. We can do some math to see that for normal data the IQR / 1.349 approximates the standard deviation of the data had an outlier not been present. We can see that this works well in our example since we get a standard deviation estimate of: 
 
@@ -66,7 +66,7 @@ IQR(outlier_example) / 1.349
 which is about `r round(IQR(outlier_example)/1.349*12)` inches.
 
 
-### Tukey's definition of an outlier
+## Tukey's definition of an outlier
 
 In R, points falling outside the whiskers of the boxplot are referred to as _outliers_. This definition of outlier was introduced by Tukey. The top whisker ends at the 75th percentile plus 1.5 $\times$ IQR. Similarly the bottom whisker ends at the 25th percentile minus 1.5$\times$ IQR. If we define the first and third quartiles as $Q_1$ and $Q_3$ respectively, then an outlier is anything outside the range: 
 
@@ -103,7 +103,7 @@ qqline(x)
 ```
 
 
-### Median absolute deviation
+## Median absolute deviation
 
 Another way to estimate the standard deviation in the presence of outliers is to use the median absolute deviation (MAD). To compute the MAD, we first compute the median, and then for each value we compute the distance between that value and the median. The MAD is defined as the median of these distances. For technical reasons not discussed here, this quantity needs to be multiplied by 1.4826 to assure it approximates the actual standard deviation. The `mad` function already incorporates this correction. For the height data we get a MAD of:
 
@@ -115,12 +115,12 @@ which is about `r round(mad(outlier_example)*12)` inches.
 
 
 
-### Exercises {-}
+## Exercises {-}
 
 Load the height data set and create a vector `x` with just the male heights used in Galton's data on the heights of parents and their children from his historic research on heredity.
 
 ```{r}
-##You can install data like this install.packages("HistData")
+##You can install data like this: install.packages("HistData")
 library(HistData)
 data(Galton)
 x <- Galton$child
@@ -174,6 +174,7 @@ reported_heights <- reported_heights %>%
 
 We get a warning about NAs. This is because some of the self reported heights were not numbers.
 We can see why we get these: 
+
 ```{r, warning=FALSE}
 reported_heights %>% 
   filter(is.na(height)) %>% 

@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="introduction.html">
+<link rel="prev" href="motivating-case-study.html">
+<link rel="next" href="data-types.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -345,26 +345,171 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Introduction to Data Science</h1>
-<h4 class="author"><em>Rafael A. Irizarry</em></h4>
-<h4 class="date"><em>2017-11-08</em></h4>
+<div id="the-very-basics" class="section level1">
+<h1><span class="header-section-number">Chapter 4</span> The Very Basics</h1>
+<p>Before we get started with the motivating dataset we need to cover the very basics of R.</p>
+<div id="objects" class="section level2">
+<h2><span class="header-section-number">4.1</span> Objects</h2>
+<p>Suppose a high school student asks us for help solving several quadratic equations of the form <span class="math inline">\(ax^2+bx+c = 0\)</span>. The quadratic formula gives us the solutions:</p>
+<p><span class="math display">\[
+\frac{-b - \sqrt{b^2 - 4ac}}{2a}\,\, \mbox{ and } \frac{-b + \sqrt{b^2 - 4ac}}{2a}
+\]</span> which of course change depending on the values of <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, and <span class="math inline">\(c\)</span>. One advantage of programming languages is that we can define variables and write expressions with these variables, similar to how we do so in math, but obtain a numeric solution. We will write out general code for the quadratic equation below, but if we are asked to solve <span class="math inline">\(x^2 + x -1 = 0\)</span> then we define:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">a &lt;-<span class="st"> </span><span class="dv">1</span>
+b &lt;-<span class="st"> </span><span class="dv">1</span>
+c &lt;-<span class="st"> </span><span class="op">-</span><span class="dv">1</span></code></pre></div>
+<p>which stores the values to use later. Note that we use <code>&lt;-</code> to assign values to the variables.</p>
+<p><em>Note</em>: We can assign using <code>=</code> instead of <code>&lt;-</code> but we recommend against using <code>=</code> to avoid confusion.</p>
+<p>Copy and paste the code above into your console to define the three variables. Note that R does not print anything when we make this assignment. This means the objects were defined successfully. Had you made a mistake you would have received an error message.</p>
+<p>To see the value stored in a variable we simply ask R to evaluate <code>a</code> and it shows the stored value:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">a
+<span class="co">#&gt; [1] 1</span></code></pre></div>
+<p>A more explicit way to ask R to show us the value stored in <code>a</code> is using <code>print</code> like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(a)
+<span class="co">#&gt; [1] 1</span></code></pre></div>
+<p>We use the term <em>object</em> to describe stuff that is stored in R. Variables are examples, but objects can also be more complicated entities such as functions, which are described later.</p>
 </div>
-<div id="preface" class="section level1 unnumbered">
-<h1>Preface</h1>
-<p>These are the class notes used in the <a href="https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x">HarvardX Data Science Series</a>. The code to generate the notes are available on <a href="https://github.com/rafalab/dsbook">GitHub</a>.</p>
-<p>We will be adding chapters during the next few months.</p>
-<p>For updates follow <a href="https://twitter.com/rafalab">@rafalab</a></p>
-<p>This work is licensed under the <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0</a> United States License.</p>
+<div id="the-workspace" class="section level2">
+<h2><span class="header-section-number">4.2</span> The Workspace</h2>
+<p>As we define object in the console, we are actually changing the <em>workspace</em>. You can see all the variables saved in your workspace by typing:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ls</span>()
+<span class="co">#&gt; [1] &quot;a&quot;            &quot;b&quot;            &quot;c&quot;            &quot;fifty_states&quot;</span>
+<span class="co">#&gt; [5] &quot;murders&quot;</span></code></pre></div>
+<p>In RStudio the <em>Environment</em> tab shows the values</p>
+<p><img src="R/img/rstudio-environment.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>We should see <code>a</code>, <code>b</code>, and <code>c</code>. If you try to recover the value of a variable that is not in your workspace, you receive an error. For example, if you type <code>x</code> you will receive the following message: <code>Error: object 'x' not found</code>.</p>
+<p>Now since these values are saved in variables, to obtain a solution to our equation we use the quadratic formula to obtain the answer:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(<span class="op">-</span>b <span class="op">+</span><span class="st"> </span><span class="kw">sqrt</span>(b<span class="op">^</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="dv">4</span><span class="op">*</span>a<span class="op">*</span>c) ) <span class="op">/</span><span class="st"> </span>( <span class="dv">2</span><span class="op">*</span>a )
+<span class="co">#&gt; [1] 0.618</span>
+(<span class="op">-</span>b <span class="op">-</span><span class="st"> </span><span class="kw">sqrt</span>(b<span class="op">^</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="dv">4</span><span class="op">*</span>a<span class="op">*</span>c) ) <span class="op">/</span><span class="st"> </span>( <span class="dv">2</span><span class="op">*</span>a )
+<span class="co">#&gt; [1] -1.62</span></code></pre></div>
+</div>
+<div id="functions" class="section level2">
+<h2><span class="header-section-number">4.3</span> Functions</h2>
+<p>Once you define variables, the data analysis process can usually be described as a series of <em>functions</em> applied to the data. R includes several predefined functions and most of the analysis pipelines we construct make extensive use of these.</p>
+<p>Note that we already used the <code>install.packages</code>, <code>library</code>, and <code>ls</code> functions. And we used the function <code>sqrt</code> to solve the quadratic equation above. There are many more prebuild functions and even more can be added through packages. These functions do not appear in the workspace because you did not define them, but they are available for immediate use.</p>
+<p>In general, to evaluate a function we need to uses parentheses. If you type <code>ls</code> the function is not evaluated and instead R shows you the code that defines the function. If you type <code>ls()</code> the function is evaluated and, as seen above, we see objects in the workspace.</p>
+<p>Unlike <code>ls</code>, most functions require one or more <em>arguments</em>. Here is an example of how we assign object to the argument of the function <code>log</code>. Remember that we defined <code>a</code> to be 1 above:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">log</span>(<span class="dv">8</span>)
+<span class="co">#&gt; [1] 2.08</span>
+<span class="kw">log</span>(a) 
+<span class="co">#&gt; [1] 0</span></code></pre></div>
+<p>You can find out what the function expects and what it does by reviewing the very useful manuals included in R. You can get help by using the <code>help</code> function like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">help</span>(<span class="st">&quot;log&quot;</span>)</code></pre></div>
+<p>and for most functions we can use the shorthand:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">?log</code></pre></div>
+<p>The help file will show you what arguments the function is expecting. For example, <code>log</code> needs <code>x</code> and <code>base</code> to run. However, some arguments are required and others are optional. You can determine which arguments are optional by noting, in the help document, that a default value is assigned with <code>=</code>. Defining these is optional. For example, the base of the function <code>log</code> defaults to <code>base = exp(1)</code> making <code>log</code> the natural log by default.</p>
+<p>If you want a quick look at the arguments without opening the help system you can type:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">args</span>(log)
+<span class="co">#&gt; function (x, base = exp(1)) </span>
+<span class="co">#&gt; NULL</span></code></pre></div>
+<p>You can change the default values by simply assigning another object:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">log</span>(<span class="dv">8</span>, <span class="dt">base =</span> <span class="dv">2</span>)
+<span class="co">#&gt; [1] 3</span></code></pre></div>
+<p>Note that we have not been specifying the argument <code>x</code> as such:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">log</span>(<span class="dt">x =</span> <span class="dv">8</span>, <span class="dt">base =</span> <span class="dv">2</span>)
+<span class="co">#&gt; [1] 3</span></code></pre></div>
+<p>The above code works, but we can save ourselves some typing because, if no argument name is used, R assumes you are entering arguments in the order shown in the help file or by <code>args</code>. So by not using the names, it assumes the arguments are <code>x</code> followed by <code>base</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">log</span>(<span class="dv">8</span>,<span class="dv">2</span>)
+<span class="co">#&gt; [1] 3</span></code></pre></div>
+<p>If using the arguments’ names, then we can include them in whatever order we want:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">log</span>(<span class="dt">base =</span> <span class="dv">2</span>, <span class="dt">x =</span> <span class="dv">8</span>)
+<span class="co">#&gt; [1] 3</span></code></pre></div>
+<p>To specify arguments we must use <code>=</code>, and cannot use <code>&lt;-</code>.</p>
+<p>There are some exceptions to the rule that functions need the parenthesis to be evaluated. Among these, the most commonly used are the arithmetic and relational operators. For example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="dv">2</span> <span class="op">^</span><span class="st"> </span><span class="dv">3</span>
+<span class="co">#&gt; [1] 8</span></code></pre></div>
+<p>You can see the arithmetic operators by typing:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">help</span>(<span class="st">&quot;+&quot;</span>) </code></pre></div>
+<p>or</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">?<span class="st">&quot;+&quot;</span></code></pre></div>
+<p>and the relational operators typing</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">help</span>(<span class="st">&quot;&gt;&quot;</span>) </code></pre></div>
+<p>or</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">?<span class="st">&quot;&gt;&quot;</span></code></pre></div>
+</div>
+<div id="other-prebuilt-objects" class="section level2">
+<h2><span class="header-section-number">4.4</span> Other prebuilt objects</h2>
+<p>There are several datasets that are included for users to practice and test out functions. You can see all the available datasets by typing</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>()</code></pre></div>
+<p>This shows you the object name for these datasets. These datasets are objects that can be used by simply typing the name, for example typing</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">co2</code></pre></div>
+<p>will show you Mauna Loa atmospheric CO2 concentration data.</p>
+<p>Other prebuilt objects are mathematical quantities such as the constant <span class="math inline">\(\pi\)</span> and <span class="math inline">\(\infty\)</span></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pi
+<span class="co">#&gt; [1] 3.14</span>
+<span class="ot">Inf</span><span class="op">+</span><span class="dv">1</span>
+<span class="co">#&gt; [1] Inf</span></code></pre></div>
+</div>
+<div id="variable-names" class="section level2">
+<h2><span class="header-section-number">4.5</span> Variable names</h2>
+<p>Here we used the letters <em>a</em>, <em>b</em>, and <em>c</em> as variable names, but variable names can be almost anything. Some basic rules in R is that they have to start with a letter, can’t contain spaces and we avoid variables that are predefined in R, for example don’t use <code>install.packages</code> as a variable name. Don’t type <code>install.packages &lt;- 2</code>!</p>
+<p>A nice convention to follow is to use meaningful words that describe what is stored, use only lower case, and use underscores as a substitute for spaces. For example, for the quadratic equations we could use something like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">solution_<span class="dv">1</span> &lt;-<span class="st"> </span>(<span class="op">-</span>b <span class="op">+</span><span class="st"> </span><span class="kw">sqrt</span>(b<span class="op">^</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="dv">4</span><span class="op">*</span>a<span class="op">*</span>c) ) <span class="op">/</span><span class="st"> </span>( <span class="dv">2</span><span class="op">*</span>a )
+solution_<span class="dv">2</span> &lt;-<span class="st"> </span>(<span class="op">-</span>b <span class="op">-</span><span class="st"> </span><span class="kw">sqrt</span>(b<span class="op">^</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="dv">4</span><span class="op">*</span>a<span class="op">*</span>c) ) <span class="op">/</span><span class="st"> </span>( <span class="dv">2</span><span class="op">*</span>a )</code></pre></div>
+</div>
+<div id="saving-your-workspace" class="section level2">
+<h2><span class="header-section-number">4.6</span> Saving your workspace</h2>
+<p>Values remain in the workspace until you end your session or you erase them with the function <code>rm</code>. But workspaces can be saved for later use. In fact, when you quit R, the programs asks you if you want to do this. If you do, the next time you start R, the program will restore the workspace.</p>
+<p>We actually recommend against saving the workspace this way because as you start working on different projects, it will become harder to keep track of what is saved. Instead we recommend you assign the workspace a specific name. You can do this by using the function <code>save</code> or <code>save.image</code>. To load you use the function <code>load</code>. When saving a workspace we recommend the suffix <code>rda</code> or <code>RData</code>. In RStudio, you can also do this by navigating to the <em>Session</em> tab and <em>Save Workspace as</em>. You can later load it using the <em>Load Workspace</em> options in the same tab. You can read the help pages on <code>save</code>, <code>save.image</code> and <code>load</code> to learn more.</p>
+</div>
+<div id="scripts-1" class="section level2">
+<h2><span class="header-section-number">4.7</span> Scripts</h2>
+<p>To solve another equation such as <span class="math inline">\(3x^2 + 2x -1\)</span> we can copy and paste the code above but this time redefine the variables and recompute the solution:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">a &lt;-<span class="st"> </span><span class="dv">3</span>
+b &lt;-<span class="st"> </span><span class="dv">2</span>
+c &lt;-<span class="st"> </span><span class="op">-</span><span class="dv">1</span>
+(<span class="op">-</span>b <span class="op">+</span><span class="st"> </span><span class="kw">sqrt</span>(b<span class="op">^</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="dv">4</span><span class="op">*</span>a<span class="op">*</span>c) ) <span class="op">/</span><span class="st"> </span>( <span class="dv">2</span><span class="op">*</span>a )
+(<span class="op">-</span>b <span class="op">-</span><span class="st"> </span><span class="kw">sqrt</span>(b<span class="op">^</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="dv">4</span><span class="op">*</span>a<span class="op">*</span>c) ) <span class="op">/</span><span class="st"> </span>( <span class="dv">2</span><span class="op">*</span>a )</code></pre></div>
+<p>By creating and saving a script with the code above, we would not need to retype everything each time and instead simply change the variable names. Try writing the script above into an editor and notice how much easier it is to change the variables and receive an answer.</p>
+</div>
+<div id="comments" class="section level2">
+<h2><span class="header-section-number">4.8</span> Comments</h2>
+<p>If a line of R code starts with the symbol <code>#</code> it is not evaluated. We can use this to write reminders of why we wrote a particular code. For example, in the script above we could add</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Code to compute solution to quadratic equation of the form ax^2 + bx + c
+## define the variables
+a &lt;-<span class="st"> </span><span class="dv">3</span> 
+b &lt;-<span class="st"> </span><span class="dv">2</span>
+c &lt;-<span class="st"> </span><span class="op">-</span><span class="dv">1</span>
 
+## now compute the solution
+(<span class="op">-</span>b <span class="op">+</span><span class="st"> </span><span class="kw">sqrt</span>(b<span class="op">^</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="dv">4</span><span class="op">*</span>a<span class="op">*</span>c) ) <span class="op">/</span><span class="st"> </span>( <span class="dv">2</span><span class="op">*</span>a )
+(<span class="op">-</span>b <span class="op">-</span><span class="st"> </span><span class="kw">sqrt</span>(b<span class="op">^</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="dv">4</span><span class="op">*</span>a<span class="op">*</span>c) ) <span class="op">/</span><span class="st"> </span>( <span class="dv">2</span><span class="op">*</span>a )</code></pre></div>
+</div>
+<div id="exercises" class="section level2 unnumbered">
+<h2>Exercises</h2>
+<ol style="list-style-type: decimal">
+<li><p>What is the sum of the first 100 positive integers? There is a formula that tells us the sum of integers <span class="math inline">\(1\)</span> through <span class="math inline">\(n\)</span>. It is <span class="math inline">\(n (n-1)/2\)</span>. Define <span class="math inline">\(n=100\)</span> and then use R to compute the sum of <span class="math inline">\(1\)</span> through <span class="math inline">\(100\)</span> using the formula. What is the sum?</p></li>
+<li><p>Now use the same formula to compute the sum of the integers from 1 through 1,000.</p></li>
+<li><p>Look at the result of typing the following code into R:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="dv">1000</span>
+x &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, n)
+<span class="kw">sum</span>(x)</code></pre></div>
+<p>Based on the result, what do you think the functions <code>seq</code> and <code>sum</code> do? You can use the help system:</p>
+<ol style="list-style-type: upper-alpha">
+<li><code>sum</code> creates a list of numbers and <code>seq</code> adds them up.</li>
+<li><code>seq</code> creates a list of numbers and <code>sum</code> adds them up.</li>
+<li><code>seq</code> computes the difference between two arguments and <code>sum</code> computes the sum of 1 through 1000.</li>
+<li><code>sum</code> always returns the same number</li>
+</ol></li>
+<li><p>In math and programming we say we evaluate a function when we replace the argument with a given number. So if we type <code>sqrt(4)</code>, we evaluate the <code>sqrt</code> function. In R you can evaluate a function inside another function. The evaluations happen from the inside out. Use one line of code to compute the log, in base 10, of the square root of 100.</p></li>
+<li><p>Which of the following will always return the numeric value stored in <code>x</code>? You can try out examples and use the help system if you want.</p>
+<ol style="list-style-type: upper-alpha">
+<li><code>log(10^x)</code></li>
+<li><code>log10(x^10)</code></li>
+<li><code>log(exp(x))</code></li>
+<li><code>exp(log(x, base = 2))</code></li>
+</ol></li>
+</ol>
+
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="motivating-case-study.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="data-types.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -393,7 +538,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/R/R-basics.Rmd",
 "text": "Edit"
 },
 "download": null,

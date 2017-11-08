@@ -1,8 +1,8 @@
-## Case study: Trends in world health and economics 
+# Case study: trends in world health and economics 
 
 In this section we will demonstrate how relatively simple ggplot2 code can create insightful and aesthetically pleasing plots that help us better understand trends in world health and economics. We later augment the code somewhat to perfect the plots and describe some general data visualization principles.
-
-### Example 1: Life expectancy and fertility rates
+ 
+## Example 1: Life expectancy and fertility rates
 
 [Hans Rosling](https://en.wikipedia.org/wiki/Hans_Rosling) was the co-founder of the [Gapminder Foundation](http://www.gapminder.org/), an organization dedicated to educating the public by using data to dispel common myths about the so-called developing world. The organization uses data to show how actual trends in health and economics contradict the narratives that emanate from sensationalist media coverage of catastrophes, tragedies and other unfortunate events. As stated in the Gapminder Foundation's website:
 
@@ -21,7 +21,7 @@ data(gapminder)
 head(gapminder)
 ```
 
-#### Hans Rosling's quiz {-}
+### Hans Rosling's quiz {-}
 
 As done in the _New Insights on Poverty_ video, we start by testing our knowledge regarding differences in child mortality across different countries. 
 
@@ -62,7 +62,7 @@ bind_cols(slice(tab,seq(1,9,2)), slice(tab,seq(2,10,2))) %>% knitr::kable()
 
 We see that the European countries on this list have higher child mortality rates: Poland has a higher rate than South Korea, and Russia has a higher rate than Malaysia. We also see that Pakistan has a much higher rate than Vietnam, and South Africa has a much higher rate than Thailand. It turns out that most people do worse than if they were guessing, which implies that more than ignorant, we are misinformed. 
 
-### A scatterplot
+### A scatterplot {-}
 
 The reason for this stems from the preconceived notion that the world is divided into two groups: the western world (Western Europe and North America), characterized by long life spans and small families, versus the developing world (Africa, Asia, and Latin America) characterized by short life spans and and large families. But, does the data support this dichotomous view?
 
@@ -91,7 +91,7 @@ filter(gapminder, year==1962) %>%
 
 So in 1962, "the west versus developing world" view was grounded in some reality. But is this still the case 50 years later?
 
-### Faceting
+## Faceting
 
 We could easily plot the 2012 data in the same way we did for 1962. But to compare, side by side plots are preferable. In ggplot2 we can achieve this by _faceting variables_: we stratify the data by some variable and make the same plot for each strata. 
 
@@ -115,7 +115,7 @@ filter(gapminder, year%in%c(1962, 2012)) %>%
 
 This plot clearly shows that the majority of countries have moved from the _developing world_ cluster to the _western world_ one. In 2012, the western versus developing world view no longer makes sense. This is particularly clear when comparing Europe to Asia, which includes several countries that have made great improvements. 
 
-#### `facet_wrap`
+### `facet_wrap` {-}
 
 To explore how this transformation happened through the years, we can make the plot for several years. For example, we can add 1970, 1980, 1990, and 2000. If we do this, we will not want all the plots on the same row, the default behavior of `facet_grid`, since they will become too thin to show the data. Instead we will want to use multiple rows and columns. The function `facet_wrap` permits us to do this by automatically wrapping the series of plots so that each display has viewable dimensions:
 
@@ -132,7 +132,7 @@ gapminder %>%
 
 This plot clearly shows how most Asian countries have improved at a much faster rate than European ones.
 
-### Fixed scales for better comparisons
+## Fixed scales for better comparisons
 
 The default choice of the range of the axes is an important one. When not using `facet`, this range is determined by the data shown in the plot. When using `facet`, this range is determined by the data shown in all plots and therefore kept fixed across plots. This makes comparisons across plots much easier. For example, in the above plot we can see that life expectancy has increased and the fertility has decreased across most countries. We see this because the cloud of points moves. This is not the case if we adjust the scales:
 
@@ -150,7 +150,7 @@ grid.arrange(p1, p2, ncol = 2)
 In the plot above we have to pay special attention to the range to notice that the plot on the right has a larger life expectancy.
 
 
-### Time series plots
+## Time series plots
 
 The visualizations above effectively illustrates that data no longer supports the western versus developing world view. Once we see these plots, new questions emerge. For example, which countries are improving more, which ones less? Was the improvement constant during the last 50 years or was it more accelerated during certain periods? For a closer look that may help answer these questions, we introduce _time series plots_.
 
@@ -205,7 +205,7 @@ gapminder %>% filter(country %in% countries) %>%
 
 The plot clearly shows how South Korea's fertility rate dropped drastically during the 60s and 70s and by 1990 had a similar rate to that of Germany.
 
-#### We prefer labels over legends {-}
+## Labels for legends 
 
 For trend plots we recommend labeling the lines rather than using legends since the viewer can quickly see which line is which country. This suggestion actually applies to most plots: labeling is usually preferred over legends.
 
@@ -224,11 +224,11 @@ gapminder %>%
 
 The plot clearly shows how an improvement in life expectancy followed the drops in fertility rates. In 1960 Germans lived 15 years longer than South Koreans, although by 2010 the gap is completely closed. It exemplifies the improvement that many non-western countries have achieved in the last 40 years.
 
-### Example 2: Income distribution
+## Example 2: Income distribution
 
 Another commonly held notion is that wealth distribution across the world has become worse during the last decades. When general audiences are asked if poor countries have become poorer and rich countries become richer, the majority answers yes. By using stratification, histograms, smooth densities, and boxplots, we will be able to understand if this is in fact the case. We will also learn how transformations can sometimes help provide more informative summaries and plots.
 
-### Transformations
+## Transformations
 
 The `gapminder` data table includes a column with the countries gross domestic product (GDP). GDP measures the market value of goods and services produced by a country in a year. The GDP per person is often used as a rough summary of a country's wealth. Here we divide this quantity by 365 to obtain the more interpretable measure _dollars per day_.  Using current US dollars as a unit, a person surviving on an income of less than $2 a day is defined to be living in _absolute povery_. We add this variable to the data table:
 
@@ -240,7 +240,7 @@ gapminder <- gapminder %>%  mutate(dollars_per_day = gdp/population/365)
 The GDP values are adjusted for inflation and represent current US dollars, so these values are meant to be comparable across the years. Of course, these are country averages and within each country there is much variability. All the graphs and insights described below relate to country averages and not to individuals.
 
 
-#### Country income distribution {-}
+### Country income distribution {-}
 
 Here is a histogram of per day incomes from 1970:
 
@@ -269,7 +269,7 @@ gapminder %>%
 
 In a way this provides a _close up_ of the mid to lower income countries.
 
-#### Which base? {-}
+### Which base? {-}
 
 In the case above we used base 2 in the log transformations. Other common choices are base $\mathrm{e}$ (the natural log) and base 10.
 
@@ -297,7 +297,7 @@ gapminder %>% filter(year == past_year) %>%
 
 In the above, we quickly see that country populations range between ten thousand and ten billion.
 
-#### Transform the values or the scale? {-}
+### Transform the values or the scale? {-}
 
 There are two ways we can use log transformations in plots. We can log the values before plotting them or use log scales in the axes. Both approaches are useful and have different strengths. If we log the data, we can more easily interpret intermediate values in the scale. For example, if we see  
 
@@ -323,13 +323,13 @@ Note that the log base 10 transformation has it's own function: `scale_x_log10()
 
 There are other transformations available through the `trans` argument. As we learn later on, the square root (`sqrt`) transformation, for example, is useful when considering counts. The logistic transformation (`logit`) is useful when plotting proportions between 0 and 1. The `reverse` transformation is useful when we want smaller values to be on the right or on top.
 
-### Modes
+### Modes {-}
 
 In statistics these bumps are sometimes referred to as _modes_. The mode of a distribution is the value with the highest frequency. The mode of the normal distribution is the average. When a distribution, like the one above, doesn't monotonically decrease from the mode, we call the locations where it goes up and down again local modes and say that the distribution has multiple modes.
 
 The histogram above suggest that the 1970 country income distribution has two modes: one at about 2 dollars per day (1 in the log 2 scale) and another at about 32 dollars per day (5 in the log 2 scale). This _bimodality_ is consistent with a dichotomous world made up of countries with average incomes less than $8 (3 in the log 2 scale) a day and countries above that. 
 
-### Stratify and boxplot
+## Stratify and boxplot
 
 The histogram showed us that the income distribution values show a dichotomy. However, the histogram does not show us if the two groups of countries are _west_ versus the _developing_ world.  
 
@@ -358,7 +358,7 @@ p + geom_boxplot() +
 We can already see that there is indeed a "west versus the rest"" dichotomy. 
 
 
-#### Do not order alphabetically {-}
+### Do not order alphabetically {-}
 
 There are a few more adjustments we can make to this plot that help uncover this reality. First, it helps to order the regions in the boxplots from poor to rich rather than alphabetically. This can be achieved using the `reorder` function. This function lets us change the order of the levels of a factor variable based on a summary computed on a numeric vector. Remember that many graphing functions coerce character vectors into a factor. The default behavior resutls in alphabetically ordered levels:
 
@@ -392,7 +392,7 @@ p + scale_y_continuous(trans = "log2")
 
 we are better able to see differences within the developing world.
 
-#### Show the data {-}
+### Show the data {-}
 
 In many cases we do not show the data because it adds clutter to the plot and obfuscates the message. In the example above, we don't have that many points so adding them actually lets us see all the data. We can add this layer using geom_point():
 
@@ -401,7 +401,7 @@ p + scale_y_continuous(trans = "log2") +
   geom_point(show.legend = FALSE) 
 ```
 
-### Comparing distributions
+## Comparing distributions
 
 The exploratory data analysis above has revealed two characteristics about average income distribution in 1970. Using a histogram we found a bimodal distribution with the modes relating to poor and rich countries. Then by stratifying by region and examining boxplots, we found that the rich countries were mostly in Europe and Northern America, along with Australia and New Zealand. We define a vector with these regions:
 
@@ -518,7 +518,7 @@ gapminder %>%
   scale_y_continuous(trans = "log2")  
 ```
   
-### Density plots
+### Density plots {-}
 
 We have used data exploration to discover that the income gap between rich and poor countries has narrowed considerably during the last 40 years. We used a series of histograms and boxplots to see this. Here we suggest a succinct way to convey this message with just one plot. We will use smooth density plots.
 
@@ -562,7 +562,7 @@ gapminder %>%
 
 which make it appear as if there are the same number of countries in each group. To change this, we will need to learn to access computed variables with `geom_density` function.
 
-### Accessing computed variables
+### Accessing computed variables {-}
 
 To have the areas of these densities be proportional to the size of the groups, we can simply multiply the y-axis values by the size of the group. From the `geom_density` help file we see that the functions compute a variable called `count` that does exactly this. We want this variable to be on the y-axis rather than the density.
 
@@ -639,7 +639,7 @@ Here we can clearly see how the distributions for East Asia, Latin America and o
 Notice that we order the levels of the group so that the West's density are plotted first, then Sub-Saharan Africa. Having the two extremes plotted first allows us see the remaining bimodality better.
 
 
-#### Weighted densities
+### Weighted densities {-}
 
 As a final point, we note that these distributions weigh every country the same. So if most of the population is improving, but living in a very large country, such as China, we might not appreciate this. We can actually weight the smooth densities using the `weight` mapping argument. The plot then looks like this:
 
@@ -655,7 +655,6 @@ gapminder %>%
 ```
 
 This particular figure shows very clearly how the income distribution gap is closing with most of the poor remaining in Sub-Saharan Africa.
-
 
 
 ## Ecological fallacy
@@ -700,7 +699,7 @@ surv_income %>% ggplot(aes(income, infant_survival_rate, label = group, color = 
 
 In this plot we introduce the use of the `limit` argument which lets us change the range of the axes. We are making the range larger than the data requires because we will later compare this plot to one with more variability and we want the ranges to be the same. We also introduce the `breaks` argument which lets us set the location of the axes labels. Finally, we introduce a new transformation, the logistic transformation.
 
-#### Logistic transformation {-}
+### Logistic transformation {-}
 The logistic or logit transformation for a proportion or rate $p$ is defined as: 
 
 $$f(p) = \log \left( \frac{p}{1-p} \right)$$
@@ -709,7 +708,7 @@ When $p$ is a proportion or probability, the quantity that is being logged, $p/(
 
 This scale is useful when we want to highlight differences near 0 or 1. For survival rates this is important because a survival rate of 90% is unacceptable, while a survival of 99% is relatively good. We would much prefer a survival rate closer to 99.9%. We want our scale to highlight these difference and the logit does this. Note that 99.9/0.1 is about 10 times bigger than 99/1 which is about 10 times larger than 90/10. And by using the log these fold changes turn into constant increases.
 
-#### Show the data {-}
+### Show the data {-}
 
 Now, back to our plot. Based on the plot above, do we conclude that a country with a low income is destined to have low survival rate? Do we conclude that all survival rates in Sub-Saharan Africa are all lower than in Southern Asia which in turn are lower than in the Pacific Islands, and so on?
 

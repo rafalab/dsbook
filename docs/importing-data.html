@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="introduction.html">
+<link rel="prev" href="basic-plots.html">
+<link rel="next" href="programming-basics.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -345,26 +345,65 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Introduction to Data Science</h1>
-<h4 class="author"><em>Rafael A. Irizarry</em></h4>
-<h4 class="date"><em>2017-11-08</em></h4>
+<div id="importing-data" class="section level1">
+<h1><span class="header-section-number">Chapter 12</span> Importing Data</h1>
+<p>In this chapter we used a data set already stored in an R object. A data scientist will rarely have such luck and will have to import data into R from either a file, a database, or other source. We cover this in more detail in Chapter 7. But because it is so common to read data from a file, we will briefly describe the key approach and function, in case you want to use your new knowledge on one of your own datasets.</p>
+<p>Small datasets such as the one used in this chapter are commonly stored as Excel files. Although there are R packages designed to read Excel (xls) format, you generally want to avoid this format and save files as comma delimited (Comma-Separated Value/CSV) or tab delimited (Tab-Separated Value/TSV/TXT) files. These plain-text formats make it easier to share data since commercial software is not required for working with the data.</p>
+<div id="paths-and-the-working-directory" class="section level3 unnumbered">
+<h3>Paths and the working directory</h3>
+<p>The first step is to find the file containing your data and know its <em>path</em>. When you are working in R it is useful to know your <em>working directory</em>. This is the folder in which R will save or look for files by default. You can see your working directory by typing:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">getwd</span>()</code></pre></div>
+<p>You can also change your working directory using the function <code>setwd</code>. Or you can change it through RStudio by clicking on “Session”.</p>
+<p>The functions that read and write files (there are several in R) assume you mean to look for files or write files in the working directory. Our recommended approach for beginners will have you reading and writing to the working directory. However, you can also type the <a href="http://www.computerhope.com/jargon/a/absopath.htm">full path</a>, which will work independently of the working directory.</p>
+<p>We have included the US murders data in CSV file as part of the <code>dslabs</code> package. We recommend placing your data in your working directory.</p>
+<p>Because knowing where packages store files is rather advanced, we provide the following code that finds the directory and copies the file:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dir &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="dt">package=</span><span class="st">&quot;dslabs&quot;</span>) <span class="co">#extracts the location of package</span>
+filename &lt;-<span class="st"> </span><span class="kw">file.path</span>(dir,<span class="st">&quot;extdata/murders.csv&quot;</span>)
+<span class="kw">file.copy</span>(filename, <span class="st">&quot;murders.csv&quot;</span>)
+<span class="co">#&gt; [1] TRUE</span></code></pre></div>
+<p>You should be able to see the file in your working directory and can check using:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">list.files</span>()
+<span class="co">#&gt;  [1] &quot;_bookdown.yml&quot; &quot;_common.R&quot;     &quot;_output.yml&quot;   &quot;book_cache&quot;   </span>
+<span class="co">#&gt;  [5] &quot;book_files&quot;    &quot;book.bib&quot;      &quot;book.Rmd&quot;      &quot;dataviz&quot;      </span>
+<span class="co">#&gt;  [9] &quot;docs&quot;          &quot;dsbook.Rproj&quot;  &quot;index.Rmd&quot;     &quot;intro&quot;        </span>
+<span class="co">#&gt; [13] &quot;intro.Rmd&quot;     &quot;LICENSE&quot;       &quot;murders.csv&quot;   &quot;packages.bib&quot; </span>
+<span class="co">#&gt; [17] &quot;preamble.tex&quot;  &quot;R&quot;             &quot;README.md&quot;     &quot;style.css&quot;</span></code></pre></div>
 </div>
-<div id="preface" class="section level1 unnumbered">
-<h1>Preface</h1>
-<p>These are the class notes used in the <a href="https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x">HarvardX Data Science Series</a>. The code to generate the notes are available on <a href="https://github.com/rafalab/dsbook">GitHub</a>.</p>
-<p>We will be adding chapters during the next few months.</p>
-<p>For updates follow <a href="https://twitter.com/rafalab">@rafalab</a></p>
-<p>This work is licensed under the <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0</a> United States License.</p>
+<div id="read.csv" class="section level2">
+<h2><span class="header-section-number">12.1</span> <code>read.csv</code></h2>
+<p>We are ready to read in the file. There are several functions for reading in tables. Here we introduce one included in base R:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dat &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;murders.csv&quot;</span>)
+<span class="kw">head</span>(dat)
+<span class="co">#&gt;        state abb region population total</span>
+<span class="co">#&gt; 1    Alabama  AL  South    4779736   135</span>
+<span class="co">#&gt; 2     Alaska  AK   West     710231    19</span>
+<span class="co">#&gt; 3    Arizona  AZ   West    6392017   232</span>
+<span class="co">#&gt; 4   Arkansas  AR  South    2915918    93</span>
+<span class="co">#&gt; 5 California  CA   West   37253956  1257</span>
+<span class="co">#&gt; 6   Colorado  CO   West    5029196    65</span></code></pre></div>
+<p>We can see that we have read in the file.</p>
+<p>Warning: <code>read.csv</code> automatically converts characters to factors. Note for example that:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(dat<span class="op">$</span>state)
+<span class="co">#&gt; [1] &quot;factor&quot;</span></code></pre></div>
+<p>You can avoid this using:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dat &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;murders.csv&quot;</span>, <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)
+<span class="kw">class</span>(dat<span class="op">$</span>state)
+<span class="co">#&gt; [1] &quot;character&quot;</span></code></pre></div>
+<p>With this call the region variable is no longer a factor, but we can easily change this with:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dat &lt;-<span class="st"> </span><span class="kw">mutate</span>(dat, <span class="dt">region =</span>  <span class="kw">as.factor</span>(region))</code></pre></div>
+<p>Now that we are done with this example we remove the <code>murders.csv</code> file from our working directory</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">file.remove</span>(<span class="st">&quot;murders.csv&quot;</span>)
+<span class="co">#&gt; [1] TRUE</span></code></pre></div>
 
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="basic-plots.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="programming-basics.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -393,7 +432,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/R/importing-data.Rmd",
 "text": "Edit"
 },
 "download": null,

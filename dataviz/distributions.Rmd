@@ -1,11 +1,11 @@
-## Distributions
+# Distributions
 
 You may have noticed that numerical data is often summarized with the _average_ value. For example, the quality of a high school is sometimes summarized with one number: the average score on a standardized test. Occasionally, a second number is reported: the _standard deviation_. So, for example, you might read a report stating that scores were 680 plus or minus 50 (the standard deviation). The report has summarized an entire vector of scores with with just two numbers. Is this appropriate? Is there any important piece of information that we are missing by only looking at this summary rather than the entire list? 
 
 Our first data visualization building block is learning to summarize lists of factors or numeric vectors. The most basic statistical summary of a list of objects or numbers is its distribution. Once a vector has been summarized as distribution, there are several data visualization techniques to effectively relay this information.
 
 
-### Case study: student heights
+## Case study: student heights
 
 Here we introduce a new motivating problem. It is an artificial one, but it will help us illustrate the concepts needed to understand distributions. 
 
@@ -24,7 +24,8 @@ head(heights)
 One way to convey the heights to ET is to simply send him this list of `r nrow(heights)` heights. But there are much more effective ways to convey this information and understanding the concept of a distribution will help. To simplify the explanation, at first we focus on male heights. 
 
 
-### Distribution function
+
+## Distribution function
 
 It turns that, in some cases, the average and the standard deviation are pretty much all we need to understand the data. We will learn data visualization techniques that will help us determine when this two number summary is appropriate. These same techniques will serve as an alternative for when two numbers is not enough.
 
@@ -48,7 +49,7 @@ murders %>% group_by(region) %>%
 
 This particular plot is simply showing us four numbers: one for each category. We usually use barplots to display a few numbers. Although, this particular plot, a graphical representation of a frequency table, does not provide much more insight than a table itself, it is a first example of how we convert a vector into a plot that succinctly summarizes all the information in the vector. Once the data is numerical, the task of displaying distributions is more challenging.  
 
-### Cumulative distribution functions
+## Cumulative distribution functions
 
 Numerical data, that are not categorical, also have distributions. In general, when data is not categorical, reporting the frequency of each entry is not an effective summary since most entries are unique. For example, while several students reported a height of 68 inches, only one student reported a height of `68.503937007874` inches and  only one student reported a height `68.8976377952756` inches. We assume that they converted from 174 and 175 centimeters respectively.
 
@@ -72,7 +73,7 @@ etc.. In fact, we can report the proportion of values between any two heights, s
 A final note: because CDFs can be defined mathematically, as opposed to using data as we do here, the word _empirical_ is added to distinguish and we use the term empirical CDF (ECDF) instead. 
 
 
-### Histograms
+## Histograms
 
 Although the CDF concept is widely discussed in statistics textbooks, the plot is actually not very popular in practice. The main reason is that it does not easily convey characteristics of interest such as: at what value is the distribution centered? Is the distribution symmetric? What ranges contain 95% of the values? Histograms are much preferred because they greatly facilitate answering such questions. Histograms sacrifice just a bit of information to produce plots that are much easier to interpret. 
 
@@ -179,7 +180,7 @@ We need to make this choice with care as the resulting visualizations can change
 While the histogram is an assumption free summary, the smoothed density is based on some assumptions. 
 
 
-#### Interpreting the y-axis {-}
+### Interpreting the y-axis {-}
 
 Finally, we point out that interpreting the y-axis of a smooth density plot is not straightforward. It is scaled so that the area under the density curve adds up to 1. So if you imagine we form a bin with a base 1 unit in length, the y-axis value tells us the proportion of values in that bin. But this is only true for bins of size 1. For other sized intervals, the best way to determine the proportion of data in that interval is by computing the proportion of the total area contained in that interval. For example, here are the proportion of values between 65 and 68:
 
@@ -202,7 +203,7 @@ heights %>%
 ```
 
 
-#### Densities permit stratification {-}
+### Densities permit stratification {-}
 
 As a final note, we point out that an advantage of smooth densities over histograms for visualization purposes is that densities makes it easier to compare two distributions. This is in large part because the jagged edges of the histogram add clutter. Here is an example comparing male and female heights:
 
@@ -215,7 +216,7 @@ heights %>%
 With the right argument, `ggplot` automatically shades the intersecting region with a different color.
 
 
-### Exercises {-}
+## Exercises {-}
 
 
 1. In the murders dataset, the region is a categorical variable and the following is its distribution:
@@ -352,7 +353,7 @@ grid.arrange(p1,p2,p3,ncol=2)
     D. They are the same dataset, but the first is not in the log scale, the second undersmooths and the third oversmooths.
   
 
-## Normal Distribution
+## The normal distribution
 
 Histograms and density plots provide excellent summaries of a distribution. But can we summarize even further? We often see the average and standard deviation used as summary statistics: a two number summary! To understand what these summaries are and why they are so widely used, we need to understand the normal distribution. 
 
@@ -431,7 +432,6 @@ mean(abs(z) < 2)
 The proportion is about 95% which is what the normal distribution predicts! To further confirm that in fact the approximation is a good one, we can use quantile-quantile plots.
 
 
-
 ### Quantile-quantile QQ plots
 
 A systematic way to assess how well the normal distribution fits the data is to check if the observed and predicted proportions match. In general, the approach of the QQ-plot is as follows:
@@ -476,7 +476,7 @@ plot(theoretical_quantiles, observed_quantiles)
 abline(0,1)
 ```
 
-### Percentiles 
+## Percentiles 
 
 Before we move on, let's define some terms that are commonly used in exploratory data analysis.
 
@@ -486,12 +486,12 @@ For the normal distribution the _median_ and average are the same, but this is g
 
 Another special case that receives a name are the _quartiles_ which are obtained when setting $p=0.25,0.50$, and $0.75$. 
 
-#### Summarizing male heights with two numbers {-}
+## Case study coninued: summarizing male heights with two numbers 
 
 Using the histogram, density plots and qq-plots, we have become convinced that the male height data is well approximated with a normal distribution. In this case, we report back to ET a very succinct summary: male heights follow a normal distribution with an average of `r average` inches and a SD of `r SD` inches. With this information ET will have everything he needs to know what to expect when he meets our male students.
 
 
-### Exercises {-}
+## Exercises {-}
 
 1. Load the height data set and create a vector `x` with just the male heights:
 
@@ -574,7 +574,7 @@ heights %>% ggplot(aes(x=sex, y=height, fill=sex)) +
 The plot immediately reveals that males are, on average, taller than females. The standard deviations appear to be similar. 
 
   
-## Case study: are female student heights normally distributed?
+## Case study continued: female student heights
  
 We have to give ET a full summary of our heights, but we have not yet summarized female heights. We expect that they will follow a normal distribution, just like males. However, exploratory plots reveal that the approximation is not as useful:
  

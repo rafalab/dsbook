@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="introduction.html">
+<link rel="prev" href="importing-data.html">
+<link rel="next" href="matrices.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -345,26 +345,262 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Introduction to Data Science</h1>
-<h4 class="author"><em>Rafael A. Irizarry</em></h4>
-<h4 class="date"><em>2017-11-08</em></h4>
-</div>
-<div id="preface" class="section level1 unnumbered">
-<h1>Preface</h1>
-<p>These are the class notes used in the <a href="https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x">HarvardX Data Science Series</a>. The code to generate the notes are available on <a href="https://github.com/rafalab/dsbook">GitHub</a>.</p>
-<p>We will be adding chapters during the next few months.</p>
-<p>For updates follow <a href="https://twitter.com/rafalab">@rafalab</a></p>
-<p>This work is licensed under the <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0</a> United States License.</p>
+<div id="programming-basics" class="section level1">
+<h1><span class="header-section-number">Chapter 13</span> Programming basics</h1>
+<p>We teach R because it greatly facilitates data analysis, the main topic of this book. By coding in R, we can efficiently perform exploratory data analysis, build data analysis pipelines and prepare data visualization to communicate results. However R is not just a data analysis environment but a programming language. Advanced R programmers can develop complex packages and even improve R itself, but we do not cover advanced programming in this book. Nonetheless, in this section we introduce three key programming concepts: conditional expressions, for-loops and functions. These are not just key building blocks for advanced programming, but are sometimes useful during data analysis. We also provide a list of power functions that we do not cover in the book but are worth exploring since they are powerful tools commonly used by expert data analysts.</p>
+<div id="conditionals-expressions" class="section level2">
+<h2><span class="header-section-number">13.1</span> Conditionals expressions</h2>
+<p>Conditional expressions are one of the basic features of programming. They are used for what is called <em>flow control</em>. The most common conditional expression is the if-else statement. In R, we can actually perform quite a bit of data analysis without conditionals. However, they do come up occasionally and once you start writing your own functions and packages, you will need them.</p>
+<p>Here is a very simple example showing the general structure of an if-else statement. The basic idea is to print the reciprocal of <code>a</code> unless <code>a</code> is 0:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">a &lt;-<span class="st"> </span><span class="dv">0</span>
 
+<span class="cf">if</span>(a<span class="op">!=</span><span class="dv">0</span>){
+  <span class="kw">print</span>(<span class="dv">1</span><span class="op">/</span>a)
+} <span class="cf">else</span>{
+  <span class="kw">print</span>(<span class="st">&quot;No reciprocal for 0.&quot;</span>)
+}
+<span class="co">#&gt; [1] &quot;No reciprocal for 0.&quot;</span></code></pre></div>
+<p>Let’s look at one more example using the US murders data frame:</p>
+<p>Here is a very simple example that tells us which states, if any, have a murder rate lower than 0.5 per 100,000. The if statement protects us from the case in which no state satisfies the condition.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span><span class="kw">which.min</span>(murder_rate)
+
+<span class="cf">if</span>(murder_rate[ind] <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.5</span>){
+  <span class="kw">print</span>(murders<span class="op">$</span>state[ind]) 
+} <span class="cf">else</span>{
+  <span class="kw">print</span>(<span class="st">&quot;No state has murder rate that low&quot;</span>)
+}
+<span class="co">#&gt; [1] &quot;Vermont&quot;</span></code></pre></div>
+<p>If we try it again with a rate of 0.25 we get a different answer:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">if</span>(murder_rate[ind] <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.25</span>){
+  <span class="kw">print</span>(murders<span class="op">$</span>state[ind]) 
+} <span class="cf">else</span>{
+  <span class="kw">print</span>(<span class="st">&quot;No state has a murder rate that low.&quot;</span>)
+}
+<span class="co">#&gt; [1] &quot;No state has a murder rate that low.&quot;</span></code></pre></div>
+<p>A related function that is very useful is <code>ifelse</code>. This function takes three arguments: a logical and two possible answers. If the logical is <code>TRUE</code> the value in the second argument is returned and if <code>FALSE</code> the value in the third argument is returned. Here is an example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">a &lt;-<span class="st"> </span><span class="dv">0</span>
+<span class="kw">ifelse</span>(a <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>, <span class="dv">1</span><span class="op">/</span>a, <span class="ot">NA</span>)
+<span class="co">#&gt; [1] NA</span></code></pre></div>
+<p>The function is particularly useful because it works on vectors. It examines each entry of the logical vector and returns elements from the vector provided in the second argument if the entry is <code>TRUE</code> or elements from the vector provided in the third argument if the entry is <code>FALSE</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">a &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">4</span>,<span class="dv">5</span>)
+result &lt;-<span class="st"> </span><span class="kw">ifelse</span>(a <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>, <span class="dv">1</span><span class="op">/</span>a, <span class="ot">NA</span>)</code></pre></div>
+<p>This table helps us see what happened:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">a</th>
+<th align="left">is_a_positive</th>
+<th align="right">answer1</th>
+<th align="left">answer2</th>
+<th align="right">result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0</td>
+<td align="left">FALSE</td>
+<td align="right">Inf</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">1.00</td>
+<td align="left">NA</td>
+<td align="right">1.0</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">TRUE</td>
+<td align="right">0.50</td>
+<td align="left">NA</td>
+<td align="right">0.5</td>
+</tr>
+<tr class="even">
+<td align="right">-4</td>
+<td align="left">FALSE</td>
+<td align="right">-0.25</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">TRUE</td>
+<td align="right">0.20</td>
+<td align="left">NA</td>
+<td align="right">0.2</td>
+</tr>
+</tbody>
+</table>
+<p>Here is an example of how this function can be readily used to replace all the missing values in a vector with zeros:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(na_example)
+no_nas &lt;-<span class="st"> </span><span class="kw">ifelse</span>(<span class="kw">is.na</span>(na_example), <span class="dv">0</span>, na_example) 
+<span class="kw">sum</span>(<span class="kw">is.na</span>(no_nas))
+<span class="co">#&gt; [1] 0</span></code></pre></div>
+<p>Two other useful functions are <code>any</code> and <code>all</code>. The <code>any</code> function takes a vector of logicals and returns <code>TRUE</code> if any of the entries is <code>TRUE</code>. The <code>all</code> function takes a vector of logicals and returns <code>TRUE</code> if all of the entries are <code>TRUE</code>. Here is an example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">z &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="ot">TRUE</span>, <span class="ot">TRUE</span>, <span class="ot">FALSE</span>)
+<span class="kw">any</span>(z)
+<span class="co">#&gt; [1] TRUE</span>
+<span class="kw">all</span>(z)
+<span class="co">#&gt; [1] FALSE</span></code></pre></div>
+</div>
+<div id="defining-functions" class="section level2">
+<h2><span class="header-section-number">13.2</span> Defining functions</h2>
+<p>As you become more experienced, you will find yourself needing to perform the same operations over and over. A simple example is computing averages. We can compute the average of a vector <code>x</code> using the <code>sum</code> and <code>length</code> functions: <code>sum(x)/length(x)</code>. But because we do this repeatedly, it is much more efficient to write a function that performs this operation. This particular operation is so common that someone already wrote the <code>mean</code> function and it is included in base R. However, you will encounter situations in which the function does not already exist so R permits you to write your own. A simple version of function that computes the average can be defined like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">avg &lt;-<span class="st"> </span><span class="cf">function</span>(x){
+  s &lt;-<span class="st"> </span><span class="kw">sum</span>(x)
+  n &lt;-<span class="st"> </span><span class="kw">length</span>(x)
+  s<span class="op">/</span>n
+}</code></pre></div>
+<p>Now <code>avg</code> is a function that computes the mean:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">100</span>
+<span class="kw">identical</span>(<span class="kw">mean</span>(x), <span class="kw">avg</span>(x))
+<span class="co">#&gt; [1] TRUE</span></code></pre></div>
+<p>Notice that variables defined inside a function are not saved in the workspace. So while we use <code>s</code> and <code>n</code> when we call <code>avg</code>, the values are created and changed only during the call. Here is an illustrative example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s &lt;-<span class="st"> </span><span class="dv">3</span>
+<span class="kw">avg</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>)
+<span class="co">#&gt; [1] 5.5</span>
+s
+<span class="co">#&gt; [1] 3</span></code></pre></div>
+<p>Note how <code>s</code> is still 3 after we call <code>avg</code>.</p>
+<p>In general, functions are objects, so we assign them to variable names with <code>&lt;-</code>. The function <code>function</code> tells R you are about to define a function. The general form of a function definition looks like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my_function &lt;-<span class="st"> </span><span class="cf">function</span>(VARIABLE_NAME){
+  perform operations on VARIABLE_NAME and calculate VALUE
+  VALUE
+}</code></pre></div>
+<p>The functions you define can have multiple arguments as well as default values. For example, we can define a function that computes either the arithmetic or geometric average depending on a user defined variable like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">avg &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">arithmetic =</span> <span class="ot">TRUE</span>){
+  n &lt;-<span class="st"> </span><span class="kw">length</span>(x)
+  <span class="kw">ifelse</span>(arithmetic, <span class="kw">sum</span>(x)<span class="op">/</span>n, <span class="kw">prod</span>(x)<span class="op">^</span>(<span class="dv">1</span><span class="op">/</span>n))
+}</code></pre></div>
+<p>We will learn more about how to create functions through experience as we face more complex tasks.</p>
+</div>
+<div id="for-loops" class="section level2">
+<h2><span class="header-section-number">13.3</span> For-loops</h2>
+<p>The formula for the sum <span class="math inline">\(1+2+\dots+n\)</span> is <span class="math inline">\(n(n+1)/2\)</span>. What if we weren’t sure that was the right function? How could we check? Using what we learned about functions we can create one that computes the <span class="math inline">\(S_n\)</span>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">compute_s_n &lt;-<span class="st"> </span><span class="cf">function</span>(n){
+  x &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span>n
+  <span class="kw">sum</span>(x)
+}</code></pre></div>
+<p>Now if we can compute <span class="math inline">\(S_n\)</span> for various vales of <span class="math inline">\(n\)</span>, say <span class="math inline">\(n=1,\dots,25\)</span> how do we do it? Do we write 25 lines of code calling <code>compute_s_n</code>? No, that is what for loops are for in programming. In this case, we are performing exactly the same task over and over and the only thing that is changing is the value of <span class="math inline">\(n\)</span>. For loops let us define the range that our variable takes (in our example <span class="math inline">\(n=1,\dots,10\)</span>), then change the value as you <em>loop</em> and evaluate expression as you loop.</p>
+<p>Perhaps the simplest example of a for loop is this useless piece of code:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">5</span>){
+  <span class="kw">print</span>(i)
+}
+<span class="co">#&gt; [1] 1</span>
+<span class="co">#&gt; [1] 2</span>
+<span class="co">#&gt; [1] 3</span>
+<span class="co">#&gt; [1] 4</span>
+<span class="co">#&gt; [1] 5</span></code></pre></div>
+<p>And here is the for loop we would write for our <span class="math inline">\(S_n\)</span> example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">m &lt;-<span class="st"> </span><span class="dv">25</span>
+s_n &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="dt">length =</span> m) <span class="co"># create an empty vector</span>
+<span class="cf">for</span>(n <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>m){
+  s_n[n] &lt;-<span class="st"> </span><span class="kw">compute_s_n</span>(n)
+}</code></pre></div>
+<p>In each iteration <span class="math inline">\(n=1\)</span>, <span class="math inline">\(n=2\)</span>, etc…, we compute <span class="math inline">\(S_n\)</span> and store it in the <span class="math inline">\(n\)</span>th entry of <code>s_n</code>.</p>
+<p>Now we can create a plot to search for a pattern:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span>m
+<span class="kw">plot</span>(n, s_n)</code></pre></div>
+<p><img src="book_files/figure-html/sum-of-consecutive-squares-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>If you noticed that it appears to be a quadratic, you are on the right track because the formula is <span class="math inline">\(n(n+1)/2\)</span> which we can confirm with a table:</p>
+<pre><code>#&gt;   s_n formula
+#&gt; 1   1       1
+#&gt; 2   3       3
+#&gt; 3   6       6
+#&gt; 4  10      10
+#&gt; 5  15      15
+#&gt; 6  21      21</code></pre>
+<p>We can also overlay the two results by using the function <code>lines</code> to draw a line over the previously plotted points:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(n, s_n)
+<span class="kw">lines</span>(n, n<span class="op">*</span>(n<span class="op">+</span><span class="dv">1</span>)<span class="op">/</span><span class="dv">2</span>)</code></pre></div>
+<p><img src="book_files/figure-html/s_n-v-n-1.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="vectorization-and-functionals" class="section level2">
+<h2><span class="header-section-number">13.4</span> Vectorization and Functionals</h2>
+<p>Although for-loop are an important concept to understand, in R we rarely use them. As you learn more R you will realize that <em>vectorization</em> is the prefered over for-loops as it results in shorter and clearer code. We already saw examples in the Vector Arithmetic Section. A <em>vectorized</em> function is a function that will apply the same operation on each of the vector.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">10</span>
+<span class="kw">sqrt</span>(x)
+<span class="co">#&gt;  [1] 1.00 1.41 1.73 2.00 2.24 2.45 2.65 2.83 3.00 3.16</span>
+y &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">10</span>
+x<span class="op">*</span>y
+<span class="co">#&gt;  [1]   1   4   9  16  25  36  49  64  81 100</span></code></pre></div>
+<p>No need for for-loops. But not all functions work this way. For instance, the function we just wrote, <code>compute_s_n</code> does not work element-wise since it is expecting a scalar. This piece of code does not run the function on each entry of <code>n</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">25</span>
+<span class="kw">compute_s_n</span>(n)</code></pre></div>
+<p>Functionals are function that help us apply the same function each entry in a vector, matrix, data frame or list. Here we cover the functional that operates on numeric, logical and character vectors: <code>sapply</code>. This is similar to whatSimilar to what we can do in a</p>
+<p>The function <code>sapply</code> permits us to perform element-wise operations on any function. Here is how it works:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">10</span>
+<span class="kw">sapply</span>(x, sqrt)
+<span class="co">#&gt;  [1] 1.00 1.41 1.73 2.00 2.24 2.45 2.65 2.83 3.00 3.16</span></code></pre></div>
+<p>Here each element of <code>x</code> is passed on to the function <code>sqrt</code> and the result is returned. These results are concatenated. In this case, the resulting is a vector of the same length as the original <code>x</code>. This implies that the for loop above can be written like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">25</span>
+s_n &lt;-<span class="st"> </span><span class="kw">sapply</span>(n, compute_s_n)
+<span class="kw">plot</span>(n, s_n)</code></pre></div>
+<p><img src="book_files/figure-html/s_n-v-n-sapply-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>Other functionals are <code>apply</code>, <code>lapply</code>, <code>tapply</code>, <code>mapply</code>,<code>vapply</code>, and <code>replicate</code>. We only use <code>sapply</code> and <code>replicate</code> in this book but we recommend becoming familiar with the others as they can be very useful.</p>
+</div>
+<div id="map" class="section level2">
+<h2><span class="header-section-number">13.5</span> map</h2>
+<p>Another series of fuctionals are provided by the purrr package. These are similar to <code>sapply</code> but they are somewhat easier to use for begginers in some instance. The general idea is the same</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(purrr)
+n &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">25</span>
+s_n &lt;-<span class="st"> </span><span class="kw">map</span>(n, compute_s_n)</code></pre></div>
+<p>One advantage that becomes clear latter is that with the purrr functionals you know what type of object you will get back. This is different with <code>sapply</code> that can return several different types. The <code>map</code> function always returns a list.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(s_n)
+<span class="co">#&gt; [1] &quot;list&quot;</span></code></pre></div>
+<p>If we want a numeric vector we can instead use</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s_n &lt;-<span class="st"> </span><span class="kw">map_dbl</span>(n, compute_s_n)
+<span class="kw">plot</span>(n, s_n)</code></pre></div>
+<p><img src="book_files/figure-html/s_n-v-n-map-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>We will learn other advantages of <code>map</code> in latter chapters.</p>
+</div>
+<div id="other-functions" class="section level2">
+<h2><span class="header-section-number">13.6</span> Other functions</h2>
+<p>Other functions that are widely used that we will not cover in this book are <code>split</code>, <code>cut</code>, <code>do.call</code> and <code>Reduce</code>.</p>
+</div>
+<div id="exercises-7" class="section level2 unnumbered">
+<h2>Exercises</h2>
+<ol style="list-style-type: decimal">
+<li><p>What will this conditional expression return?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">3</span>,<span class="dv">4</span>)
+
+<span class="cf">if</span>(<span class="kw">all</span>(x<span class="op">&gt;</span><span class="dv">0</span>)){
+  <span class="kw">print</span>(<span class="st">&quot;A ll Postives&quot;</span>)
+} <span class="cf">else</span>{
+  <span class="kw">print</span>(<span class="st">&quot;Not all positives&quot;</span>)
+}
+<span class="co">#&gt; [1] &quot;Not all positives&quot;</span></code></pre></div></li>
+<li><p>Which of the following expressions is always <code>FALSE</code> when at least one entry of a logical vector <code>x</code> is TRUE?</p>
+<p>A. <code>all(x)</code> B. <code>any(x)</code> C. <code>any(!x)</code> D. <code>all(!x)</code></p></li>
+<li><p>The function <code>nchar</code> tells you how many characters long a character vector is. For example,</p>
+<p>Write a line of code that assigns to the object <code>new_names</code> the state abbreviation when the state name is longer than 8 characters.</p></li>
+<li><p>Create a function <code>sum_n</code> that for any given value, say <span class="math inline">\(n\)</span>, computes the sum of the integers from 1 to n (inclusive). Use the function to determine the sum of integers from 1 to 5,000.</p></li>
+<li><p>Create a function <code>altman_plot</code> that takes two arguments <code>x</code> and <code>y</code> and plots the difference against the sum.</p></li>
+<li><p>After running the code below, what is the value of <code>x</code>?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="dv">3</span>
+my_func &lt;-<span class="st"> </span><span class="cf">function</span>(y){
+x &lt;-<span class="st"> </span><span class="dv">5</span>
+y<span class="op">+</span><span class="dv">5</span>
+}</code></pre></div></li>
+<li><p>Write a function <code>compute_s_n</code> that for any given <span class="math inline">\(n\)</span> computes the sum <span class="math inline">\(S_n = 1^2 + 2^2 + 3^2 + \dots n^2\)</span>. Report the value of the sum when <span class="math inline">\(n=10\)</span>.</p></li>
+<li><p>Now define an empty numerical vector <code>s_n</code> of size 25 using <code>s_n &lt;- vector(&quot;numeric&quot;, 25)</code> and store in the results of <span class="math inline">\(S_1, S_2, \dots S_{25}\)</span> using a for-loop.</p></li>
+<li><p>Repeat exercise 8 but this time use <code>sapply</code>.</p></li>
+<li><p>Repeate exercise 8 but this time use <code>map_dbl</code>.</p></li>
+<li><p>Plot <span class="math inline">\(S_n\)</span> versus <span class="math inline">\(n\)</span>. Use points defined by <span class="math inline">\(n=1,\dots,25\)</span>.</p></li>
+<li><p>Confirm that the formula for this sum is <span class="math inline">\(S_n= n(n+1)(2n+1)/6\)</span>.</p></li>
+</ol>
+
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="importing-data.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="matrices.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -393,7 +629,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/R/programming-basics.Rmd",
 "text": "Edit"
 },
 "download": null,

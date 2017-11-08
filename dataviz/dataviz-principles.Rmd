@@ -1,4 +1,4 @@
-## Some data visualization principles
+# Data visualization principles
 
 We have already provided some rules to follow as we created plots for our examples. Here we aim to provide some general principles we can use as a guide for effective data visualization. Much of this section is based on a talk by [Karl Broman](http://kbroman.org/) titled ["Creating effective figures and tables"](https://www.biostat.wisc.edu/~kbroman/presentations/graphs2017.pdf) including some of the figures which were made with code that Karl makes available on his [GitHub](https://github.com/kbroman/Talk_Graphs) repository, and class notes from Peter Aldhous' [Introduction to Data Visualization course](http://paldhous.github.io/ucb/2016/dataviz/index.html). Following Karl's approach, we show some examples of plot styles we should avoid, explain how to improve them, and use these as motivation for a list of principles. We compare and contrast plots that follow these principles to those that don't.
 
@@ -14,7 +14,7 @@ library(dslabs)
 ```
 
 
-### Encoding data using visual cues
+## Encoding data using visual cues
 
 We start by describing some principles for encoding data. There are several approaches at our disposal including position, aligned lengths, angles, area, brightness, and color hue. 
 
@@ -102,7 +102,7 @@ annotate(geom = "text",
 
 In general, when displaying quantities, position and length are preferred over angles and/or area. Brightness and color are even harder to quantify than angles. But, as we will see later, they are sometimes useful when more than two dimensions must be displayed at once.
 
-### Know when to include 0
+## Know when to include 0
 
 When using bar plots it is dishonest not to start the bars at 0. This is because, by using a bar plot, we are implying the length is proportional to the quantities being displayed. By avoiding 0, relatively small differences can be made to look much bigger than they actually are. This approach is often used by politicians or media organizations trying to exaggerate a difference. Below is an illustrative example:
 
@@ -153,7 +153,7 @@ grid.arrange(p2, p1, ncol = 2)
 Note that in the plot on the left, which includes 0, the space between 0 and 43 adds no information and makes it harder to compare the between and within group variability.
 
 
-### Do not distort quantities
+## Do not distort quantities
 
 During President Barack Obama’s 2011 State of the Union Address the following chart was used to compare the US GDP to the GDP of four competing nations:
 
@@ -188,8 +188,7 @@ gdp_data %>%
   ylab("GDP in trillions of US dollars")
 ```
 
-
-### Order by a meaningful value
+## Order by a meaningful value
 
 When one of the axes is used to show categories, as is done in bar plots, the default ggplot behavior is to order the categories alphabetically when they are defined by character strings. If they are defined by factors, they are ordered by the factor levels. We rarely want to use alphabetical order. Instead we should order by a meaningful quantity. In all the cases above, the bar plots where ordered by the values being displayed. The exception was the graph showing bar plots comparing browsers. In this case we kept the order the same across the bar plots to ease the comparison. Specifically instead of ordering the browsers separately in the two years, we ordered both years by the average value of 2000 and 2015. 
 
@@ -240,7 +239,7 @@ grid.arrange(p1, p2, ncol=2)
 
 The first orders the regions alphabetically while the second orders them by the group's median.
 
-### Show the data
+## Show the data
 
 We have focused on displaying single quantities across categories. We now shift our attention to displaying data, with a focus on comparing groups. 
 
@@ -278,7 +277,7 @@ heights %>%
 
 Now we start getting a sense that, on average, males are taller than females. We also note dark horizontal bands of points, demonstrating that many report values that are rounded to the nearest integer.
 
-### Ease comparisons: use common axes
+## Ease comparisons: use common axes
 
 Since there are so many points, it is more effective to show distributions rather than individual points. We therefore show histograms for each group:
 
@@ -298,7 +297,7 @@ heights %>%
   facet_grid(.~sex)
 ```
 
-### Ease comparisons: align plots vertically to see horizontal changes and horizontally to see vertical changes
+## Ease comparisons: align plots vertically to see horizontal changes and horizontally to see vertical changes
 
 In these histograms, the visual cue related to decreases or increases in height are shifts to the left or right respectively: horizontal changes. Aligning the plots vertically helps us see this change when the axis are fixed:
 
@@ -330,7 +329,7 @@ grid.arrange(p1, p2, p3, ncol = 3)
 
 Notice how much more we learn from the two plots on the right. Bar plots are useful for showing one number, but not very useful when we want to describe distributions.
 
-### Consider transformations
+## Consider transformations
 
 We have motivated the use of the log transformation in cases were the changes are multiplicative. Population size was an example in which we found a log transformation to yield a more informative transformation. 
 
@@ -376,7 +375,7 @@ With the new plot we realize that countries in Africa actually have a larger med
 
 Other transformations you should consider are the logistic transformation, useful to better see fold changes in odds, and the square root transformation, useful for count data.
 
-### Ease comparisons: Visual cues to be compared should be adjacent.
+## Ease comparisons: Visual cues to be compared should be adjacent.
 
 When comparing income data across regions between 1970 and 2010 we made a figure similar to the one below. A difference is that here we look at continents instead of regions, but this is not relevant to the point we are making.
 
@@ -408,7 +407,7 @@ gapminder %>%
   ylab("Income in dollars per day")
 ```
 
-### Ease comparison: use color
+## Ease comparison: use color
 
 The comparison becomes even easier to make if we use color to denote the two things we want to compare: 
 
@@ -425,7 +424,7 @@ The comparison becomes even easier to make if we use color to denote the two thi
 ```
 
 
-### Think of the color blind
+## Think of the color blind
 
 About 10% of the population is color blind. Unfortunately, the default colors used in ggplot are not optimal for this group. However, ggplot does it make it easy to change the color palette used in the plots. An example of how we can use a color blind friendly palette is described [here](http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette):
 
@@ -437,11 +436,11 @@ p1 + scale_color_manual(values=color_blind_friendly_cols)
 
 There are several resources that can help you select colors, for example [this one](http://bconnelly.net/2013/10/creating-colorblind-friendly-figures/). 
 
-### Use scatter plots to examine the relationship between two variables
+## Use scatter plots to examine the relationship between two variables
 
 In every single instance in which we have examined the relationship between two variables, including total murders versus population size, life expectancy versus fertility rates, and infant mortality versus income, we have used scatter plots. This is the plot we generally recommend. 
 
-#### Slope charts
+### Slope charts
 
 One exception where another type of plot may be more informative is when you are comparing variables of the same type but at different time points and for a relatively small number of comparisons. For example, comparing life expectancy between 2010 and 2015. In this case we might recommend a _slope chart_. 
 
@@ -492,7 +491,7 @@ dat %>%
 
 In the scatter plot we have followed the principle _use common axes_ since we are comparing these before and after. However, if we have many points, slope charts stop being useful as it becomes hard to see all the lines.
 
-#### Bland-Altman plot
+### Bland-Altman plot
 
 Since we are primarily interested in the difference, it makes sense to dedicate one of our axes to it. The Bland-Altman plot, also know as the Tukey mean-difference plot and the MA-plot, shows the difference versus the average:
 
@@ -512,7 +511,7 @@ dat %>%
 
 Here, by simply looking at the y-axes, we quickly see which countries have shown the most improvement. We also get an idea of the overall value from the x-axis.
 
-### Encoding a third variable
+## Encoding a third variable
 
 An earlier scatter plot showed the relationship between infant survival and average income. The following is a version of this plot that encodes three variables: OPEC membership, region, and population
 
@@ -563,48 +562,6 @@ geom_text(dat, mapping=aes(x%%9, x%/%9+0.25, label=x), size=6)
 
 For continuous variables we can use color, intensity or size. We now show an example of how we do this with a case study.
 
-#### Case study: vaccines 
-
-Vaccines have helped save millions of lives. In the 19th century, before herd immunization was achieved through vaccination programs, deaths from infectious diseases, such as smallpox and polio, were common. However, today, despite all the scientific evidence for their importance, vaccination programs have become somewhat controversial.
-
-The controversy started with a [paper](http://www.thelancet.com/journals/lancet/article/PIIS0140-6736(97)11096-0/abstract) published in 1988 and lead by [Andrew Wakefield](https://en.wikipedia.org/wiki/Andrew_Wakefield) claiming 
-there was a link between the administration of the measles, mumps and rubella (MMR) vaccine, and the appearance of autism and bowel disease. 
-Despite much scientific evidence contradicting this finding, sensationalist media reports and fear mongering from conspiracy theorists led parts of the public into believing that vaccines were harmful. As a result, many parents ceased to vaccinate their children. This dangerous practice can be potentially disastrous given that the Center for Disease Control (CDC) estimates that vaccinations will prevent more than 21 million hospitalizations and 732,000 deaths among children born in the last 20 years (see [Benefits from Immunization during the Vaccines for Children Program Era — United States, 1994-2013, MMWR](https://www.cdc.gov/mmwr/preview/mmwrhtml/mm6316a4.htm)). 
-The 1988 paper has since been [retracted](http://www.thelancet.com/journals/lancet/article/PIIS0140-6736(97)11096-0/abstract) and Andrew Wakefield was eventually "struck off the UK medical register, with a statement identifying deliberate falsification in the research published in The Lancet, and was thereby barred from practicing medicine in the UK." ([source: Wikipedia](https://en.wikipedia.org/wiki/Andrew_Wakefield)). Yet misconceptions persist, in part due to self-proclaimed activists who continue to disseminate misinformation about vaccines. 
-
-Effective communication of data is a strong antidote to misinformation and fear mongering. Earlier we showed an example provided by a [Wall Street Journal article](http://graphics.wsj.com/infectious-diseases-and-vaccines/) showing data related to the impact of vaccines on battling infectious diseases.  Here we reconstruct that example.
-
-The data used for these plots were collected, organized and distributed by the [Tycho Project](http://www.tycho.pitt.edu/). They include weekly reported counts data for seven diseases from 1928 to 2011, from all fifty states. We include the yearly totals in the `dslabs` package:
-
-```{r}
-data(us_contagious_diseases)
-str(us_contagious_diseases)
-```
-
-We create a temporary object `dat` that stores only the measles data, includes a per 100,000 rate, orders states by average value of disease and
-removes Alaska and Hawaii since they only became states in the late 50s. Note that there is a `weeks_reporting` column that tells us how many weeks reported cases. So we have to adjust for that when computing the rate.
-
-```{r}
-the_disease <- "Measles"
-dat <- us_contagious_diseases %>%
-  filter(!state%in%c("Hawaii","Alaska") & disease == the_disease) %>%
-  mutate(rate = count / population * 10000 * 52 / weeks_reporting) %>% 
-  mutate(state = reorder(state, rate)) 
-```
-
-We can now easily plot disease rates per year. Here are the measles data from California:
-
-```{r california-measles-time-series}
-dat %>% filter(state == "California" & !is.na(rate)) %>%
-  ggplot(aes(year, rate)) +
-  geom_line() + ylab("Cases per 10,000")  + 
-  geom_vline(xintercept=1963, col = "blue")
-```
-
-We add a vertical line at 1963 since this is when the vaccine was introduced [Control, Centers for Disease; Prevention (2014). CDC health information for international travel 2014 the yellow book. p. 250. ISBN 9780199948505]. 
-
-Now, can we show data for all states in one plot? We have three variables to show: year, state and rate. In the WSJ figure, they use the x-axis for year, the y-axis for state and color hue to represent rates. However, the color scale they use, which goes from yellow to blue to green to orange to red can be improved.  
-
 When choosing colors to quantify a numeric variable, we chose between two options sequential and diverging.
 
 Sequential colors are suited for data that goes from high to low.  High values are clearly distinguished from low values. Here are some examples offered by the package `RColorBrewer`
@@ -614,8 +571,6 @@ library(RColorBrewer)
 display.brewer.all(type="seq")
 ```
 
-
-
 Diverging colors are used to represent values that diverge from a center. We put equal emphasis on both ends of the data range: higher than the center and lower than the center. An example of when we would use a divergent pattern would be if we were to show height in standard deviations away from the average. Here are some examples of divergent patterns:
 
 ```{r r-color-brewer-div}
@@ -623,48 +578,8 @@ library(RColorBrewer)
 display.brewer.all(type="div")
 ```
 
-In our example we want to use a sequential palette since there is no meaningful center, just low and high rates.
 
-We use the geometry `geom_tile` to tile the region with colors representing disease rates. We use a square root transformation to avoid having the really high counts dominate the plot. Notice that missing values are shown in grey. Once the disease was pretty much erradicated some states stopped reporting cases all together.
-
-```{r vaccines-plot}
-dat %>% ggplot(aes(year, state,  fill = rate)) +
-  geom_tile(color = "grey50") +
-  scale_x_continuous(expand=c(0,0)) +
-  scale_fill_gradientn(colors = brewer.pal(9, "Reds"), trans = "sqrt") +
-  geom_vline(xintercept=1963, col = "blue") +
-  theme_minimal() +  theme(panel.grid = element_blank()) +
-  ggtitle(the_disease) + 
-  ylab("") + 
-  xlab("")
-```
-
-This plot makes a very striking argument for the contribution of vaccines. However, one limitation of this plot is that it uses color to represent quantity which we earlier explained makes it harder to know exactly how high it is going. Position and lengths are better cues. If we are willing to lose state information, we can make a version of the plot that shows the values with position. We can also show the average for the US which we compute like this:
-
-```{r}
-avg <- us_contagious_diseases %>%
-  filter(disease==the_disease) %>% group_by(year) %>%
-  summarize(us_rate = sum(count, na.rm=TRUE)/sum(population, na.rm=TRUE)*10000)
-```
-
-Now to make the plot we simply use the `geom_line` geometry:
-```{r time-series-vaccines-plot}
-dat %>% ggplot() +
-  geom_line(aes(year, rate, group = state),  color = "grey50", 
-            show.legend = FALSE, alpha = 0.2, size = 1) +
-  geom_line(mapping = aes(year, us_rate),  data = avg, size = 1, color = "black") +
-  scale_y_continuous(trans = "sqrt", breaks = c(5,25,125,300)) + 
-  ggtitle("Cases per 10,000 by state") + 
-  xlab("") + 
-  ylab("") +
-  geom_text(data = data.frame(x=1955, y=50), mapping = aes(x, y, label="US average"), color="black") + 
-  geom_vline(xintercept=1963, col = "blue") 
-```
-
-In theory we could use color to represent the categorical value state, but it is hard to pick 50 distinct colors.
-
- 
-### Avoid pseudo three dimensional plots
+## Avoid pseudo three dimensional plots
 
 The figure below, taken from [the scientific literature](https://projecteuclid.org/download/pdf_1/euclid.ss/1177010488)
 shows three variables: dose, drug type and survival. Although your screen/book page is flat and two dimensional, the plot tries to imitate three dimensions and assigned a dimension to each variable.
@@ -691,7 +606,7 @@ dat %>% gather(drug, survival, -log.dose) %>%
 
 Note how much easier it is to determine the survival values. 
 
-### Avoid gratuitous three dimensional plots
+## Avoid gratuitous three dimensional plots
 
 Pseudo 3D is sometimes used completely gratuitously: plots are made to look 3D even when the 3rd dimension does not represent a quantity. This only adds confusion and makes it harder to relay your message.  Here are two examples:
 
@@ -706,7 +621,7 @@ knitr::include_graphics("dataviz/img/fig2d.png")
 ```
 
 
-#### Avoid too many significant digits
+## Avoid too many significant digits
 
 By default, statistical software like R returns many significant digits. The default behavior in R is to show 7 significant digits. That many digits often adds no information, and the added the visual clutter can make it hard for the viewer to understand the message. As an example here are the per 10,000 disease rates for California across the five decades
 
@@ -749,14 +664,14 @@ dat %>%
   mutate_if(is.numeric, funs(round(., digits=1))) %>%
   knitr::kable()
 ```
-### Know your audience
+## Know your audience
 
 Graphs can be used for our 1) own exploratory data analysis, 2) to convey a message to experts, or 3) to help tell a story to a general audience. Make sure that the intended audience understands each element of the plot. 
 
 As a simple example, consider that for your own exploration, it may be more useful to log-transform data and then plot it. However, for a general audience that is unfamiliar with converting logged values back to the original measurements, using a log-scale for the axis will be much easier to digest.
 
 
-### Further reading:
+## Further reading:
 
 * ER Tufte (1983) The visual display of quantitative information.
 Graphics Press.
@@ -773,7 +688,7 @@ Turning tables into graphs. The American Statistician 56:121-130.
 
 
 
-### Exercises {-}
+## Exercises {-}
 
 
 For these exercises we will be using the vaccines data in the dslabs package:
@@ -955,4 +870,86 @@ abline(v=2, col=3)
   
 11. Now do the same for the rates for the US. Hint: compute the US rate by using summarize: the total dividec by total population.
 
- 
+# Case study: the impact of vaccines on battling infectious diseases
+
+Vaccines have helped save millions of lives. In the 19th century, before herd immunization was achieved through vaccination programs, deaths from infectious diseases, such as smallpox and polio, were common. However, today, despite all the scientific evidence for their importance, vaccination programs have become somewhat controversial.
+
+The controversy started with a [paper](http://www.thelancet.com/journals/lancet/article/PIIS0140-6736(97)11096-0/abstract) published in 1988 and lead by [Andrew Wakefield](https://en.wikipedia.org/wiki/Andrew_Wakefield) claiming 
+there was a link between the administration of the measles, mumps and rubella (MMR) vaccine, and the appearance of autism and bowel disease. 
+Despite much scientific evidence contradicting this finding, sensationalist media reports and fear mongering from conspiracy theorists led parts of the public into believing that vaccines were harmful. As a result, many parents ceased to vaccinate their children. This dangerous practice can be potentially disastrous given that the Center for Disease Control (CDC) estimates that vaccinations will prevent more than 21 million hospitalizations and 732,000 deaths among children born in the last 20 years (see [Benefits from Immunization during the Vaccines for Children Program Era — United States, 1994-2013, MMWR](https://www.cdc.gov/mmwr/preview/mmwrhtml/mm6316a4.htm)). 
+The 1988 paper has since been [retracted](http://www.thelancet.com/journals/lancet/article/PIIS0140-6736(97)11096-0/abstract) and Andrew Wakefield was eventually "struck off the UK medical register, with a statement identifying deliberate falsification in the research published in The Lancet, and was thereby barred from practicing medicine in the UK." ([source: Wikipedia](https://en.wikipedia.org/wiki/Andrew_Wakefield)). Yet misconceptions persist, in part due to self-proclaimed activists who continue to disseminate misinformation about vaccines. 
+
+Effective communication of data is a strong antidote to misinformation and fear mongering. Earlier we showed an example provided by a [Wall Street Journal article](http://graphics.wsj.com/infectious-diseases-and-vaccines/) showing data related to the impact of vaccines on battling infectious diseases.  Here we reconstruct that example.
+
+The data used for these plots were collected, organized and distributed by the [Tycho Project](http://www.tycho.pitt.edu/). They include weekly reported counts data for seven diseases from 1928 to 2011, from all fifty states. We include the yearly totals in the `dslabs` package:
+
+```{r}
+data(us_contagious_diseases)
+str(us_contagious_diseases)
+```
+
+We create a temporary object `dat` that stores only the measles data, includes a per 100,000 rate, orders states by average value of disease and
+removes Alaska and Hawaii since they only became states in the late 50s. Note that there is a `weeks_reporting` column that tells us how many weeks reported cases. So we have to adjust for that when computing the rate.
+
+```{r}
+the_disease <- "Measles"
+dat <- us_contagious_diseases %>%
+  filter(!state%in%c("Hawaii","Alaska") & disease == the_disease) %>%
+  mutate(rate = count / population * 10000 * 52 / weeks_reporting) %>% 
+  mutate(state = reorder(state, rate)) 
+```
+
+We can now easily plot disease rates per year. Here are the measles data from California:
+
+```{r california-measles-time-series}
+dat %>% filter(state == "California" & !is.na(rate)) %>%
+  ggplot(aes(year, rate)) +
+  geom_line() + ylab("Cases per 10,000")  + 
+  geom_vline(xintercept=1963, col = "blue")
+```
+
+We add a vertical line at 1963 since this is when the vaccine was introduced [Control, Centers for Disease; Prevention (2014). CDC health information for international travel 2014 the yellow book. p. 250. ISBN 9780199948505]. 
+
+Now, can we show data for all states in one plot? We have three variables to show: year, state and rate. In the WSJ figure, they use the x-axis for year, the y-axis for state and color hue to represent rates. However, the color scale they use, which goes from yellow to blue to green to orange to red can be improved.  
+
+In our example we want to use a sequential palette since there is no meaningful center, just low and high rates.
+
+We use the geometry `geom_tile` to tile the region with colors representing disease rates. We use a square root transformation to avoid having the really high counts dominate the plot. Notice that missing values are shown in grey. Once the disease was pretty much erradicated some states stopped reporting cases all together.
+
+```{r vaccines-plot}
+dat %>% ggplot(aes(year, state,  fill = rate)) +
+  geom_tile(color = "grey50") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradientn(colors = brewer.pal(9, "Reds"), trans = "sqrt") +
+  geom_vline(xintercept=1963, col = "blue") +
+  theme_minimal() +  theme(panel.grid = element_blank()) +
+  ggtitle(the_disease) + 
+  ylab("") + 
+  xlab("")
+```
+
+This plot makes a very striking argument for the contribution of vaccines. However, one limitation of this plot is that it uses color to represent quantity which we earlier explained makes it harder to know exactly how high it is going. Position and lengths are better cues. If we are willing to lose state information, we can make a version of the plot that shows the values with position. We can also show the average for the US which we compute like this:
+
+```{r}
+avg <- us_contagious_diseases %>%
+  filter(disease==the_disease) %>% group_by(year) %>%
+  summarize(us_rate = sum(count, na.rm=TRUE)/sum(population, na.rm=TRUE)*10000)
+```
+
+Now to make the plot we simply use the `geom_line` geometry:
+```{r time-series-vaccines-plot}
+dat %>% ggplot() +
+  geom_line(aes(year, rate, group = state),  color = "grey50", 
+            show.legend = FALSE, alpha = 0.2, size = 1) +
+  geom_line(mapping = aes(year, us_rate),  data = avg, size = 1, color = "black") +
+  scale_y_continuous(trans = "sqrt", breaks = c(5,25,125,300)) + 
+  ggtitle("Cases per 10,000 by state") + 
+  xlab("") + 
+  ylab("") +
+  geom_text(data = data.frame(x=1955, y=50), mapping = aes(x, y, label="US average"), color="black") + 
+  geom_vline(xintercept=1963, col = "blue") 
+```
+
+In theory we could use color to represent the categorical value state, but it is hard to pick 50 distinct colors.
+
+  

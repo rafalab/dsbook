@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="introduction.html">
+<link rel="prev" href="indexing.html">
+<link rel="next" href="basic-plots.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -345,26 +345,249 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Introduction to Data Science</h1>
-<h4 class="author"><em>Rafael A. Irizarry</em></h4>
-<h4 class="date"><em>2017-11-08</em></h4>
+<div id="basic-data-wrangling" class="section level1">
+<h1><span class="header-section-number">Chapter 10</span> Basic Data Wrangling</h1>
+<p>Up to now we have been changing vectors by reordering them and subsetting them through indexing. However, once we start more advanced analyses, we will want to prepare data tables for data analysis. We refer to this task as data wrangling. For this purpose we will introduce the <code>dplyr</code> package which provides intuitive functionality for working with tables. In Chapter 6 we will cover the <code>dplyr</code> package in much more depth.</p>
+<p>Once you install <code>dplyr</code> you can load it using:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)</code></pre></div>
+<p>This package introduces functions that perform the most common operations in data wrangling and uses names for these functions that are relatively easy to remember. For example, to change the data table by adding a new column, we use <code>mutate</code>. To filter the data table to a subset of rows, we use <code>filter</code>. Finally, to subset the data by selecting specific columns, we use <code>select</code>. We can also perform a series of operations, for example select and then filter, by sending the results of one function to another using what is called the <em>pipe operator</em>: <code>%&gt;%</code>. Some details are included below.</p>
+<div id="adding-a-column-with-mutate" class="section level2">
+<h2><span class="header-section-number">10.1</span> Adding a column with <code>mutate</code></h2>
+<p>We want all the necessary information for our analysis to be included in the data table. So the first task is to add the murder rates to our data frame. The function mutate takes the data frame as a first argument and the name and values of the variable in the second using the convention <code>name = values</code>. So to add murder rates we use:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders &lt;-<span class="st"> </span><span class="kw">mutate</span>(murders, <span class="dt">rate =</span> total <span class="op">/</span><span class="st"> </span>population <span class="op">*</span><span class="st"> </span><span class="dv">100000</span>)</code></pre></div>
+<p>Note that here we used <code>total</code> and <code>population</code> inside the function, which are objects that are <strong>not</strong> defined in our workspace. So why do we not get an error?</p>
+<p>This is one of the main features of dplyr. Function in this package, such <code>mutate</code>, know to look for variables in the data frame provided in the first argument. So in the call to mutate above, <code>total</code> will have the values in <code>murders$total</code>. This approach makes the code much more redable.</p>
+<p>We can see the new column is added:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(murders)
+<span class="co">#&gt;        state abb region population total rate</span>
+<span class="co">#&gt; 1    Alabama  AL  South    4779736   135 2.82</span>
+<span class="co">#&gt; 2     Alaska  AK   West     710231    19 2.68</span>
+<span class="co">#&gt; 3    Arizona  AZ   West    6392017   232 3.63</span>
+<span class="co">#&gt; 4   Arkansas  AR  South    2915918    93 3.19</span>
+<span class="co">#&gt; 5 California  CA   West   37253956  1257 3.37</span>
+<span class="co">#&gt; 6   Colorado  CO   West    5029196    65 1.29</span></code></pre></div>
+<p>Note: Although we have over-written the original <code>murders</code> object, this does not change the object that loaded with <code>data(murders)</code>. If we load the <code>murders</code> data again, the original will over-write our mutated version.</p>
 </div>
-<div id="preface" class="section level1 unnumbered">
-<h1>Preface</h1>
-<p>These are the class notes used in the <a href="https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x">HarvardX Data Science Series</a>. The code to generate the notes are available on <a href="https://github.com/rafalab/dsbook">GitHub</a>.</p>
-<p>We will be adding chapters during the next few months.</p>
-<p>For updates follow <a href="https://twitter.com/rafalab">@rafalab</a></p>
-<p>This work is licensed under the <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0</a> United States License.</p>
+<div id="subsetting-with-filter" class="section level2">
+<h2><span class="header-section-number">10.2</span> Subsetting with <code>filter</code></h2>
+<p>Now suppose that we want to filter the data table to only show the entries for which the murder rate is lower than 0.71. To do this we use the <code>filter</code> function which takes the data table as an argument and then the conditional statement as the next. Like mutate, we can use the unquoted variable names from <code>murders</code> inside the function and it will know we mean the columns and not objects in the workspace.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">filter</span>(murders, rate <span class="op">&lt;=</span><span class="st"> </span><span class="fl">0.71</span>)
+<span class="co">#&gt;           state abb        region population total  rate</span>
+<span class="co">#&gt; 1        Hawaii  HI          West    1360301     7 0.515</span>
+<span class="co">#&gt; 2          Iowa  IA North Central    3046355    21 0.689</span>
+<span class="co">#&gt; 3 New Hampshire  NH     Northeast    1316470     5 0.380</span>
+<span class="co">#&gt; 4  North Dakota  ND North Central     672591     4 0.595</span>
+<span class="co">#&gt; 5       Vermont  VT     Northeast     625741     2 0.320</span></code></pre></div>
+</div>
+<div id="selecting-columns-with-select" class="section level2">
+<h2><span class="header-section-number">10.3</span> Selecting columns with <code>select</code></h2>
+<p>Although our data table only has six columns, some data tables include hundreds. If we want to view just a few, we can use the dplyr <code>select</code> function. In the code below we select three columns, assign this to a new object and then filter the new object:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">new_table &lt;-<span class="st"> </span><span class="kw">select</span>(murders, state, region, rate)
+<span class="kw">filter</span>(new_table, rate <span class="op">&lt;=</span><span class="st"> </span><span class="fl">0.71</span>)
+<span class="co">#&gt;           state        region  rate</span>
+<span class="co">#&gt; 1        Hawaii          West 0.515</span>
+<span class="co">#&gt; 2          Iowa North Central 0.689</span>
+<span class="co">#&gt; 3 New Hampshire     Northeast 0.380</span>
+<span class="co">#&gt; 4  North Dakota North Central 0.595</span>
+<span class="co">#&gt; 5       Vermont     Northeast 0.320</span></code></pre></div>
+<p>In the call to <code>select</code>, the first argument, <code>murders</code>, is an object but <code>state</code>, <code>region</code>, and <code>rate</code> are variable names.</p>
+</div>
+<div id="the-pipe" class="section level2">
+<h2><span class="header-section-number">10.4</span> The pipe: <code>%&gt;%</code></h2>
+<p>We wrote the code above because we wanted to show the three variables for states that have murder rates below 0.71. To do this we defined the intermediate object <code>new_table</code>. In <code>dplyr</code> we can write code that looks more like a description of what we want to do:</p>
+<p><span class="math display">\[ \mbox{original data }
+\rightarrow \mbox{ select }
+\rightarrow \mbox{ filter } \]</span></p>
+<p>For such an operation, we can use the pipe <code>%&gt;%</code>. The code looks like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(state, region, rate) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(rate <span class="op">&lt;=</span><span class="st"> </span><span class="fl">0.71</span>)
+<span class="co">#&gt;           state        region  rate</span>
+<span class="co">#&gt; 1        Hawaii          West 0.515</span>
+<span class="co">#&gt; 2          Iowa North Central 0.689</span>
+<span class="co">#&gt; 3 New Hampshire     Northeast 0.380</span>
+<span class="co">#&gt; 4  North Dakota North Central 0.595</span>
+<span class="co">#&gt; 5       Vermont     Northeast 0.320</span></code></pre></div>
+<p>This line of code is equivalent to the two lines of code above. What is going on here?</p>
+<p>In general, the pipe <em>sends</em> the result of the left side of the pipe to be the first argument of the function on the right side of the pipe. Here is a very simple example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="dv">16</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sqrt</span>()
+<span class="co">#&gt; [1] 4</span></code></pre></div>
+<p>We can continue to pipe values along:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="dv">16</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sqrt</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">log2</span>()
+<span class="co">#&gt; [1] 2</span></code></pre></div>
+<p>The above statement is equivalent to <code>log2(sqrt(16))</code></p>
+<p>Remember that the pipe sends values to the first argument so we can define arguments as if the first argument is already defined:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="dv">16</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sqrt</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">log</span>(<span class="dt">base =</span> <span class="dv">2</span>)
+<span class="co">#&gt; [1] 2</span></code></pre></div>
+<p>So when using the pipe with data frames and <code>dplyr</code> we no longer need to specify the required first argument since the <code>dplyr</code> functions we have described all take the data as the first argument. So in the code we wrote:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(state, region, rate) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(rate <span class="op">&lt;=</span><span class="st"> </span><span class="fl">0.71</span>)</code></pre></div>
+<p><code>murders</code> is the first argument of the <code>select</code> function and the new data frame, formerly <code>new_table</code>, is the first argument of the <code>filter</code> function.</p>
+</div>
+<div id="creating-a-data-frame" class="section level2">
+<h2><span class="header-section-number">10.5</span> Creating a data frame</h2>
+<p>It is sometimes useful for us to create our own data frames. You can do this by using the <code>data.frame</code> function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">grades &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">names =</span> <span class="kw">c</span>(<span class="st">&quot;John&quot;</span>, <span class="st">&quot;Juan&quot;</span>, <span class="st">&quot;Jean&quot;</span>, <span class="st">&quot;Yao&quot;</span>), 
+                     <span class="dt">exam_1 =</span> <span class="kw">c</span>(<span class="dv">95</span>, <span class="dv">80</span>, <span class="dv">90</span>, <span class="dv">85</span>), 
+                     <span class="dt">exam_2 =</span> <span class="kw">c</span>(<span class="dv">90</span>, <span class="dv">85</span>, <span class="dv">85</span>, <span class="dv">90</span>))
+grades
+<span class="co">#&gt;   names exam_1 exam_2</span>
+<span class="co">#&gt; 1  John     95     90</span>
+<span class="co">#&gt; 2  Juan     80     85</span>
+<span class="co">#&gt; 3  Jean     90     85</span>
+<span class="co">#&gt; 4   Yao     85     90</span></code></pre></div>
+<p><em>Warning</em>: By default the function <code>data.frame</code> coerces characters into factors:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(grades<span class="op">$</span>names)
+<span class="co">#&gt; [1] &quot;factor&quot;</span></code></pre></div>
+<p>To avoid this we use the rather cumbersome argument <code>stringsAsFactors</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">grades &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">names =</span> <span class="kw">c</span>(<span class="st">&quot;John&quot;</span>, <span class="st">&quot;Juan&quot;</span>, <span class="st">&quot;Jean&quot;</span>, <span class="st">&quot;Yao&quot;</span>), 
+                     <span class="dt">exam_1 =</span> <span class="kw">c</span>(<span class="dv">95</span>, <span class="dv">80</span>, <span class="dv">90</span>, <span class="dv">85</span>), 
+                     <span class="dt">exam_2 =</span> <span class="kw">c</span>(<span class="dv">90</span>, <span class="dv">85</span>, <span class="dv">85</span>, <span class="dv">90</span>),
+                     <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)
+<span class="kw">class</span>(grades<span class="op">$</span>names)
+<span class="co">#&gt; [1] &quot;character&quot;</span></code></pre></div>
+</div>
+<div id="exercises-5" class="section level2 unnumbered">
+<h2>Exercises</h2>
+<ol style="list-style-type: decimal">
+<li><p>Load the <code>dplyr</code> package and the murders dataset.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)
+<span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(murders)</code></pre></div>
+<p>You can add columns using the <code>dplyr</code> function <code>mutate</code>. This function is aware of the column names and inside the function you can call them unquoted. Like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders &lt;-<span class="st"> </span><span class="kw">mutate</span>(murders, <span class="dt">population_in_millions =</span> population <span class="op">/</span><span class="st"> </span><span class="dv">10</span><span class="op">^</span><span class="dv">6</span>)</code></pre></div>
+<p>Note that we can write <code>population</code> rather than <code>murders$population</code>. The function <code>mutate</code> knows we are grabing columns from <code>murders</code>.</p>
+<p>Use the function <code>mutate</code> to add a murders column named <code>rate</code> with the per 100,000 murder rate. Make sure you redefine <code>murders</code> as done in the example code above and remember the murder rate is defined the total divided by the population size times 100,000.</p></li>
+<li><p>Note that if <code>rank(x)</code> gives you the ranks of <code>x</code> from lowest to highest, <code>rank(-x)</code> gives you the ranks from highest to lowest. Use the function <code>mutate</code> to add a column <code>rank</code> containing the rank, from highest to lowest murder rate. Make sure you redeinfe murders.</p></li>
+<li><p>With <code>dplyr</code> we can use <code>select</code> to show only certain columns. For example with this code we would only show the states and population sizes:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">select</span>(murders, state, population) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>()
+<span class="co">#&gt;        state population</span>
+<span class="co">#&gt; 1    Alabama    4779736</span>
+<span class="co">#&gt; 2     Alaska     710231</span>
+<span class="co">#&gt; 3    Arizona    6392017</span>
+<span class="co">#&gt; 4   Arkansas    2915918</span>
+<span class="co">#&gt; 5 California   37253956</span>
+<span class="co">#&gt; 6   Colorado    5029196</span></code></pre></div>
+<p>Use <code>select</code> to show the state names and abbreviations in <code>murders</code>. Just show it, do not define a new object.</p>
+<p>Hint: You can use select to just show one or more columns like this</p></li>
+<li><p>The <code>dplyr</code> function <code>filter</code> is used to choose specific rows of the data frame to keep. Unlke <code>select</code> which is for columns, <code>filter</code> is for rows. For example you can show just New York row like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">filter</span>(murders, state <span class="op">==</span><span class="st"> &quot;New York&quot;</span>)
+<span class="co">#&gt;      state abb    region population total rate</span>
+<span class="co">#&gt; 1 New York  NY Northeast   19378102   517 2.67</span></code></pre></div>
+<p>You can use other logical vector to filter rows.</p>
+<p>Use <code>filter</code> to show the top 5 states with the highest murder rates. After we add murder rate and rank, do not change the murders dataset, just show the result. Note that you can filter based on the <code>rank</code> column.</p></li>
+<li><p>We can remove rows using the <code>!=</code> operator. For example to remove Florida we would do this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">no_florida &lt;-<span class="st"> </span><span class="kw">filter</span>(murders, state <span class="op">!=</span><span class="st"> &quot;Florida&quot;</span>)</code></pre></div>
+<p>Create a new data frame called <code>no_south</code> that removes states from the South region. How many states are in this category? You can use the function <code>nrow</code> for this.</p></li>
+<li><p>We can also use the <code>%in%</code> to filter with <code>dplyr</code>. For example you can see the data from New York and Texas like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">filter</span>(murders, state <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;New York&quot;</span>, <span class="st">&quot;Texas&quot;</span>))
+<span class="co">#&gt;      state abb    region population total rate</span>
+<span class="co">#&gt; 1 New York  NY Northeast   19378102   517 2.67</span>
+<span class="co">#&gt; 2    Texas  TX     South   25145561   805 3.20</span></code></pre></div>
+<p>Create a new data frame called <code>murders_nw</code> with only the states from the Northeast and the West. How many states are in this category?</p></li>
+<li><p>Suppose you want to live in the Northeast or West <strong>and</strong> want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with <code>filter</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">filter</span>(murders, population <span class="op">&lt;</span><span class="st"> </span><span class="dv">5000000</span> <span class="op">&amp;</span><span class="st"> </span>region <span class="op">==</span><span class="st"> &quot;Northeast&quot;</span>)
+<span class="co">#&gt;           state abb    region population total  rate</span>
+<span class="co">#&gt; 1   Connecticut  CT Northeast    3574097    97 2.714</span>
+<span class="co">#&gt; 2         Maine  ME Northeast    1328361    11 0.828</span>
+<span class="co">#&gt; 3 New Hampshire  NH Northeast    1316470     5 0.380</span>
+<span class="co">#&gt; 4  Rhode Island  RI Northeast    1052567    16 1.520</span>
+<span class="co">#&gt; 5       Vermont  VT Northeast     625741     2 0.320</span></code></pre></div>
+<p>Add a murder rate column and a rank column as done before. Create a table, call it <code>my_states</code>, that satisfies both the conditions: it is in the Northeast or West and the murder rate is less than 1. Use select to show only the state name, the rate and the rank.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)
+<span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(murders)</code></pre></div></li>
+<li><p>The pipe <code>%&gt;%</code> can be used to perform operations sequentially without having to define intermediate objects. After redefining murder to include rate and rank.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)
+murders &lt;-<span class="st"> </span><span class="kw">mutate</span>(murders, <span class="dt">rate =</span>  total <span class="op">/</span><span class="st"> </span>population <span class="op">*</span><span class="st"> </span><span class="dv">100000</span>, <span class="dt">rank =</span> (<span class="op">-</span>rate))</code></pre></div>
+<p>in the solution to the previous exercise we did the following:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Created a table </span>
+my_states &lt;-<span class="st"> </span><span class="kw">filter</span>(murders, region <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Northeast&quot;</span>, <span class="st">&quot;West&quot;</span>) <span class="op">&amp;</span><span class="st"> </span>rate <span class="op">&lt;</span><span class="st"> </span><span class="dv">1</span>)
 
+<span class="co"># Used select to show only the state name, the murder rate and the rank</span>
+<span class="kw">select</span>(my_states, state, rate, rank)
+<span class="co">#&gt;           state  rate   rank</span>
+<span class="co">#&gt; 1        Hawaii 0.515 -0.515</span>
+<span class="co">#&gt; 2         Idaho 0.766 -0.766</span>
+<span class="co">#&gt; 3         Maine 0.828 -0.828</span>
+<span class="co">#&gt; 4 New Hampshire 0.380 -0.380</span>
+<span class="co">#&gt; 5        Oregon 0.940 -0.940</span>
+<span class="co">#&gt; 6          Utah 0.796 -0.796</span>
+<span class="co">#&gt; 7       Vermont 0.320 -0.320</span>
+<span class="co">#&gt; 8       Wyoming 0.887 -0.887</span></code></pre></div>
+<p>The pipe <code>%&gt;%</code> permits us to perform both operation sequentially and without having to define an intermediate variable <code>my_states</code>. For example we could have mutated and selected in the same line like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mutate</span>(murders, <span class="dt">rate =</span>  total <span class="op">/</span><span class="st"> </span>population <span class="op">*</span><span class="st"> </span><span class="dv">100000</span>, <span class="dt">rank =</span> (<span class="op">-</span>rate)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">select</span>(state, rate, rank)
+<span class="co">#&gt;                   state   rate    rank</span>
+<span class="co">#&gt; 1               Alabama  2.824  -2.824</span>
+<span class="co">#&gt; 2                Alaska  2.675  -2.675</span>
+<span class="co">#&gt; 3               Arizona  3.630  -3.630</span>
+<span class="co">#&gt; 4              Arkansas  3.189  -3.189</span>
+<span class="co">#&gt; 5            California  3.374  -3.374</span>
+<span class="co">#&gt; 6              Colorado  1.292  -1.292</span>
+<span class="co">#&gt; 7           Connecticut  2.714  -2.714</span>
+<span class="co">#&gt; 8              Delaware  4.232  -4.232</span>
+<span class="co">#&gt; 9  District of Columbia 16.453 -16.453</span>
+<span class="co">#&gt; 10              Florida  3.398  -3.398</span>
+<span class="co">#&gt; 11              Georgia  3.790  -3.790</span>
+<span class="co">#&gt; 12               Hawaii  0.515  -0.515</span>
+<span class="co">#&gt; 13                Idaho  0.766  -0.766</span>
+<span class="co">#&gt; 14             Illinois  2.837  -2.837</span>
+<span class="co">#&gt; 15              Indiana  2.190  -2.190</span>
+<span class="co">#&gt; 16                 Iowa  0.689  -0.689</span>
+<span class="co">#&gt; 17               Kansas  2.208  -2.208</span>
+<span class="co">#&gt; 18             Kentucky  2.673  -2.673</span>
+<span class="co">#&gt; 19            Louisiana  7.743  -7.743</span>
+<span class="co">#&gt; 20                Maine  0.828  -0.828</span>
+<span class="co">#&gt; 21             Maryland  5.075  -5.075</span>
+<span class="co">#&gt; 22        Massachusetts  1.802  -1.802</span>
+<span class="co">#&gt; 23             Michigan  4.179  -4.179</span>
+<span class="co">#&gt; 24            Minnesota  0.999  -0.999</span>
+<span class="co">#&gt; 25          Mississippi  4.044  -4.044</span>
+<span class="co">#&gt; 26             Missouri  5.360  -5.360</span>
+<span class="co">#&gt; 27              Montana  1.213  -1.213</span>
+<span class="co">#&gt; 28             Nebraska  1.752  -1.752</span>
+<span class="co">#&gt; 29               Nevada  3.110  -3.110</span>
+<span class="co">#&gt; 30        New Hampshire  0.380  -0.380</span>
+<span class="co">#&gt; 31           New Jersey  2.798  -2.798</span>
+<span class="co">#&gt; 32           New Mexico  3.254  -3.254</span>
+<span class="co">#&gt; 33             New York  2.668  -2.668</span>
+<span class="co">#&gt; 34       North Carolina  2.999  -2.999</span>
+<span class="co">#&gt; 35         North Dakota  0.595  -0.595</span>
+<span class="co">#&gt; 36                 Ohio  2.687  -2.687</span>
+<span class="co">#&gt; 37             Oklahoma  2.959  -2.959</span>
+<span class="co">#&gt; 38               Oregon  0.940  -0.940</span>
+<span class="co">#&gt; 39         Pennsylvania  3.598  -3.598</span>
+<span class="co">#&gt; 40         Rhode Island  1.520  -1.520</span>
+<span class="co">#&gt; 41       South Carolina  4.475  -4.475</span>
+<span class="co">#&gt; 42         South Dakota  0.983  -0.983</span>
+<span class="co">#&gt; 43            Tennessee  3.451  -3.451</span>
+<span class="co">#&gt; 44                Texas  3.201  -3.201</span>
+<span class="co">#&gt; 45                 Utah  0.796  -0.796</span>
+<span class="co">#&gt; 46              Vermont  0.320  -0.320</span>
+<span class="co">#&gt; 47             Virginia  3.125  -3.125</span>
+<span class="co">#&gt; 48           Washington  1.383  -1.383</span>
+<span class="co">#&gt; 49        West Virginia  1.457  -1.457</span>
+<span class="co">#&gt; 50            Wisconsin  1.706  -1.706</span>
+<span class="co">#&gt; 51              Wyoming  0.887  -0.887</span></code></pre></div>
+<p>Note that <code>select</code> no longer has a data frame as the first argument. The first argument is assumed to be the result of the operation conducted right before the <code>%&gt;%</code></p>
+<p>Repeat the previous exercise, but now instead of creating a new object, show the result and only include the state, rate, and rank columns. Use a pipe <code>%&gt;%</code> to do this in just one line.</p></li>
+<li><p>Now we will make murders the original table one gets when loading using <code>data(murders)</code>. Use just one line to create a new data frame, called, <code>my_states</code> that has murder rate and rank column, consider only states in the Northeast or West, which have a murder rate lower than 1 and contain only the state, rate, and rank columns. The line should have four components separated by three <code>%&gt;%</code>.</p>
+<ul>
+<li>The original dataset <code>murders</code></li>
+<li>A call to <code>mutate</code> to add the murder rate and the rank.</li>
+<li>A call to <code>filter</code> to keep only the states from the Northeast or West and that have a murder rate below 1</li>
+<li>A call to <code>select</code> that keeps only the columns with the stata name, the murder rate and the rank.</li>
+</ul>
+<p>The line should look something like this <code>my_states &lt;- murders %&gt;%</code> mutate something <code>%&gt;%</code> filter something <code>%&gt;%</code> select something.</p></li>
+</ol>
+
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="indexing.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="basic-plots.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -393,7 +616,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/R/basic-data-wrangling.Rmd",
 "text": "Edit"
 },
 "download": null,

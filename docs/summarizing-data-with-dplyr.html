@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="introduction.html">
+<link rel="prev" href="robust-summaries.html">
+<link rel="next" href="ggplot2.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -345,26 +345,232 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Introduction to Data Science</h1>
-<h4 class="author"><em>Rafael A. Irizarry</em></h4>
-<h4 class="date"><em>2017-11-08</em></h4>
+<div id="summarizing-data-with-dplyr" class="section level1">
+<h1><span class="header-section-number">Chapter 19</span> Summarizing data with dplyr</h1>
+<p>An important part of exploratory data analysis is summarizing data. We learned about the average and standard deviation as a two summary statistic that provides all the necessary information to summarize data that is normally distributed. We also learned that better summaries can be achieved by splitting data into groups before using the normal approximation. For example, in our heights dataset we described the height of men and women separately. In this section we cover two new dplyr verbs that make these computations easier: <code>summarize</code> and <code>group_by</code>. We learn to access resulting values using what we call the <em>dot placeholder</em>. Finally, we also learn to use <code>arrange</code> which helps us examine data after sorting.</p>
+<div id="summarize" class="section level2">
+<h2><span class="header-section-number">19.1</span> Summarize</h2>
+<p>The <code>summarize</code> function in dplyr provides a way to compute summary statistics with intuitive and readable code. We start with a simple example based on heights:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(heights)</code></pre></div>
+<p>that computes the average and standard deviation for males:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s &lt;-<span class="st"> </span>heights <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(sex <span class="op">==</span><span class="st"> &quot;Male&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">average =</span> <span class="kw">mean</span>(height), <span class="dt">standard_deviation =</span> <span class="kw">sd</span>(height))
+s
+<span class="co">#&gt;   average standard_deviation</span>
+<span class="co">#&gt; 1    69.3               3.61</span></code></pre></div>
+<p>This takes our original data table as input, filters it to keep only males and then produces a new, summarized table with just the average and the standard deviation of heights. We get to choose the names of the columns of the resulting table. For example, above we decided to use <code>average</code> and <code>standard_deviation</code>, but we could have used other names just the same.</p>
+<p>Because the resulting table, stored in <code>s</code>, is a data frame, we can access the components with the accessor <code>$</code>, which in this case will be a numeric:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s<span class="op">$</span>average
+<span class="co">#&gt; [1] 69.3</span>
+s<span class="op">$</span>standard_deviation
+<span class="co">#&gt; [1] 3.61</span></code></pre></div>
+<p>As with most other dplyr functions, <code>summarize</code> is aware of the variable names and we can use them directly. So when inside the call to the <code>summarize</code> function we write <code>mean(height)</code>, it is accessing the column with the name, and then computing the average of the respective numeric vector. We can compute any other summary that operates on vectors and returns a single value. For example, we can add the median, min and max like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">heights <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(sex <span class="op">==</span><span class="st"> &quot;Male&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">median =</span> <span class="kw">median</span>(height), <span class="dt">minimum =</span> <span class="kw">min</span>(height), <span class="dt">maximum =</span> <span class="kw">max</span>(height))
+<span class="co">#&gt;   median minimum maximum</span>
+<span class="co">#&gt; 1     69      50    82.7</span></code></pre></div>
+<p>We can obtain these three values with just one line using the <code>quantiles</code> function. For example, <code>quantile(x, c(0,0.5,1))</code> returns the min, median, and max of the vector <code>x</code>. However, if we attempt to use a function that returns two or more values:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">heights <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(sex <span class="op">==</span><span class="st"> &quot;Male&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">range =</span> <span class="kw">quantile</span>(height, <span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">1</span>)))</code></pre></div>
+<p>we will receive an error: <code>Error: expecting result of length one, got : 2</code>. With the function <code>summarize</code> we can only call functions that return a single value. In a later chapter, we will learn how to deal with functions that return more than one value.</p>
+<p>For another example of how we can use the <code>summarize</code> function, let’s compute the average murder rate for the United States. Remember our data table includes total murders and population size for each state and we have already used dplyr to add a murder rate column:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(murders)
+murders &lt;-<span class="st"> </span>murders <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">murder_rate =</span> total<span class="op">/</span>population<span class="op">*</span><span class="dv">100000</span>)</code></pre></div>
+<p>Remember that the US murder is <strong>not</strong> the average of the state murder rates:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summarize</span>(murders, <span class="kw">mean</span>(murder_rate))
+<span class="co">#&gt;   mean(murder_rate)</span>
+<span class="co">#&gt; 1              2.78</span></code></pre></div>
+<p>This is because in the computation above the small states are given the same weight as the large ones. The US murder rate is the totalUS murders divided by the total US population. So the correct computation is:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">us_murder_rate &lt;-<span class="st"> </span>murders <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">rate =</span> <span class="kw">sum</span>(total) <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(population) <span class="op">*</span><span class="st"> </span><span class="dv">100000</span>)
+us_murder_rate
+<span class="co">#&gt;   rate</span>
+<span class="co">#&gt; 1 3.03</span></code></pre></div>
+<p>This computation counts larger states proportionally to their size which results in a larger value.</p>
 </div>
-<div id="preface" class="section level1 unnumbered">
-<h1>Preface</h1>
-<p>These are the class notes used in the <a href="https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x">HarvardX Data Science Series</a>. The code to generate the notes are available on <a href="https://github.com/rafalab/dsbook">GitHub</a>.</p>
-<p>We will be adding chapters during the next few months.</p>
-<p>For updates follow <a href="https://twitter.com/rafalab">@rafalab</a></p>
-<p>This work is licensed under the <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0</a> United States License.</p>
+<div id="the-dot-operator" class="section level2">
+<h2><span class="header-section-number">19.2</span> The dot operator</h2>
+<p>The <code>us_murder_rate</code> object defined above represents just one number. Yet we are storing it in a data frame:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(us_murder_rate)
+<span class="co">#&gt; [1] &quot;data.frame&quot;</span></code></pre></div>
+<p>since, as most dplyr functions, <code>summarize</code> always returns a data frame.</p>
+<p>This might be problematic if we want to use the result with functions that require a numeric value. Here we show a useful trick for accessing values stored in data piped via <code>%&gt;%</code>: when a data object is piped it can be accessed using the dot <code>.</code>. To understand what we mean take a look at this line of code:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">us_murder_rate <span class="op">%&gt;%</span><span class="st"> </span>.<span class="op">$</span>rate 
+<span class="co">#&gt; [1] 3.03</span></code></pre></div>
+<p>This returns the value in the <code>rate</code> column of <code>us_murder_rate</code> making it equivalent to <code>us_murder_rate$rate</code>. To understand this line, you just need to think of <code>.</code> as a placeholder for the data that is being passed through the pipe. Because this data object is a data frame, we can access its columns with the <code>$</code>.</p>
+<p>To get a number from the original data table with one line of code we can type:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">us_murder_rate &lt;-<span class="st"> </span>murders <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">rate =</span> <span class="kw">sum</span>(total) <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(population) <span class="op">*</span><span class="st"> </span><span class="dv">100000</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>.<span class="op">$</span>rate
 
+us_murder_rate
+<span class="co">#&gt; [1] 3.03</span></code></pre></div>
+<p>which is now a numeric:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(us_murder_rate)
+<span class="co">#&gt; [1] &quot;numeric&quot;</span></code></pre></div>
+<p>We will see other instances in which using the <code>.</code> is useful. For now, we will only use it to produce numeric vectors from pipelines constructed with dplyr.</p>
+</div>
+<div id="group-then-summarize" class="section level2">
+<h2><span class="header-section-number">19.3</span> Group then summarize</h2>
+<p>A common operation in data exploration is to first split data into groups and then compute summaries for each group. For example, we may want to compute the average and standard deviation for men’s and women’s heights separately. The <code>group_by</code> function helps us do this.</p>
+<p>If we type this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">heights <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(sex)
+<span class="co">#&gt; # A tibble: 1,050 x 2</span>
+<span class="co">#&gt; # Groups:   sex [2]</span>
+<span class="co">#&gt;      sex height</span>
+<span class="co">#&gt;   &lt;fctr&gt;  &lt;dbl&gt;</span>
+<span class="co">#&gt; 1   Male     75</span>
+<span class="co">#&gt; 2   Male     70</span>
+<span class="co">#&gt; 3   Male     68</span>
+<span class="co">#&gt; 4   Male     74</span>
+<span class="co">#&gt; 5   Male     61</span>
+<span class="co">#&gt; 6 Female     65</span>
+<span class="co">#&gt; # ... with 1,044 more rows</span></code></pre></div>
+<p>the result does not look very different from <code>heights</code>, except we see this <code>Groups: sex [2]</code> when we print the object. Although not immediately obvious from its appearance, this is now a special data frame called a <em>grouped data frame</em> and dplyr functions, in particular <code>summarize</code>, will behave differently when acting on this object. Conceptually you can think of this table as many tables, with the same columns but not necessarily the same number of rows, stacked together in one object. When we summarize the data after grouping, this is what happens:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">heights <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">group_by</span>(sex) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">average =</span> <span class="kw">mean</span>(height), <span class="dt">standard_deviation =</span> <span class="kw">sd</span>(height))
+<span class="co">#&gt; # A tibble: 2 x 3</span>
+<span class="co">#&gt;      sex average standard_deviation</span>
+<span class="co">#&gt;   &lt;fctr&gt;   &lt;dbl&gt;              &lt;dbl&gt;</span>
+<span class="co">#&gt; 1 Female    64.9               3.76</span>
+<span class="co">#&gt; 2   Male    69.3               3.61</span></code></pre></div>
+<p>The <code>summarize</code> function applies the summarization to each group separately.</p>
+<p>For another example, let’s compute the median murder rate in the four regions of the country:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">group_by</span>(region) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">median_rate =</span> <span class="kw">median</span>(murder_rate))
+<span class="co">#&gt; # A tibble: 4 x 2</span>
+<span class="co">#&gt;          region median_rate</span>
+<span class="co">#&gt;          &lt;fctr&gt;       &lt;dbl&gt;</span>
+<span class="co">#&gt; 1     Northeast        1.80</span>
+<span class="co">#&gt; 2         South        3.40</span>
+<span class="co">#&gt; 3 North Central        1.97</span>
+<span class="co">#&gt; 4          West        1.29</span></code></pre></div>
+</div>
+<div id="sorting-data-tables" class="section level2">
+<h2><span class="header-section-number">19.4</span> Sorting data tables</h2>
+<p>When examining a dataset it is often convenient to sort the table by the different columns. We know about the <code>order</code> and <code>sort</code> function, but for ordering entire tables, the dplyr function <code>arrange</code> is useful. For example, here we order the states by population size when we type:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">arrange</span>(population) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>()
+<span class="co">#&gt;                  state abb        region population total murder_rate</span>
+<span class="co">#&gt; 1              Wyoming  WY          West     563626     5       0.887</span>
+<span class="co">#&gt; 2 District of Columbia  DC         South     601723    99      16.453</span>
+<span class="co">#&gt; 3              Vermont  VT     Northeast     625741     2       0.320</span>
+<span class="co">#&gt; 4         North Dakota  ND North Central     672591     4       0.595</span>
+<span class="co">#&gt; 5               Alaska  AK          West     710231    19       2.675</span>
+<span class="co">#&gt; 6         South Dakota  SD North Central     814180     8       0.983</span></code></pre></div>
+<p>We get to decide which column to sort by. To see the states by population, from smallest to largest, we arrange by <code>murder_rate</code> instead:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">arrange</span>(murder_rate) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">head</span>()
+<span class="co">#&gt;           state abb        region population total murder_rate</span>
+<span class="co">#&gt; 1       Vermont  VT     Northeast     625741     2       0.320</span>
+<span class="co">#&gt; 2 New Hampshire  NH     Northeast    1316470     5       0.380</span>
+<span class="co">#&gt; 3        Hawaii  HI          West    1360301     7       0.515</span>
+<span class="co">#&gt; 4  North Dakota  ND North Central     672591     4       0.595</span>
+<span class="co">#&gt; 5          Iowa  IA North Central    3046355    21       0.689</span>
+<span class="co">#&gt; 6         Idaho  ID          West    1567582    12       0.766</span></code></pre></div>
+<p>Note that the default behavior is to order in ascending order. In dplyr, the function <code>desc</code> transforms a vector so that it is in descending order. To sort the table in descending order we can type:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(murder_rate)) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">head</span>()
+<span class="co">#&gt;                  state abb        region population total murder_rate</span>
+<span class="co">#&gt; 1 District of Columbia  DC         South     601723    99       16.45</span>
+<span class="co">#&gt; 2            Louisiana  LA         South    4533372   351        7.74</span>
+<span class="co">#&gt; 3             Missouri  MO North Central    5988927   321        5.36</span>
+<span class="co">#&gt; 4             Maryland  MD         South    5773552   293        5.07</span>
+<span class="co">#&gt; 5       South Carolina  SC         South    4625364   207        4.48</span>
+<span class="co">#&gt; 6             Delaware  DE         South     897934    38        4.23</span></code></pre></div>
+<div id="nested-sorting" class="section level3 unnumbered">
+<h3>Nested sorting</h3>
+<p>If we are ordering by a column with ties, we can use a second column to break the tie. Similarly, a third column can be used to break ties between first and second and so on. Here we order by <code>region</code> then, within region, we order by murder rate:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">arrange</span>(region, murder_rate) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">head</span>()
+<span class="co">#&gt;           state abb    region population total murder_rate</span>
+<span class="co">#&gt; 1       Vermont  VT Northeast     625741     2       0.320</span>
+<span class="co">#&gt; 2 New Hampshire  NH Northeast    1316470     5       0.380</span>
+<span class="co">#&gt; 3         Maine  ME Northeast    1328361    11       0.828</span>
+<span class="co">#&gt; 4  Rhode Island  RI Northeast    1052567    16       1.520</span>
+<span class="co">#&gt; 5 Massachusetts  MA Northeast    6547629   118       1.802</span>
+<span class="co">#&gt; 6      New York  NY Northeast   19378102   517       2.668</span></code></pre></div>
+<div id="the-top-n" class="section level4">
+<h4><span class="header-section-number">19.4.0.1</span> The top <span class="math inline">\(n\)</span></h4>
+<p>In the code above we have used the function <code>head</code> to avoid having the page fill up with the entire dataset. If we want to see a larger proportion, we can use the <code>top_n</code> function. Here are the first 10 rows:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">top_n</span>(<span class="dv">10</span>, murder_rate)
+<span class="co">#&gt;                   state abb        region population total murder_rate</span>
+<span class="co">#&gt; 1               Arizona  AZ          West    6392017   232        3.63</span>
+<span class="co">#&gt; 2              Delaware  DE         South     897934    38        4.23</span>
+<span class="co">#&gt; 3  District of Columbia  DC         South     601723    99       16.45</span>
+<span class="co">#&gt; 4               Georgia  GA         South    9920000   376        3.79</span>
+<span class="co">#&gt; 5             Louisiana  LA         South    4533372   351        7.74</span>
+<span class="co">#&gt; 6              Maryland  MD         South    5773552   293        5.07</span>
+<span class="co">#&gt; 7              Michigan  MI North Central    9883640   413        4.18</span>
+<span class="co">#&gt; 8           Mississippi  MS         South    2967297   120        4.04</span>
+<span class="co">#&gt; 9              Missouri  MO North Central    5988927   321        5.36</span>
+<span class="co">#&gt; 10       South Carolina  SC         South    4625364   207        4.48</span></code></pre></div>
+<p><code>top_n</code> picks the highest <code>n</code> based on the column given as a second argument. However, the rows are not sorted.</p>
+<p>If the second argument is left blank, then it returns the first <code>n</code> columns. This means that to see the 10 states with the highest murder rates we can type:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(murder_rate)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">top_n</span>(<span class="dv">10</span>)
+<span class="co">#&gt; Selecting by murder_rate</span>
+<span class="co">#&gt;                   state abb        region population total murder_rate</span>
+<span class="co">#&gt; 1  District of Columbia  DC         South     601723    99       16.45</span>
+<span class="co">#&gt; 2             Louisiana  LA         South    4533372   351        7.74</span>
+<span class="co">#&gt; 3              Missouri  MO North Central    5988927   321        5.36</span>
+<span class="co">#&gt; 4              Maryland  MD         South    5773552   293        5.07</span>
+<span class="co">#&gt; 5        South Carolina  SC         South    4625364   207        4.48</span>
+<span class="co">#&gt; 6              Delaware  DE         South     897934    38        4.23</span>
+<span class="co">#&gt; 7              Michigan  MI North Central    9883640   413        4.18</span>
+<span class="co">#&gt; 8           Mississippi  MS         South    2967297   120        4.04</span>
+<span class="co">#&gt; 9               Georgia  GA         South    9920000   376        3.79</span>
+<span class="co">#&gt; 10              Arizona  AZ          West    6392017   232        3.63</span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="exercises-11" class="section level2 unnumbered">
+<h2>Exercises</h2>
+<p>For these exercesis we will be using the data from the survey collected by the United States National Center for Health Statistics (NCHS). This center has conducted a series of health and nutrition surveys since the 1960’s. Starting in 1999 about 5,000 individuals of all ages have been interviewed every year and they complete the health examination component of the survey. Part of the data is made avaialble via the NHANES package which can install using</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">&quot;NHANES&quot;</span>)</code></pre></div>
+<p>Once you install it you can load the data this way:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(NHANES)
+<span class="kw">data</span>(NHANES)</code></pre></div>
+<p>The NHANES data has many missing values. Remember that the main summarization function in R will return <code>NA</code> if any of the entries of the input vector is an <code>NA</code>. Here is an example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(na_example)
+<span class="kw">mean</span>(na_example)
+<span class="co">#&gt; [1] NA</span>
+<span class="kw">sd</span>(na_example)
+<span class="co">#&gt; [1] NA</span></code></pre></div>
+<p>To ignore the <code>NA</code>s we can use the <code>na.rm</code> argument:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(na_example, <span class="dt">na.rm=</span><span class="ot">TRUE</span>)
+<span class="co">#&gt; [1] 2.3</span>
+<span class="kw">sd</span>(na_example, <span class="dt">na.rm=</span><span class="ot">TRUE</span>)
+<span class="co">#&gt; [1] 1.22</span></code></pre></div>
+<p>Let’s now explore the NHANES data.</p>
+<ol style="list-style-type: decimal">
+<li><p>We will provide some basic facts about blood pressure. First let’s select a group to set the standard. We will use 20-29 year old females. Note that the category is coded with <code>20-29</code>, with a space in front! The <code>AgeDecade</code> is a categorical variable with these ages. What is the average and standard deviation of systolic blood pressure, as saved in the <code>BPSysAve</code> variable? Save it to a variable called <code>ref</code>. Hint: Use <code>filter</code> and <code>summarize</code> and use the <code>na.rm=TRUE</code> argument when computing the average and standard deviation. You can also filter the NA values using <code>filter</code>.</p></li>
+<li><p>Using only one line of code, assign the average to a numeric variable <code>ref_avg</code>. Hint: Use the code similar to above and then the dot.</p></li>
+<li><p>Now report the min and max values for the same group.</p></li>
+<li><p>Now compute the average and standard deviation for females, but for each age group separately. Note that the age groups are defined by <code>AgeDecade</code>. Hint: rather than filtering by age, filter by <code>Gender</code> and then use <code>group_by</code>.</p></li>
+<li><p>Now do the same for males.</p></li>
+<li><p>We can actually combine both these summaries into one line of code. This is because <code>group_by</code> permits us to group by more than one variable. Obtain one big summary table using <code>group_by(AgeDecade, Gender)</code>.</p></li>
+<li><p>For males between the ages of 40-49, compare systolic blood pressure across race as reported in the <code>Race1</code> variable. Order the resulting table from lowest to highest average systolic blood pressure.</p></li>
+</ol>
+
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="robust-summaries.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ggplot2.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -393,7 +599,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/dataviz/summarizing-with-dplyr.Rmd",
 "text": "Edit"
 },
 "download": null,

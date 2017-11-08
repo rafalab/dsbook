@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="introduction.html">
+<link rel="prev" href="distributions.html">
+<link rel="next" href="summarizing-data-with-dplyr.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -345,26 +345,207 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Introduction to Data Science</h1>
-<h4 class="author"><em>Rafael A. Irizarry</em></h4>
-<h4 class="date"><em>2017-11-08</em></h4>
+<div id="robust-summaries" class="section level1">
+<h1><span class="header-section-number">Chapter 18</span> Robust summaries</h1>
+<div id="outliers" class="section level2">
+<h2><span class="header-section-number">18.1</span> Outliers</h2>
+<p>We previously described how boxplots show <em>outliers</em>, but we did not provide a precise definition. Here we discuss outliers, approaches that can help detect them, and summaries that take into account their presence.</p>
+<p>Outliers are very common in data science. Data recording can be complex and it is common to observe data points generated in error. For example, an old monitoring device may read out nonsensical measurements before completely failing. Human error is also a source of outliers, in particular when data entry is done manually. For instance, an individual may mistakenly enter their height in centimeters instead of inches.</p>
+<p>Now, how do we distinguish an outlier from measurements that were too big or too small simply due to expected variability? This is not always an easy question to answer, but we try to provide some guidance. Let’s begin with a simple case.</p>
+<p>Suppose a colleague is charged with collecting demography data for a group of males. The data is stored in the object:</p>
+<pre><code>#&gt;  num [1:500] 5.59 5.8 5.54 6.15 5.83 5.54 5.87 5.93 5.89 5.67 ...</code></pre>
+<p>Our colleague uses the fact that heights are usually well approximated by a normal distribution and summarizes the data with average and standard deviation:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(outlier_example)
+<span class="co">#&gt; [1] 6.1</span>
+<span class="kw">sd</span>(outlier_example)
+<span class="co">#&gt; [1] 7.8</span></code></pre></div>
+<p>and writes a report on the interesting fact that this group of males is much taller than usual. The average height is over six feet tall! Using your data science skills, however, you notice something else that is unexpected: the standard deviation is over 7 inches. Adding and subtracting two standard deviations, you note that 95% of this population will have heights between -9.489, 21.697 inches which does not make sense.</p>
+<p>A quick plot reveals the problem:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(outlier_example)</code></pre></div>
+<p><img src="book_files/figure-html/histogram-reveals-outliers-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>There appears to be at least one value that is nonsensical, since we know that a height of 180 feet is impossible. The boxplot detects this point as an outlier:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">boxplot</span>(outlier_example)</code></pre></div>
+<p><img src="book_files/figure-html/boxplot-reveals-outliers-1.png" width="70%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="preface" class="section level1 unnumbered">
-<h1>Preface</h1>
-<p>These are the class notes used in the <a href="https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x">HarvardX Data Science Series</a>. The code to generate the notes are available on <a href="https://github.com/rafalab/dsbook">GitHub</a>.</p>
-<p>We will be adding chapters during the next few months.</p>
-<p>For updates follow <a href="https://twitter.com/rafalab">@rafalab</a></p>
-<p>This work is licensed under the <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/us/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0</a> United States License.</p>
+<div id="median" class="section level2">
+<h2><span class="header-section-number">18.2</span> Median</h2>
+<p>When we have an outlier like this, the average can become very large. Keep in mind that mathematically we can make the average as large as we want by simply changing one number: with 500 data points, we can increase the average by any amount <span class="math inline">\(\Delta\)</span> by adding <span class="math inline">\(\Delta \times\)</span> 500 to a single number. The median, defined as the value for which half the values are smaller and the other half are bigger, is robust to such outliers. No matter how large we make the largest point, the median remains the same.</p>
+<p>With this data the median is:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(outlier_example)
+<span class="co">#&gt; [1] 5.74</span></code></pre></div>
+<p>which is about 5 feet and 9 inches.</p>
+<p>The median is what boxplots display as a horizontal line.</p>
+</div>
+<div id="the-inter-quartile-range-iqr" class="section level2">
+<h2><span class="header-section-number">18.3</span> The inter quartile range (IQR)</h2>
+<p>The box in boxplots are defined by the first and third quartile. These are meant to provide an idea of the variability in the data: 50% of the data is within this range. The difference between the 3rd and 1st quartile (or 75th and 25th percentiles) is referred to as the inter quartile range (IQR). As is the case with the median, this quantity will be robust to outliers as large values do not affect it. We can do some math to see that for normal data the IQR / 1.349 approximates the standard deviation of the data had an outlier not been present. We can see that this works well in our example since we get a standard deviation estimate of:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">IQR</span>(outlier_example) <span class="op">/</span><span class="st"> </span><span class="fl">1.349</span>
+<span class="co">#&gt; [1] 0.245</span></code></pre></div>
+<p>which is about 3 inches.</p>
+</div>
+<div id="tukeys-definition-of-an-outlier" class="section level2">
+<h2><span class="header-section-number">18.4</span> Tukey’s definition of an outlier</h2>
+<p>In R, points falling outside the whiskers of the boxplot are referred to as <em>outliers</em>. This definition of outlier was introduced by Tukey. The top whisker ends at the 75th percentile plus 1.5 <span class="math inline">\(\times\)</span> IQR. Similarly the bottom whisker ends at the 25th percentile minus 1.5<span class="math inline">\(\times\)</span> IQR. If we define the first and third quartiles as <span class="math inline">\(Q_1\)</span> and <span class="math inline">\(Q_3\)</span> respectively, then an outlier is anything outside the range:</p>
+<p><span class="math display">\[[Q_1 - 1.5 \times (Q_3 - Q1), Q_3 + 1.5 \times (Q_3 - Q1)]\]</span>.</p>
+<p>When the data is normally distributed. the standard units of these values are:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">q3 &lt;-<span class="st"> </span><span class="kw">qnorm</span>(<span class="fl">0.75</span>)
+q1 &lt;-<span class="st"> </span><span class="kw">qnorm</span>(<span class="fl">0.25</span>)
+iqr &lt;-<span class="st"> </span>q3 <span class="op">-</span><span class="st"> </span>q1
+r &lt;-<span class="st"> </span><span class="kw">c</span>(q1 <span class="op">-</span><span class="st"> </span><span class="fl">1.5</span><span class="op">*</span>iqr, q3 <span class="op">+</span><span class="st"> </span><span class="fl">1.5</span><span class="op">*</span>iqr)
+r
+<span class="co">#&gt; [1] -2.7  2.7</span></code></pre></div>
+<p>Using the <code>pnorm</code> function we see that 99.3% of the data falls in this interval.</p>
+<p>Keep in mind that this is not such an extreme event: if we have 1000 data points that are randomly distributed, we expect to see about 7 outside of this range. But these would not be outliers since we expect to see them under the typical variation.</p>
+<p>If we want an outlier to be rarer, we can increase the 1.5 to a larger number. Tukey also used 3 and called these <em>far out</em> outliers. With a normal distribution 100% of the data falls in this interval. This translates into about 1 in a million chance of being outside the range. In the <code>geom_boxplot</code> function this can be controlled by the <code>outlier.size</code> argument, which defaults to 1.5.</p>
+<p>The 180 feet measurement is well beyond the range of the height data:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">max_height &lt;-<span class="st"> </span><span class="kw">quantile</span>(outlier_example, <span class="fl">0.75</span>) <span class="op">+</span><span class="st"> </span><span class="dv">3</span><span class="op">*</span><span class="kw">IQR</span>(outlier_example)</code></pre></div>
+<p>If we take this value out, we can see that the data is in fact normally distributed as expected:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>outlier_example[outlier_example <span class="op">&lt;</span><span class="st"> </span>max_height]
+<span class="kw">qqnorm</span>(x)
+<span class="kw">qqline</span>(x)</code></pre></div>
+<p><img src="book_files/figure-html/outlier-qqnorm-1.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="median-absolute-deviation" class="section level2">
+<h2><span class="header-section-number">18.5</span> Median absolute deviation</h2>
+<p>Another way to estimate the standard deviation in the presence of outliers is to use the median absolute deviation (MAD). To compute the MAD, we first compute the median, and then for each value we compute the distance between that value and the median. The MAD is defined as the median of these distances. For technical reasons not discussed here, this quantity needs to be multiplied by 1.4826 to assure it approximates the actual standard deviation. The <code>mad</code> function already incorporates this correction. For the height data we get a MAD of:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mad</span>(outlier_example)
+<span class="co">#&gt; [1] 0.237</span></code></pre></div>
+<p>which is about 3 inches.</p>
+</div>
+<div id="exercises-10" class="section level2 unnumbered">
+<h2>Exercises</h2>
+<p>Load the height data set and create a vector <code>x</code> with just the male heights used in Galton’s data on the heights of parents and their children from his historic research on heredity.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">##You can install data like this: install.packages(&quot;HistData&quot;)
+<span class="kw">library</span>(HistData)
+<span class="kw">data</span>(Galton)
+x &lt;-<span class="st"> </span>Galton<span class="op">$</span>child</code></pre></div>
+<ol style="list-style-type: decimal">
+<li><p>Compute the average and median of these data.</p></li>
+<li><p>Compute the median and median absolute deviation of these data.</p></li>
+<li><p>Now suppose Galton made a mistake when entering the first value, forgetting to use the decimal point. You can imitate this error by typing:</p></li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x_with_error &lt;-<span class="st"> </span>x
+x_with_error[<span class="dv">1</span>] &lt;-<span class="st"> </span>x_with_error[<span class="dv">1</span>]<span class="op">*</span><span class="dv">10</span></code></pre></div>
+<pre><code>How many inches does the average grow after this mistake?</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li><p>How many inches does the SD grow after this mistake?</p></li>
+<li><p>How many inches does the median grow after this mistake?</p></li>
+<li><p>How many inches does the MAD grow after this mistake?</p></li>
+<li><p>How could you use exploratory data analysis to detect that an error was made?</p></li>
+</ol>
+<p>A. Since it is only one value out of many, we will not be able to detect this. B. We would see an obvious shift in the distribution. C. A boxplot, histogram, or qq-plot would reveal a clear outlier. D. A scatter plot would show high levels of measurement error.</p>
+<ol start="8" style="list-style-type: decimal">
+<li>How much can the average accidentally grow with mistakes like this? Write a function called <code>error_avg</code> that takes a value <code>k</code> and returns the average of the vector <code>x</code> after the first entry changed to <code>k</code>. Show the results for <code>k=10000</code> and <code>k=-10000</code>.</li>
+</ol>
+</div>
+<div id="case-study-self-reported-heights" class="section level2">
+<h2><span class="header-section-number">18.6</span> Case Study: self-reported heights</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(reported_heights)
+<span class="kw">str</span>(reported_heights)
+<span class="co">#&gt; &#39;data.frame&#39;:    1095 obs. of  3 variables:</span>
+<span class="co">#&gt;  $ time_stamp: chr  &quot;2014-09-02 13:40:36&quot; &quot;2014-09-02 13:46:59&quot; &quot;2014-09-02 13:59:20&quot; &quot;2014-09-02 14:51:53&quot; ...</span>
+<span class="co">#&gt;  $ sex       : chr  &quot;Male&quot; &quot;Male&quot; &quot;Male&quot; &quot;Male&quot; ...</span>
+<span class="co">#&gt;  $ height    : chr  &quot;75&quot; &quot;70&quot; &quot;68&quot; &quot;74&quot; ...</span></code></pre></div>
+<p>Height is a character vector so we create a new column with the numeric version:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reported_heights &lt;-<span class="st"> </span>reported_heights <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">original_heights =</span> height, <span class="dt">height =</span> <span class="kw">as.numeric</span>(height))</code></pre></div>
+<p>We get a warning about NAs. This is because some of the self reported heights were not numbers. We can see why we get these:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reported_heights <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(<span class="kw">is.na</span>(height)) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">head</span>()
+<span class="co">#&gt;            time_stamp    sex height original_heights</span>
+<span class="co">#&gt; 1 2014-09-02 15:16:28   Male     NA            5&#39; 4&quot;</span>
+<span class="co">#&gt; 2 2014-09-02 15:16:37 Female     NA            165cm</span>
+<span class="co">#&gt; 3 2014-09-02 15:16:52   Male     NA              5&#39;7</span>
+<span class="co">#&gt; 4 2014-09-02 15:16:56   Male     NA            &gt;9000</span>
+<span class="co">#&gt; 5 2014-09-02 15:16:56   Male     NA             5&#39;7&quot;</span>
+<span class="co">#&gt; 6 2014-09-02 15:17:09 Female     NA             5&#39;3&quot;</span></code></pre></div>
+<p>Some students self reported their heights using feet and inches rather than just inches. Others used centimeters and others were just trolling. For now we will remove these entries:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reported_heights &lt;-<span class="st"> </span><span class="kw">filter</span>(reported_heights, <span class="op">!</span><span class="kw">is.na</span>(height))</code></pre></div>
+<p>If we compute the average and standard deviation, we notice that we obtain strange results. The average and standard deviation are different from the median and MAS:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reported_heights <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">group_by</span>(sex) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">average =</span> <span class="kw">mean</span>(height), <span class="dt">sd =</span> <span class="kw">sd</span>(height),
+            <span class="dt">median =</span> <span class="kw">median</span>(height), <span class="dt">MAD =</span> <span class="kw">mad</span>(height))
+<span class="co">#&gt; # A tibble: 2 x 5</span>
+<span class="co">#&gt;      sex average    sd median   MAD</span>
+<span class="co">#&gt;    &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;</span>
+<span class="co">#&gt; 1 Female    63.4  27.9   64.2  4.05</span>
+<span class="co">#&gt; 2   Male   103.4 529.9   70.0  4.45</span></code></pre></div>
+<p>This suggests that we have outliers, which is confirmed by simply creating a boxplot:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reported_heights <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(sex, height)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>()</code></pre></div>
+<p><img src="book_files/figure-html/height-outlier-ggplot-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>We can see some rather extreme values. To see what these values are, we can quickly look at the largest values using the <code>arrange</code> function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reported_heights <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(height)) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">top_n</span>(<span class="dv">10</span>, height)
+<span class="co">#&gt;             time_stamp    sex height original_heights</span>
+<span class="co">#&gt; 1  2014-09-03 23:55:37   Male  11111            11111</span>
+<span class="co">#&gt; 2  2016-04-10 22:45:49   Male  10000            10000</span>
+<span class="co">#&gt; 3  2015-08-10 03:10:01   Male    684              684</span>
+<span class="co">#&gt; 4  2015-02-27 18:05:06   Male    612              612</span>
+<span class="co">#&gt; 5  2014-09-02 15:16:41   Male    511              511</span>
+<span class="co">#&gt; 6  2014-09-07 20:53:43   Male    300              300</span>
+<span class="co">#&gt; 7  2014-11-28 12:18:40   Male    214              214</span>
+<span class="co">#&gt; 8  2017-04-03 16:16:57   Male    210              210</span>
+<span class="co">#&gt; 9  2015-11-24 10:39:45   Male    192              192</span>
+<span class="co">#&gt; 10 2014-12-26 10:00:12   Male    190              190</span>
+<span class="co">#&gt; 11 2016-11-06 10:21:02 Female    190              190</span></code></pre></div>
+<p>The first seven entries look like strange errors. However, the next few look like they were entered as centimeters instead of inches. Since 184 cm is equivalent to six feet tall, we suspect that 184 was actually meant to be 72 inches.</p>
+<p>We can review all the nonsensical answers by looking at the data considered to be <em>far out</em> by Tukey:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">max_height &lt;-<span class="st"> </span><span class="kw">quantile</span>(reported_heights<span class="op">$</span>height, .<span class="dv">75</span>) <span class="op">+</span><span class="st"> </span><span class="dv">3</span><span class="op">*</span><span class="kw">IQR</span>(reported_heights<span class="op">$</span>height)
+min_height &lt;-<span class="st"> </span><span class="kw">quantile</span>(reported_heights<span class="op">$</span>height, .<span class="dv">25</span>) <span class="op">-</span><span class="st"> </span><span class="dv">3</span><span class="op">*</span><span class="kw">IQR</span>(reported_heights<span class="op">$</span>height)
+<span class="kw">c</span>(min_height, max_height )
+<span class="co">#&gt; 25% 75% </span>
+<span class="co">#&gt;  44  93</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">outliers &lt;-<span class="st"> </span>reported_heights <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">between</span>(height, min_height, max_height)) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">arrange</span>(height)
+outliers<span class="op">$</span>height
+<span class="co">#&gt;   [1]     0.00     0.70     1.00     1.00     1.00     1.60     1.70</span>
+<span class="co">#&gt;   [8]     2.00     5.00     5.00     5.00     5.00     5.10     5.10</span>
+<span class="co">#&gt;  [15]     5.10     5.10     5.11     5.11     5.11     5.11     5.20</span>
+<span class="co">#&gt;  [22]     5.20     5.20     5.25     5.25     5.30     5.40     5.40</span>
+<span class="co">#&gt;  [29]     5.50     5.50     5.50     5.50     5.50     5.50     5.50</span>
+<span class="co">#&gt;  [36]     5.50     5.50     5.50     5.50     5.51     5.57     5.60</span>
+<span class="co">#&gt;  [43]     5.60     5.60     5.60     5.60     5.60     5.60     5.69</span>
+<span class="co">#&gt;  [50]     5.70     5.70     5.70     5.70     5.70     5.70     5.70</span>
+<span class="co">#&gt;  [57]     5.75     5.80     5.80     5.80     5.80     5.80     5.90</span>
+<span class="co">#&gt;  [64]     5.90     5.90     5.90     6.00     6.00     6.00     6.00</span>
+<span class="co">#&gt;  [71]     6.00     6.00     6.00     6.00     6.00     6.00     6.00</span>
+<span class="co">#&gt;  [78]     6.00     6.00     6.00     6.00     6.00     6.00     6.00</span>
+<span class="co">#&gt;  [85]     6.00     6.10     6.10     6.20     6.20     6.30     6.50</span>
+<span class="co">#&gt;  [92]     6.50     6.50     6.70     7.00    12.00    19.00    22.00</span>
+<span class="co">#&gt;  [99]    23.00    25.00    34.00    34.00   100.00   103.20   111.00</span>
+<span class="co">#&gt; [106]   120.00   120.00   150.00   150.00   152.00   157.00   157.00</span>
+<span class="co">#&gt; [113]   158.00   158.00   158.00   159.00   160.00   160.00   161.00</span>
+<span class="co">#&gt; [120]   162.00   162.00   162.00   163.00   164.00   164.00   165.00</span>
+<span class="co">#&gt; [127]   165.00   165.00   167.00   167.00   167.00   168.00   168.00</span>
+<span class="co">#&gt; [134]   168.00   168.00   169.00   169.00   169.00   169.00   170.00</span>
+<span class="co">#&gt; [141]   170.00   170.00   170.00   170.00   170.00   170.00   170.00</span>
+<span class="co">#&gt; [148]   170.00   172.00   172.00   172.00   172.00   172.00   172.00</span>
+<span class="co">#&gt; [155]   172.00   173.00   173.00   173.00   174.00   174.00   174.00</span>
+<span class="co">#&gt; [162]   174.00   175.00   175.00   175.00   175.00   175.00   176.00</span>
+<span class="co">#&gt; [169]   176.00   177.00   178.00   178.00   178.00   178.00   178.00</span>
+<span class="co">#&gt; [176]   179.00   180.00   180.00   180.00   180.00   180.00   180.00</span>
+<span class="co">#&gt; [183]   180.00   180.00   180.00   182.00   183.00   183.00   183.00</span>
+<span class="co">#&gt; [190]   184.00   184.00   184.00   185.00   185.00   186.00   190.00</span>
+<span class="co">#&gt; [197]   190.00   192.00   210.00   214.00   300.00   511.00   612.00</span>
+<span class="co">#&gt; [204]   684.00 10000.00 11111.00</span></code></pre></div>
+<p>Examining these heights we see two common mistakes: entries in centimeters, which turn out to be too large, and entries of the form <code>x.y</code> with <code>x</code> and <code>y</code> representing feet and inches respectively. Some of the even smaller values, such as 1.6, could be entries in meters.</p>
+<p>In the Data Wrangling Chapter, we will learn techniques for correcting these values and converting them into inches. Here we were able to detect this problem using careful data exploration to uncover issues with the data: the first step in the great majority of data science projects.</p>
 
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="introduction.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="distributions.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="summarizing-data-with-dplyr.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -393,7 +574,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/dataviz/robust_summaries.Rmd",
 "text": "Edit"
 },
 "download": null,
