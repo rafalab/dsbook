@@ -1,6 +1,6 @@
 # Summarizing data with dplyr
 
-An important part of exploratory data analysis is summarizing data. We learned about the average and standard deviation as a two summary statistic that provides all the necessary information to summarize data that is normally distributed. We also learned that better summaries can be achieved by splitting data into groups before using the normal approximation. For example, in our heights dataset we described the height of men and women separately. In this section we cover two new dplyr verbs that make these computations easier: `summarize` and `group_by`. We learn to access resulting values using what we call the _dot placeholder_.  Finally, we also learn to use `arrange` which helps us examine data after sorting.
+An important part of exploratory data analysis is summarizing data. We learned about the average and standard deviation as a two summary statistic that provides all the necessary information to summarize data that is normally distributed. We also learned that better summaries can be achieved by splitting data into groups before using the normal approximation. For example, in our heights dataset, we described the height of men and women separately. In this section, we cover two new dplyr verbs that make these computations easier: `summarize` and `group_by`. We learn to access resulting values using what we call the _dot placeholder_.  Finally, we also learn to use `arrange`, which helps us examine data after sorting.
 
 ```{r, message=FALSE, echo=FALSE}
 library(tidyverse)
@@ -41,8 +41,7 @@ heights %>%
   summarize(median = median(height), minimum = min(height), maximum = max(height))
 ```
 
-We can obtain these three values with just one line using the `quantiles` function. For example, `quantile(x, c(0,0.5,1))` returns the min, median, and max of the vector `x`.
-However, if we attempt to use a function that returns two or more values:
+We can obtain these three values with just one line using the `quantiles` function; e.g. `quantile(x, c(0,0.5,1))` returns the min, median, and max of the vector `x`. However, if we attempt to use a function that returns two or more values:
 
 ```{r, eval=FALSE}
 heights %>% 
@@ -50,7 +49,7 @@ heights %>%
   summarize(range = quantile(height, c(0, 0.5, 1)))
 ```
 
-we will receive an error: `Error: expecting result of length one, got : 2`. With the function `summarize` we can only call functions that return a single value. In a later chapter, we will learn how to deal with functions that return more than one value.
+we will receive an error: `Error: expecting result of length one, got : 2`. With the function `summarize`, we can only call functions that return a single value. In a later chapter, we will learn how to deal with functions that return more than one value.
 
 For another example of how we can use the `summarize` function, let's compute the average murder rate for the United States. Remember our data table includes total murders and population size for each state and we have already used dplyr to add a murder rate column:
 
@@ -65,7 +64,7 @@ Remember that the US murder is **not** the average of the state murder rates:
 summarize(murders, mean(murder_rate))
 ```
 
-This is because in the computation above the small states are given the same weight as the large ones. The US murder rate is the totalUS murders divided by the total US population. So the correct computation is:
+This is because in the computation above the small states are given the same weight as the large ones. The US murder rate is the total US murders divided by the total US population. So the correct computation is:
 
 ```{r}
 us_murder_rate <- murders %>% summarize(rate = sum(total) / sum(population) * 100000)
@@ -120,7 +119,7 @@ If we type this:
 heights %>% group_by(sex)
 ```
 
-the result does not look very different from `heights`, except we see this `Groups: sex [2]` when we print the object. Although not immediately obvious from its appearance, this is now a special data frame called a _grouped data frame_ and dplyr functions, in particular `summarize`, will behave differently when acting on this object. Conceptually you can think of this table as many tables, with the same columns but not necessarily the same number of rows, stacked together in one object. When we summarize the data after grouping, this is what happens:
+the result does not look very different from `heights`, except we see this `Groups: sex [2]` when we print the object. Although not immediately obvious from its appearance, this is now a special data frame called a _grouped data frame_ and dplyr functions, in particular `summarize`, will behave differently when acting on this object. Conceptually, you can think of this table as many tables, with the same columns but not necessarily the same number of rows, stacked together in one object. When we summarize the data after grouping, this is what happens:
 
 ```{r}
 heights %>% 
@@ -140,7 +139,7 @@ murders %>%
 
 ## Sorting data frames
 
-When examining a dataset it is often convenient to sort the table by the different columns. We know about the `order` and `sort` function, but for ordering entire tables, the dplyr function `arrange` is useful. For example, here we order the states by population size when we type:
+When examining a dataset, it is often convenient to sort the table by the different columns. We know about the `order` and `sort` function, but for ordering entire tables, the dplyr function `arrange` is useful. For example, here we order the states by population size when we type:
 
 ```{r}
 murders %>% arrange(population) %>% head()
@@ -175,7 +174,7 @@ murders %>%
 
 ### The top $n$ {-}
 
-In the code above we have used the function `head` to avoid having the page fill up with the entire dataset. If we want to see a larger proportion, we can use the `top_n` function. Here are the first 10 rows:
+In the code above, we have used the function `head` to avoid having the page fill up with the entire dataset. If we want to see a larger proportion, we can use the `top_n` function. Here are the first 10 rows:
 
 ```{r}
 murders %>% top_n(10, murder_rate)
@@ -196,7 +195,7 @@ murders %>%
 ## Exercises {-}
 
 
-For these exercesis we will be using the data from the survey collected by the United States National Center for Health Statistics (NCHS). This center has conducted a series of health and nutrition surveys since the 1960’s. Starting in 1999 about 5,000 individuals of all ages have been interviewed every year and they complete the health examination component of the survey. Part of the data is made avaialble via the NHANES package which can install using
+For these exercises we will be using the data from the survey collected by the United States National Center for Health Statistics (NCHS). This center has conducted a series of health and nutrition surveys since the 1960’s. Starting in 1999 about 5,000 individuals of all ages have been interviewed every year and they complete the health examination component of the survey. Part of the data is made available via the NHANES package which can install using:
 
 ```{r, eval = FALSE}
 install.packages("NHANES")
@@ -236,7 +235,7 @@ Let's now explore the NHANES data.
 3. Now report the min and max values for the same group.
 
 
-4. Now compute the average and standard deviation for females, but for each age group separately. Note that the age groups are defined by `AgeDecade`. Hint: rather than filtering by age, filter by `Gender` and then use `group_by`.
+4. Compute the average and standard deviation for females, but for each age group separately. Note that the age groups are defined by `AgeDecade`. Hint: rather than filtering by age, filter by `Gender` and then use `group_by`.
 
 5. Now do the same for males. 
 

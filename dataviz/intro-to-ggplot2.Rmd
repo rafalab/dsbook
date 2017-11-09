@@ -1,22 +1,22 @@
 # ggplot2
 
-We have now described several data visualization techniques and are ready to learn how to create them in R. Throughout the book we will be using the [ggplot2](http://ggplot2.org) package. We can load it, along with dplyr, as part of the tidyverse:
+We have now described several data visualization techniques and are ready to learn how to create them in R. Throughout the book, we will be using the [ggplot2](http://ggplot2.org) package. We can load it, along with dplyr, as part of the tidyverse:
 
 ```{r, message=FALSE, echo=FALSE}
 library(tidyverse)
 ```
 
-Many other approaches are available for creating plots in R. In fact, the plotting capabilities that come with a basic installation of R are already quite powerful. We have seen examples of these already with the functions `plot`, `hist` and `boxplot`. There are also other packages for creating graphics such as `grid` and `lattice`. We chose to use ggplot2 in this book because it breaks plots into components in a way that permits beginners to create relatively complex and aesthetically pleasing plots using syntax that is intuitive and relatively easy to remember. 
+Many other approaches are available for creating plots in R. In fact, the plotting capabilities that come with a basic installation of R are already quite powerful. We have seen examples of these already with the functions `plot`, `hist` and `boxplot`. There are also other packages for creating graphics such as `grid` and `lattice`. We chose to use ggplot2 in this book because it breaks plots into components in a way that permits beginners to create relatively complex and aesthetically pleasing plots using syntax that is intuitive and comparatively easy to remember. 
 
 One reason ggplot2 is generally more intuitive for beginners is that it uses a [grammar of graphics](http://www.springer.com/us/book/9780387245447), the _gg_ in ggplot2. This is analogous to the way learning grammar can help a beginner construct hundreds of different sentences by learning just a handful of verbs, nouns and adjectives without having to memorize each specific sentence. Similarly, by learning a handful of ggplot2 building blocks and its grammar, you will be able to create hundreds of different plots. 
 
-Another reason ggplot2 makes it easier for beginners is that its default behavior is carefully chosen to satisfy the great majority of cases and is aesthetically pleasing. As a result, it is possible to create informative and elegant graphs with relatively simple and readable code.
+Another reason ggplot2 makes it easier for beginners is that its default behavior is carefully chosen to satisfy the great majority of cases and is visually pleasing. As a result, it is possible to create informative and elegant graphs with relatively simple and readable code.
 
 One limitation is that ggplot2 is designed to work exclusively with data tables in which rows are observations and columns are variables. However, a substantial percentage of datasets that beginners work with are, or can be converted into, this format. An advantage of this approach is that, assuming that our data follows this format, it simplifies the code and learning the grammar. 
 
 ## The cheat sheet
 
-To use ggplot2  you will have to learn several functions and arguments. These are hard to memorize so we highly recommend you have the a [ggplot2 sheet cheat](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) handy. You can get a copy here: [https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) or simply perform a ninternet search for "ggplot2 cheat sheet".
+To use ggplot2  you will have to learn several functions and arguments. These are hard to memorize so we highly recommend you have the a [ggplot2 sheet cheat](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) handy. You can get a copy here: [https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) or simply perform an internet search for "ggplot2 cheat sheet".
 
 ## The components of a graph
 
@@ -52,7 +52,7 @@ This data visualization shows us pretty much all the information in the data tab
 The first step in learning ggplot2 is to be able to break a graph apart into components. Let's break down the plot above and introduce some of the ggplot2 terminology. The main three components to note are:
  
 1. __Data__: The US murders data table is being summarized. We refer to this as the __data__ component. 
-2. __Geometry__: The plot above is a scatter plot. This is referred to as the 
+2. __Geometry__: The plot above is a scatterplot. This is referred to as the 
 __geometry__ component. Other possible geometries are barplot, histograms, smooth densities, qqplots, and boxplots. 
 3. __Aesthetic mapping__: The x-axis values are used to display population size, the y-axis values are used to display the total number of murders, text is used to identify the states, and colors are used to denote the four different regions. These are the __aesthetic mappings__ component. How we define the mapping depends on what __geometry__ we are using. 
 
@@ -92,7 +92,7 @@ p <- ggplot(data = murders)
 class(p)
 ```
 
-To render the plot associated with this object we simply print the object `p`. The following two lines of code produce the same plot we see above:
+To render the plot associated with this object, we simply print the object `p`. The following two lines of code produce the same plot we see above:
 
 ```{r, eval=FALSE}
 print(p)
@@ -106,9 +106,9 @@ To add layers, we use the the symbol `+`. In general a line of code will look li
 
 >> DATA %>% `ggplot()` + LAYER 1 + LAYER 2 + ... + LAYER N
 
-Usually, the first added layer defines the geometry. We want to make a scatter plot. So what geometry do we use?
+Usually, the first added layer defines the geometry. We want to make a scatterplot. So what geometry do we use?
 
-Taking a quick look at the cheat sheet we see that the function used to create plots with this geometry is `geom_point`. 
+Taking a quick look at the cheat sheet, we see that the function used to create plots with this geometry is `geom_point`. 
 
 ```{r, echo=FALSE}
 ##https://ugoproto.github.io/ugo_r_doc/img/visualization_cs/ggplot2-cheatsheeta.png
@@ -123,7 +123,7 @@ knitr::include_graphics("dataviz/img/ggplot2-cheatsheetb.png")
 
 Geometry function names follow this pattern: `geom` and the name of the geometry connected by an underscore. 
 
-For `geom_point` to know what to do, we need to provide data and a mapping. We have already connected the object `p` with the `murders` data table and if we add as a layer `geom_point`, we will default to using this data. To find out what mapping are expected we read the __Aesthetics__ section of the help file `geom_point` help file:
+For `geom_point` to know what to do, we need to provide data and a mapping. We have already connected the object `p` with the `murders` data table and, if we add as a layer `geom_point`, we will default to using this data. To find out what mappings are expected, we read the __Aesthetics__ section of the help file `geom_point` help file:
 
 > Aesthetics
 > 
@@ -142,14 +142,14 @@ and, as expected, we see that at least two arguments are required `x` and `y`.
  
 ## Aesthetic mappings
  
-`aes` will be one of the functions you will most use. This function connects data with what we see on the graph. We refer to this connect as the __aesthetic mappings__. The outcome of this function is often used as the argument of a geometry function. This example produces a scatter plot of total murders versus population in millions:
+`aes` will be one of the functions you will most use. This function connects data with what we see on the graph. We refer to this connect as the __aesthetic mappings__. The outcome of this function is often used as the argument of a geometry function. This example produces a scatterplot of total murders versus population in millions:
  
 ```{r, eval = FALSE}
 murders %>% ggplot() + 
   geom_point(aes(x = population/10^6, y = total))
 ```
  
-We can drop the `x = ` and `y =` if we wanted to since these are the first and second expected arguments as seen in the help page. 
+We can drop the `x = ` and `y =` if we wanted to since these are the first and second expected arguments, as seen in the help page. 
 
 We can also add a layer to the `p` object that has defined above as `p <- ggplot(data = murders)`:
 
@@ -183,13 +183,13 @@ As an example of the unique behavior of `aes` mentioned above, note that this ca
 p_test <- p + geom_text(aes(population/10^6, total, label = abb))
 ```
 
-is fine, whereas this call
+is fine, whereas this call:
 
 ```{r, eval=FALSE}
 p_test <- p + geom_text(aes(population/10^6, total), label = abb) 
 ```
 
-will give you an error as `abb` is not found once it is outside of the `aes` function. The layer `geom_text` does not know where to find `abb` as it is not a global variable.
+will give you an error since `abb` is not found once it is outside of the `aes` function. The layer `geom_text` does not know where to find `abb` since it is not a global variable.
 
 ## Tinkering with arguments
  
@@ -203,7 +203,7 @@ p + geom_point(aes(population/10^6, total), size = 3) +
 
 `size` is __not__ a mapping, it affects all the points so we do not need to include it inside `aes`.
 
-Now that the points are larger, it is hard to see the labels. If we read the help file for `geom_text`, we see learn of the `nudge_x` argument which moves the text slightly to the right:
+Now that the points are larger, it is hard to see the labels. If we read the help file for `geom_text`, we see the `nudge_x` argument, which moves the text slightly to the right:
 
 ```{r ggplot-example-6}
 p + geom_point(aes(population/10^6, total), size = 3) +
@@ -214,7 +214,7 @@ This is preferred as it makes it easier to read the text.
 
 ## Global versus local aesthetic mappings
 
-In the previous line of code, we define the mapping `aes(population/10^6, total)` twice, once in each geometry. We can avoid this by using a _glogbal_ aesthetic mapping. We can do this when we define the blank slate `ggplot` object. Remember that the function `ggplot` contains an argument that permits us to define aesthetic mappings:
+In the previous line of code, we define the mapping `aes(population/10^6, total)` twice, once in each geometry. We can avoid this by using a _global_ aesthetic mapping. We can do this when we define the blank slate `ggplot` object. Remember that the function `ggplot` contains an argument that permits us to define aesthetic mappings:
 
 ```{r}
 args(ggplot)
@@ -233,7 +233,7 @@ p + geom_point(size = 3) +
   geom_text(nudge_x = 1.5)
 ```
 
-We keep the `size` and `nudge_x` argument in `geom_point` and `geom_text` respectively because we only want to increase the size of points and nudge only the labels. Also note that the `geom_point` function does not need a `label` argument and therefore ignores it.
+We keep the `size` and `nudge_x` argument in `geom_point` and `geom_text` respectively because we want to only increase the size of points and only nudge the labels. Also note that the `geom_point` function does not need a `label` argument and therefore ignores it.
 
 If necessary, we can override the global mapping by defining a new mapping within each layer. These _local_ definitions override the _global_. Here is an example:
 
@@ -321,7 +321,7 @@ Here we see yet another useful default behavior: ggplot2 has automatically added
 
 We often want to add shapes or annotation to figures that are not derived directly from the aesthetic mapping. Examples in include labels, boxes, shaded areas and lines.
 
-Here we want to add a line that represents the average murder rate for the entire country. Once we determine the per million rate to be $r$, this line is defined by the formula: $y = r x$ with $y$ and $x$ our axes: total murders and population in millions respectively. In the log-scale this line turns into: $\log(y) = \log(r) + \log(x)$. So in our plot it's a line with slope 1 and intercept $\log(r)$. To compute this value we use what we our dplyr skills:
+Here we want to add a line that represents the average murder rate for the entire country. Once we determine the per million rate to be $r$, this line is defined by the formula: $y = r x$, with $y$ and $x$ our axes: total murders and population in millions respectively. In the log-scale this line turns into: $\log(y) = \log(r) + \log(x)$. So in our plot it's a line with slope 1 and intercept $\log(r)$. To compute this value we use what we our dplyr skills:
 
 ```{r}
 r <- murders %>% 
@@ -337,7 +337,7 @@ p + geom_point(aes(col=region), size = 3) +
 
 Here `geom_abline` does not use any information from the data object.
 
-We can change the line type and color of the lines using arguments. Also we draw it first so it doesn't go over our points. 
+We can change the line type and color of the lines using arguments. Also, we draw it first so it doesn't go over our points. 
 
 ```{r}
 p <- p + geom_abline(intercept = log10(r), lty = 2, color = "darkgrey") +
@@ -410,7 +410,7 @@ Now let's try to make the summary plots we have described in this chapter.
 
 ### Histogram {-}
 
-Let's start with the histogram. In a first step we need to use dplyr to filter the data:
+Let's start with the histogram. First, we need to use dplyr to filter the data:
 
 ```{r, eval=FALSE}
 heights %>% filter(sex=="Male")

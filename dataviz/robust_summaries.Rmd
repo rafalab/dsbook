@@ -9,7 +9,7 @@ ds_theme_set()
 
 We previously described how boxplots show _outliers_, but we did not provide a precise definition. Here we discuss outliers, approaches that can help detect them, and summaries that take into account their presence.
 
-Outliers are very common in data science. Data recording can be complex and it is common to observe data points generated in error. For example, an old monitoring device may read out nonsensical measurements before completely failing. Human error is also a source of outliers, in particular when data entry is done manually. For instance, an individual may mistakenly enter their height in centimeters instead of inches.  
+Outliers are very common in data science. Data recording can be complex and it is common to observe data points generated in error. For example, an old monitoring device may read out nonsensical measurements before completely failing. Human error is also a source of outliers, in particular when data entry is done manually. An individual, for instance, may mistakenly enter their height in centimeters instead of inches.  
 
 Now, how do we distinguish an outlier from measurements that were too big or too small simply due to expected variability? This is not always an easy question to answer, but we try to provide some guidance. Let's begin with a simple case.
 
@@ -28,9 +28,7 @@ mean(outlier_example)
 sd(outlier_example)
 ```
 
-and writes a report on the interesting fact that this group of males is much taller than usual. The average height is over six feet tall! Using your data science skills, however, you notice something else that is unexpected: the standard deviation is over 7 inches. Adding and subtracting two standard deviations, you note that 95% of this population will have heights between `r mean(outlier_example) + c(-2, 2)*sd(outlier_example)` inches which does not make sense.
-
-A quick plot reveals the problem:
+and writes a report on the interesting fact that this group of males is much taller than usual. The average height is over six feet tall! Using your data science skills, however, you notice something else that is unexpected: the standard deviation is over 7 inches. Adding and subtracting two standard deviations, you note that 95% of this population will have heights between `r mean(outlier_example) + c(-2, 2)*sd(outlier_example)` inches, which does not make sense. A quick plot reveals the problem:
 
 ```{r histogram-reveals-outliers}
 hist(outlier_example)
@@ -44,7 +42,7 @@ boxplot(outlier_example)
 
 ## Median
 
-When we have an outlier like this, the average can become very large. Keep in mind that mathematically we can make the average as large as we want by simply changing one number: with `r length(outlier_example)` data points, we can increase the average by any amount $\Delta$ by adding $\Delta \times$ `r length(outlier_example)` to a single number. The median, defined as the value for which half the values are smaller and the other half are bigger, is robust to such outliers. No matter how large we make the largest point, the median remains the same. 
+When we have an outlier like this, the average can become very large. Mathematically, we can make the average as large as we want by simply changing one number: with `r length(outlier_example)` data points, we can increase the average by any amount $\Delta$ by adding $\Delta \times$ `r length(outlier_example)` to a single number. The median, defined as the value for which half the values are smaller and the other half are bigger, is robust to such outliers. No matter how large we make the largest point, the median remains the same. 
 
 With this data the median is: 
 
@@ -82,11 +80,11 @@ r <- c(q1 - 1.5*iqr, q3 + 1.5*iqr)
 r
 ```
 
-Using the `pnorm` function we see that `r round(pnorm(r[2]) - pnorm(r[1]),3)*100`% of the data falls in this interval.
+Using the `pnorm` function, we see that `r round(pnorm(r[2]) - pnorm(r[1]),3)*100`% of the data falls in this interval.
 
 Keep in mind that this is not such an extreme event: if we have 1000 data points that are randomly distributed, we expect to see about 7 outside of this range. But these would not be outliers since we expect to see them under the typical variation. 
 
-If we want an outlier to be rarer, we can increase the 1.5 to a larger number. Tukey also used 3 and called these _far out_ outliers. With a normal distribution `r r <- c(q1 - 3*iqr , q3 + 3*iqr); round(pnorm(r[2]) - pnorm(r[1]),6)*100`% of the data falls in this interval. This translates into about 1 in a million chance of being outside the range. In the `geom_boxplot` function this can be controlled by the `outlier.size` argument, which defaults to 1.5.
+If we want an outlier to be rarer, we can increase the 1.5 to a larger number. Tukey also used 3 and called these _far out_ outliers. With a normal distribution, `r r <- c(q1 - 3*iqr , q3 + 3*iqr); round(pnorm(r[2]) - pnorm(r[1]),6)*100`% of the data falls in this interval. This translates into about 1 in a million chance of being outside the range. In the `geom_boxplot` function, this can be controlled by the `outlier.size` argument, which defaults to 1.5.
 
 The 180 feet measurement is well beyond the range of the height data:
 
@@ -105,7 +103,7 @@ qqline(x)
 
 ## Median absolute deviation
 
-Another way to estimate the standard deviation in the presence of outliers is to use the median absolute deviation (MAD). To compute the MAD, we first compute the median, and then for each value we compute the distance between that value and the median. The MAD is defined as the median of these distances. For technical reasons not discussed here, this quantity needs to be multiplied by 1.4826 to assure it approximates the actual standard deviation. The `mad` function already incorporates this correction. For the height data we get a MAD of:
+Another way to estimate the standard deviation in the presence of outliers is to use the median absolute deviation (MAD). To compute the MAD, we first compute the median, and then for each value we compute the distance between that value and the median. The MAD is defined as the median of these distances. For technical reasons not discussed here, this quantity needs to be multiplied by 1.4826 to assure it approximates the actual standard deviation. The `mad` function already incorporates this correction. For the height data, we get a MAD of:
 
 ```{r}
 mad(outlier_example)
@@ -158,7 +156,7 @@ x_with_error[1] <- x_with_error[1]*10
 8. How much can the average accidentally grow with mistakes like this? Write a function called `error_avg` that takes a value `k` and returns the average of the vector `x` after the first entry changed to `k`. Show the results for `k=10000` and `k=-10000`.
 
 
-## Case Study: self-reported heights
+## Case study: self-reported heights
 
 ```{r}
 data(reported_heights)
@@ -233,4 +231,4 @@ outliers$height
 
 Examining these heights we see two common mistakes: entries in centimeters, which turn out to be too large, and entries of the form `x.y` with `x` and `y` representing feet and inches respectively. Some of the even smaller values, such as 1.6, could be entries in meters.
 
-In the Data Wrangling Chapter, we will learn techniques for correcting these values and converting them into inches. Here we were able to detect this problem using careful data exploration to uncover issues with the data: the first step in the great majority of data science projects.
+In the data wrangling chapter, we will learn techniques for correcting these values and converting them into inches. Here we were able to detect this problem using careful data exploration to uncover issues with the data: the first step in the great majority of data science projects.
