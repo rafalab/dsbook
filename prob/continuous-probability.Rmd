@@ -1,10 +1,10 @@
 # Continuous probability
 
-We earlier explained why when summarizing a list of numeric values, such as heights, it is not useful to construct a distribution that defines a proportion to each possible outcome. Note, for example, that if we measure every single person in a very large population of size $n$ with extremely high precision, because no two people are exactly the same height, we need to assign the proportion $1/n$ to each observed value and attain no useful summary at all. Similarly, when defining probability distributions, it is not useful to assign a very small probability to every single height.
+We earlier explained why when summarizing a list of numeric values, such as heights, it is not useful to construct a distribution that defines a proportion to each possible outcome. For example, if we measure every single person in a very large population of size $n$ with extremely high precision, since no two people are exactly the same height, we need to assign the proportion $1/n$ to each observed value and attain no useful summary at all. Similarly, when defining probability distributions, it is not useful to assign a very small probability to every single height.
 
 Just as when using distributions to summarize numeric data, it is much more practical to define a function that operates on intervals rather than single values. The standard way of doing this is using the _cumulative distribution functions_ (CDF).
 
-We previously described empirical cumulative distribution function (eCDF) as a basic summary of a list of numeric values. As an example, we defined the height distribution for male student adults. Here we define the vector $x$ to contain the male heights:
+We previously described empirical cumulative distribution function (eCDF) as a basic summary of a list of numeric values. As an example, we earlier defined the height distribution for adult male students. Here we define the vector $x$ to contain the male heights:
 
 ```{r,  message=FALSE}
 library(tidyverse)
@@ -38,13 +38,13 @@ Because we can compute the probability for any possible event this way, the cumu
 
 ## Theoretical distribution 
 
-In the data visualization chapter, we introduced the normal distribution as a useful approximation to many naturally occurring distributions, including that of height. The cumulative distribution for the normal distribution is defined by a mathematical formula which in R can be obtained with the function `pnorm`. We say that a random quantity is normally distributed with average `avg` and standard deviation `s` if its probability distribution is defined by:
+In the data visualization chapter, we introduced the normal distribution as a useful approximation to many naturally occurring distributions, including that of height. The cumulative distribution for the normal distribution is defined by a mathematical formula which in R can be obtained with the function `pnorm`. We say that a random quantity is normally distributed with average `avg` and standard deviation `s`, if its probability distribution is defined by:
 
 ```{r, eval=FALSE}
 F(a) = rnorm(a, avg, s)
 ```
 
-This is useful because if we are willing to use the normal approximation for, say, height, we don't need the entire data set to answer questions such as: what is the probability that a randomly selected student is taller then 70 inches?. We just need the average height and standard deviation:
+This is useful because if we are willing to use the normal approximation for, say, height, we don't need the entire data set to answer questions such as: what is the probability that a randomly selected student is taller then 70 inches? We just need the average height and standard deviation:
 
 ```{r}
 avg <- mean(x)
@@ -60,7 +60,7 @@ The normal distribution is derived mathematically: we do no need data to define 
 plot(prop.table(table(x)), xlab = "a = Height in inches", ylab = "Pr(X = a)")
 ```
 
-While most students rounded up their heights to the nearest inch, others reported values with more precision. One student reported his height to be 69.6850393700787 which is 177 centimeters. The probability assigned to this height is `r 1/length(x)` or 1 in `r length(x)`. The probability for 70 inches is much higher `r mean(x==70)`, but does it really make sense to think of that the probability of being exactly 70 inches is the same as being 69.6850393700787? Clearly it is much more useful for data analytic purposes to treat this outcome as a continuous numeric variable, keeping in mind that very few people, or perhaps none, are exactly 70 inches, and that the reason we get more values at 70 is because people round to the nearest inch. 
+While most students rounded up their heights to the nearest inch, others reported values with more precision. One student reported his height to be 69.6850393700787 which is 177 centimeters. The probability assigned to this height is `r 1/length(x)` or 1 in `r length(x)`. The probability for 70 inches is much higher `r mean(x==70)`, but does it really make sense to think of the probability of being exactly 70 inches as being the same as 69.6850393700787? Clearly it is much more useful for data analytic purposes to treat this outcome as a continuous numeric variable, keeping in mind that very few people, or perhaps none, are exactly 70 inches, and that the reason we get more values at 70 is because people round to the nearest inch. 
 
 With continuous distributions the probability of a singular value is not even defined. For example, it does not make sense to ask what is the probability that a normally distributed value is 70. Instead, we define probabilities for intervals. So we could ask what is the probability that someone is between 69.5 and 70.5. 
 
@@ -80,7 +80,7 @@ pnorm(69.5, avg, s) - pnorm(68.5, avg, s)
 pnorm(70.5, avg, s) - pnorm(69.5, avg, s) 
 ```
 
-However, the approximation is not as useful for other intervals. For instance, note how the approximation breaks when we try to estimate:
+However, the approximation is not as useful for other intervals. For instance, notice how the approximation breaks when we try to estimate:
 
 ```{r}
 mean(x <= 70.9) - mean(x<=70.1)
@@ -102,7 +102,7 @@ $$
 \mbox{Pr}(X=4) = 1/6
 $$
 
-The CFD can then easily be defend:
+The CFD can then easily be defined:
 $$
 F(4) = \mbox{Pr}(X\leq 4) =  \mbox{Pr}(X = 4) +  \mbox{Pr}(X = 3) +  \mbox{Pr}(X = 2) +  \mbox{Pr}(X = 1) 
 $$
@@ -113,7 +113,7 @@ $$
 F(a) = \mbox{Pr}(X\leq a) = \int_{-\infty}^a f(x)\, dx
 $$
 
-For those that know Calculus, remember that the integral is related to a sum: it is the sum of bars with widths approximating 0. If you don't know Calculus, you can think of $f(x)$ as a curve for which the area under that curve up the value $a$ gives you the probability of $X\leq a$. 
+For those that know Calculus, remember that the integral is related to a sum: it is the sum of bars with widths approximating 0. If you don't know Calculus, you can think of $f(x)$ as a curve for which the area under that curve up to the value $a$, gives you the probability of $X\leq a$. 
 
 For example, to use the normal approximation to estimate the probability of someone being taller than 76 inches, we use:
 
@@ -135,7 +135,7 @@ ggplot(dat, aes(x, y)) +
   geom_ribbon(aes(ymin = 0, ymax = y), data = dat_ribbon)
 ```
 
-The curve you see is the probability density for the normal distribution. In R we get this using the function `dnorm`. 
+The curve you see is the probability density for the normal distribution. In R, we get this using the function `dnorm`. 
 
 Although it may not be immediately obvious why knowing about probability densities is useful, understanding this concept will be essential to those wanting to fit models to data for which predefined functions are not available.
 
@@ -237,7 +237,7 @@ For the student-t the shorthand `t` is used so the functions are `dt` for the de
 \mbox{Pr}\left(Z \leq \frac{a-\mu}{\sigma} \right)
     $$
 
-    So, no matter the units, the probability of $X\leq a$ is the same as the probability of a standard normal variable being less than $(a - \mu)/\sigma$. If `mu` is the average and `sigma` the standard error, which of the following R code would therefore give us the right answer in every situation:
+    So, no matter the units, the probability of $X\leq a$ is the same as the probability of a standard normal variable being less than $(a - \mu)/\sigma$. If `mu` is the average and `sigma` the standard error, which of the following R code would give us the right answer in every situation:
 
     A. `mean(X<=a)`
     B. `pnorm((a - mu)/sigma)`
