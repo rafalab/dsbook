@@ -1,0 +1,645 @@
+# Discrete probability
+
+We start by covering some basic principles related to categorical data. The subset of probability is referred to as _discrete probability_. It will help us understand the probability theory we will later introduce for numeric and continuous data, which is much more common in data science applications. Discrete probability is more useful in card games and we use these as examples.
+
+## Relative frequency
+
+The word probability is used in everyday language. For example Google's auto-complete of "What are the chances of" give us "getting pregnant", "having twins", and "rain tomorrow". Answering questions about probability is often hard, if not impossible. Here we discuss a mathematical definition of _probability_ that does permit us to give precise answers to certain questions. 
+
+For example, if I have 2 red beads and 3 blue beads inside an urn and I pick one at random, what is the probability of picking a red one? Our intuition tells us that the answer is 2/5 or 40%. A precise definition can be given by noting that there are five possible outcomes of which two satisfy the condition necessary for the event "pick a red bead". Since each of the five outcomes has the same chance of occurring, we conclude that the probability is .4 for red and .6 for blue. 
+
+A more tangible way to think about the probability of an event is as the proportion of times the event occurs when we repeat the experiment over and over, independently, and under the same conditions. 
+
+## Notation
+
+We use the notation $\mbox{Pr}(A)$ to denote the probability of event $A$ happening. We use the very general term _event_ to refer to things that can happen when something occurs by chance. For example, in our previous example, the event was "picking a red bead". In a political poll in which we call 100 likely voters at random, an example of an event is "calling 48 Democrats and 52 Republicans".
+
+In data science applications, we will often deal with continuous variables. In these cases, events will often be things like "is this person taller than 6 feet". In this case we write events in a more mathematical form: $X \geq 6$. We will see more of these examples later. Here we focus on categorical data.
+
+
+## Monte Carlo simulations
+
+Computers provide a way to actually perform the simple random experiment described above: pick a bead at random from a bag with three blue beads and two red ones. Random number generators permit us to mimic the process of picking at random. 
+
+An example is the `sample` function in R. We demonstrate its use in the code below.  First, we use the function `rep` to generate the urn:
+
+```{r}
+beads <- rep( c("red", "blue"), times = c(2,3))
+beads
+```
+
+and then use `sample` to pick a bead at random:
+
+```{r}
+sample(beads, 1)
+```
+
+This line of code produces one random outcome. We want to repeat this experiment "over and over", but it is impossible to repeat forever. Instead, we repeat the experiment a large enough number of times to make the results practically equivalent. This is an example of a _Monte Carlo_ simulation. 
+
+Much of what mathematical and theoretical statistician study, something that we do not cover in this book, relates to providing rigorous definitions of "practically equivalent" as well as studying how close a large number of experiments gets us to what happens in the limit. Later in this section we provide a practical approach to deciding what is "large enough".
+
+To perform our first Monte Carlo simulation, we use the `replicate` function, which permits us to repeat the same task any number of times. Here we repeat the random event $B =$ 10,000 times:
+
+```{r}
+B <- 10000
+events <- replicate(B, sample(beads, 1))
+```
+
+We can now see if our definition actually is in agreement with this Monte Carlo simulation approximation. We can use `table` to see the distribution:
+
+```{r}
+tab <- table(events)
+tab
+```
+
+and `prop.table` gives us the proportions:
+
+```{r}
+prop.table(tab)
+```
+
+The numbers above are the estimated probabilities provided by this Monte Carlo simulation. Statistical theory, not covered here, tells us that $B$ gets larger as the estimates get closer to 3/5=.6 and 2/5=.4. 
+
+Although this is a simple and not very useful example, we will use Monte Carlo simulations to estimate probabilities in cases in which it is harder to compute the exact ones. Before we go into more complex examples we use simple ones to demonstrate the computing tools available in R.
+
+## Setting the random seed
+
+Before we continue, we will briefly explain the following important line of code:
+
+```{r}
+set.seed(1) 
+```
+
+Throughout this book, we use random number generators. This implies that many of the results presented can actually change by chance, which then suggests that a frozen version of the book may show a different result than what you obtain when you try to code shown in the book. This is actually fine since the results are random and change from time to time. However, if you want to to ensure that results are exactly the same every time you run them, you can set R's random number generation seed to a specific number. Above we set it to 1. 
+
+```{r,eval=FALSE}
+?set.seed
+```
+
+In the exercises we may ask you to set the seed to assure that the results you obtain are exactly what we expect them to be. 
+
+### With and without replacement {-}
+
+The function `sample` has an argument that permits us to pick more than one element from the urn. However, by default, this selection occurs _without replacement_: after a bead is selected, it is not put back in the bag. Notice what happens when we ask to randomly select five beads:
+
+```{r}
+sample(beads, 5)
+sample(beads, 5)
+sample(beads, 5)
+```
+
+This results in rearrangements that always have three blue and two red beads. If we ask that six beads be selected, we get an error:
+
+```{r, eval=FALSE}
+sample(beads, 6)
+```
+
+`Error in sample.int(length(x), size, replace, prob) : 
+  cannot take a sample larger than the population when 'replace = FALSE'`
+
+However, the `sample` function can be used directly, without the use of `replicate`, to repeat the same experiment of picking 1 out of the 5 beads, continually, under the same conditions. To do this we sample _with replacement_: return the bead back to the urn after selecting it. 
+
+We can tell `sample` to do this changing the `replace` argument , which defaults to `FALSE`, to `replace=TRUE`:
+
+```{r}
+events <- sample(beads, B, replace = TRUE)
+prop.table(table(events))
+```
+
+Not surprisingly, we get results very similar to those previously obtained with `replicate`.
+  
+## Probability distributions
+
+Defining a distribution for categorical outcomes is relatively straight forward. We simply assign a probability to each category. In cases that can be thought of as beads in an urn, for each bead type their proportion defines the distribution. 
+
+If we are randomly calling likely voters from a population that is 44% Democrat, 44% Republican, 10% undecided and 2% Green Party, these proportions define the probability for each group. The probability distribution is:
+
+$$
+\mbox{Pr}(\mbox{picking a Republican})=0.44\\ \mbox{Pr}(\mbox{picking a Democrat})=0.44\\
+\mbox{Pr}(\mbox{picking an undecided})=0.10\\
+\mbox{Pr}(\mbox{picking a Green})=0.02\\
+$$
+
+## Independence
+
+We say two events are independent if the outcome of one does not affect the other. The classic example are coin tosses. Every time we toss a fair coin, the probability of seeing heads is 1/2 regardless of what previous tosses have revealed. The same is true when we pick beads from an urn with replacement. In the example above, the probability of red is 0.40 regardless of previous draws. 
+
+Many examples of events that are not independent come from card games. When we deal the first card, the probability of getting a King is 1/13 since there are thirteen possibilities: Ace, Deuce, Three, $\dots$, Ten, Jack, Queen, King, and Ace. Now if we deal a King for the first card, and don't replace it into the deck, the probabilities of a second card being a King is less because there are only three Kings left: the probability is 3 out of 51. These events are therefore **not independent**. The first outcome affected the next one.
+
+To see an extreme case of non-independent events, consider our example of drawing five beads at random **without** replacement:
+
+```{r, echo=FALSE}
+set.seed(1)
+```
+
+```{r}
+x <- sample(beads, 5)
+```
+
+If you have to guess the color of the first bead, you predict blue since blue has a 60% chance. But if I show you the result of the last four outcomes:
+
+```{r}
+x[2:5]
+```
+
+would you still guess blue? Of course not. Now you know that the probability of red 1. The events are not independent so the probabilities changes.
+
+## Conditional probabilities
+
+When events are not independent, _conditional probabilities_ are useful. We already saw an example of a conditional probability: we computed the probability that a second dealt card is a King given that the first was a King. In probability we use the following notation:
+
+$$
+\mbox{Pr}(\mbox{Card 2 is a king} \mid \mbox{Card 1 is a king}) = 3/51
+$$
+
+We use the $\mid$ as shorthand for "given that" or "conditional on". 
+
+When two events, say $A$ and $B$, are independent we have:
+
+$$
+\mbox{Pr}(A \mid B) = \mbox{Pr}(A) 
+$$
+
+This the mathematical way of saying: the fact that $B$ happened does not affect the probability of $A$ happening. In fact, this can be considered the mathematical definition of independence.
+
+## Multiplication rule
+
+If we want to know the probability of two events, say $A$ and $B$, occurring, we can use the multiplication rule:
+
+$$ 
+\mbox{Pr}(A \mbox{ and } B) = \mbox{Pr}(A)\mbox{Pr}(B \mid A)
+$$
+Let's use Blackjack as an example. In Blackjack you are assigned two random cards. After you see what you have, you can ask for more. The goal is to get closer to 21 than the dealer, without going over. Face cards are worth 10 points and Aces are worth 11 or 1 (you choose).
+
+So, in a Blackjack game, to calculate the chances of getting a 21 in the following way by drawing an Ace and then a face card, we compute the probability of the first being and Ace and multiply by the probability of a face card given that the first was an Ace: $1/13 \times 12/52 \approx 0.02$
+
+The multiplicative rule also applies to more than two events. We can use induction to expand for more events:
+
+$$ 
+\mbox{Pr}(A \mbox{ and } B \mbox{ and } C) = \mbox{Pr}(A)\mbox{Pr}(B \mid A)\mbox{Pr}(C \mid A \mbox{ and } B)
+$$
+
+### Multiplication rule under indepedence {-}
+
+When we have independent events then the multiplication rule becomes simpler:
+
+$$ 
+\mbox{Pr}(A \mbox{ and } B \mbox{ and } C) = \mbox{Pr}(A)\mbox{Pr}(B)\mbox{Pr}(C)
+$$
+
+But we have to be very careful before using this, as assuming independence can result in very different and incorrect probability calculations when we don't actually have independence.
+
+As an example, imagine a court case in which the suspect was described as having a mustache and a beard. The defendant has a mustache and a beard and the prosecution brings in an "expert" to testify that 1/10 men have beards and 1/5 have mustaches so using the multiplication rule we conclude that only $1/10 \times 1/5$ or 0.02 have both. 
+
+But to multiply like this we need to assume independence! The conditional probability of a man having a mustache conditional on them having a beard is .95. So the correct calculation probability is much higher: 0.09.
+
+The multiplication rule also gives us a general formula for computing conditional probabilities:
+
+
+$$ 
+\mbox{Pr}(B \mid A) = \frac{\mbox{Pr}(A \mbox{ and } B)}{ \mbox{Pr}(A)}
+$$
+
+To illustrate how we use these formulas and concepts in practice, we will use several examples related to card games.
+
+## Combinations and permutations
+
+In our very first example we imagined an urn with five beads. As a reminder, to compute the probability distribution of one draw, we simply listed out all the possibilities. There were 5, and then, for each event, counted how many of these possibilities were associated with the event. So, for example, because out of the five possible outcomes, three were blue, the probability of blue is 3/5. 
+
+For more complicated cases the computations are not as straightforward. For instance, what is the probability that if I draw five cards without replacement, I get all cards of the same suit, what is known as a "flush"" in Poker? In a Discrete Probability course you learn theory on how to make these computations. Here we focus on how to use R code to compute the answers.
+
+First let's construct a deck of cards. For this we will use the `expand.grid` and `paste` functions. We use `paste` to create strings by joining smaller strings. To do this, we take the number and suit of a card and create the card name like this:
+
+```{r}
+number <- "Three"
+suit <- "Hearts"
+paste(number, suit)
+```
+
+`paste` also works on pairs of vectors performing the operation element-wise:
+
+```{r}
+paste(letters[1:5], as.character(1:5))
+```
+
+The function `expand.grid` gives us all the combinations of entries of two vectors. For example, if you have blue and black pants and white, grey and plaid shirts, all your combinations are:
+
+```{r}
+expand.grid(pants = c("blue", "black"), shirt = c("white", "grey", "plaid"))
+```
+
+So here is how we generate a deck of cards:
+```{r}
+suits <- c("Diamonds", "Clubs", "Hearts", "Spades")
+numbers <- c("Ace", "Deuce", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King")
+deck <- expand.grid(number=numbers, suit=suits)
+deck <- paste(deck$number, deck$suit)
+```
+
+With the deck constructed, we can now double check that the probability of a King in the first card is 1/13. We simply compute the proportion of possible outcomes that satisfy our condition:
+
+```{r}
+kings <- paste("King", suits)
+mean(deck %in% kings)
+```
+
+which is 1/13. 
+
+Now, how about the conditional probability of the second card being a King given that the first was a King ? Earlier we deduced that if one King is already out of the deck and there are 51 left then this probability is 3/51.
+
+Let's confirm by listing out all possible outcomes. 
+
+To do this we can use the `permutations` function from the `gtools` package. This function computes, for any list of size `n`, all the different combinations we can get when we select `r` items. So here are all the ways we can chose 2 numbers from a list consisting of `1,2,3`:
+
+```{r}
+library(gtools)
+permutations(3, 2)
+```
+
+Notice that the order matters here: 3,1 is different than 1,3. Also note that (1,1), (2,2) and (3,3) do not appear because once we pick a number, it can't appear again.
+
+Optionally, we can add a vector. So if you want to see five random seven digit phone numbers out of all possible phone numbers, you can type:
+
+```{r, eval=FALSE}
+all_phone_numbers <- permutations(10, 7, v = 0:9)
+n <- nrow(all_phone_numbers)
+index <- sample(n, 5)
+all_phone_numbers[index,]
+```
+
+Instead of using the numbers 1 through 10, the default, it uses what we provided through `v`: the digits 0 through 9.
+
+To compute all possible ways we can chose two cards, when the order matters, we type:
+```{r}
+hands <- permutations(52, 2, v = deck)
+```
+
+This is a matrix with two columns and `r nrow(hands)` rows. With a matrix we can get the first and second card like this:
+
+```{r}
+first_card <- hands[,1]
+second_card <- hands[,2]
+```
+
+Now the cases for which the first hand was a King can be computed like this:
+
+```{r}
+kings <- paste("King", suits)
+sum(first_card %in% kings)
+```
+
+To get the conditional probability we compute what fraction of these have a King in the second card:
+
+```{r}
+sum(first_card %in% kings & second_card %in% kings) /
+  sum(first_card %in% kings)
+```
+
+which is exactly 3/51 as we had already deduced. Notice that the code above is equivalent to:
+
+```{r}
+mean(first_card %in% kings & second_card %in% kings) /
+  mean(first_card %in% kings)
+```
+
+which uses `mean` instead of `sum` and is an R version of: 
+
+$$
+\frac{\mbox{Pr}(A \mbox{ and } B)}{ \mbox{Pr}(A)}
+$$
+
+
+How about if the order doesn't matter? For example, in Blackjack if you get an Ace and a face card in the first draw, it is called a _Natural 21_ and you win automatically. If we wanted to compute the probability of this happening, we would enumerate the _combinations_, not the permutations, since the order does not matter. Below are the differences:
+
+```{r}
+permutations(3,2)
+combinations(3,2)
+```
+
+In the second line the outcome does not include (2,1) because the (1,2) already was enumerated. Similarly for (3,1) and (3,2).
+
+So to compute the probability of a _Natural 21_ in Blackjack we can do this:
+
+```{r}
+aces <- paste("Ace", suits)
+
+facecard <- c("King", "Queen", "Jack", "Ten")
+facecard <- expand.grid( number=facecard, suit=suits)
+facecard <- paste( facecard$number, facecard$suit)
+
+hands <- combinations(52, 2, v = deck)
+mean(hands[,1] %in% aces & hands[,2] %in% facecard)
+```
+
+In the last line we assume the Ace comes first. This is only because we know the way `combination` generates enumerates possibilities and it will list this case first. But to be safe we could have written this and produced the same answer:
+
+```{r}
+mean((hands[,1] %in% aces & hands[,2] %in% facecard) |
+       (hands[,2] %in% aces & hands[,1] %in% facecard))
+```
+
+
+### Monte Carlo example {-}
+
+Instead of using `combinations` to deduce the exact probability of a Natural 21, we can use a Monte Carlo to estimate this probability. In this case we draw two cards over and over and keep track of how many 21s we get. We can use the function sample to draw to cards without replacements:
+
+```{r}
+hand <- sample(deck, 2)
+hand
+```
+
+And then check if one card is an Ace and the other a face card or a 10. Going forward we include 10 when we say _face card_. Now we need the check both possibilities:
+
+```{r}
+(hands[1] %in% aces & hands[2] %in% facecard) | 
+  (hands[2] %in% aces & hands[1] %in% facecard)
+```
+
+If we repeat this 10,000 times, we get a very good approximation of the probability of a Natural 21.
+
+Let's start by writing a function that draws a hand and returns TRUE if we get a 21. The function does not need any arguments because it uses objects defined in the global environment.
+```{r}
+blackjack <- function(){
+   hand <- sample(deck, 2)
+  (hand[1] %in% aces & hand[2] %in% facecard) | 
+    (hand[2] %in% aces & hand[1] %in% facecard)
+}
+```
+
+Here we do have to check both possibilities: Ace first or Ace second because we are not using the `combinations` function. The function returns `TRUE` if we get a 21 and `FALSE` otherwise:
+
+```{r}
+blackjack()
+```
+
+Now we can play this game, say, 10,000 times:
+
+```{r}
+B <- 10000
+results <- replicate(B, blackjack())
+mean(results)
+```
+
+## Birthday problem 
+
+Suppose you are in a classroom with 50 people. If we assume this a randomly selected group of 50 people, what is the chance that at least two people have the same birthday? Although it is somewhat advanced, we can deduce this mathematically. We do this later. Here we use a Monte Carlo simulation. For simplicity, we assume nobody was born on February 29. This actually doesn't change the answer much. 
+
+First note that birthdays can be represented as numbers between 1 and 365, so a sample of 50 birthdays can be obtained like this:
+
+```{r,echo=FALSE}
+set.seed(1)
+```
+
+```{r}
+n <- 50
+bdays <- sample(1:365, n, replace = TRUE)
+```
+
+To check if in this particular set of 50 people we have at least two with the same birthday we can use the function `duplicated` which returns `TRUE` whenever an element of a vector is a duplicate. Here is an example:
+
+```{r}
+duplicated(c(1,2,3,1,4,3,5))
+```
+
+The second time 1 and 3 appear we get a `TRUE`. So to check if two birthdays were the same we simply use the `any` and `duplicated` functions like this:
+
+```{r}
+any(duplicated(bdays))
+```
+
+In this case, we see that it did happen. At least two people had the same birthday.
+
+To estimate the probability we repeat this experiment, sample 50 birthdays, over and over:
+
+```{r birthday-problem}
+same_birthday <- function(n){
+  bdays <- sample(1:365, n, replace=TRUE)
+  any(duplicated(bdays))
+}
+
+B <- 10000
+results <- replicate(B, same_birthday(50))
+mean(results)
+```
+
+Where you expecting the probability to be this high?
+
+People tend to underestimate these probabilities. To get an intuition as to why it is so high, think about what happens when the group is close to 365. At this stage we run out of days and the probability is one. 
+
+Say we want to use this knowledge to bet with friends about two people having the same birthday in a group of people. When are the chances larger than 50%? Larger than 75%? 
+
+Let's create a look-up table. We can quickly create a function to compute this for any group size:
+
+```{r}
+compute_prob <- function(n, B=10000){
+  results <- replicate(B, same_birthday(n))
+  mean(results)
+}
+```
+
+
+Using the function `sapply` we can perform element-wise operations on any function:
+
+```{r}
+n <- seq(1,60)
+prob <- sapply(n, compute_prob)
+```
+
+We can now make a plot of the estimated probabilities of two people having the same birthday in a group of size $n$:
+
+```{r birthday-problem-mc-probabilities}
+prob <- sapply(n, compute_prob)
+qplot(n, prob)
+```
+
+Now let's compute the exact probabilities rather than use Monte Carlo approximations. Not only do we get the exact answer using math, but the computations are much faster since we don't have to generate experiments.  
+
+
+To make the math simpler, instead of computing the probability of it happening we will compute the probability of it not happening. We use the multiplication rule.
+
+Let's start with the first person. The probability that person 1 has a unique birthday is 1. The probability that person 2 has a unique birthday, given that person 1 already took one is 364/365. Then, given that the first two people have unique birthdays, person 3 is left with 363 days to choose from. We continue this way and find the chances of all 50 people having a unique birthday is:
+
+$$
+1 \times \frac{364}{365}\times\frac{363}{365} \dots \frac{365-n + 1}{365}
+$$
+
+We can write a function that does this for any number:
+
+```{r birthday-problem-exact-probabilities}
+exact_prob <- function(n){
+  prob_unique <- seq(365,365-n+1)/365 
+  1 - prod( prob_unique)
+}
+eprob <- sapply(n, exact_prob)
+
+data.frame(n, prob, eprob)
+qplot(n, prob) + 
+  geom_line(aes(n, eprob), col = "red")
+```
+
+This plot shows that the Monte Carlo simulation provided a very good estimate of the exact probability. Had it not been possible to compute the exact probabilities we would have still been able accurately estimate the probabilities.
+
+
+## How many Monte Carlo experiments are enough
+
+In the examples above, we used $B=$10,000 Monte Carlo experiments. It turns out that this provided very accurate estimates. But in more complex calculations, 10,000 may not nearly enough. Also, for some calculations, 10,000 experiments might not be computationally feasible. In practice we won't know what the answer is so we won't know if our Monte Carlo estimate is accurate. We know that the larger $B$, the better the approximation; but how big do we need it to be? This is actually a challenging questions and answering it often requires advanced theoretical statistics training. 
+
+One practical approach we will describe here is to check for the stability of the estimate. Here is an example with the birthday problem for a group of 22 people. 
+
+```{r monte-carlo-convergence}
+B <- 10^seq(1, 5, len = 100)
+compute_prob <- function(B, n=25){
+  same_day <- replicate(B, same_birthday(n))
+  mean(same_day)
+}
+prob <- sapply(B, compute_prob)
+qplot(log10(B), prob, geom = "line")
+```
+
+In this plot, we can see that the values start to stabilize, that is, vary less than .01, around 1000. Note that the exact probability, which we know in this case, is `r eprob[25]`. 
+
+
+## Addition rule
+
+Another way to compute the probability of a Natural 21 is to notice that it is the probability of an Ace followed by face card or a face card followed by an Ace. Here we use the addition rule:
+
+$$
+\mbox{Pr}(A \mbox{ or } B) = \mbox{Pr}(A) + \mbox{Pr}(B) - \mbox{Pr}(A \mbox{ and } B)
+$$
+
+This rule is intuitive: think of a Venn diagram. If we simply add the probabilities we count the intersection twice.
+
+```{r venn-diagram-addition-rule, echo=FALSE}
+library(VennDiagram)
+grid.newpage()
+draw.pairwise.venn(22, 20, 11, category = c("A", "B"), lty = rep("blank", 2), fill = c("light blue", "pink"), alpha = rep(0.5, 2),  cat.dist = rep(0.025, 2), cex=0)
+```
+
+In the case of a Natural 21, the intersection is empty since both hands can't happen simultaneously. The probability of an Ace followed by a face card to be $1/13 \times 16/51$ and the probability of a face card followed by an Ace is $16/52 \times 4/51$. These two are actually the same, which makes sense due to symmetry. In any case, we get the same result using the addition rule:
+
+```{r}
+1/13*16/51 + 16/52*4/51 + 0
+```
+
+## Monty Hall problem
+
+In the 1970s there was a game show called "Let's Make a Deal". Monty Hall was the host. At some point in the game contestant were asked to pick one of three doors. Behind one door there was a prize. The other doors had a goat behind them to show the contestant they had lost. If the contestant did not pick the prize door on his or her first try, Monty Hall would open one of the two remaining doors and show the contestant there was no prize. Then he would and ask "Do you want to switch doors?" What would you do?
+
+We can use probability to show that if you stick with the original door choice, your chances of winning a prize remain 1 in 3. However, if you switch to the other door, your chances of winning double to 2 in 3! This seems counterintuitive. Many people incorrectly think both chances are 1 in 2 since you are choosing between 2 options. You can watch a detailed explanation [here](https://www.khanacademy.org/math/precalculus/prob-comb/dependent-events-precalc/v/monty-hall-problem) or read one [here](https://en.wikipedia.org/wiki/Monty_Hall_problem). Here we use a Monte Carlo simulation to see which strategy is better. Note that this code is written longer than it should be for pedagogical purposes. 
+
+Let's start with the stick strategy:
+
+```{r}
+B <- 10000
+stick <- replicate(B, {
+  doors <- as.character(1:3)
+  prize <- sample(c("car","goat","goat"))
+  prize_door <- doors[prize == "car"]
+  my_pick  <- sample(doors, 1)
+  show <- sample(doors[!doors %in% c(my_pick, prize_door)],1)
+  stick <- my_pick
+  stick == prize_door
+})
+mean(stick)
+```
+
+As we write the code we note that the lines starting with `my_pick` and `show` have no influence on the last logical operation. From this we should realize that the chance is 1 in 3, what we began with.
+
+Now let's repeat the exercise but consider the switch strategy:
+
+```{r}
+switch <- replicate(B, {
+  doors <- as.character(1:3)
+  prize <- sample(c("car","goat","goat"))
+  prize_door <- doors[prize == "car"]
+  my_pick  <- sample(doors, 1)
+  show <- sample(doors[!doors %in% c(my_pick, prize_door)], 1)
+  stick <- my_pick
+  switch <- doors[!doors%in%c(my_pick, show)]
+  switch == prize_door
+})
+mean(switch)
+```
+
+The Monte Carlo estimate confirms the 2/3 calculation. The helps us gain some insight by showing that we are removing a door, `show`, that is definitely not a winner from our choices. We also see that unless we get it right when we first pick, you win: 1 - 1/3 = 2/3. 
+
+
+## Exercises {-}
+
+
+1. One ball will be drawn at random from a box containing: 3 cyan balls, 5 magenta balls, and 7 yellow balls. What is the probability that the ball will be cyan?
+
+
+2. What is the probability that the ball will not be cyan?
+
+
+3. Instead of taking just one draw, consider taking two draws. You take the second draw without returning the first draw to the box. We call this sampling **without** replacement. What is the probability that the first draw is cyan and that the second draw is not cyan?
+
+
+4. Now repeat the experiment, but this time, after taking the first draw and recording the color, return it back to the box and shake the box. We call this sampling **with** replacement. What is the probability that the first draw is cyan and that the second draw is not cyan?
+
+
+5. Two events $A$ and $B$ are independent if $\mbox{Pr}(A \mbox{ and } B) = \mbox{Pr}(A) P(B)$. Under which situation are the draws independent?
+
+    A. You don't replace the draw.
+    B. You replace the draw.
+    C. Neither
+    D. Both
+
+6. Say you’ve drawn 5 balls from the box, with replacement, and all have been yellow. What is the probability that the next one is yellow? 
+
+7. If you roll a 6-sided die six times, what is the probability of not seeing a 6?
+
+8. Two teams, say the Celtics and the Cavs, are playing a seven game series. The Cavs are a better team and have a 60% chance of winning each game. What is the probability that the Celtics win **at least** one game?
+
+9. Create a Monte Carlo simulation to confirm your answer to the previous problem. Use `B <- 10000` simulations. Hint: Use the following code to generate the results of the first four games:
+
+    ```{r}
+celtic_wins <- sample(c(0,1), 4, replace = TRUE, prob = c(0.6, 0.4))
+```
+    The Celtics must win one of these 4 games!
+
+10. Two teams, say the Cavs and t
+he Warriors, are playing a seven game championship series. The first to win four games therefore wins the series. The teams are equally good so they each have a 50-50 chance of winning each game. If the Cavs lose the first game, what is the probability that they win the series?
+
+11. Confirm the results of the previous question with a Monte Carlo simulation.
+
+```{r}
+B <- 100000
+results <- replicate(B, {
+  cavs_wins <- sample(c(0,1), 6, replace = TRUE)
+  sum(cavs_wins)>=4 
+})
+mean(results)
+```
+
+12. Two teams, $A$ and $B$, are playing a seven series game series. Team $A$ is better than team $B$ and has a $p>0.5$ chance of winning each game. Give a value $p$, the probability of winning the series for the underdog team $B$ can be computed with the following function based on a Monte Carlo simulation:
+
+    ```{r}
+    prob_win <- function(p){
+      B <- 10000
+      result <- replicate(B, {
+        b_win <- sample(c(1,0), 7, replace = TRUE, prob = c(1-p, p))
+        sum(b_win)>=4
+        })
+      mean(result)
+    }
+    ```
+
+    Use the function `sapply` to compute the probability, call it `Pr` of winning for `p <- seq(0.5, 0.95, 0.025)`. Then plot the result `plot(p, prob).
+
+13. Repeat the exercise above, but now keep the probability fixed at `p <- 0.75` and compute the probability for different series lengths. Best of 1 game, 3 games, 5 games, .... Specifically, `N <- seq(1, 25, 2)`. Hint: use this function now.
+
+```{r, eval = FALSE}
+    ```{r}
+    prob_win <- function(N, p=0.75){
+      B <- 10000
+      result <- replicate(B, {
+        b_win <- sample(c(1,0), N, replace = TRUE, prob = c(1-p, p))
+        sum(b_win)>=(N+1)/2
+        })
+      mean(result)
+    }
+    ```
+    
+
