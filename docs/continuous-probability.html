@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-<link rel="prev" href="vectors.html">
-<link rel="next" href="vector-arithmetics.html">
+<link rel="prev" href="discrete-probability.html">
+<link rel="next" href="random-variables.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -400,152 +400,146 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="sorting" class="section level1">
-<h1><span class="header-section-number">Chapter 8</span> Sorting</h1>
-<p>Now that we have mastered some basic R knowledge, let’s try to gain some insights into the safety of different states in the context of gun murders.</p>
-<div id="sort" class="section level2">
-<h2><span class="header-section-number">8.1</span> <code>sort</code></h2>
-<p>Say we want to rank the states from least to most gun murders. The function <code>sort</code> sorts a vector in increasing order. We can therefore see the largest number of gun murders by typing:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
-<span class="kw">data</span>(murders)
-<span class="kw">sort</span>(murders<span class="op">$</span>total)
-<span class="co">#&gt;  [1]    2    4    5    5    7    8   11   12   12   16   19   21   22   27</span>
-<span class="co">#&gt; [15]   32   36   38   53   63   65   67   84   93   93   97   97   99  111</span>
-<span class="co">#&gt; [29]  116  118  120  135  142  207  219  232  246  250  286  293  310  321</span>
-<span class="co">#&gt; [43]  351  364  376  413  457  517  669  805 1257</span></code></pre></div>
-<p>However, this does not give us information about which states have which murder totals. For example, we don’t know which state had 1257 murders in 2010.</p>
+<div id="continuous-probability" class="section level1">
+<h1><span class="header-section-number">Chapter 27</span> Continuous probability</h1>
+<p>We earlier explained why when summarizing a list of numeric values, such as heights, it is not useful to construct a distribution that defines a proportion to each possible outcome. For example, if we measure every single person in a very large population of size <span class="math inline">\(n\)</span> with extremely high precision, since no two people are exactly the same height, we need to assign the proportion <span class="math inline">\(1/n\)</span> to each observed value and attain no useful summary at all. Similarly, when defining probability distributions, it is not useful to assign a very small probability to every single height.</p>
+<p>Just as when using distributions to summarize numeric data, it is much more practical to define a function that operates on intervals rather than single values. The standard way of doing this is using the <em>cumulative distribution functions</em> (CDF).</p>
+<p>We previously described empirical cumulative distribution function (eCDF) as a basic summary of a list of numeric values. As an example, we earlier defined the height distribution for adult male students. Here we define the vector <span class="math inline">\(x\)</span> to contain the male heights:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(tidyverse)
+<span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(heights)
+x &lt;-<span class="st"> </span>heights <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(sex<span class="op">==</span><span class="st">&quot;Male&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>.<span class="op">$</span>height</code></pre></div>
+<p>We defined the empirical distribution function as:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">F &lt;-<span class="st"> </span><span class="cf">function</span>(a) <span class="kw">mean</span>(x<span class="op">&lt;=</span>a)</code></pre></div>
+<p>which, for any value <code>a</code>, gives the proportion of values in the list <code>x</code> that are smaller or equal than <code>a</code>.</p>
+<p>Keep in mind that we have not yet introduced probability. Let’s do this by asking the following: if I pick one of the male students at random, what is the chance that he is taller than 70.5 inches? Because every student has the same chance of being picked, the answer to this is equivalent to the proportion of students that are taller than 70.5 feet. Using the CDF we obtain an answer by typing:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">F</span>(<span class="dv">70</span>)
+<span class="co">#&gt; [1] 0.377</span></code></pre></div>
+<p>Once a CDF is defined, we can use this to compute the probability of any subset. For instance, the probability of a student being between height <code>a</code> and height <code>b</code> is:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">F</span>(b)<span class="op">-</span><span class="kw">F</span>(a)</code></pre></div>
+<p>Because we can compute the probability for any possible event this way, the cumulative probability function defines the probability distribution for picking a height at random from our vector of heights <code>x</code>.</p>
+<div id="theoretical-distribution" class="section level2">
+<h2><span class="header-section-number">27.1</span> Theoretical distribution</h2>
+<p>In the data visualization chapter, we introduced the normal distribution as a useful approximation to many naturally occurring distributions, including that of height. The cumulative distribution for the normal distribution is defined by a mathematical formula which in R can be obtained with the function <code>pnorm</code>. We say that a random quantity is normally distributed with average <code>avg</code> and standard deviation <code>s</code>, if its probability distribution is defined by:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">F</span>(a) =<span class="st"> </span><span class="kw">rnorm</span>(a, avg, s)</code></pre></div>
+<p>This is useful because if we are willing to use the normal approximation for, say, height, we don’t need the entire data set to answer questions such as: what is the probability that a randomly selected student is taller then 70 inches? We just need the average height and standard deviation:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">avg &lt;-<span class="st"> </span><span class="kw">mean</span>(x)
+s &lt;-<span class="st"> </span><span class="kw">sd</span>(x)
+<span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="fl">70.5</span>, avg, s)
+<span class="co">#&gt; [1] 0.371</span></code></pre></div>
 </div>
-<div id="order" class="section level2">
-<h2><span class="header-section-number">8.2</span> <code>order</code></h2>
-<p>The function <code>order</code> is closer to what we want. It takes a vector as input and returns the vector of indexes that sorts the input vector. This may sound confusing so let’s look at a simple example. We can create a vector and sort it:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">31</span>, <span class="dv">4</span>, <span class="dv">15</span>, <span class="dv">92</span>, <span class="dv">65</span>)
-<span class="kw">sort</span>(x)
-<span class="co">#&gt; [1]  4 15 31 65 92</span></code></pre></div>
-<p>Rather than sort the input vector, the function <code>order</code> returns the index that sorts input vector:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">index &lt;-<span class="st"> </span><span class="kw">order</span>(x)
-x[index]
-<span class="co">#&gt; [1]  4 15 31 65 92</span></code></pre></div>
-<p>This is the same output as that returned by <code>sort(x)</code>. If we look at this index, we see why it works:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x
-<span class="co">#&gt; [1] 31  4 15 92 65</span>
-<span class="kw">order</span>(x)
-<span class="co">#&gt; [1] 2 3 1 5 4</span></code></pre></div>
-<p>The second and fourth entry of <code>x</code> are the smallest, so <code>order(x)</code> starts with <code>2</code>. The next smallest is the third entry, so the second entry is <code>3</code> and so on.</p>
-<p>How does this help us order the states by murders? First, remember that the entries of vectors you access with <code>$</code> follow the same order as the rows in the table. So, for example, these two vectors, containing the state names and abbreviations respectively, are matched by their order:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders<span class="op">$</span>state[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]
-<span class="co">#&gt;  [1] &quot;Alabama&quot;              &quot;Alaska&quot;               &quot;Arizona&quot;             </span>
-<span class="co">#&gt;  [4] &quot;Arkansas&quot;             &quot;California&quot;           &quot;Colorado&quot;            </span>
-<span class="co">#&gt;  [7] &quot;Connecticut&quot;          &quot;Delaware&quot;             &quot;District of Columbia&quot;</span>
-<span class="co">#&gt; [10] &quot;Florida&quot;</span>
-murders<span class="op">$</span>abb[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]
-<span class="co">#&gt;  [1] &quot;AL&quot; &quot;AK&quot; &quot;AZ&quot; &quot;AR&quot; &quot;CA&quot; &quot;CO&quot; &quot;CT&quot; &quot;DE&quot; &quot;DC&quot; &quot;FL&quot;</span></code></pre></div>
-<p>This means we can now order the state names by their total murders by, first, obtaining the index that orders the vectors according to murder totals and then indexing the state names or abbreviation vector:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span><span class="kw">order</span>(murders<span class="op">$</span>total) 
-murders<span class="op">$</span>abb[ind] 
-<span class="co">#&gt;  [1] &quot;VT&quot; &quot;ND&quot; &quot;NH&quot; &quot;WY&quot; &quot;HI&quot; &quot;SD&quot; &quot;ME&quot; &quot;ID&quot; &quot;MT&quot; &quot;RI&quot; &quot;AK&quot; &quot;IA&quot; &quot;UT&quot; &quot;WV&quot;</span>
-<span class="co">#&gt; [15] &quot;NE&quot; &quot;OR&quot; &quot;DE&quot; &quot;MN&quot; &quot;KS&quot; &quot;CO&quot; &quot;NM&quot; &quot;NV&quot; &quot;AR&quot; &quot;WA&quot; &quot;CT&quot; &quot;WI&quot; &quot;DC&quot; &quot;OK&quot;</span>
-<span class="co">#&gt; [29] &quot;KY&quot; &quot;MA&quot; &quot;MS&quot; &quot;AL&quot; &quot;IN&quot; &quot;SC&quot; &quot;TN&quot; &quot;AZ&quot; &quot;NJ&quot; &quot;VA&quot; &quot;NC&quot; &quot;MD&quot; &quot;OH&quot; &quot;MO&quot;</span>
-<span class="co">#&gt; [43] &quot;LA&quot; &quot;IL&quot; &quot;GA&quot; &quot;MI&quot; &quot;PA&quot; &quot;NY&quot; &quot;FL&quot; &quot;TX&quot; &quot;CA&quot;</span></code></pre></div>
-<p>According to the above, California had the most murders.</p>
+<div id="approximations" class="section level2">
+<h2><span class="header-section-number">27.2</span> Approximations</h2>
+<p>The normal distribution is derived mathematically: we do no need data to define it. For practicing data scientists, almost everything we do involves data. Data is always, technically speaking, discrete. For example, we could consider our height data categorical with each specific height a unique category. The probability distribution is defined by the proportion of students reporting each height. Here is a plot of that probability distribution:</p>
+<p><img src="book_files/figure-html/plot-of-height-frequencies-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>While most students rounded up their heights to the nearest inch, others reported values with more precision. One student reported his height to be 69.6850393700787 which is 177 centimeters. The probability assigned to this height is 0.001 or 1 in 812. The probability for 70 inches is much higher 0.106, but does it really make sense to think of the probability of being exactly 70 inches as being the same as 69.6850393700787? Clearly it is much more useful for data analytic purposes to treat this outcome as a continuous numeric variable, keeping in mind that very few people, or perhaps none, are exactly 70 inches, and that the reason we get more values at 70 is because people round to the nearest inch.</p>
+<p>With continuous distributions the probability of a singular value is not even defined. For example, it does not make sense to ask what is the probability that a normally distributed value is 70. Instead, we define probabilities for intervals. So we could ask what is the probability that someone is between 69.5 and 70.5.</p>
+<p>In cases like height, in which the data is rounded, the normal approximation is particularly useful if we deal with intervals that include exactly one round number. So, for example, the normal distribution is useful for approximating the proportion of students reporting between 69.5 and 70.5:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(x <span class="op">&lt;=</span><span class="st"> </span><span class="fl">68.5</span>) <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(x <span class="op">&lt;=</span><span class="st"> </span><span class="fl">67.5</span>)
+<span class="co">#&gt; [1] 0.115</span>
+<span class="kw">mean</span>(x <span class="op">&lt;=</span><span class="st"> </span><span class="fl">69.5</span>) <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(x <span class="op">&lt;=</span><span class="st"> </span><span class="fl">68.5</span>)
+<span class="co">#&gt; [1] 0.119</span>
+<span class="kw">mean</span>(x <span class="op">&lt;=</span><span class="st"> </span><span class="fl">70.5</span>) <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(x <span class="op">&lt;=</span><span class="st"> </span><span class="fl">69.5</span>)
+<span class="co">#&gt; [1] 0.122</span></code></pre></div>
+<p>Note how close we get with the normal approximation:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pnorm</span>(<span class="fl">68.5</span>, avg, s) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="fl">67.5</span>, avg, s) 
+<span class="co">#&gt; [1] 0.103</span>
+<span class="kw">pnorm</span>(<span class="fl">69.5</span>, avg, s) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="fl">68.5</span>, avg, s) 
+<span class="co">#&gt; [1] 0.11</span>
+<span class="kw">pnorm</span>(<span class="fl">70.5</span>, avg, s) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="fl">69.5</span>, avg, s) 
+<span class="co">#&gt; [1] 0.108</span></code></pre></div>
+<p>However, the approximation is not as useful for other intervals. For instance, notice how the approximation breaks when we try to estimate:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(x <span class="op">&lt;=</span><span class="st"> </span><span class="fl">70.9</span>) <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(x<span class="op">&lt;=</span><span class="fl">70.1</span>)
+<span class="co">#&gt; [1] 0.0222</span></code></pre></div>
+<p>with</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pnorm</span>(<span class="fl">70.9</span>, avg, s) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="fl">70.1</span>, avg, s)
+<span class="co">#&gt; [1] 0.0836</span></code></pre></div>
+<p>In general, we call this situation <em>discretization</em>. Although the true height distribution is continuous, the reported heights tend to be more common at discrete values, in this case, due to rounding. As long as we are aware of how to deal with this reality, the normal approximation can still be a very useful tool.</p>
 </div>
-<div id="max-and-which.max" class="section level2">
-<h2><span class="header-section-number">8.3</span> <code>max</code> and <code>which.max</code></h2>
-<p>If we are only interested in the entry with the largest value, we can use <code>max</code> for the value:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">max</span>(murders<span class="op">$</span>total)
-<span class="co">#&gt; [1] 1257</span></code></pre></div>
-<p>and <code>which.max</code> for the index of the largest value:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">i_max &lt;-<span class="st"> </span><span class="kw">which.max</span>(murders<span class="op">$</span>total)
-murders<span class="op">$</span>state[i_max]
-<span class="co">#&gt; [1] &quot;California&quot;</span></code></pre></div>
-<p>For the minimum, we can use <code>min</code> and <code>which.min</code> in the same way.</p>
-<p>So is California the most dangerous state? In an upcoming section we argue that we should be considering rates not totals. Before doing that, we introduce one last order related function: <code>rank</code></p>
+<div id="the-probability-density" class="section level2">
+<h2><span class="header-section-number">27.3</span> The probability density</h2>
+<p>For categorical distributions, we can define the probability of a category. For example, a roll of a die, let’s call it <span class="math inline">\(X\)</span>, can be 1,2,3,4,5 or 6. The probability of 4 is defined as:</p>
+<p><span class="math display">\[
+\mbox{Pr}(X=4) = 1/6
+\]</span></p>
+<p>The CFD can then easily be defined: <span class="math display">\[
+F(4) = \mbox{Pr}(X\leq 4) =  \mbox{Pr}(X = 4) +  \mbox{Pr}(X = 3) +  \mbox{Pr}(X = 2) +  \mbox{Pr}(X = 1) 
+\]</span></p>
+<p>Although for continuous distributions the probability of a single value <span class="math inline">\(\mbox{Pr}(X=x)\)</span> is not defined, there is a theoretical definition that has a similar interpretation. The probability density at <span class="math inline">\(x\)</span> is defined as the function <span class="math inline">\(f(a)\)</span> such that:</p>
+<p><span class="math display">\[
+F(a) = \mbox{Pr}(X\leq a) = \int_{-\infty}^a f(x)\, dx
+\]</span></p>
+<p>For those that know Calculus, remember that the integral is related to a sum: it is the sum of bars with widths approximating 0. If you don’t know Calculus, you can think of <span class="math inline">\(f(x)\)</span> as a curve for which the area under that curve up to the value <span class="math inline">\(a\)</span>, gives you the probability of <span class="math inline">\(X\leq a\)</span>.</p>
+<p>For example, to use the normal approximation to estimate the probability of someone being taller than 76 inches, we use:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="dv">76</span>, avg, s)
+<span class="co">#&gt; [1] 0.0321</span></code></pre></div>
+<p>which mathematically is the grey area below:</p>
+<div class="figure" style="text-align: center"><span id="fig:intergrals"></span>
+<img src="book_files/figure-html/intergrals-1.png" alt="Integral of a function." width="70%" />
+<p class="caption">
+Figure 27.1: Integral of a function.
+</p>
 </div>
-<div id="rank" class="section level2">
-<h2><span class="header-section-number">8.4</span> <code>rank</code></h2>
-<p>Although not as frequently used as <code>order</code> and <code>sort</code>, the function <code>rank</code> is also related to order and can be useful. For any given vector it returns a vector with the rank of the first entry, second entry, etc., of the input vector. Here is a simple example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">31</span>, <span class="dv">4</span>, <span class="dv">15</span>, <span class="dv">92</span>, <span class="dv">65</span>)
-<span class="kw">rank</span>(x)
-<span class="co">#&gt; [1] 3 1 2 5 4</span></code></pre></div>
-<p>To summarize, let’s look at the results of the three functions we have introduced:</p>
-<table>
-<thead>
-<tr class="header">
-<th align="right">original</th>
-<th align="right">sort</th>
-<th align="right">order</th>
-<th align="right">rank</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">31</td>
-<td align="right">4</td>
-<td align="right">2</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="right">4</td>
-<td align="right">15</td>
-<td align="right">3</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">15</td>
-<td align="right">31</td>
-<td align="right">1</td>
-<td align="right">2</td>
-</tr>
-<tr class="even">
-<td align="right">92</td>
-<td align="right">65</td>
-<td align="right">5</td>
-<td align="right">5</td>
-</tr>
-<tr class="odd">
-<td align="right">65</td>
-<td align="right">92</td>
-<td align="right">4</td>
-<td align="right">4</td>
-</tr>
-</tbody>
-</table>
+<p>The curve you see is the probability density for the normal distribution. In R, we get this using the function <code>dnorm</code>.</p>
+<p>Although it may not be immediately obvious why knowing about probability densities is useful, understanding this concept will be essential to those wanting to fit models to data for which predefined functions are not available.</p>
 </div>
-<div id="beware-of-recycling" class="section level2">
-<h2><span class="header-section-number">8.5</span> Beware of recycling</h2>
-<p>Another common source of unnoticed errors in R is the use of <em>recycling</em>. We saw that vectors are added elementwise. So if the vectors don’t match in length, it is natural to assume that we should get an error. But we don’t. Notice what happens:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>)
-y &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>, <span class="dv">40</span>, <span class="dv">50</span>, <span class="dv">60</span>, <span class="dv">70</span>)
-x<span class="op">+</span>y
-<span class="co">#&gt; Warning in x + y: longer object length is not a multiple of shorter object</span>
-<span class="co">#&gt; length</span>
-<span class="co">#&gt; [1] 11 22 33 41 52 63 71</span></code></pre></div>
-<p>We do get a warning but no error. For the output, R has recycled the numbers in <code>x</code>: notice the last digit of numbers in the output.</p>
+<div id="monte-carlo-simulations-1" class="section level2">
+<h2><span class="header-section-number">27.4</span> Monte Carlo simulations</h2>
+<p>R provides functions to generate normally distributed outcomes. Specifically, the <code>rnorm</code> function takes three arguments: size, average (defaults to 0), and standard deviation (defaults to 1) and produced these random numbers. Here is an example of how we could generate data that looks like our reported heights:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="kw">length</span>(x)
+avg &lt;-<span class="st"> </span><span class="kw">mean</span>(x)
+s &lt;-<span class="st"> </span><span class="kw">sd</span>(x)
+simulated_heights &lt;-<span class="st"> </span><span class="kw">rnorm</span>(n, avg, s)</code></pre></div>
+<p>Not surprisingly, the distribution looks normal:</p>
+<p><img src="book_files/figure-html/simulated-heights-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>This is one of the most useful functions in R as it will permit us to generate data that mimics natural events and answers questions related to what could happen by chance by running Monte Carlo simulations.</p>
+<p>If, for example, we pick 800 males at random, what is the distribution of the tallest person? How rare is a seven footer? The following Monte Carlo simulation helps us answer that question:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">B &lt;-<span class="st"> </span><span class="dv">10000</span>
+tallest &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
+  simulated_data &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">800</span>, avg, s)
+  <span class="kw">max</span>(simulated_data)
+})</code></pre></div>
+<p>A seven footer is quite rare:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(tallest <span class="op">&gt;=</span><span class="st"> </span><span class="dv">7</span><span class="op">*</span><span class="dv">12</span>)
+<span class="co">#&gt; [1] 0.0193</span></code></pre></div>
+<p>Here is the resulting distribution:</p>
+<p><img src="book_files/figure-html/simulated-tallest-height-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>Note that it does not look normal.</p>
 </div>
-<div id="exercise" class="section level2 unnumbered">
+<div id="other-continuous-distributions" class="section level2">
+<h2><span class="header-section-number">27.5</span> Other continuous distributions</h2>
+<p>The normal distribution is not the only useful theoretical distribution. Other continuous distributions that we may encounter are the student-t, chi-squared, exponential, gamma, beta, and beta-binomial. R provides functions to compute the density, the quantiles, the cumulative distribution functions and to generate Monte Carlo simulations. R uses a convention that lets us remember the names, namely using the letters <code>d</code>, <code>q</code>, <code>p</code> and <code>r</code> in front of a shorthand for the distribution. We have already seen the functions <code>dnorm</code>, <code>pnorm</code> and <code>rnorm</code> for the normal distribution. The functions <code>qnorm</code> gives us the quantiles. We can therefore draw a distribution like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="op">-</span><span class="dv">4</span>, <span class="dv">4</span>, <span class="dt">length.out =</span> <span class="dv">100</span>)
+<span class="kw">data.frame</span>(x, <span class="dt">f =</span> <span class="kw">dnorm</span>(x)) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(x, f)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_line</span>()</code></pre></div>
+<p><img src="book_files/figure-html/normal-density-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>For the student-t the shorthand <code>t</code> is used so the functions are <code>dt</code> for the density, <code>qt</code> for the quantiles, <code>pt</code> for the cumulative distribution function, and <code>rt</code> for Monte Carlo simulation.</p>
+</div>
+<div id="exercise-2" class="section level2 unnumbered">
 <h2>Exercise</h2>
-<p>For these exercises we will use the US murders dataset. Make sure you load it.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
-<span class="kw">data</span>(murders)</code></pre></div>
 <ol style="list-style-type: decimal">
-<li><p>Use the <code>$</code> operator to access the population size data and store it the object <code>pop</code>. Then use the <code>sort</code> function to redefine <code>pop</code> so that it is sorted. Finally use the <code>[</code> operator to report the smallest population size.</p></li>
-<li><p>Now instead of the smallest population size, find the index of the entry with the smallest population size. Hint: use <code>order</code> instead of <code>sort</code>.</p></li>
-<li><p>We can actually perform the same operation as in the previous exercise using the function <code>which.min</code>. Write one line of code that does this.</p></li>
-<li><p>Now we know how small the smallest state is and we know which row represents it. However, which state is it? Define a variable <code>states</code> to be the state names from the <code>murders</code> data frame. Report the name of the state with the smallest population.</p></li>
-<li><p>You can create a data frame using the <code>data.frame</code> function. Here is a quick example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">temp &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">35</span>, <span class="dv">88</span>, <span class="dv">42</span>, <span class="dv">84</span>, <span class="dv">81</span>, <span class="dv">30</span>)
-city &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Beijing&quot;</span>, <span class="st">&quot;Lagos&quot;</span>, <span class="st">&quot;Paris&quot;</span>, <span class="st">&quot;Rio de Janeiro&quot;</span>, <span class="st">&quot;San Juan&quot;</span>, <span class="st">&quot;Toronto&quot;</span>)
-city_temps &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">name =</span> city, <span class="dt">temperature =</span> temp)</code></pre></div>
-<p>Use the <code>rank</code> function to determine the population size rank (from smallest to biggest) of each state. Save these ranks in an object called <code>ranks</code>, then create a data frame with the state name and its rank. Call the data frame <code>my_df</code>.</p></li>
-<li><p>Repeat the previous exercise, but this time order <code>my_df</code> so that the states are ordered from least populous to most populous. Hint: create an object <code>ind</code> that stores the indexes needed to order the population values. Then use the bracket operator <code>[</code> to re-order each column in the data frame.</p></li>
-<li><p>The <code>na_example</code> represents a series of counts. You can quickly examine the object using:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(na_example)  
-<span class="kw">str</span>(na_example)
-<span class="co">#&gt;  int [1:1000] 2 1 3 2 1 3 1 4 3 2 ...</span></code></pre></div>
-<p>However, when we compute the average we obtain an <code>NA</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(na_example)
-<span class="co">#&gt; [1] NA</span></code></pre></div>
-<p>The <code>is.na</code> returns a logical vector that tells us which entries are <code>NA</code>. Assign this logical vector to an object called <code>ind</code> and determine how many <code>NA</code>s does <code>na_example</code> have.</p></li>
-<li><p>Now compute the average again, but only for the entries that are not <code>NA</code>. Hint: remember the <code>!</code> operator.</p></li>
+<li><p>Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is 5 feet or shorter?</p></li>
+<li><p>Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is 6 feet or taller?</p></li>
+<li><p>Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random what is the probability that she is between 61 and 67 inches.</p></li>
+<li><p>Repeat the exercise above, but convert everything to centimeters. That is, multiply every height, including the standard deviation, by 2.54. What is the answer now?</p></li>
+<li><p>Notice that the answer to the question does not change when you change units. This makes sense since the answer to the question should not be affected by what units we use. In fact, if you look closely, you notice that 61 and 64 are both 1 SD away from the average. Compute the probability that a randomly picked, normally distributed random variable is within 1 SD from the average.</p></li>
+<li><p>To see the math that explains why the answers to questions 4, 5, and 6 are the same, suppose we have a random variable with expected value <span class="math inline">\(\mu\)</span> and standard error <span class="math inline">\(\sigma\)</span>. Suppose we ask the probability of <span class="math inline">\(X\)</span> being smaller or equal to <span class="math inline">\(a\)</span>. Remember that, by definition, <span class="math inline">\(a\)</span> is <span class="math inline">\((a - \mu)/\sigma\)</span> standard deviations <span class="math inline">\(\sigma\)</span> away from the average <span class="math inline">\(\mu\)</span>. The probability is:</p>
+<p><span class="math display">\[
+\mbox{Pr}(X \leq a)
+\]</span></p>
+<p>Now we subtract <span class="math inline">\(\mu\)</span> to both sides and then divide both sides by <span class="math inline">\(\sigma\)</span>:</p>
+<p><span class="math display">\[
+\mbox{Pr}\left(\frac{X-\mu}{\sigma} \leq \frac{a-\mu}{\sigma} \right)
+\]</span></p>
+<p>The quantity on the right is a standard normal random variable. It has an average of 0 and a standard error of 1. We will call it <span class="math inline">\(Z\)</span>:</p>
+<p><span class="math display">\[
+\mbox{Pr}\left(Z \leq \frac{a-\mu}{\sigma} \right)
+\]</span></p>
+<p>So, no matter the units, the probability of <span class="math inline">\(X\leq a\)</span> is the same as the probability of a standard normal variable being less than <span class="math inline">\((a - \mu)/\sigma\)</span>. If <code>mu</code> is the average and <code>sigma</code> the standard error, which of the following R code would give us the right answer in every situation:</p>
+<p>A. <code>mean(X&lt;=a)</code> B. <code>pnorm((a - mu)/sigma)</code> C. <code>pnorm((a - mu)/sigma, mu, sigma)</code> D. <code>pnorm(a)</code></p></li>
+<li><p>Imagine the distribution of male adults is approximately normal with an expected value of 69 and a standard deviation of 3. How tall is the male in the 99th percentile? Hint: use <code>qnorm</code>.</p></li>
+<li><p>The distribution of IQ scores is approximately normally distributed. The expected value is 100 and the standard deviation is 15. Suppose you want to know the distribution of the smartest person in your school district if 10,000 people are born each in your school district. Run a Monte Carlo simulation with <code>B=1000</code> generating one million IQ scores and keeping the highest. Make a histogram.</p></li>
 </ol>
 
 </div>
@@ -555,8 +549,8 @@ city_temps &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<spa
           </div>
         </div>
       </div>
-<a href="vectors.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="vector-arithmetics.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="discrete-probability.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="random-variables.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -585,7 +579,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/R/sorting.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/prob/continuous-probability.Rmd",
 "text": "Edit"
 },
 "download": null,

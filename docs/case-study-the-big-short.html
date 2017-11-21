@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-<link rel="prev" href="vectors.html">
-<link rel="next" href="vector-arithmetics.html">
+<link rel="prev" href="random-variables.html">
+
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -400,152 +400,171 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="sorting" class="section level1">
-<h1><span class="header-section-number">Chapter 8</span> Sorting</h1>
-<p>Now that we have mastered some basic R knowledge, let’s try to gain some insights into the safety of different states in the context of gun murders.</p>
-<div id="sort" class="section level2">
-<h2><span class="header-section-number">8.1</span> <code>sort</code></h2>
-<p>Say we want to rank the states from least to most gun murders. The function <code>sort</code> sorts a vector in increasing order. We can therefore see the largest number of gun murders by typing:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
-<span class="kw">data</span>(murders)
-<span class="kw">sort</span>(murders<span class="op">$</span>total)
-<span class="co">#&gt;  [1]    2    4    5    5    7    8   11   12   12   16   19   21   22   27</span>
-<span class="co">#&gt; [15]   32   36   38   53   63   65   67   84   93   93   97   97   99  111</span>
-<span class="co">#&gt; [29]  116  118  120  135  142  207  219  232  246  250  286  293  310  321</span>
-<span class="co">#&gt; [43]  351  364  376  413  457  517  669  805 1257</span></code></pre></div>
-<p>However, this does not give us information about which states have which murder totals. For example, we don’t know which state had 1257 murders in 2010.</p>
+<div id="case-study-the-big-short" class="section level1">
+<h1><span class="header-section-number">Chapter 29</span> Case study: The Big Short</h1>
+<div id="interest-rates-explained-with-chance-model" class="section level2">
+<h2><span class="header-section-number">29.1</span> Interest rates explained with chance model</h2>
+<p>More complex versions of the sampling models we have discussed are also used by banks to decide interest rates. Suppose you run a small bank that has a history of identifying potential homeowners that can be trusted to make payments. In fact, historically, in a given year, only 2% of your customers default, meaning that they don’t pay back the money that you lent them. However, you are aware that if you simply loan money to everybody without interest, you will end up losing money due to this 2%. Although you know 2% of your clients will probably default, you don’t know which ones. Yet by charging everybody just a bit extra in interest, you can make up the loses incurred due to that 2% and also cover your operating costs. You can also make a profit, but if you set the interest rates too high, your clients will go to another bank. We use all these facts and some probability theory to decide what interest rate you should charge.</p>
+<p>Suppose your bank will give out 1,000 loans for $180,000 this year. Also, after adding up all costs, suppose your bank loses $200,000 per foreclosure. For simplicity, we assume this includes all operational costs. A sampling model for this scenario can be coded like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="dv">1000</span>
+loss_per_foreclosure &lt;-<span class="st"> </span><span class="op">-</span><span class="dv">200000</span>
+p &lt;-<span class="st"> </span><span class="fl">0.02</span> 
+defaults &lt;-<span class="st"> </span><span class="kw">sample</span>( <span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), n, <span class="dt">prob=</span><span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p), <span class="dt">replace =</span> <span class="ot">TRUE</span>)
+<span class="kw">sum</span>(defaults <span class="op">*</span><span class="st"> </span>loss_per_foreclosure)
+<span class="co">#&gt; [1] -3e+06</span></code></pre></div>
+<p>Note that the total loss defined by the final sum is a random variable. Every time you run the above code you get a different answer. We can easily construct a Monte Carlo simulation to get an idea of the distribution of this random variable.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">B &lt;-<span class="st"> </span><span class="dv">10000</span>
+losses &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
+    defaults &lt;-<span class="st"> </span><span class="kw">sample</span>( <span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), n, <span class="dt">prob=</span><span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p), <span class="dt">replace =</span> <span class="ot">TRUE</span>) 
+  <span class="kw">sum</span>(defaults <span class="op">*</span><span class="st"> </span>loss_per_foreclosure)
+})</code></pre></div>
+<p>Here is the distribution of this random variable: <img src="book_files/figure-html/losses-distribution-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>We don’t really need a Monte Carlo simulation though. Using what we have learned, the CLT tells us that because our losses are a sum of independent draws, its distribution is approximately normal with expected value and standard errors given by:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n<span class="op">*</span>(p<span class="op">*</span>loss_per_foreclosure <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>p)<span class="op">*</span><span class="dv">0</span>)
+<span class="co">#&gt; [1] -4e+06</span>
+<span class="kw">sqrt</span>(n)<span class="op">*</span><span class="kw">abs</span>(loss_per_foreclosure)<span class="op">*</span><span class="kw">sqrt</span>(p<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p))
+<span class="co">#&gt; [1] 885438</span></code></pre></div>
+<p>We can now set an interest rate to guarantee that, on average, we break even. Basically, we need to add a quantity <span class="math inline">\(x\)</span> to each loan, which in this case are represent by draws, so that the expected value is 0. If we define <span class="math inline">\(l\)</span> to be the loss per foreclosure, we need:</p>
+<p><span class="math display">\[
+lp  + x(1-p) = 0
+\]</span></p>
+<p>which implies <span class="math inline">\(x\)</span> is</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">-</span><span class="st"> </span>loss_per_foreclosure<span class="op">*</span>p<span class="op">/</span>(<span class="dv">1</span><span class="op">-</span>p)
+<span class="co">#&gt; [1] 4082</span></code></pre></div>
+<p>or an interest rate of 0.023.</p>
+<p>However, we still have a problem. Although this interest rate guarantees that on average we break even, there is 50% chance that we lose money. If our bank loses money, we have to close it down. We therefore need to pick an interest rate that makes it unlikely for this to happen. At the same time, if the interest rate is too high, our clients will go to another bank so we must be willing to take some risks. So let’s say that we want our chances of losing money to be 1 in 100, what does the <span class="math inline">\(x\)</span> quantity need to be now? This one is a bit harder. We want the sum <span class="math inline">\(S\)</span> to have:</p>
+<p><span class="math display">\[\mbox{Pr}(S&lt;0) = 0.01\]</span></p>
+<p>We know that <span class="math inline">\(S\)</span> is approximately normal. The expected value of <span class="math inline">\(S\)</span> is<span class="math inline">\(\{ lp + x(1-p)\}n\)</span> with <span class="math inline">\(n\)</span> the number of draws, which in this case represents loans. The standard error is <span class="math inline">\(|x-l| \sqrt{np(1-p)}\)</span>. Because <span class="math inline">\(x\)</span> is positive and <span class="math inline">\(l\)</span> negative <span class="math inline">\(|x-l|=x-l\)</span>. Note that these are just the formulas from above, but using more compact symbols.</p>
+<p>Now we are going to use a mathematical “trick” that is very common in statistics. We are going add and subtract the same quantities to both sides of the event <span class="math inline">\(S&lt;0\)</span> so that the probability does not change and we end up with a standard normal random variable on the left, which will then permit us to write down an equation with only <span class="math inline">\(x\)</span> as an unknown. This “trick” is as follows:</p>
+<p>If</p>
+<p><span class="math display">\[\mbox{Pr}(S&lt;0) = 0.01\]</span></p>
+<p>then <span class="math display">\[
+\mbox{Pr}\left(\frac{S - \mbox{E}[S]}{\mbox{SE}[S]} &lt; \frac{ - \mbox{E}[S]}{\mbox{SE}[S]}\right)
+\]</span> And remember <span class="math inline">\(\mbox{E}[S]\)</span> and <span class="math inline">\(\mbox{SE}[S]\)</span> are the expected value and standard error of <span class="math inline">\(S\)</span> respectively. All we did above was add and divide by the same quantity on both sides. We did this because now the term on the left is a standard normal random variable, which we will rename <span class="math inline">\(Z\)</span>. Now we fill in the blanks with the actual formula for expected value and standard error:</p>
+<p><span class="math display">\[
+\mbox{Pr}\left(Z &lt;  \frac{- \{ lp + x(1-p)\}n}{(x-l) \sqrt{np(1-p)}}\right) = 0.01
+\]</span></p>
+<p>It may look complicated, but remember that <span class="math inline">\(l\)</span>, <span class="math inline">\(p\)</span> and <span class="math inline">\(n\)</span> are all known amounts so eventually we will turn them into numbers.</p>
+<p>Now because the term on the left side is a normal random with expected value 0 and standard error 1, it means that the quantity on the left must be equal to:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">qnorm</span>(<span class="fl">0.01</span>)
+<span class="co">#&gt; [1] -2.33</span></code></pre></div>
+<p>for the equation to hold true. Remember that <span class="math inline">\(z=\)</span><code>qnorm(0.01)</code> gives us the value of <span class="math inline">\(z\)</span> for which:</p>
+<p><span class="math display">\[
+\mbox{Pr}(Z \leq z) = 0.01
+\]</span></p>
+<p>So this means that right side of the complicated equation must be <span class="math inline">\(z\)</span>=<code>qnorm(0.01)</code>.</p>
+<p><span class="math display">\[
+\frac{- \{ lp + x(1-p)\}N}{(x-l) \sqrt{Np(1-p)}} = z
+\]</span></p>
+<p>The trick works because we end up with an expression containing <span class="math inline">\(x\)</span> that we know has to be equal to a known quantity <span class="math inline">\(z\)</span>. Solving for <span class="math inline">\(x\)</span> is now simply algebra:</p>
+<p><span class="math display">\[ x = - l \frac{ np  - z \sqrt{np(1-p)}}{N(1-p) + z \sqrt{np(1-p)}}\]</span></p>
+<p>which is:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">l &lt;-<span class="st"> </span>loss_per_foreclosure
+z &lt;-<span class="st"> </span><span class="kw">qnorm</span>(<span class="fl">0.01</span>)
+x &lt;-<span class="st"> </span><span class="op">-</span>l<span class="op">*</span>( n<span class="op">*</span>p <span class="op">-</span><span class="st"> </span>z<span class="op">*</span><span class="kw">sqrt</span>(n<span class="op">*</span>p<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p)))<span class="op">/</span><span class="st"> </span>( n<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p) <span class="op">+</span><span class="st"> </span>z<span class="op">*</span><span class="kw">sqrt</span>(n<span class="op">*</span>p<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p)))
+x
+<span class="co">#&gt; [1] 6249</span></code></pre></div>
+<p>Our interest rate now goes up to 0.035. This is still a very competitive interest rate. By choosing this interest rate, we now have an expected profit per loan of:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">loss_per_foreclosure<span class="op">*</span>p <span class="op">+</span><span class="st"> </span>x<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p)
+<span class="co">#&gt; [1] 2124</span></code></pre></div>
+<p>which is a total expected profit of about:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n<span class="op">*</span>(loss_per_foreclosure<span class="op">*</span>p <span class="op">+</span><span class="st"> </span>x<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p)) 
+<span class="co">#&gt; [1] 2124198</span></code></pre></div>
+<p>dollars!</p>
+<p>We can run a Monte Carlo simulation to double check our theoretical approximations:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">B &lt;-<span class="st"> </span><span class="dv">100000</span>
+profit &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
+    draws &lt;-<span class="st"> </span><span class="kw">sample</span>( <span class="kw">c</span>(x, loss_per_foreclosure), n, 
+                        <span class="dt">prob=</span><span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p), <span class="dt">replace =</span> <span class="ot">TRUE</span>) 
+    <span class="kw">sum</span>(draws)
+})
+<span class="kw">mean</span>(profit)
+<span class="co">#&gt; [1] 2122436</span>
+<span class="kw">mean</span>(profit<span class="op">&lt;</span><span class="dv">0</span>)
+<span class="co">#&gt; [1] 0.0128</span></code></pre></div>
 </div>
-<div id="order" class="section level2">
-<h2><span class="header-section-number">8.2</span> <code>order</code></h2>
-<p>The function <code>order</code> is closer to what we want. It takes a vector as input and returns the vector of indexes that sorts the input vector. This may sound confusing so let’s look at a simple example. We can create a vector and sort it:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">31</span>, <span class="dv">4</span>, <span class="dv">15</span>, <span class="dv">92</span>, <span class="dv">65</span>)
-<span class="kw">sort</span>(x)
-<span class="co">#&gt; [1]  4 15 31 65 92</span></code></pre></div>
-<p>Rather than sort the input vector, the function <code>order</code> returns the index that sorts input vector:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">index &lt;-<span class="st"> </span><span class="kw">order</span>(x)
-x[index]
-<span class="co">#&gt; [1]  4 15 31 65 92</span></code></pre></div>
-<p>This is the same output as that returned by <code>sort(x)</code>. If we look at this index, we see why it works:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x
-<span class="co">#&gt; [1] 31  4 15 92 65</span>
-<span class="kw">order</span>(x)
-<span class="co">#&gt; [1] 2 3 1 5 4</span></code></pre></div>
-<p>The second and fourth entry of <code>x</code> are the smallest, so <code>order(x)</code> starts with <code>2</code>. The next smallest is the third entry, so the second entry is <code>3</code> and so on.</p>
-<p>How does this help us order the states by murders? First, remember that the entries of vectors you access with <code>$</code> follow the same order as the rows in the table. So, for example, these two vectors, containing the state names and abbreviations respectively, are matched by their order:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders<span class="op">$</span>state[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]
-<span class="co">#&gt;  [1] &quot;Alabama&quot;              &quot;Alaska&quot;               &quot;Arizona&quot;             </span>
-<span class="co">#&gt;  [4] &quot;Arkansas&quot;             &quot;California&quot;           &quot;Colorado&quot;            </span>
-<span class="co">#&gt;  [7] &quot;Connecticut&quot;          &quot;Delaware&quot;             &quot;District of Columbia&quot;</span>
-<span class="co">#&gt; [10] &quot;Florida&quot;</span>
-murders<span class="op">$</span>abb[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]
-<span class="co">#&gt;  [1] &quot;AL&quot; &quot;AK&quot; &quot;AZ&quot; &quot;AR&quot; &quot;CA&quot; &quot;CO&quot; &quot;CT&quot; &quot;DE&quot; &quot;DC&quot; &quot;FL&quot;</span></code></pre></div>
-<p>This means we can now order the state names by their total murders by, first, obtaining the index that orders the vectors according to murder totals and then indexing the state names or abbreviation vector:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ind &lt;-<span class="st"> </span><span class="kw">order</span>(murders<span class="op">$</span>total) 
-murders<span class="op">$</span>abb[ind] 
-<span class="co">#&gt;  [1] &quot;VT&quot; &quot;ND&quot; &quot;NH&quot; &quot;WY&quot; &quot;HI&quot; &quot;SD&quot; &quot;ME&quot; &quot;ID&quot; &quot;MT&quot; &quot;RI&quot; &quot;AK&quot; &quot;IA&quot; &quot;UT&quot; &quot;WV&quot;</span>
-<span class="co">#&gt; [15] &quot;NE&quot; &quot;OR&quot; &quot;DE&quot; &quot;MN&quot; &quot;KS&quot; &quot;CO&quot; &quot;NM&quot; &quot;NV&quot; &quot;AR&quot; &quot;WA&quot; &quot;CT&quot; &quot;WI&quot; &quot;DC&quot; &quot;OK&quot;</span>
-<span class="co">#&gt; [29] &quot;KY&quot; &quot;MA&quot; &quot;MS&quot; &quot;AL&quot; &quot;IN&quot; &quot;SC&quot; &quot;TN&quot; &quot;AZ&quot; &quot;NJ&quot; &quot;VA&quot; &quot;NC&quot; &quot;MD&quot; &quot;OH&quot; &quot;MO&quot;</span>
-<span class="co">#&gt; [43] &quot;LA&quot; &quot;IL&quot; &quot;GA&quot; &quot;MI&quot; &quot;PA&quot; &quot;NY&quot; &quot;FL&quot; &quot;TX&quot; &quot;CA&quot;</span></code></pre></div>
-<p>According to the above, California had the most murders.</p>
+<div id="the-big-short" class="section level2">
+<h2><span class="header-section-number">29.2</span> The Big Short</h2>
+<p>One of your employees points out that since the bank is making 2124 dollars per loan that you should give out more loans! Why just <code>n</code>? You explain that finding those <code>n</code> clients was hard. You need a group that is predictable and that keeps the chances of defaults low. He then points out that even if the probability of default is higher, as long as our expected value is positive, you can minimize your chances of losses by increasing <span class="math inline">\(n\)</span> and relying on the law of large numbers.</p>
+<p>He claims that even if the default rate is twice as high, say 4%, if we set the rate just a bit higher than:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="fl">0.04</span>
+r &lt;-<span class="st"> </span>(<span class="op">-</span><span class="st"> </span>loss_per_foreclosure<span class="op">*</span>p<span class="op">/</span>(<span class="dv">1</span><span class="op">-</span>p)) <span class="op">/</span><span class="st"> </span><span class="dv">180000</span>
+r
+<span class="co">#&gt; [1] 0.0463</span></code></pre></div>
+<p>At 5%, we are guaranteed a positive expected value of:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r &lt;-<span class="st"> </span><span class="fl">0.05</span>
+x &lt;-<span class="st"> </span>r<span class="op">*</span><span class="dv">180000</span>
+loss_per_foreclosure<span class="op">*</span>p <span class="op">+</span><span class="st"> </span>x <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>p)
+<span class="co">#&gt; [1] 640</span></code></pre></div>
+<p>and can minimize our chances of losing money by simply increasing <span class="math inline">\(n\)</span> since:</p>
+<p><span class="math display">\[
+\mbox{Pr}(S &lt; 0) = 
+\mbox{Pr}\left(Z &lt; - \frac{\mbox{E}[S]}{\mbox{SE}[S]}\right)
+\]</span> with <span class="math inline">\(Z\)</span> a standard normal random variable as above. If we define <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> to be the expected value and standard deviation of the urn respectively (that is of a single loan), using the formulas above we have: <span class="math inline">\(\mbox{E}[S]= n\mu\)</span> and <span class="math inline">\(\mbox{E}[S]= \sqrt{n}\sigma\)</span>. So if we define <span class="math inline">\(z\)</span>=<code>qnorm(0.01)</code>, we have: <span class="math display">\[
+ - \frac{n\mu}{\sqrt{n}\sigma} = - \frac{\sqrt{n}\mu}{\sigma} = z
+\]</span> which implies that if we let:</p>
+<p><span class="math display">\[
+n \geq z^2 \sigma^2 / \mu^2
+\]</span> we are guaranteed to have a probability of less than 0.01. The implication is that, as long as <span class="math inline">\(\mu\)</span> is positive, we can find an <span class="math inline">\(n\)</span> that minimizes the probability of a loss. This is a form of the law of large numbers: when <span class="math inline">\(n\)</span> is large, our average earnings per loan converges to the expected earning <span class="math inline">\(\mu\)</span>.</p>
+<p>With <span class="math inline">\(x\)</span> fixed, now we can ask what <span class="math inline">\(n\)</span> do we need for the probability to be 0.01? In our example, if we give out:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">z &lt;-<span class="st"> </span><span class="kw">qnorm</span>(<span class="fl">0.01</span>)
+n &lt;-<span class="st"> </span><span class="kw">ceiling</span>( (z<span class="op">^</span><span class="dv">2</span><span class="op">*</span>(x<span class="op">-</span>l)<span class="op">^</span><span class="dv">2</span><span class="op">*</span>p<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p))<span class="op">/</span>(l<span class="op">*</span>p <span class="op">+</span><span class="st"> </span>x<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p))<span class="op">^</span><span class="dv">2</span> )
+n
+<span class="co">#&gt; [1] 22163</span></code></pre></div>
+<p>loans, the probability of losing is about 0.01 and we are expected to earn a total of:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n<span class="op">*</span>(loss_per_foreclosure<span class="op">*</span>p <span class="op">+</span><span class="st"> </span>x <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>p))
+<span class="co">#&gt; [1] 14184320</span></code></pre></div>
+<p>dollars! We can confirm this with a Monte Carlo simulation:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="fl">0.04</span>
+x &lt;-<span class="st"> </span><span class="fl">0.05</span><span class="op">*</span><span class="dv">180000</span>
+profit &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
+    draws &lt;-<span class="st"> </span><span class="kw">sample</span>( <span class="kw">c</span>(x, loss_per_foreclosure), n, 
+                        <span class="dt">prob=</span><span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p), <span class="dt">replace =</span> <span class="ot">TRUE</span>) 
+    <span class="kw">sum</span>(draws)
+})
+<span class="kw">mean</span>(profit<span class="op">&lt;</span><span class="dv">0</span>)
+<span class="co">#&gt; [1] 0.0107</span></code></pre></div>
+<p>This seems like a no brainier. As a result, your colleague decides to leave your bank and start his own high risk mortgage company. A few months later, your colleague’s bank has gone bankrupt. A book is written and eventually a movie is made relating the mistake your friend, and many others, made. What happened?</p>
+<p>Your colleague’s scheme was mainly based on this mathematical formula: <span class="math display">\[
+    \mbox{SE}[(X_1+X_2+\dots+X_n) / n] = \sigma / \sqrt{n}    
+\]</span></p>
+<p>By making <span class="math inline">\(n\)</span> large, we minimize the standard error of our per-loan profit. However, for this rule to hold, the <span class="math inline">\(X\)</span>s must be independent draws: one person defaulting must be independent of others defaulting. Note that in the case of averaging the <strong>same</strong> event over and over, an extreme example of events that are not independent, we get a standard error that is <span class="math inline">\(\sqrt{n}\)</span> times bigger: <span class="math display">\[
+    \mbox{SE}[(X_1+X_1+\dots+X_1) / n] =  \mbox{SE}[n X_1  / n] = \sigma &gt; \sigma / \sqrt{n} 
+\]</span></p>
+<p>To construct a more realistic simulation than the original one your colleague ran, let’s assume there is a global event that affects everybody with high risk mortgages and changes their probability. We will assume that with 50-50 chance, all the probabilities go up or down slightly to somewhere between 0.03 and 0.05. But it happens to everybody at once, not just one person. These draws are no longer independent.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="fl">0.04</span>
+x &lt;-<span class="st"> </span><span class="fl">0.05</span><span class="op">*</span><span class="dv">180000</span>
+profit &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
+    new_p &lt;-<span class="st"> </span><span class="fl">0.04</span> <span class="op">+</span><span class="st"> </span><span class="kw">sample</span>(<span class="kw">seq</span>(<span class="op">-</span><span class="fl">0.01</span>, <span class="fl">0.01</span>, <span class="dt">length =</span> <span class="dv">100</span>), <span class="dv">1</span>)
+    draws &lt;-<span class="st"> </span><span class="kw">sample</span>( <span class="kw">c</span>(x, loss_per_foreclosure), n, 
+                        <span class="dt">prob=</span><span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>new_p, new_p), <span class="dt">replace =</span> <span class="ot">TRUE</span>) 
+    <span class="kw">sum</span>(draws)
+})</code></pre></div>
+<p>Note that our expected profit is still large:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(profit)
+<span class="co">#&gt; [1] 14188864</span></code></pre></div>
+<p>However, the probability of the bank having negative earning shoots up to:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(profit<span class="op">&lt;</span><span class="dv">0</span>)
+<span class="co">#&gt; [1] 0.346</span></code></pre></div>
+<p>Even scarier is that the probability of losing more than 10 million dollars is:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(profit <span class="op">&lt;</span><span class="st"> </span><span class="op">-</span><span class="dv">10000000</span>)
+<span class="co">#&gt; [1] 0.238</span></code></pre></div>
+<p>To understand how this happens look at the distribution:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data.frame</span>(<span class="dt">profit_in_millions=</span>profit<span class="op">/</span><span class="dv">10</span><span class="op">^</span><span class="dv">6</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(profit_in_millions)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">color=</span><span class="st">&quot;black&quot;</span>, <span class="dt">binwidth =</span> <span class="dv">5</span>)</code></pre></div>
+<p><img src="book_files/figure-html/profit-distribution-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>The theory completely breaks down and the random variable has much more variability than expected. The financial meltdown of 2007 was due, among other things, to financial “experts” assuming independence when there was none.</p>
 </div>
-<div id="max-and-which.max" class="section level2">
-<h2><span class="header-section-number">8.3</span> <code>max</code> and <code>which.max</code></h2>
-<p>If we are only interested in the entry with the largest value, we can use <code>max</code> for the value:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">max</span>(murders<span class="op">$</span>total)
-<span class="co">#&gt; [1] 1257</span></code></pre></div>
-<p>and <code>which.max</code> for the index of the largest value:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">i_max &lt;-<span class="st"> </span><span class="kw">which.max</span>(murders<span class="op">$</span>total)
-murders<span class="op">$</span>state[i_max]
-<span class="co">#&gt; [1] &quot;California&quot;</span></code></pre></div>
-<p>For the minimum, we can use <code>min</code> and <code>which.min</code> in the same way.</p>
-<p>So is California the most dangerous state? In an upcoming section we argue that we should be considering rates not totals. Before doing that, we introduce one last order related function: <code>rank</code></p>
-</div>
-<div id="rank" class="section level2">
-<h2><span class="header-section-number">8.4</span> <code>rank</code></h2>
-<p>Although not as frequently used as <code>order</code> and <code>sort</code>, the function <code>rank</code> is also related to order and can be useful. For any given vector it returns a vector with the rank of the first entry, second entry, etc., of the input vector. Here is a simple example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">31</span>, <span class="dv">4</span>, <span class="dv">15</span>, <span class="dv">92</span>, <span class="dv">65</span>)
-<span class="kw">rank</span>(x)
-<span class="co">#&gt; [1] 3 1 2 5 4</span></code></pre></div>
-<p>To summarize, let’s look at the results of the three functions we have introduced:</p>
-<table>
-<thead>
-<tr class="header">
-<th align="right">original</th>
-<th align="right">sort</th>
-<th align="right">order</th>
-<th align="right">rank</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">31</td>
-<td align="right">4</td>
-<td align="right">2</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="right">4</td>
-<td align="right">15</td>
-<td align="right">3</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">15</td>
-<td align="right">31</td>
-<td align="right">1</td>
-<td align="right">2</td>
-</tr>
-<tr class="even">
-<td align="right">92</td>
-<td align="right">65</td>
-<td align="right">5</td>
-<td align="right">5</td>
-</tr>
-<tr class="odd">
-<td align="right">65</td>
-<td align="right">92</td>
-<td align="right">4</td>
-<td align="right">4</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="beware-of-recycling" class="section level2">
-<h2><span class="header-section-number">8.5</span> Beware of recycling</h2>
-<p>Another common source of unnoticed errors in R is the use of <em>recycling</em>. We saw that vectors are added elementwise. So if the vectors don’t match in length, it is natural to assume that we should get an error. But we don’t. Notice what happens:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>)
-y &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>, <span class="dv">40</span>, <span class="dv">50</span>, <span class="dv">60</span>, <span class="dv">70</span>)
-x<span class="op">+</span>y
-<span class="co">#&gt; Warning in x + y: longer object length is not a multiple of shorter object</span>
-<span class="co">#&gt; length</span>
-<span class="co">#&gt; [1] 11 22 33 41 52 63 71</span></code></pre></div>
-<p>We do get a warning but no error. For the output, R has recycled the numbers in <code>x</code>: notice the last digit of numbers in the output.</p>
-</div>
-<div id="exercise" class="section level2 unnumbered">
-<h2>Exercise</h2>
-<p>For these exercises we will use the US murders dataset. Make sure you load it.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
-<span class="kw">data</span>(murders)</code></pre></div>
+<div id="exercises-15" class="section level2 unnumbered">
+<h2>Exercises</h2>
 <ol style="list-style-type: decimal">
-<li><p>Use the <code>$</code> operator to access the population size data and store it the object <code>pop</code>. Then use the <code>sort</code> function to redefine <code>pop</code> so that it is sorted. Finally use the <code>[</code> operator to report the smallest population size.</p></li>
-<li><p>Now instead of the smallest population size, find the index of the entry with the smallest population size. Hint: use <code>order</code> instead of <code>sort</code>.</p></li>
-<li><p>We can actually perform the same operation as in the previous exercise using the function <code>which.min</code>. Write one line of code that does this.</p></li>
-<li><p>Now we know how small the smallest state is and we know which row represents it. However, which state is it? Define a variable <code>states</code> to be the state names from the <code>murders</code> data frame. Report the name of the state with the smallest population.</p></li>
-<li><p>You can create a data frame using the <code>data.frame</code> function. Here is a quick example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">temp &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">35</span>, <span class="dv">88</span>, <span class="dv">42</span>, <span class="dv">84</span>, <span class="dv">81</span>, <span class="dv">30</span>)
-city &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Beijing&quot;</span>, <span class="st">&quot;Lagos&quot;</span>, <span class="st">&quot;Paris&quot;</span>, <span class="st">&quot;Rio de Janeiro&quot;</span>, <span class="st">&quot;San Juan&quot;</span>, <span class="st">&quot;Toronto&quot;</span>)
-city_temps &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">name =</span> city, <span class="dt">temperature =</span> temp)</code></pre></div>
-<p>Use the <code>rank</code> function to determine the population size rank (from smallest to biggest) of each state. Save these ranks in an object called <code>ranks</code>, then create a data frame with the state name and its rank. Call the data frame <code>my_df</code>.</p></li>
-<li><p>Repeat the previous exercise, but this time order <code>my_df</code> so that the states are ordered from least populous to most populous. Hint: create an object <code>ind</code> that stores the indexes needed to order the population values. Then use the bracket operator <code>[</code> to re-order each column in the data frame.</p></li>
-<li><p>The <code>na_example</code> represents a series of counts. You can quickly examine the object using:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(na_example)  
-<span class="kw">str</span>(na_example)
-<span class="co">#&gt;  int [1:1000] 2 1 3 2 1 3 1 4 3 2 ...</span></code></pre></div>
-<p>However, when we compute the average we obtain an <code>NA</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(na_example)
-<span class="co">#&gt; [1] NA</span></code></pre></div>
-<p>The <code>is.na</code> returns a logical vector that tells us which entries are <code>NA</code>. Assign this logical vector to an object called <code>ind</code> and determine how many <code>NA</code>s does <code>na_example</code> have.</p></li>
-<li><p>Now compute the average again, but only for the entries that are not <code>NA</code>. Hint: remember the <code>!</code> operator.</p></li>
+<li><p>Create a random variable <span class="math inline">\(S\)</span> with the earnings of your bank if you give out 10,000 loans, the default rate is 0.3, and you lose $200,000 in each foreclosure. Hint: use the code we showed in the previous section, but change the parameters.</p></li>
+<li><p>Run a Monte Carlo simulation with 10,000 outcomes for <span class="math inline">\(S\)</span>. Make a histogram of the results.</p></li>
+<li><p>What is the expected value of <span class="math inline">\(S\)</span>?</p></li>
+<li><p>What is the standard error of <span class="math inline">\(S\)</span>?</p></li>
+<li><p>Suppose we give out loans for $180,000. What should the interest rate be so that our expected value is 0?</p></li>
+<li><p>(Harder) What should the interest rate be so that the chance of losing money is 1 in 20? In math notation, what should the interest rate be so that <span class="math inline">\(\mbox{Pr}(S&lt;0) = 0.05\)</span> ?</p></li>
+<li><p>If the bank wants to minimize the probabilities of losing money, which of the following does <strong>not</strong> make interest rates go up?<br />
+A. A smaller pool of loans. B. A larger probability of default. C. A smaller required probability of losing money. D. The number of Monte Carlo simulations.</p></li>
 </ol>
 
 </div>
@@ -555,8 +574,8 @@ city_temps &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<spa
           </div>
         </div>
       </div>
-<a href="vectors.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="vector-arithmetics.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="random-variables.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -585,7 +604,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/R/sorting.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/prob/big-short.Rmd",
 "text": "Edit"
 },
 "download": null,
