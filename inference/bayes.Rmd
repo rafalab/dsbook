@@ -66,7 +66,7 @@ N_H <- sum(outcome == "Healthy")
 N_H
 ```
 
-Also, there are many without the disease, which makes probably that we will see some false positives given that the test is not perfect. Now each person gets the test which is correct 90% of the time.
+Also, there are many without the disease, which makes it more probable that we will see some false positives given that the test is not perfect. Now each person gets the test which is correct 90% of the time.
 
 ```{r}
 accuracy <- 0.99
@@ -95,7 +95,7 @@ José Iglesias is a professional baseball player. In April 2013, when he was sta
 |-------|---------|---|-----|
 | April | 20      | 9 | .450   |
 
-The batting average (`AVG`) statistic is one way of measuring success. Roughly speaking, it tells us the success rate when batting. An `AVG` of .450 means José has been successful 45% of the times he has batted (`At Bats`) which is rather high, historically speaking. Keep in mind, for example, that no one has finished a season with an `AVG` of .400 or more since Ted Williams did it in 1941! To illustrate the way hierarchical models are powerful, we will try to predict José's batting average at the end of the season. In a typical season, players have about 500 at bats.
+The batting average (`AVG`) statistic is one way of measuring success. Roughly speaking, it tells us the success rate when batting. An `AVG` of .450 means José has been successful 45% of the times he has batted (`At Bats`) which is rather high, historically speaking. Keep in mind, for example, that no one has finished a season with an `AVG` of .400 or more since Ted Williams did it in 1941! To illustrate the way hierarchical models are powerful, we will try to predict José's batting average at the end of the season. Note that in a typical season, players have about 500 at bats.
 
 With the techniques we have learned up to now, referred to as _frequentist techniques_, the best we can do is provide a confidence interval. We can think of outcomes from hitting as a binomial with a success rate of $p$. So if the success rate is indeed .450, the standard error of just 20 at bats is:
 
@@ -123,18 +123,18 @@ filter(Batting, yearID %in% 2010:2012) %>%
 
 The average player had an `AVG` of .275 and the standard deviation of the population of players was 0.027. So we can see already that .450 would be quite an anomaly since it is over six standard deviations away from the mean. 
 
-So is José lucky or the best batter seen in the last 50 years? Perhaps it's a combination of both. But how lucky and how good is he? If we become convinced that he is lucky, we should trade him to a team that trusts the .450 observation and is maybe overestimating his potential.
+So is José lucky or is he the best batter seen in the last 50 years? Perhaps it's a combination of both. But how lucky and how good is he? If we become convinced that he is lucky, we should trade him to a team that trusts the .450 observation and is maybe overestimating his potential.
 
 
 ### The hierarchical model
 
-The hierarchical model provides a mathematical description of how we came to see the observation of .450. First, we pick a player at random with an intrinsic ability summarized by, for example, $p$, then we see 20 random outcomes with success probability $p$.
+The hierarchical model provides a mathematical description of how we came to see the observation of .450. First, we pick a player at random with an intrinsic ability summarized by, for example, $p$. Then we see 20 random outcomes with success probability $p$.
 
 We use a model to represents two levels of variability in our data. First, each player is assigned a natural ability to hit at birth. We will use the symbol $p$ to represent this ability. You can think of $\theta$ as the batting average you would converge to if this particular player batted over and over again. 
 
 Based on the plots above, we assume that $p$ has a normal distribution. With expected value .270 and standard error 0.027. 
 
-Now the second level of variability has to do with luck when batting. Regardless of how good the player is, sometimes you have bad luck and sometimes you have good luck. At each at bat, this player has a probability of success $p$. If we add up these success and failures, then the CLT tells us that the observed average, call it $Y$, has a normal distribution with expected value $p$ and standard error $\sqrt{p(1-p)/\sqrt{N}}$ with $N$ the number of at bats.
+Now the second level of variability has to do with luck when batting. Regardless of how good the player is, sometimes you have bad luck and sometimes you have good luck. At each at bat, this player has a probability of success $p$. If we add up these successes and failures, then the CLT tells us that the observed average, call it $Y$, has a normal distribution with expected value $p$ and standard error $\sqrt{p(1-p)/\sqrt{N}}$ with $N$ the number of at bats.
 
 Statistical textbooks will write the model like this:
 $$
@@ -157,13 +157,13 @@ Y \mid p &\sim N(p, .111^2)
 \end{aligned}
 $$
 
-We now are ready to compute a posterior distribution to summarize our prediction of $p$. The continuous version of Bayes rule can be used here to derive the _posterior probability function_, which is the distribution of $p$ assuming we observe $Y=y$. In our case we can show follows a normal distribution with expected value:
+We now are ready to compute a posterior distribution to summarize our prediction of $p$. The continuous version of Bayes' rule can be used here to derive the _posterior probability function_, which is the distribution of $p$ assuming we observe $Y=y$. In our case we can show that $p$ when  $Y=y$ follows a normal distribution with expected value:
 
 $$
 \begin{aligned}
-\mbox{E}(p \mid y) &= B \mu + (1-B) Y\\
-&= \mu + (1-B)(Y-\mu)\\
-B &= \frac{\sigma^2}{\sigma^2+\tau^2}
+\mbox{E}(p \mid Y=y) &= B \mu + (1-B) y\\
+&= \mu + (1-B)(y-\mu)\\
+\mbox{with } B &= \frac{\sigma^2}{\sigma^2+\tau^2}
 \end{aligned}
 $$
 
@@ -184,7 +184,7 @@ $$
 \mbox{SE}(p\mid y)^2 = \frac{1}{1/\sigma^2+1/\tau^2}
 = \frac{1}{1/.111^2 + 1/.027^2} = 0.00069
 $$
-and the standard deviation is therefore $0.026$. So we started with a frequentist 95% confidence interval that ignored data from other players and summarized just José's data: .450 $\pm$ 0.220. Then we used a Bayesian approach that incorporated data from other players and other years to obtain a posterior probability. This is actually referred to as an empirical Bayes approach because we used data to construct the prior. From the posterior we can report what is called a 95% credible interval by reporting a region, centered at the mean, with a 95% chance of occurring. In our case, this turns out to be: .285 $\pm$ 0.052.
+and the standard deviation is therefore $0.026$. So we started with a frequentist 95% confidence interval that ignored data from other players and summarized just José's data: .450 $\pm$ 0.220. Then we used a Bayesian approach that incorporated data from other players and other years to obtain a posterior probability. This is actually referred to as an empirical Bayes approach because we used data to construct the prior. From the posterior, we can report what is called a 95% credible interval by reporting a region, centered at the mean, with a 95% chance of occurring. In our case, this turns out to be: .285 $\pm$ 0.052.
 
 The Bayesian credible interval suggests that if another team is impressed by the .450 observation, we should consider trading José as we are predicting he will be just slightly above average. Interestingly, the Red Sox traded José to the Detroit Tigers in July. Here are the José Iglesias batting averages for the next five months. 
 
@@ -202,10 +202,9 @@ Although both intervals included the final batting average, the Bayesian credibl
 
 ## Exercises {-}
 
-1. In 1999 in England [Sally Clark](https://en.wikipedia.org/wiki/Sally_Clark) was found guilty of the murder of two of her sons. Both infants were found dead in the morning, one in 1996 and another in 1998, and she claimed the cause of death was sudden infant death syndrome (SIDS). No evidence of physical harm was found on the two infants so the main piece of evidence against her was the testimony of Professor Sir Roy Meadow, who testified that the chances of two infants dying of SIDS was 1 in 73 million. He arrived at this figure by finding that the rate of SIDS was 1 in 8,500 and then calculating that the chance of two SIDS cases was 8,500 $\times$ 8,500 $\approx$ 73 million. Which of the following do you agree with?
+1. In 1999, in England, [Sally Clark](https://en.wikipedia.org/wiki/Sally_Clark) was found guilty of the murder of two of her sons. Both infants were found dead in the morning, one in 1996 and another in 1998. In both cases, she claimed the cause of death was sudden infant death syndrome (SIDS). No evidence of physical harm was found on the two infants so the main piece of evidence against her was the testimony of Professor Sir Roy Meadow, who testified that the chances of two infants dying of SIDS was 1 in 73 million. He arrived at this figure by finding that the rate of SIDS was 1 in 8,500 and then calculating that the chance of two SIDS cases was 8,500 $\times$ 8,500 $\approx$ 73 million. Which of the following do you agree with?
 
-    A. Sir Meadow assumed that the probability of the second son being affected by SIDS was independent of the first son being affected, thereby ignoring possible genetic causes. If genetics plays a role then: 
-    $\mbox{Pr}(\mbox{second case of SIDS} \mid \mbox{first case of SIDS}) < \mbox{Pr(\mbox{first case of SIDS})$.
+    A. Sir Meadow assumed that the probability of the second son being affected by SIDS was independent of the first son being affected, thereby ignoring possible genetic causes. If genetics plays a role then: $\mbox{Pr}(\mbox{second case of SIDS} \mid \mbox{first case of SIDS}) < \mbox{P}r(\mbox{first case of SIDS})$.
     B. Nothing. The multiplicative rule always applies in this way: $\mbox{Pr}(A \mbox{ and } B) =\mbox{Pr}(A)\mbox{Pr}(B)$
     C. Sir Meadow is an expert and we should trust his calculations.
     D. Numbers don't lie.
@@ -259,7 +258,7 @@ polls
 
 Take the average of these `r nrow(polls)`. The CLT tells us this average is approximately normal. Calculate an average and provide an estimate of the standard error. Save your results in an object called `results`.
 
-7. Now assume a Bayesian model that starts with sets the prior distribution for Florida's election night spread $d$ to be Normal with expected value $\mu$ and standard deviation $\tau$. What are the interpretations of $\mu$ and $\tau$?
+7. Now assume a Bayesian model that sets the prior distribution for Florida's election night spread $d$ to be Normal with expected value $\mu$ and standard deviation $\tau$. What are the interpretations of $\mu$ and $\tau$?
 
     A. $\mu$ and $\tau$ are arbitrary numbers that let us make probability statements about $d$.
     B. $\mu$ and $\tau$ summarize what we would predict for Florida before seeing any polls. Based on past elections, we would set $\mu$ close to 0 because both Republicans and Democrats have won, and $\tau$ at about $0.02$, because these elections tend to be close.
@@ -267,17 +266,17 @@ Take the average of these `r nrow(polls)`. The CLT tells us this average is appr
     D. The choice of prior has no effect on Bayesian Analysis.
 
 
-8. The CLT tells us that our estimate of the spread $\hat{d}$ has Normal distribution with expected value $d$ and standard deviation $\sigma$ calculated in problem 6. Use the formulas we showed for the posterior distribution to calculate the expected value of the posterior distribution if we set $\mu = 0$ and $\tau = 0.01$.
+8. The CLT tells us that our estimate of the spread $\hat{d}$ has normal distribution with expected value $d$ and standard deviation $\sigma$ calculated in problem 6. Use the formulas we showed for the posterior distribution to calculate the expected value of the posterior distribution if we set $\mu = 0$ and $\tau = 0.01$.
 
 
 9. Now compute the standard deviation of the posterior distribution.
 
 
-10. Using the fact that the posterior distribution is normal, create an interval that has a 95% of occurring centered at the posterior expected value. Note that we call these credible intervals.
+10. Using the fact that the posterior distribution is normal, create an interval that has a 95% probability of occurring centered at the posterior expected value. Note that we call these credible intervals.
 
 
 11. According to this analysis, what was the probability that Trump wins Florida?
 
-12. Now use sapply function to change the prior variance from `seq(0.05, 0.05, len = 100)` and observe how the probability changes by making a plot.
+12. Now use `sapply` function to change the prior variance from `seq(0.05, 0.05, len = 100)` and observe how the probability changes by making a plot.
 
 

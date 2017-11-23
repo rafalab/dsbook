@@ -1,8 +1,8 @@
 # Central Limit Theorem in practice
 
-The CLT tells us that the distribution function for a sum of draws is approximately normal. We also learned that dividing a normally distributed random variable then dividing that random variable normally distributed variable. This implies that the distribution of $\bar{X}$ is approximately normal. 
+The CLT tells us that the distribution function for a sum of draws is approximately normal. We also learned that dividing a normally distributed random variable by a constant is also a normally distributed variable. This implies that the distribution of $\bar{X}$ is approximately normal. 
 
-In summary, we have the $\bar{X}$ has an approximately normal distribution with expected value $p$ and standard error $\sqrt{p(1-p)/N}$. 
+In summary, we have that $\bar{X}$ has an approximately normal distribution with expected value $p$ and standard error $\sqrt{p(1-p)/N}$. 
 
 Now how does this help us? Suppose we want to know what is the probability that we are within 1% from $p$. We are basically asking if:
 
@@ -29,7 +29,7 @@ $$
 $$
 In statistics textbooks, we use a little hat to denote estimates. The estimate can be constructed using the observed data and $N$. 
 
-Now we continue with our calculation but dividing by $\hat{\mbox{SE}}(\bar{X})=\sqrt{\bar{X}(1-\bar{X})/N})$ instead. In our first sample we had 12 blue and 13 red so $\bar{X} = 0.48$ and so our estimate of standard error is 
+Now we continue with our calculation, but dividing by $\hat{\mbox{SE}}(\bar{X})=\sqrt{\bar{X}(1-\bar{X})/N})$ instead. In our first sample we had 12 blue and 13 red so $\bar{X} = 0.48$ and so our estimate of standard error is 
 
 ```{r}
 X_hat <- 0.48
@@ -51,7 +51,7 @@ Earlier we mentioned the _margin of error_. Now we can define it because it is s
 2*se
 ```
 
-Why do we multiply by 2? Because if you ask what is the probability that we are within two standard error from $p$, we get:
+Why do we multiply by 2? Because if you ask what is the probability that we are within two standard errors from $p$, we get:
 
 $$
 \mbox{Pr}\left(Z \leq \, 2\mbox{SE}(\bar{X})  / \mbox{SE}(\bar{X}) \right) -
@@ -70,11 +70,11 @@ which we know is about 95\%:
 pnorm(2)-pnorm(-2)
 ```
 
-So there is a 95% that $\bar{X}$ will be within $2\times \hat{SE}(\bar{X})$, in our case `r round(2*se)`, to $p$. Note that 95% is somewhat of an arbitrary choice and sometimes other percentages are used, but it is the most commonly used value to define _margin of error_. 
+So there is a 95% probability that $\bar{X}$ will be within $2\times \hat{SE}(\bar{X})$, in our case `r round(2*se)`, to $p$. Note that 95% is somewhat of an arbitrary choice and sometimes other percentages are used, but it is the most commonly used value to define _margin of error_. 
 
 In summary, the CLT tells us that our poll based on a sample size of $25$ is not very useful. We don't really learn much when the margin of error is this large. All we can really say is that the popular vote will not be won by a large margin. This is why pollsters tend to use larger sample sizes. 
 
-From the table above. we see that typical sample sizes range from 700 to 3500. To see how this gives us a much more practical result, notice that if we had obtained a $\bar{X}$=0.48 with a sample size of 2,000 our standard error $\hat{\mbox{SE}}(\bar{X})$ would have been `r n<-2000;se<-sqrt(0.48*(1-0.48)/n);se`. So our result is an estimate of `48`% with a margin of error of `r round(2*se*100)`%. In this case, the result is much more informative and would make us think that there are more red balls than blue. But keep in mind, this is hypothetical. We did not take a poll of 2,000 since we don't want to ruin the competition.
+From the table above. we see that typical sample sizes range from 700 to 3500. To see how this gives us a much more practical result, notice that if we had obtained a $\bar{X}$=0.48 with a sample size of 2,000, our standard error $\hat{\mbox{SE}}(\bar{X})$ would have been `r n<-2000;se<-sqrt(0.48*(1-0.48)/n);se`. So our result is an estimate of `48`% with a margin of error of `r round(2*se*100)`%. In this case, the result is much more informative and would make us think that there are more red balls than blue. But keep in mind, this is hypothetical. We did not take a poll of 2,000 since we don't want to ruin the competition.
 
 
 ### A Monte Carlo simulation
@@ -103,7 +103,7 @@ X <- sample(c(0,1), size=N, replace=TRUE, prob=c(1-p, p))
 Xhat <- mean(X)
 ```
 
-In this particular sample our estimate is `Xhat`. We can use that code to a Monte Carlo simulation:
+In this particular sample our estimate is `Xhat`. We can use that code to do a Monte Carlo simulation:
 
 ```{r, eval=FALSE}
 B <- 10000
@@ -133,7 +133,7 @@ Of course, in real life we would never be able to run such an experiment because
 
 ### The spread
 
-The competition is to predict the spread, not the proportion $p$. However, because we are assuming there are only two parties, we know that the spread if $p - (1-p) = 2p - 1$.  As a result, everything we have done can easily be adapted to an estimate of $2p - 1$. Once we have our estimate $\bar{X}$ and $\hat{\mbox{SE}}(\bar{X})$ we estimate the spread with $2\bar{X} - 1$ and, since we are multiplying by 2, the standard error is $2\hat{\mbox{SE}}(\bar{X})$. Note that subtracting 1 does not add any variability so it does not affect the standard error. 
+The competition is to predict the spread, not the proportion $p$. However, because we are assuming there are only two parties, we know that the spread if $p - (1-p) = 2p - 1$.  As a result, everything we have done can easily be adapted to an estimate of $2p - 1$. Once we have our estimate $\bar{X}$ and $\hat{\mbox{SE}}(\bar{X})$, we estimate the spread with $2\bar{X} - 1$ and, since we are multiplying by 2, the standard error is $2\hat{\mbox{SE}}(\bar{X})$. Note that subtracting 1 does not add any variability so it does not affect the standard error. 
 
 For our 25 sample above, our estimate $p$ is `.48` with margin of error `.20` and our estimate of the spread is `0.04` with margin of error `.40`. Again, not a very useful sample size. However, the point is that once we have an estimate and standard error for $p$, we have it for the spread $2p-1$.
 
@@ -186,7 +186,7 @@ hist(errors)
     D. 4,000
 
 
-9. For $N=100$, the central limit theorem tells us that the distribution of $\hat{X}$ is :
+9. For $N=100$, the central limit theorem tells us that the distribution of $\hat{X}$ is:
 
     A. practically equal to $p$.
     B. approximately normal with expected value $p$ and standard error $\sqrt{p(1-p)/N}$.

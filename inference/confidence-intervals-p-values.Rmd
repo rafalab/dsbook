@@ -14,7 +14,7 @@ data.frame(year = as.numeric(time(nhtemp)), temperature=as.numeric(nhtemp)) %>%
 
 We will later learn how the curve is formed, but for now consider the shaded area around the curve. This is created using the concept of confidence intervals.
 
-In our aforementioned competition, you were asked to give an interval. If the interval you submitted includes the $p$, you get half the money you spent on your "poll" back and pass to the next stage of the competition. One way to pass to the second round is to report a very large interval. For example, the interval $[0,1]$ is guaranteed to include $p$. However, with an interval this big, we have no chance of winning the competition. Similarly, if you are an election forecaster and predict the spread will be between -100% and 100%, you will be ridiculed for stating the obvious. Even a smaller interval, such as saying the spread will be between -10 and 10%, will not be considered serious. 
+In our earlier competition, you were asked to give an interval. If the interval you submitted includes the $p$, you get half the money you spent on your "poll" back and pass to the next stage of the competition. One way to pass to the second round is to report a very large interval. For example, the interval $[0,1]$ is guaranteed to include $p$. However, with an interval this big, we have no chance of winning the competition. Similarly, if you are an election forecaster and predict the spread will be between -100% and 100%, you will be ridiculed for stating the obvious. Even a smaller interval, such as saying the spread will be between -10 and 10%, will not be considered serious. 
 
 On the other hand, the smaller the interval we report, the smaller our chances are of winning the prize. Likewise, a bold pollster that reports very small intervals and misses the mark most of the time will not be considered a good pollster. We want to be somewhere in between.
 
@@ -22,7 +22,7 @@ We can use the statistical theory we have learned to compute the probability of 
 
 When a pollster reports an estimate and a margin of error, they are, in a way, reporting a 95\% confidence interval. Let's show how this works mathematically. 
 
-We want to know the probability that the interval $[\bar{X} - 2\hat{\mbox{SE}}(\bar{X}), \bar{X} - 2\hat{\mbox{SE}}(\bar{X})]$ contains the true proportion $p$. First, consider that the start and end of these intervals are random variables: every time we take a sample, they change. To illustrate this run the Monte Carlo simulation above twice. We use the same parameters as above:
+We want to know the probability that the interval $[\bar{X} - 2\hat{\mbox{SE}}(\bar{X}), \bar{X} - 2\hat{\mbox{SE}}(\bar{X})]$ contains the true proportion $p$. First, consider that the start and end of these intervals are random variables: every time we take a sample, they change. To illustrate this, run the Monte Carlo simulation above twice. We use the same parameters as above:
 
 ```{r}
 p <- 0.45
@@ -49,12 +49,12 @@ c(X_hat - 2*SE_hat, X_hat + 2*SE_hat)
 
 Keep sampling and creating intervals and you will see the random variation.
 
-To determine the probability that the interval includes $p$ we need to compute this:
+To determine the probability that the interval includes $p$, we need to compute this:
 $$
 \mbox{Pr}\left(\bar{X} - 2\hat{\mbox{SE}}(\bar{X}) \leq p \leq \bar{X} + 2\hat{\mbox{SE}}(\bar{X})\right)
 $$
 
-By subtracting and dividing the same quantities in all parts of the equation we
+By subtracting and dividing the same quantities in all parts of the equation, we
 get that the above is equivalent to:
  
 $$
@@ -90,7 +90,7 @@ z <- qnorm(0.995)
 z
 ```
 
-will do it because by definition `pnorm(qnorm(0.995)` is 0.995 and by symmetry `pnorm(1-qnorm(0.995))` is 1 - 0.995, we have that 
+will achieve this because by definition `pnorm(qnorm(0.995)` is 0.995 and by symmetry `pnorm(1-qnorm(0.995))` is 1 - 0.995.  As a consequence, we have that 
 
 
 ```{r}
@@ -107,7 +107,7 @@ qnorm(0.975)
 
 ### A Monte Carlo simulation
 
-We can run a Monte Carlo simulation to confirm that in fact a 95\% confidence interval includes $p$ 95\% of the time.
+We can run a Monte Carlo simulation to confirm that, in fact, a 95\% confidence interval includes $p$ 95\% of the time.
 
 ```{r, eval=FALSE}
 set.seed(1)
@@ -126,7 +126,7 @@ mean(inside)
 ```
 
 
-The following plot shows the first 100 confidence intervals. In this case, we created the simulation so the black line:
+The following plot shows the first 100 confidence intervals. In this case, we created the simulation so the black line denotes the parameter we are trying to estimate:
 
 ```{r, message=FALSE, echo=FALSE}
 set.seed(1)
@@ -151,12 +151,12 @@ ggplot(tab, aes(poll, estimate, ymin=low, ymax=high, col = p_inside)) +
 
 ### The correct language
 
-When using the theory we described above, it is important to remember that it is the intervals that are random, not $p$. In the plot above, we can see the random intervals moving around and $p$, represented with the vertical line, staying in the same place. The proportion of blue in the urn $p$ is not. So the 95\% relates to the probability that this random interval falls on top of $p$. Saying the $p$ has a 95\% of being between this and that is technically an incorrect statement, again, because $p$ is not random. 
+When using the theory we described above, it is important to remember that it is the intervals that are random, not $p$. In the plot above, we can see the random intervals moving around and $p$, represented with the vertical line, staying in the same place. The proportion of blue in the urn $p$ is not. So the 95\% relates to the probability that this random interval falls on top of $p$. Saying the $p$ has a 95\% of being between this and that is technically an incorrect statement because $p$ is not random. 
 
 
 ### Power
 
-Pollsters are not successful at providing correct confidence intervals, but rather for predicting who will win. When we took a 25 bead sample size, the confidence interval for the spread:
+Pollsters are not successful at providing correct confidence intervals, but rather at predicting who will win. When we took a 25 bead sample size, the confidence interval for the spread:
 
 ```{r}
 N <- 25
@@ -166,7 +166,7 @@ X_hat <- 0.48
 
 includes 0. If this were a poll and we were forced to make a declaration, we would have to say it was a "toss-up". 
 
-A problem with our poll results is that, given the sample size and the value of $p$, we would have to sacrifice on the probability of an incorrect call to create an interval that does not include 0. 
+A problem with our poll results is that given the sample size and the value of $p$, we would have to sacrifice on the probability of an incorrect call to create an interval that does not include 0. 
 
 This does not mean that the election is close. It only means that we have a small sample size. In statistical textbooks this is called lack of _power_. In the context of polls, _power_ is the probability of detecting spreads different from 0.  
 
@@ -179,7 +179,7 @@ p-values are ubiquitous in the scientific literature. They are related to confid
 
 Let's consider the blue and red beads. Suppose that rather than wanting an estimate of the spread or the proportion of blue, I am interested only in the question: are there more blue beads or red beads? I want to know if the spread $2p-1 > 0$. 
 
-Let's say we take a random sample of $N=100$ and we observe $52$ blue beads which gives us $2\bar{X}-1=0.04$. This seems to be pointing to the existence of more blue than red beads since 0.04 is larger than 0. However, as data scientists we need to be skeptical. We know there is chance involved in this process and we could get a 52 even when the actual spread is 0. We call this a _null hypothesis_. The null hypothesis is the skeptic's hypothesis: the spread is $2p-1=0$. We have observed a random variable $2*\bar{X}-1 = 0.52$ and the p-value is the answer to the question: how likely is it to see a value this large, when the null hypothesis is true? So we write:
+Let's say we take a random sample of $N=100$ and we observe $52$ blue beads, which gives us $2\bar{X}-1=0.04$. This seems to be pointing to the existence of more blue than red beads since 0.04 is larger than 0. However, as data scientists we need to be skeptical. We know there is chance involved in this process and we could get a 52 even when the actual spread is 0. We call this a _null hypothesis_. The null hypothesis is the skeptic's hypothesis: the spread is $2p-1=0$. We have observed a random variable $2*\bar{X}-1 = 0.52$ and the p-value is the answer to the question: how likely is it to see a value this large, when the null hypothesis is true? So we write:
 
 $$\mbox{Pr}(\mid \bar{X} - 0.5 \mid > 0.02 ) $$
 
@@ -200,7 +200,7 @@ z <- sqrt(N)*0.02/0.5
 1 - (pnorm(z) - pnorm(-z))
 ```
 
-This is the p-value. In this case, there is actually a large chance of seeing 52 or larger under the null hypothesis. 
+In this case, there is actually a large chance of seeing 52 or larger under the null hypothesis. 
 
 Keep in mind that there is a close connection between p-values and confidence intervals. If a 95% confidence interval of the spread does not include 0, we know that the p-value must be smaller than 0.05. 
 
@@ -216,7 +216,7 @@ library(dslabs)
 data("polls_us_election_2016")
 ```
 
-Specifically, we will use all the national polls that ended within four two before the election.
+Specifically, we will use all the national polls that ended within one week before the election.
 
 ```{r, message=FALSE, comment=FALSE}
 library(tidyverse)
@@ -233,7 +233,7 @@ X_hat <- polls$rawpoll_clinton[1]/100
 Assume there are only two candidates and construct a 95% confidence interval for the election night proportion $p$. 
 
 
-2. Now use `dplyr` to add a confidence interval as two columns, call them `lower` and `upper`, of the object `poll`, then show a pollster. Show the end date, pollster, the estimated proportion, and confidence interval columns. Hint: define temporary columns `X_hat` and `se_hat`. 
+2. Now use `dplyr` to add a confidence interval as two columns, call them `lower` and `upper`, to the object `poll`. Then use `select` to show the `pollster`, `enddate`, `X_hat`,`lower`, `upper` variables. Hint: define temporary columns `X_hat` and `se_hat`. 
 
 3. The final tally for the popular vote was Clinton 48.2%	and Trump 46.1%. Add a column, call it `hit`, to the previous table stating if the confidence interval included the true proportion $p=0.482$ or not. 
 
@@ -262,7 +262,7 @@ and re-do exercise 1, but for the difference.
 
 9. Although the proportion of confidence intervals goes up substantially, it is still lower that 0.95. In the next chapter, we learn the reason for this. To motivate this, make a plot of the error, the difference between each poll's estimate and the actual $d=0.021$. Stratify by pollster.
 
-10. Re-do the plot you made for exercise 9, but only for pollsters that took five or more polls.
+10. Re-do the plot that you made for exercise 9, but only for pollsters that took five or more polls.
 
 
 

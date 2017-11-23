@@ -9,7 +9,7 @@ substantial portion of data types. Specifically, we have not discussed inference
 very specific example, consider the following case study.
 
 
-A [2014 PNAS paper](http://www.pnas.org/content/112/40/12349.abstract) analyzed success rates from funding agencies in the Netherlands and concluded that their
+A [2014 PNAS paper](http://www.pnas.org/content/112/40/12349.abstract) analyzed success rates from funding agencies in the Netherlands and concluded that their:
 
 > results reveal gender bias favoring male applicants over female applicants in the prioritization of their “quality of researcher” (but not "quality of proposal") evaluations and success rates, as well as in the language use in instructional and evaluation materials.
 
@@ -51,10 +51,9 @@ Here we learn how to perform inference for this type of data.
 
 [R.A. Fisher](https://en.wikipedia.org/wiki/Ronald_Fisher) was one of the first to formalize hypothesis testing. The "Lady Testing Tea" is one of the most famous examples. 
 
-The story goes like this. An acquaintance of Fisher's claimed that she could tell if milk was added
-before or after tea was poured. Fisher was skeptical. He designed an experiment to test this claim. He gave her four pairs of
+The story is as follows: an acquaintance of Fisher's claimed that she could tell if milk was added before or after tea was poured. Fisher was skeptical. He designed an experiment to test this claim. He gave her four pairs of
 cups of tea: one with milk poured first, the other after. The order
-was randomized. The null hypothesis here is that she is guessing. Fisher derived the distribution for the number of correct picks on the assumption that the choice were random and independent.
+was randomized. The null hypothesis here is that she is guessing. Fisher derived the distribution for the number of correct picks on the assumption that the choices were random and independent.
 
 As an example, suppose she picked 3 out of 4 correctly, do we believe
 she has a special ability? The basic question we ask is: if the tester is actually guessing, what
@@ -62,7 +61,7 @@ are the chances that she gets 3 or more correct? Just as we have done
 before, we can compute a probability under the null hypothesis that she
 is guessing 4 of each. Under this null hypothesis, we can
 think of this particular example as picking 4 balls out of an urn
-with 4 blue (correct answer) and 4 red (incorrect answer) balls. Remember she knows that there are four before tea and four after.
+with 4 blue (correct answer) and 4 red (incorrect answer) balls. Remember, she knows that there are four before tea and four after.
 
 Under the null hypothesis that she is simply guessing, each ball
 has the same chance of being picked. We can then use combinations to
@@ -75,7 +74,7 @@ under the null hypothesis, is $\approx 0.24$. This is the p-value. The
 procedure that produced this p-value is called _Fisher's exact test_ and
 it uses the *hypergeometric distribution*. 
 
-## Two By Two Tables
+## Two-by-two tables
 
 The data from the experiment is usually summarized by a table like this:
 
@@ -86,7 +85,7 @@ colnames(tab)<-c("Guessed before","Guessed after")
 tab
 ```
 
-These are referred to two-by-two table. They show, for each of the four combinations on can get with a pair of binary variables, the observed counts for each occurrence.
+These are referred to as a two-by-two table. For each of the four combinations one can get with a pair of binary variables, they show the observed counts for each occurrence.
 
 The function `fisher.test` performs the inference calculations above and can be obtained like this:
 
@@ -96,16 +95,13 @@ fisher.test(tab, alternative="greater")
 
 ## Chi-square Test
 
-Note that,in a way, our funding rates example is similar to the Lady Tasting Tea. However, in the Tasting Tea example the
-number of blue and red beads is experimentally fixed and the number
-of answers given for each category is also fixed. This is because Fisher made sure there were four before tea and four after tea and the lady knew this, so the answers would also have four and four. If this is the case the sum of the rows and the sum of the columns are
-fixed. This defines constraints on the possible ways we can fill the two
+Notice that, in a way, our funding rates example is similar to the Lady Tasting Tea. However, in the Tasting Tea example, the number of blue and red beads is experimentally fixed and the number of answers given for each category is also fixed. This is because Fisher made sure there were four before tea and four after tea and the lady knew this, so the answers would also have four and four. If this is the case, the sum of the rows and the sum of the columns are fixed. This defines constraints on the possible ways we can fill the two
 by two table and also permits us to use the hypergeometric
 distribution. In general, this is not the case. Nonetheless, there is
 another approach, the Chi-squared test, which is described below. 
 
 
-Imagine we have `r sum(totals)`, some are men and some are women and some get funded other don't. We saw that the success rates for men and woman were:
+Imagine we have `r sum(totals)` applicants, some are men and some are women and some get funded, whereas other don't. We saw that the success rates for men and woman were:
 
 ```{r}
 totals %>% summarize(percent_men = yes_men/(yes_men+no_men),
@@ -123,7 +119,7 @@ funding_rate <- totals %>%
 funding_rate
 ```
 
-The Chi-square test answers this question. The first step is to create the two-by-two data:
+The Chi-square test answers this question. The first step is to create the two-by-two data table:
 
 ```{r}
 two_by_two <- tibble(awarded = c("no", "yes"), 
@@ -132,7 +128,7 @@ two_by_two <- tibble(awarded = c("no", "yes"),
 two_by_two
 ```
 
-The general idea of the Chi-square test is to compare this two-by-two table to what you expect to see which would be:
+The general idea of the Chi-square test is to compare this two-by-two table to what you expect to see, which would be:
 
 ```{r}
 tibble(awarded = c("no", "yes"), 
@@ -143,8 +139,8 @@ tibble(awarded = c("no", "yes"),
 
 ```
 
-We can see that more men than expected and less women than expected received funding. However, under the null hypothesis these observations are random variable. The Chi-square test tells us how likely it is to see
-a deviation this large of larger. This test uses an asymptotic result, similar to the CLT, related to the sums of independent binary outcomes. 
+We can see that more men than expected and less women than expected received funding. However, under the null hypothesis these observations are random variables. The Chi-square test tells us how likely it is to see
+a deviation this large or larger. This test uses an asymptotic result, similar to the CLT, related to the sums of independent binary outcomes. 
 The R function `chisq.test` takes a two by two table and returns the results from the test:
 
 ```{r}
@@ -158,7 +154,7 @@ We see that the p-value is 0.051.
 
 ## The Odds Ratio
 
-An informative summary statistic associated with two-by-two tables is the odds ratio. Define the two variables as $X = 1$ if you are a male and 0 otherwise and $Y=1$ if you are funded and 0 otherwise. The odds of getting funded if you are a man is defined
+An informative summary statistic associated with two-by-two tables is the odds ratio. Define the two variables as $X = 1$ if you are a male and 0 otherwise, and $Y=1$ if you are funded and 0 otherwise. The odds of getting funded if you are a man is defined:
 
 $$\mbox{Pr}(Y=1 \mid X=1) / \mbox{Pr}(Y=0 \mid X=1)$$
 
@@ -168,7 +164,7 @@ odds_men <- (two_by_two$men[2] / sum(two_by_two$men)) /
   (two_by_two$men[1] / sum(two_by_two$men))
 ```
 
-And the odds of being funded if you are a women is 
+And the odds of being funded if you are a woman is:
 
 
 $$\mbox{Pr}(Y=1 \mid X=0) / \mbox{Pr}(Y=0 \mid X=0)$$
@@ -180,24 +176,24 @@ odds_women <- (two_by_two$women[2] / sum(two_by_two$women)) /
   (two_by_two$women[1] / sum(two_by_two$women))
 ```
 
-The odds ratio is the ratio for these two odds: how many times larger are the odds for men than women:
+The odds ratio is the ratio for these two odds: how many times larger are the odds for men than for women?
 
 ```{r}
 odds_men / odds_women
 ```
 
-## Large Samples, Small p-values
+## Large samples, small p-values
 
 As mentioned earlier, reporting only p-values is not an appropriate
-way to report the results of data analysis. In scientific journals, for example 
-some studies seem to overemphasize p-values. Some of these studies large sample sizes
+way to report the results of data analysis. In scientific journals, for example, 
+some studies seem to overemphasize p-values. Some of these studies have large sample sizes
 and report impressively small p-values.  Yet when one looks closely at
 the results, we realize odds ratios are quite modest: barely bigger
 than 1. In this case the difference may not be *practically significant* or *scientifically significant*.
 
-Note that the relationship between odds ratio and p-value is not a one-to-one. It depends on the sample size. So a very small p-values does not necessarily mean very large odds ratio.
+Note that the relationship between odds ratio and p-value is not one-to-one. It depends on the sample size. So a very small p-value does not necessarily mean very large odds ratio.
 
-Notice what happens to the p-value if we multiply our two by two table by 10:
+Notice what happens to the p-value if we multiply our two-by-two table by 10:
 
 ```{r}
 two_by_two %>% 
@@ -208,14 +204,14 @@ two_by_two %>%
 
 Yet the odds ratio is unchanged.
 
-## Confidence Intervals for the Odds Ratio
+## Confidence intervals for the odds ratio
 
 Computing confidence intervals for the odds ratio is not mathematically
 straightforward. Unlike other statistics, for which we can derive
-useful approximations of their distributions, the odd ratio is not only a
+useful approximations of their distributions, the odds ratio is not only a
 ratio, but a ratio of ratios. Therefore, there is no simple way of
 using, for example, the CLT. 
   
 One approach is to use the theory of *generalized linear models*. You can learn more about these in this book:
-[McCullagh and Nelder, 1989](https://books.google.com/books?hl=en&lr=&id=h9kFH2_FfBkC)): 
+[McCullagh and Nelder, 1989](https://books.google.com/books?hl=en&lr=&id=h9kFH2_FfBkC).
 
