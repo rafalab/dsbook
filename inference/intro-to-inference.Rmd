@@ -1,0 +1,37 @@
+# (PART) Inference and modeling {-}
+
+# Introduction
+
+The day before the 2008 presidential election Nate Silver's Fivethirtyeight stated that "Barack Obama appears poised for a decisive electoral victory". They went further and predicted that Obama would win the election with 349 electoral votes to 189, and the popular vote by a margin of 6.1%. Fivethirtyeight also attached a probabilistic statement to their prediction claiming that Obama had a 91% chance of winning the election. The predictions were quite accurate since, in the final results, Obama won the electoral college 365 to 173 and the popular vote by a 7.2% difference. Their performance in the 2008 election brought Fivethirtyeight to the attention of political pundits and TV personalities. The week before the 2012, Fivethirtyeight's Nate Silver was giving Obama a 90% chance of winning despite many of the experts thinking the final results would be closer. Political commentator Joe Scarborough said [during his show](https://www.youtube.com/watch?v=TbKkjm-gheY) 
+
+>>Anybody that thinks that this race is anything but a tossup right now is such an ideologue ... they're jokes." 
+
+To which Nate Silver responded via Twitter:
+
+>> If you think it's a toss-up, let's bet. If Obama wins, you donate $1,000 to the American Red Cross. If Romney wins, I do. Deal?
+
+How was Mr. Silver so confident? We will demonstrate how _poll aggregators_, such as Fivethirtyeight, collected and combined data reported by different experts to produce improved predictions. The two main statistical tools used by the aggregators are the topic of this chapter: inference and modeling. To begin to understand how election forecasting works, we need to understand the basic data point they use: poll results.
+
+
+Opinion polling has been conducted since the 19th century. The general goal of these is to describe the opinions held by a specific population on a given set of topics. In recent times, these polls have been pervasive during presidential elections. Polls are useful when asking everybody in a particular population is logistically impossible. The general strategy is to ask a smaller group, chosen at random, and then infer the opinions of the entire population from the opinions of the smaller group. Statistical theory is used to justify the process. This theory is referred to as  _inference_ and is the main topic of this section.
+
+Perhaps the best know opinion polls are those conducted to determine which candidate is preferred by voters in a given election. Political strategists make extensive use of polls to decide, among other things, how to invest resources. For example, they may want to know which geographical locations to focus their get out the vote efforts. 
+
+Elections are a particularly interesting case of opinion polls because the actual opinion of the entire population is revealed on election day. Of course, it costs millions of dollars to run an actual election which makes polling a cost effective strategy for those that want to forecast the results. 
+
+Although typically the results of these polls are kept private, similar polls are conducted by news organizations because results tend to be of interest to the general public and therefore are often made public. We will eventually be looking at such data.
+
+[Real Clear Politics](http://www.realclearpolitics.com) is an example of a news aggregator that organizes and publishes poll results. For example, [here](http://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html) are examples of polls reporting estimates of the popular vote for the 2016 presidential election:
+
+```{r, echo=FALSE}
+knitr::include_graphics("inference/img/rcp-polls.png")
+```
+
+Although in the United States the popular vote does not determine the result of the presidential election, we will use it as an illustrative and simple example of how well polls work. Forecasting the election is a more complex process since it involves combining results from 50 states and DC.
+
+Let's make some observation about the table above. First note that different polls, all taken days before the election, report a different _spread_:  the estimated difference between support for the two candidates. Notice also that the reported spreads hover around what ended up being the actual result: Clinton won the popular vote by 2.1%. We also see a column titled **MoE** which stands for _margin of error_. 
+
+In this section we show how the probability concepts we learned in the previous chapter can be applied to develop the statistical approaches that make polls an effective tool. We will learn the statistical concepts necessary to define _estimates_ and _margins of errors_, and show how we can use these to forecast final results relatively well and also provide an estimate of the precision of our forecast. Once we learn this we will be able to understand two concepts that are ubiquitous in data science: _confidence intervals_, and _p-values_. Finally, to understand probabilistic statements about the probability of a candidate winning, we will have to learn about Bayesian modelling. In the final sections we put it all together to recreate the simplified version of the Fivethirtyeight model and apply it to the 2016 election. 
+
+We start by connecting probability theory to the task of using polls to learn about a population.
+

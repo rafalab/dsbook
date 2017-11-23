@@ -1,0 +1,74 @@
+## The t-distribution
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(dslabs)
+ds_theme_set()
+polls <- polls_us_election_2016 %>% 
+  filter(state == "U.S." & enddate >= "2016-10-31" &
+           (grade %in% c("A+","A","A-","B+") | is.na(grade))) %>% 
+  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
+
+one_poll_per_pollster <- polls %>% group_by(pollster) %>% 
+  filter(enddate == max(enddate)) %>%
+  ungroup()
+```
+
+Above we made use of the CLT with a sample size of 15. Because we are estimating a second parameters $\sigma$, further variability is introduced into our confidence interval which result in intervals that are too small. For very large sample sizes this extra variability is negligible, but, in general, for values smaller than 30 we need to be cautions about using CLT. 
+
+However, if the data in the urn is known to follow a normal distribution, then we actually have mathematical theory that tell us how much bigger we need to make the intervals to account for the estimation of $\sigma$. Using this theory, we can construct confidence intervals for any $N$. But again only if **the data in the urn is known to follow a normal distribution**. So for the 0,1 data of our previous urn model, this theory definitely does not apply.
+
+The statistic on which confidence intervals for $d$ are based is
+
+$$
+Z = \frac{\bar{X} - d}{\sigma/\sqrt{N}}
+$$
+
+CLT tells us that Z is approximately normally distributed with expected value 0 and standard error 1. But in practice we don't know $\sigma$ so we use:
+
+$$
+Z = \frac{\bar{X} - d}{s\sqrt{N}}
+$$
+
+
+By substituting $\sigma$ with $s$ we introduce some variability. The theory tells us that $Z$ follows a t-distribution with $N-1$ _degrees of freedom_. The degrees of freedom is a parameter that controls the variability via fatter tails:
+
+```{r, echo=FALSE}
+x <- seq(-5,5, len=100)
+data.frame(x=x, Normal = dnorm(x, 0, 1), t_03 = dt(x,3), t_05 = dt(x,5), t_15=dt(x,15)) %>% gather(distribution, f, -x) %>% ggplot(aes(x,f, color = distribution)) + geom_line() +ylab("f(x)")
+```
+
+If we are willing to assume the pollster effect data is normally distributed, based on the sample data $X_1, \dots, X_N$,  
+```{r}
+one_poll_per_pollster %>%
+  ggplot(aes(sample=spread)) + stat_qq()
+```
+then $Z$ follows a t-distribution with $N-1$ degrees of freedom. So perhaps a better confidence interval for $d$ is:
+
+
+```{r}
+z <- qt(0.975,  nrow(one_poll_per_pollster)-1)
+one_poll_per_pollster %>% 
+  summarize(avg = mean(spread), moe = z*sd(spread)/sqrt(length(spread))) %>% 
+  mutate(start = avg - moe, end = avg + moe) 
+```
+
+A bit larger than the one using normal is 
+
+```{r}
+qt(0.975, 14)
+```
+
+is bigger than
+
+```{r}
+qnorm(0.975)
+```
+
+Fivethirtyeight uses the t-distribution to generate errors that better model the deviations we see in election data. For example the deviation we saw in Wisconsin between the polls and actual result, where Trump won by 0.7%, is more in line with t-distributed data than the normal distribution.
+
+```{r}
+results %>% filter(state == "Wisconsin")
+```
+
+

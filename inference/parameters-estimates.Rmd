@@ -1,0 +1,141 @@
+# The sampling model for polls
+
+To help us understand the connection between polls and what we have learned, let's construct a similar situation to the one pollsters face. We will use an urn instead of voters and of competing with other pollsters for media attention we will have a competition with \$25 dollar prize. The challenge is to guess the spread between the proportion of blue and red beads in this urn:
+
+
+```{r, echo=FALSE, fig.height=3}
+knitr::include_graphics("inference/img/urn.jpg")
+```
+
+Before making a prediction, you can take a sample (with replacement) from the urn. To mimic the fact that running polls is expensive, it cost you \$0.10 per each bead you sample. Therefore, if your sample size is 250, and you win, you will break even since you will pay me \$25 to collect your \$25 prize. Your entry into the competition can be an interval. If the interval you submit contains the true proportion, you get half what you paid and pass to the second phase of the competition. In the second phase, the entry with the smallest interval is selected as the winner. 
+
+The `dslabs` package includes a function that shows a random draw from this urn:
+
+```{r, echo=FALSE}
+set.seed(1)
+```
+
+```{r, comment=FALSE, warning=FALSE}
+library(tidyverse)
+library(dslabs)
+ds_theme_set()
+take_poll(25)
+```
+
+Think about how you would construct your interval based on the data shown above. 
+
+We have just described a simple sampling model for opinion polls. The beads inside the urn represent the individuals that will vote on election day. Those that will vote for the Republican candidate are represented with red beads and the Democrats with the blue beads. For simplicity, assume there are no other colors, that is, that there are just two parties. 
+
+# Populations, samples, parameters and estimates
+
+We want to predict the proportion of blue beads in the urn, let's call this quantity $p$, which then tells us the proportion of red beads $1-p$, and the spread $p - (1-p)$ which simplifies to $2p - 1$. 
+
+In statistical textbooks, the beads in the urn are called the _population_. The proportion of blue beads in the population $p$  is called a _parameter_. The 25 beads we see in the plot above are called a _sample_. The task of statistical inference is to predict the parameter $p$ using the observed data in the sample. 
+
+Can we do this with the 25 observations above? It is certainly informative. For example, given that we see 13 red and 12 blue beads, it is unlikely that $p$ > .9 or $p$ < .1. But are we ready to predict with certainty that there are more red beads than blue?  
+
+We want to construct an estimate of $p$ using only the information we observe. An estimate can be thought of as a summary of the observed data that we think is informative about the parameter of interest. It seems intuitive to think that the proportion of blue beads in the sample $0.48$ must be at least related the actual proportion $p$. But do we simply predict $p$ to be 0.48? First remember that the sample proportion is a random variable. If we run the command `take_poll(25)` four times:
+
+```{r, echo=FALSE}
+par(mfrow=c(2,2), mar = c(3, 1, 3, 0), mgp = c(1.5, 0.5, 0)) 
+take_poll(25); take_poll(25); take_poll(25); take_poll(25)
+```
+
+we get a different answer each time since the sample proportion is a random variable. 
+ 
+Note that in the four random samples shown above, the sample proportions range from 0.44 to 0.60. By describing the distribution of this random variable, we will be able to gain insights into how good this estimate is and how we can make it better.
+
+## The sample average
+
+Taking an opinion poll is being modeled as taking a random sample from an urn. We are proposing the use of the proportion of blue beads in our sample as an _estimate_ of the parameter $p$. Once we have this estimate we can can easily report an estimate for the spread $2p-1$, but for simplicity we will illustrate the concepts for estimating $p$. We will use our knowledge of probability to defend our use of the sample proportion and quantify how close we think it is from the population proportion $p$.
+
+We start by defining the random variable $X=1$ if we pick a blue bead at random and $0$ if it is red. This implies that the population is a list of 0s and 1s. If we sample $N$ beads, then the average of the draws $X_1, \dots, X_N$ is equivalent to the proportion of blue beads in our sample. This is because adding the $X$s is equivalent to counting the blue beads and dividing it by the total $N$ turns this into a proportion. We use the symbol $\bar{X}$ to represent this average. In general, in statistics textbooks a bar on top of a symbol means the average.
+
+The theory we just learned about the sum of draws becomes useful because if we know the distribution of the sum $N \bar{X}$, we know the distribution of the average $\bar{X}$ because $N$ is a non-random constant. 
+
+For simplicity, let's assume that the draws are independent: after we see each sampled bead, we return it to the urn. In this case, what do we know about the distribution of the sum of draws? First, we know that the expected value of the sum of draws is $N$ times the average of the values in the urn. We know that the average of the 0s and 1s in the urn must be $p$, the proportion of blue beads.
+
+Here we encounter an important difference with what we did in the Probability chapter: we don't know what is in the urn. We know there are blue and red beads, but we don't know how many of each. This is what we want to find out: we are trying to **estimate** $p$. 
+
+## Parameters
+
+Just like we use variables to define unknowns in systems of equations, in statistical inference we define _parameters_ to define unknown parts of our models. In the urn model we are using to mimic an opinion poll, we do not know the proportion of blue beads in the urn. We define the parameters $p$ to represent this quantity. $p$ is the average of the urn since, if we take the average of the 1s (blue) and 0s (red), we get the proportion of blue beads. Since our main goal is figuring out what is $p$, we are going to _estimate this parameter_. 
+
+The ideas presented here on how we estimate parameters and provide insights into how good these estimates are, extrapolate to many data science tasks. For example, we may want to determing the difference in health improvement between patients receiving treatment and a control group. We may ask what are the health effects of smoking on a population? What are the differences in racial groups of fatal shootings by police? What is the rate of change in life expectancy in the US during the last 10 years? All these questions can be framed as a task of estimating a parameter from a sample.
+
+## Polling versus forecasting
+
+Before we continue, let's make an important clarification related to the practical problem of forecasting the election. If a poll is conducted four months before the election, it is estimating the $p$ for that moment and not for election day. The $p$ for election night might be different since people's opinions fluctuate through time. The polls provided the night before the election tend to be the most accurate since opinions don't change that much in a day. However, forecasters try to build tools that model how opinions vary across time and try to predict the election night result taking into consideration the fact that opinions fluctuate. We will describe some approaches for doing this in our a later section. 
+
+## Properties of our estimate: Expected value and standard error 
+
+To understand how good our estimate is, we will describe the statistical properties of the random variable defined above: the sample proportion $\bar{X}$. Remember that $\bar{X}$ is the sum of independent draws so the rules we covered in the probability chapter apply.
+
+Using what we have learned, the expected value of the sum $N\bar{X}$ is $N \times$ the average of the urn, $p$. So dividing by the non-random constant $N$ gives us that the expected value of the average $\bar{X}$ is $p$. We can write it using our mathematical notation:
+
+$$
+\mbox{E}(\bar{X}) = p
+$$
+
+We can also use what we learned to figure out the standard error. We know it is the standard error of the sum is $\sqrt{N} \times$ the standard deviation of the urn. Can we compute the standard error of the urn? We learned a formula that tells is that it is $(1-0) \sqrt{p (1-p)}$ = $p(1-p)$. Because we are dividing the sum by $N$, we arrive at the following formula for the standard error for the average:
+
+$$
+\mbox{SE}(\bar{X}) = \sqrt{p(1-p)/N}
+$$
+
+This result reveals the power of polls. The expected value of the sample proportion $\bar{X}$ is the parameter of interest $p$ and we can make the standard error as small as we want by increasing $N$. The law of large numbers tells us that with a large enough poll our estimate converges to $p$.
+
+If we take a large enough poll to make our standard error about 0.01%, we will be quite certain about who will win. But how large does the poll have to be for the standard error to be this small? 
+
+One problem is that we do not know $p$, so we can't compute the standard error. For illustrative purposes let's assume that $p=0.51$ and make a plot of the standard error versus the sample size $N$: 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dslabs)
+ds_theme_set()
+p <- 0.51
+N <- 10^seq(1,5, len=100)
+data.frame(N=N, SE = sqrt(p*(1-p)/N)) %>% ggplot(aes(N, SE)) + geom_line() + scale_x_continuous(breaks = c(10,100,1000,10000), trans = "log10")
+```
+
+From the plot we see that we would need a poll of over 10,000 people to get the standard error that low. We rarely see polls of this size due in part to costs. From the Real Clear Politics table we learn that the sample sizes in opinion polls range from 500-3,500 people. For a sample size of 1,000 and $p=0.51$, the standard error is:
+```{r}
+sqrt(p*(1-p))/sqrt(1000)
+```
+
+or 1.5 percentage points. So even with large polls, for close elections, $\bar{X}$ can lead us astray if we don't realize it is a random variable. Nonetheless, we can actually say more about how close we get the $p$.
+
+## Exercises {-}
+
+1. Suppose you poll a population in which a proportion $p$ of voters are Democrats and $1-p$ are Republicans. Your sample size is $N=25$. Consider the random variable $S$ which is the **total** number of Democrats in your sample. What is the expected value of this random variable? Hint: it's a function of $p$.
+
+
+2. What is the standard error of $S$ ? Hint: it's a function of $p$.
+
+3. Consider the random variable $S/N$. This is equivalent to the sample average, which we have been denoting as $\bar{X}$. What is the expected value of the $\bar{X}$? Hint: it's a function of $p$.
+
+4. What is the standard error of $\bar{X}$? Hint: it's a function of $p$.
+
+5. Write a line of code that gives you the standard error `se` for the problem above for `p <- seq(0, 1, length = 100)`. Make a plot of `se` versus `p`. 
+
+
+6. Copy the code above and put it inside a for-loop to make the plot for $N=25$, $N=100$ and $N=1000$. 
+
+
+7. If we are interested in the difference in proportions, $p - (1-p)$, our estimate is $d = \bar{X} - (1-\bar{X})$. Use the rules we learned about sums of random variables and scaled random variables to derive the expected value of $d$.
+
+
+8. What is the standard error of $d$?
+
+
+9. If the actual is $p=.45$, it means the Republicans are winning by a relatively large margin since $d= -.1$, which is a 10% margin of victory. What is the standard error of $2\hat{X}-1$ in this case? 
+
+
+10. Given the answer to 9, which of the following best describes your strategy of using a sample size of $N=25$?
+
+  A. The expected value of our estimate $2\bar{X}-1$ is $d$ so our prediction will be right on.
+  B. Our standard error is larger than the difference, so the chances of $2\bar{X}-1$ being positive and throwing us off were not that small. We should pick a larger sample size.
+  C. The difference is 10% and the standard error is about 0.2, so much smaller than the difference.
+  D. Because we don't know $p$, we have no way knowing that making $N$ larger would actually improve our standard error.
+
+
