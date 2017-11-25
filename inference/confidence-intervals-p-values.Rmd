@@ -2,7 +2,7 @@
 
 Confidence intervals are a very useful concept widely employed by data scientists. A version of these that are commonly seen come from the `ggplot` geometry `geom_smooth`. Here is an example using a temperature dataset available in R:
 
-```{r, message=FALSE}
+```{r first-confidence-intervals-example, message=FALSE}
 data("nhtemp")
 data.frame(year = as.numeric(time(nhtemp)), temperature=as.numeric(nhtemp)) %>%
   ggplot(aes(year, temperature)) + 
@@ -105,14 +105,13 @@ To get exactly 0.95 confidence interval, we actually use a slightly smaller numb
 qnorm(0.975)
 ```
 
-### A Monte Carlo simulation
+## A Monte Carlo simulation
 
 We can run a Monte Carlo simulation to confirm that, in fact, a 95\% confidence interval includes $p$ 95\% of the time.
 
-```{r, eval=FALSE}
+```{r, echo=FALSE}
 set.seed(1)
 ```
-
 
 ```{r}
 B <- 10000
@@ -128,7 +127,7 @@ mean(inside)
 
 The following plot shows the first 100 confidence intervals. In this case, we created the simulation so the black line denotes the parameter we are trying to estimate:
 
-```{r, message=FALSE, echo=FALSE}
+```{r confidence-interval-coverage, message=FALSE, echo=FALSE}
 set.seed(1)
 tab <- replicate(100, {
   X <- sample(c(0,1), size=N, replace=TRUE, prob=c(1-p, p))
@@ -149,12 +148,12 @@ ggplot(tab, aes(poll, estimate, ymin=low, ymax=high, col = p_inside)) +
 ```
 
 
-### The correct language
+## The correct language
 
 When using the theory we described above, it is important to remember that it is the intervals that are random, not $p$. In the plot above, we can see the random intervals moving around and $p$, represented with the vertical line, staying in the same place. The proportion of blue in the urn $p$ is not. So the 95\% relates to the probability that this random interval falls on top of $p$. Saying the $p$ has a 95\% of being between this and that is technically an incorrect statement because $p$ is not random. 
 
 
-### Power
+## Power
 
 Pollsters are not successful at providing correct confidence intervals, but rather at predicting who will win. When we took a 25 bead sample size, the confidence interval for the spread:
 

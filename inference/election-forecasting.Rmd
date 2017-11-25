@@ -1,9 +1,7 @@
 # Election forecasting
 
-```{r, echo=FALSE}
-library(tidyverse)
-library(dslabs)
-ds_theme_set()
+In previous section we generated these data tables:
+```{r}
 polls <- polls_us_election_2016 %>% 
   filter(state == "U.S." & enddate >= "2016-10-31" &
            (grade %in% c("A+","A","A-","B+") | is.na(grade))) %>% 
@@ -18,8 +16,9 @@ results <- one_poll_per_pollster %>%
   mutate(start = avg - 1.96*se, end = avg + 1.96*se) 
 ```
 
+We will use these below for our forecasting.
 
-### Bayesian approach
+## Bayesian approach
 
 Pollsters tend to make probabilistic statements about the results of the election. For example, "The chance that Obama wins the electoral colleges is 91%" is a probabilistic statement about the parameter $d$. We showed that for the 2016 election, FiveThirtyEight gave Clinton a 81.4% chance of winning the popular vote. To do this, they used the Bayesian approach we described. 
 
@@ -64,13 +63,13 @@ The posterior probability $\mbox{Pr(d>0 \mid \bar{X})}$ is:
 
 This says we are 100\% sure Clinton will win the popular vote which seems too overconfident. Also, it is not in agreement with FiveThirtyEight's 81.4%. What explains this difference?
 
-### The general bias 
+## The general bias 
 
 After elections are over, one can look at the difference between pollster predictions and actual result. An important observation that our model does not take into account, is that it is common to see the general bias that affects many pollsters in the same way. There is no good explanation for this, but we do observe it in historical data: in one election, the average of polls favors Democrats by 2%, then in the following election they favor Republicans by 1%, then in the next election there is no bias, then in the following one Republicans are favored by 3%, and so on. In 2016, the polls were biased in favor of the democrats by 1-2%. 
 
 Although we know this bias term affects our polls, we have no way of knowing what this bias is until election. So we can't correct our polls accordingly. What we can do is include a term in our model that accounts for this variability.
 
-### Mathematical representations of models
+## Mathematical representations of models
 
 Suppose we are collecting data from one pollster and we assume there is no general bias. The pollster collects several polls with a sample size of $N$, so we observe several measurements of the spread $X_1, \dots, X_J$. The theory tells us that these random variables have expected value $d$ and $2 \sqrt{p(1-p)/N}$. For reasons that will soon become clear, we can represent this model mathematically like this:
 
@@ -109,7 +108,7 @@ X <- sapply(1:I, function(i){
 
 The simulated data: 
 
-```{r, echo=FALSE}
+```{r simulated-data-without-bias, echo=FALSE}
 data.frame(Spread = as.vector(X) , Pollster = as.factor(rep(1:I, each=J))) %>%
   ggplot(aes(Pollster, Spread)) + 
   geom_point() + 
@@ -118,7 +117,7 @@ data.frame(Spread = as.vector(X) , Pollster = as.factor(rep(1:I, each=J))) %>%
 
 does not really seem to capture the features of the actual data:
 
-```{r, echo=FALSE}
+```{r pollster-bias-data, echo=FALSE}
 polls %>% group_by(pollster) %>% 
   filter(n() >= 6) %>%
   ggplot(aes(pollster, spread)) + 
@@ -149,7 +148,7 @@ X <- sapply(1:I, function(i){
 
 The simulated data now looks more like the actual data:
 
-```{r, echo=FALSE}
+```{r simulated-pollster-data, echo=FALSE}
 data.frame(Spread = as.vector(X) , Pollster = as.factor(rep(1:I, each=J))) %>%
   ggplot(aes(Pollster, Spread)) +
   geom_point() +
@@ -208,7 +207,7 @@ posterior_se <- sqrt( 1/ (1/sigma^2 + 1/tau^2))
 ```
 
 
-### Predicting the electoral college 
+## Predicting the electoral college 
 
 Up to now we have focused on the popular vote. But in the United States, elections are not decided by the popular vote but rather by what is known as the electoral college. Each state gets a number of electoral votes that depends, in a somewhat complex way, on the population size of the state. Here are the top 5 states ranked by electoral votes:
 
@@ -273,7 +272,7 @@ results %>% mutate(sigma = sd/sqrt(n),
 
 The estimates based on posterior does move the estimates towards 0, although the states with many polls are influenced less. This is expected as the more poll data we collect, the more we trust those results:
 
-```{r}
+```{r posterior-versus-original-estimates}
 results %>% mutate(sigma = sd/sqrt(n), 
                    B = sigma^2 / (sigma^2 + tau^2),
                    posterior_mean = B*mu + (1-B)*avg,
@@ -302,12 +301,11 @@ mean(clinton_EV>269)
 
 This model gives Clinton over 99% chance of winning. Here is a histogram of the possible outcomes:
 
-```{r, echo=FALSE}
+```{r election-forecast-posterior-no-bias, echo=FALSE}
 data.frame(clinton_EV) %>% 
   ggplot(aes(clinton_EV)) + 
   geom_histogram(binwidth = 1) +
   geom_vline(xintercept = 269)
-plot(table(clinton_EV))
 ```
 
 A similar prediction was made by the Princeton Election Consortium. We now know it was quite off. What happened?
@@ -315,7 +313,7 @@ A similar prediction was made by the Princeton Election Consortium. We now know 
 The model above ignores the general bias. The general bias in 2016 was not that big compared to other years: it was between 1 and 2%. But because the election was close in several big states, a large number of polls made the estimates of standard errors small, and by ignoring the variability introduced by the general bias, pollsters were over confident on the poll data. FiveThirtyEight, which models the general bias in a rather sophisticated way, reported a closer result. We can simulate the results now with a bias term. For the state level, the general bias can be larger so we set it at $\sigma_b = 0.03$:
 
 
-```{r, cache=TRUE}
+```{r  election-forecast-posterior-with-bias, , cache=TRUE}
 tau <- 0.02
 bias_sd <- 0.03
 clinton_EV_2 <- replicate(1000, {
@@ -333,8 +331,8 @@ mean(clinton_EV_2>269)
 This gives us a much more sensible result. Looking at the outcomes of the simulation, we see how the bias term adds variability to the final results.
 
 
-```{r, echo=FALSE}
-data.frame(no_bias=clinton_EV, with_bias=clinton_EV_2) %>% gather(approach, result ) %>%
+```{r comparison-forecast-with-and-without-bias, echo=FALSE}
+data.frame(no_bias=clinton_EV, with_bias=clinton_EV_2) %>% gather(approach, result) %>%
   ggplot(aes(result)) + 
   geom_histogram(binwidth = 1) +
   geom_vline(xintercept = 269) +
@@ -344,14 +342,14 @@ data.frame(no_bias=clinton_EV, with_bias=clinton_EV_2) %>% gather(approach, resu
 
 FiveThirtyEight includes many other features we do not include here.  One is that they model variability with distributions that have high probabilities for extreme events compared to the normal. They predicted a probability of 71%.
 
-### Forecasting
+## Forecasting
 
 Forecasters like to make predictions well before the election. The predictions are adapted as new polls come out. However, an important question forecasters must ask is: how informative are polls taken several weeks before the election? Here we study the variability of poll results across time.
 
 
 To make sure the variability we observe is not due to pollster effects, let's study data from one pollster:
 
-```{r}
+```{r poplular-vote-time-trend}
 one_pollster <- polls_us_election_2016 %>% 
   filter(pollster == "Ipsos" & state == "U.S.") %>% 
   mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
@@ -361,13 +359,14 @@ Since there is no pollster effect, then perhaps the theoretical standard error m
 
 ```{r}
 se <- one_pollster %>% 
-  summarize(empirical = sd(spread), theoretical = 2*sqrt(mean(spread)*(1-mean(spread))/min(samplesize)))
+  summarize(empirical = sd(spread), 
+            theoretical = 2*sqrt(mean(spread)*(1-mean(spread))/min(samplesize)))
 se
 ```
 
 The empirical standard deviation is higher than the highest possible theoretical estimate. Furthermore, the spread data does not look normal as the theory would predict:
 
-```{r}
+```{r time-trend-variability}
 one_pollster %>% ggplot(aes(spread)) + 
   geom_histogram(binwidth = 0.01, color = "black")
 ```
@@ -376,7 +375,7 @@ Where is the extra variability coming from? The following plots make a strong ca
 
 
 
-```{r, echo=FALSE}
+```{r time-trend-estimate, echo=FALSE}
 one_pollster %>% ggplot(aes(enddate, spread)) + 
   geom_point() + 
   geom_smooth(method = "loess", span = 0.1)
@@ -384,7 +383,7 @@ one_pollster %>% ggplot(aes(enddate, spread)) +
 
 Some of the peaks and valleys we see coincide with events such as the party conventions, which tend to give the candidate a boost. We can see them consistently across several pollsters:
 
-```{r}
+```{r time-trend-estimate-several-pollsters}
 polls_us_election_2016 %>%
   filter(state == "U.S." & enddate>="2016-07-01") %>%
   group_by(pollster) %>%
@@ -413,7 +412,7 @@ $$
 
 We usually see the estimated $f(t)$ not for the difference, but for the actual percentages for each candidate:
 
-```{r}
+```{r trend-estimate-for-all-pollsters}
 polls_us_election_2016 %>%
   filter(state == "U.S." & enddate>="2016-07-01") %>%
   select(enddate, pollster, rawpoll_clinton, rawpoll_trump) %>%
@@ -432,7 +431,7 @@ polls_us_election_2016 %>%
 Once a model like the one above is selected, we can use historical and present data to estimate all the necessary parameters to make predictions. There are a variety of methods for fitting models which we don't discuss here. In a later chapter, we discuss some of these methods.
 
 
-### Election forecasting
+## Exercise {-}
 
 1. Create this table:
 

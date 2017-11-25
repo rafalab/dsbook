@@ -1,4 +1,27 @@
-# The sampling model for polls
+# Polls
+
+Perhaps the best know opinion polls are those conducted to determine which candidate is preferred by voters in a given election. Political strategists make extensive use of polls to decide, among other things, how to invest resources. For example, they may want to know which geographical locations to focus their get out the vote efforts. 
+
+Elections are a particularly interesting case of opinion polls because the actual opinion of the entire population is revealed on election day. Of course, it costs millions of dollars to run an actual election which makes polling a cost effective strategy for those that want to forecast the results. 
+
+Although typically the results of these polls are kept private, similar polls are conducted by news organizations because results tend to be of interest to the general public and, therefore, are often made public. We will eventually be looking at such data.
+
+[Real Clear Politics](http://www.realclearpolitics.com) is an example of a news aggregator that organizes and publishes poll results. For example, [here](http://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html) are examples of polls reporting estimates of the popular vote for the 2016 presidential election:
+
+```{r, echo=FALSE}
+knitr::include_graphics("inference/img/rcp-polls.png")
+```
+
+Although in the United States the popular vote does not determine the result of the presidential election, we will use it as an illustrative and simple example of how well polls work. Forecasting the election is a more complex process since it involves combining results from 50 states and DC.
+
+Let's make some observations about the table above. First, note that different polls, all taken days before the election, report a different _spread_:  the estimated difference between support for the two candidates. Notice also that the reported spreads hover around what ended up being the actual result: Clinton won the popular vote by 2.1%. We also see a column titled **MoE** which stands for _margin of error_. 
+
+In this section we will show how the probability concepts we learned in the previous chapter can be applied to develop the statistical approaches that make polls an effective tool. We will learn the statistical concepts necessary to define _estimates_ and _margins of errors_, and show how we can use these to forecast final results relatively well and also provide an estimate of the precision of our forecast. Once we learn this, we will be able to understand two concepts that are ubiquitous in data science: _confidence intervals_ and _p-values_. Finally, to understand probabilistic statements about the probability of a candidate winning, we will have to learn about Bayesian modelling. In the final sections, we put it all together to recreate the simplified version of the FiveThirtyEight model and apply it to the 2016 election. 
+
+We start by connecting probability theory to the task of using polls to learn about a population.
+
+
+## The sampling model for polls
 
 To help us understand the connection between polls and what we have learned, let's construct a similar situation to the one pollsters face. We will use an urn instead of voters and, rather than competing with other pollsters for media attention, we will have a competition with a \$25 dollar prize. The challenge is to guess the spread between the proportion of blue and red beads in this urn (in this case, a pickle jar):
 
@@ -15,7 +38,7 @@ The `dslabs` package includes a function that shows a random draw from this urn:
 set.seed(1)
 ```
 
-```{r, comment=FALSE, warning=FALSE}
+```{r first-simulated-poll, comment=FALSE, warning=FALSE}
 library(tidyverse)
 library(dslabs)
 ds_theme_set()
@@ -36,7 +59,7 @@ Can we do this with the 25 observations above? It is certainly informative. For 
 
 We want to construct an estimate of $p$ using only the information we observe. An estimate can be thought of as a summary of the observed data that we think is informative about the parameter of interest. It seems intuitive to think that the proportion of blue beads in the sample $0.48$ must be at least related to the actual proportion $p$. But do we simply predict $p$ to be 0.48? First, remember that the sample proportion is a random variable. If we run the command `take_poll(25)` four times:
 
-```{r, echo=FALSE}
+```{r four-simulated-polls, echo=FALSE}
 par(mfrow=c(2,2), mar = c(3, 1, 3, 0), mgp = c(1.5, 0.5, 0)) 
 take_poll(25); take_poll(25); take_poll(25); take_poll(25)
 ```
@@ -89,10 +112,7 @@ If we take a large enough poll to make our standard error about 0.01%, we will b
 
 One problem is that we do not know $p$, so we can't compute the standard error. For illustrative purposes let's assume that $p=0.51$ and make a plot of the standard error versus the sample size $N$: 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-library(tidyverse)
-library(dslabs)
-ds_theme_set()
+```{r standard-error-versus-sample-size, echo=FALSE, message=FALSE, warning=FALSE}
 p <- 0.51
 N <- 10^seq(1,5, len=100)
 data.frame(N=N, SE = sqrt(p*(1-p)/N)) %>% ggplot(aes(N, SE)) + geom_line() + scale_x_continuous(breaks = c(10,100,1000,10000), trans = "log10")
@@ -132,10 +152,9 @@ or 1.5 percentage points. So even with large polls, for close elections, $\bar{X
 
 
 10. Given the answer to 9, which of the following best describes your strategy of using a sample size of $N=25$?
-
-  A. The expected value of our estimate $2\bar{X}-1$ is $d$ so our prediction will be right on.
-  B. Our standard error is larger than the difference, so the chances of $2\bar{X}-1$ being positive and throwing us off were not that small. We should pick a larger sample size.
-  C. The difference is 10% and the standard error is about 0.2, therefore much smaller than the difference.
-  D. Because we don't know $p$, we have no way knowing that making $N$ larger would actually improve our standard error.
+    - A. The expected value of our estimate $2\bar{X}-1$ is $d$ so our prediction will be right on.
+    - B. Our standard error is larger than the difference, so the chances of $2\bar{X}-1$ being positive and throwing us off were not that small. We should pick a larger sample size.
+    - C. The difference is 10% and the standard error is about 0.2, therefore much smaller than the difference.
+    - D. Because we don't know $p$, we have no way knowing that making $N$ larger would actually improve our standard error.
 
 

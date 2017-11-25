@@ -1,21 +1,19 @@
 # Statistical models
 
 ```{r, echo=FALSE, message=FALSE}
-library(tidyverse)
-library(dslabs)
-ds_theme_set()
 set.seed(2)
 ```
 
 "All models are wrong, but some are useful" -George E. P. Box
 
-### Poll aggregators
+## Poll aggregators
  
 As we described earlier, in the 2012 Nate Silver was giving a Obama a 90% chance of winning. How was Mr. Silver so confident? We will demonstrate Mr. Silver saw what others did not by using a Monte Carlo simulation. We generate results for 12 polls taken the week before the election. We mimic sample sizes from actual polls and construct and report 95\% confidence intervals for each of the 12 polls:
 
 ```{r}
 d <- 0.039
-Ns <- c(1298, 533, 1342, 897, 774, 254, 812, 324, 1291, 1056, 2172, 516)
+Ns <- c(1298, 533, 1342, 897, 774, 254, 
+        812, 324, 1291, 1056, 2172, 516)
 p <- (d + 1)/2
 
 confidence_intervals <- sapply(Ns, function(N) {
@@ -31,14 +29,14 @@ Let's save the results from this simulation in a data frame:
 ```{r}
 polls <- data.frame(poll=1:ncol(confidence_intervals), 
                   t(confidence_intervals), 
-                  sample_size=Ns)
-names(polls)<-c("poll", "estimate", "low", "high", "sample_size")
+                  sample_size=Ns) %>%
+  setNames(c("poll", "estimate", "low", "high", "sample_size"))
 polls
 ```
 
 Here is a visualization showing the intervals the pollsters would have reported for the difference between Obama and Romney:
 
-```{r, message=FALSE, echo=FALSE}
+```{r simulated-polls, message=FALSE, echo=FALSE}
 ggplot(polls, aes(poll, estimate, ymin=low, ymax=high)) + 
   geom_hline(yintercept = 0) + 
   geom_point(col="#00B6EB")+
@@ -71,7 +69,7 @@ Once we have an estimate of $d$, we can construct an estimate for the proportion
 
 Thus we can predict that the spread will be `r round(d_hat*100,1)` plus or minus `r round(moe*100 ,1)`, which not only includes the actual result, but is quite far from including 0. Once we combine the 12 polls, we become quite certain that Obama will win the popular vote.
 
-```{r,echo=FALSE}
+```{r confidence-coverage-2008-election,echo=FALSE}
 polls2 <- rbind(polls,c(13, d_hat, d_hat-moe, d_hat+moe, sum(polls$sample_size)))
 polls2[,1]<-as.character(polls2[,1]);polls2[13,1] <- "Avg"
 polls2$col <- as.character(c(rep(2,12),1))
@@ -90,7 +88,7 @@ Since the 2008 elections, other organizations have started their own election fo
 
 
 ```{r, echo=FALSE}
-knitr::include_graphics("img/pollster-2016-predictions.png")
+knitr::include_graphics("inference/img/pollster-2016-predictions.png")
 ```
 
 For example, the Princeton Election Consortium gave Trump less than 1% chance of winning, while the Huffington Post gave him a 2% chance. In contrast, FiveThirtyEight had Trump's probability of winning at 29%, higher than tossing two coins and getting two heads. By understanding statistical models and how these forecasters use them, we will start to understand how this happened.
@@ -99,12 +97,12 @@ Although not nearly as interesting as predicting the electoral college, for illu
 
 
 ```{r, echo=FALSE}
-knitr::include_graphics("img/popular-vote-538.png")
+knitr::include_graphics("inference/img/popular-vote-538.png")
 ```
 
 We introduce actual data from the 2016 US presidential election to show how models are motivated and built to produce these predictions.
 
-### Poll data
+## Poll data
 
 We use public polling data organized by FiveThirtyEight for the 2016 presidential election. The data is included as part of of the `dslabs` package:
 
@@ -134,7 +132,9 @@ For illustrative purposes, we will assume that there are only two parties and ca
 Note that we have `r nrow(polls)` estimates of the spread. The theory we learned tells us that these estimates are a random variable with a probability distribution that is approximately normal. The expected value is the election night spread $d$ and the standard error is $\sqrt{p (1 - p) / N}$. Assuming the urn model we described earlier is a good one, we can use this information to construct a confidence interval based on the aggregated data. The estimated spread is:
 
 ```{r}
-d_hat <- polls %>% summarize(d_hat = sum(spread * samplesize) / sum(samplesize)) %>% .$d_hat
+d_hat <- polls %>% 
+  summarize(d_hat = sum(spread * samplesize) / sum(samplesize)) %>% 
+  .$d_hat
 ```
 
 and the standard error is:
@@ -148,7 +148,7 @@ moe
 So we report a spread of `r round(d_hat*100,2)`\% with a margin of error of `r round(moe*100,2)`\%. On election night, we discover that the actual percentage was 2.1\%, which is outside a 95\% confidence interval. What happened? 
 
 A histogram of the reported spreads shows a problem:
-```{r}
+```{r polls-2016-spread-histogram}
 polls %>%
   ggplot(aes(spread)) +
   geom_histogram(color="black", binwidth = .01)
@@ -156,7 +156,7 @@ polls %>%
 
 The data does not appear to be normally distributed and the standard error appears to be larger than `r moe`. The theory is not quite working here.
 
-### Pollster bias
+## Pollster bias
 
 Notice that various pollsters are involved and some are taking several polls a week:
 
@@ -166,7 +166,7 @@ polls %>% group_by(pollster) %>% summarize(n())
 
 Let's visualize the data for the pollsters that are regularly polling:
 
-```{r}
+```{r pollster-bias}
 polls %>% group_by(pollster) %>% 
   filter(n() >= 6) %>%
   ggplot(aes(pollster, spread)) + 
@@ -187,7 +187,7 @@ is between 0.018 and 0.033, which agrees with the within poll variation we see. 
 In the following section, rather than use the urn model theory, we are instead going to develop a data-driven model. 
 
 
-### Data driven model
+## Data driven model
 
 For each pollster, let's collect their last reported result before the election:
 
@@ -199,9 +199,10 @@ one_poll_per_pollster <- polls %>% group_by(pollster) %>%
 
 Here is a histogram of the data for these `r nrow(one_poll_per_pollster)` pollsters:
  
-```{r}
+```{r pollster-bias-histogram}
 one_poll_per_pollster %>%
-  ggplot(aes(spread)) + geom_histogram(binwidth = 0.01)
+  ggplot(aes(spread)) + 
+  geom_histogram(binwidth = 0.01)
 ```
 
 In the previous section, we saw that using the urn model theory to combine these results might not be appropriate due to the pollster effect. Instead we will model this spread data directly.
@@ -232,8 +233,11 @@ We are now ready to form a new confidence interval based on our new data driven 
 
 ```{r}
 results <- one_poll_per_pollster %>% 
-  summarize(avg = mean(spread), se = sd(spread)/sqrt(length(spread))) %>% 
-  mutate(start = avg - 1.96*se, end = avg + 1.96*se) 
+  summarize(avg = mean(spread), 
+            se = sd(spread)/sqrt(length(spread))) %>% 
+  mutate(start = avg - 1.96*se, 
+         end = avg + 1.96*se) 
+
 round(results*100,1)
 ```
 
@@ -292,81 +296,74 @@ We want to answer the question: is there a poll bias? Make a plot showing the sp
 
 8. The data does seem to suggest there is a difference. However, these
 data are subject to variability. Perhaps the differences we observe are due to chance. 
+    
+    The urn model theory says nothing about pollster effect. Under the urn model, both pollsters have the same expected value: the election day difference, that we call $d$. 
+    
+    To answer the question: is there an urn model?, we will model the observed data $Y_ij$ in the following way:
 
-The urn model theory says nothing about pollster effect. Under the urn model, both pollsters have the same expected value: the election day difference, that we call $d$. 
-  
-To answer the question: is there an urn model?, we will model the observed data $Y_ij$ in the following way:
-
-$$
+    $$
 Y_{ij} = d + b_i + \varepsilon_{ij}
 $$
-with $i=1,2$ indexing the two pollsters, $b_i$ the bias for pollster $i$ and $\varepsinon_ij$ poll to poll chance variability. We assume the $\varepsilon$ are independent from each other, have expected value $0$ and standard deviation $\sigma_i$ regardless of $j$. 
 
-Which of the following best represents our question?
+    with $i=1,2$ indexing the two pollsters, $b_i$ the bias for pollster $i$ and $\varepsilon_ij$ poll to poll chance variability. We assume the $\varepsilon$ are independent from each other, have expected value $0$ and standard deviation $\sigma_i$ regardless of $j$. 
 
-  A. Is $\varepsilon_ij$ = 0?
-  B. How close are the $Y_ij$ to $d$?
-  C. Is $b_1 \neq b_2$?
-  D. Are $b_1 = 0$ and $b_2 = 0$ ?
+    Which of the following best represents our question?
+    - A. Is $\varepsilon_ij$ = 0?
+    - B. How close are the $Y_ij$ to $d$?
+    - C. Is $b_1 \neq b_2$?
+    - D. Are $b_1 = 0$ and $b_2 = 0$ ?
   
 9. In the right side of this model only $\varepsilon_ij$ is a random variable. The other two are constants. What is the expected value of $Y_{1j}$?
 
   
 10. Suppose we define $\bar{Y}_1$ as the average of poll results from the first poll, $Y_{11},\dots,Y_{1N_1}$ with $N_1$ the number of polls conducted by the first pollster:
 
-```{r}
+    ```{r}
 polls %>% 
   filter(pollster=="Rasmussen Reports/Pulse Opinion Research") %>% 
   summarize(N_1 = n())
 ```
 
-What is the expected values $\bar{Y}_1$?
+    What is the expected values $\bar{Y}_1$?
 
 
 11. What is the standard error of $\bar_{Y}_1$ ?
 
-
-
 12. What is the expected value $\bar{Y}_2$?
-
 
 13. What is the standard error of $\bar_{Y}_2$ ?
 
-
 14. Using what we learned by answering the questions above, what is the expected value of $\bar{Y}_{2} - \bar{Y}_1$?
-
 
 15. Using what we learned by answering the questions above, what is the standard error of $\bar{Y}_{2} - \bar{Y}_1$?
 
-$$ \mbox{SE}[\bar{Y}_{2} - \bar{Y}_1] = \sqrt{\mbox{SE}[\bar{Y}_{2}]^2 + \mbox{SE}[\bar{Y}_1]^2} = \sqrt{\sigma_2^2/N_2 + \sigma_1^2/N_1}$$
+    $$ \mbox{SE}(\bar{Y}_{2} - \bar{Y}_1) = \sqrt{\mbox{SE}(\bar{Y}_{2})^2 + \mbox{SE}(\bar{Y}_1)^2} = \sqrt{\sigma_2^2/N_2 + \sigma_1^2/N_1}$$
 
 16. The answer to the question above depends on $\sigma_1$ and $\sigma_2$, which we don't know. We learned that we can estimate these with the sample standard deviation. Write code that computes these two estimates.
 
 
 17. What does the CLT tells us about the distribution of $\bar{Y}_2 - \bar{Y}_1$?
-
-    A. Nothing because this not the average of a sample.
-    B. Because the $Y_{ij}$ are approximately normal, so are the averages.
-    C.  $\bar{Y}_2$ and $\bar{Y}_1$ are sample averages so if we assume $N_2$ and $N_1$ are large enough, each is approximately normal. The difference of normals is also normal.
-    D. The data are not 0 or 1, so CLT does not apply.
+    - A. Nothing because this not the average of a sample.
+    - B. Because the $Y_{ij}$ are approximately normal, so are the averages.
+    - C.  $\bar{Y}_2$ and $\bar{Y}_1$ are sample averages so if we assume $N_2$ and $N_1$ are large enough, each is approximately normal. The difference of normals is also normal.
+    - D. The data are not 0 or 1, so CLT does not apply.
     
-    
-18. So we have constructed a random variable that has expected value $b_2 - b_1$, the pollster bias difference. If our model holds, then this random variable has an approximately normal distribution and we know its standard error. The standard error depends on $\sigma_1$ and $\simga_2$, but we can plug the sample standard deviations we computed above. We started off by asking: is $b_2 - b_1$ different from 0? Use all the information we have learned above to construct a 95% confidence interval for the difference $b_2$ and $b_1$.
+18. So we have constructed a random variable that has expected value $b_2 - b_1$, the pollster bias difference. If our model holds, then this random variable has an approximately normal distribution and we know its standard error. The standard error depends on $\sigma_1$ and $\sigma_2$, but we can plug the sample standard deviations we computed above. We started off by asking: is $b_2 - b_1$ different from 0? Use all the information we have learned above to construct a 95% confidence interval for the difference $b_2$ and $b_1$.
 
 19. The confidence interval tells us there is relatively strong pollster effect resulting in a difference of about 5%. Random variability does not seem to explain it. We can compute a p-value to relay the fact that chance does not explain it. What is the p-value?
 
 
 20. The statistic formed by dividing our estimate of $b_2-b_1$ by its estimated standard error:
 
-$$
+    $$
 \frac{\bar{Y}_2 - \bar{Y}_1}{\sqrt{s_2^2/N_2 + s_1^2/N_1}}
 $$
 
-is called a the t-statistic. Later we learn of another approximation for the distribution of this statistic for values of $N_2$ and $N_1$ that aren't large enough for the CLT. Now note that we have more than two pollsters. We can also test for pollster effect using all pollsters, not just two. The idea is to compare the variability across polls to variability within polls. We can actually construct statistics to test for effects and approximate their distribution. The area of statistics that does this is called Analysis of Variance or ANOVA. We do not cover it here, but ANOVA provides a very useful set of tools to answer questions such as: is there a pollster effect? 
+    is called a the t-statistic. Later we learn of another approximation for the distribution of this statistic for values of $N_2$ and $N_1$ that aren't large enough for the CLT. Now note that we have more than two pollsters. We can also test for pollster effect using all pollsters, not just two. The idea is to compare the variability across polls to variability within polls. We can actually construct statistics to test for effects and approximate their distribution. The area of statistics that does this is called Analysis of Variance or ANOVA. We do not cover it here, but ANOVA provides a very useful set of tools to answer questions such as: is there a pollster effect? 
 
-For this exercise, create a new table:
+    For this exercise, create a new table:
 
-```{r}
+    ```{r}
 polls <- polls_us_election_2016 %>% 
   filter(enddate >= "2016-10-15" &
            state == "U.S.") %>%
@@ -375,7 +372,8 @@ polls <- polls_us_election_2016 %>%
   mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) %>%
   ungroup()
 ```
-Compute the average and standard deviation for each pollster and examine the variability across the averages and how it compares to the variability within the pollsters, summarized by the standard deviation.
+
+    Compute the average and standard deviation for each pollster and examine the variability across the averages and how it compares to the variability within the pollsters, summarized by the standard deviation.
 
 
 

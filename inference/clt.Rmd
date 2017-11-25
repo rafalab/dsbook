@@ -77,7 +77,7 @@ In summary, the CLT tells us that our poll based on a sample size of $25$ is not
 From the table above. we see that typical sample sizes range from 700 to 3500. To see how this gives us a much more practical result, notice that if we had obtained a $\bar{X}$=0.48 with a sample size of 2,000, our standard error $\hat{\mbox{SE}}(\bar{X})$ would have been `r n<-2000;se<-sqrt(0.48*(1-0.48)/n);se`. So our result is an estimate of `48`% with a margin of error of `r round(2*se*100)`%. In this case, the result is much more informative and would make us think that there are more red balls than blue. But keep in mind, this is hypothetical. We did not take a poll of 2,000 since we don't want to ruin the competition.
 
 
-### A Monte Carlo simulation
+## A Monte Carlo simulation
 
 
 Suppose we want to use a Monte Carlo simulation to corroborate the tools we have built using probability theory. To create the simulation, we would write code like this:
@@ -105,7 +105,7 @@ Xhat <- mean(X)
 
 In this particular sample our estimate is `Xhat`. We can use that code to do a Monte Carlo simulation:
 
-```{r, eval=FALSE}
+```{r}
 B <- 10000
 Xhat <- replicate(B, {
   X <- sample(c(0,1), size=N, replace=TRUE, prob=c(1-p, p))
@@ -113,7 +113,7 @@ Xhat <- replicate(B, {
 })
 ```
 
-To review, the theory tells us that $\bar{X}$ is approximately normally distributed, has expected value $p=$`r p` and standard error $\sqrt{p(1-p)/N}$ = `r sqrt(p*(1-p)/N)`. The simulation confirms this:
+To review, the theory tells us that $\bar{X}$ is approximately normally distributed, has expected value $p=$ `r p` and standard error $\sqrt{p(1-p)/N}$ = `r sqrt(p*(1-p)/N)`. The simulation confirms this:
 
 ```{r}
 mean(Xhat)
@@ -122,37 +122,46 @@ sd(Xhat)
 
 A histogram and qq-plot confirm that the normal approximation is accurate as well:
 
-```{r,echo=FALSE, warning=FALSE}
+```{r normal-approximation-for-polls, echo=FALSE, warning=FALSE}
 library(gridExtra)
-p1 <- data.frame(Xhat=Xhat) %>% ggplot(aes(Xhat)) + geom_histogram(binwidth = 0.005, color="black")
-p2 <-  data.frame(Xhat=Xhat) %>% ggplot(aes(sample=Xhat)) + stat_qq(dparams = list(mean=mean(Xhat), sd=sd(Xhat))) + geom_abline() + ylab("Xhat") + xlab("Theoretical normal")
+p1 <- data.frame(Xhat=Xhat) %>% 
+  ggplot(aes(Xhat)) + 
+  geom_histogram(binwidth = 0.005, color="black")
+p2 <-  data.frame(Xhat=Xhat) %>% 
+  ggplot(aes(sample=Xhat)) + 
+  stat_qq(dparams = list(mean=mean(Xhat), sd=sd(Xhat))) +
+  geom_abline() + 
+  ylab("Xhat") + 
+  xlab("Theoretical normal")
 grid.arrange(p1,p2, nrow=1)
 ```
 
 Of course, in real life we would never be able to run such an experiment because we don't know $p$. But we could run it for various values of $p$ and $N$ and see that the theory does indeed work well for most values. You can easily do this by re-running the code above after changing `p` and `N`.
 
-### The spread
+## The spread
 
 The competition is to predict the spread, not the proportion $p$. However, because we are assuming there are only two parties, we know that the spread if $p - (1-p) = 2p - 1$.  As a result, everything we have done can easily be adapted to an estimate of $2p - 1$. Once we have our estimate $\bar{X}$ and $\hat{\mbox{SE}}(\bar{X})$, we estimate the spread with $2\bar{X} - 1$ and, since we are multiplying by 2, the standard error is $2\hat{\mbox{SE}}(\bar{X})$. Note that subtracting 1 does not add any variability so it does not affect the standard error. 
 
 For our 25 sample above, our estimate $p$ is `.48` with margin of error `.20` and our estimate of the spread is `0.04` with margin of error `.40`. Again, not a very useful sample size. However, the point is that once we have an estimate and standard error for $p$, we have it for the spread $2p-1$.
 
 
-### Bias: why not run a very large poll?
+## Bias: why not run a very large poll?
 
 For realistic values of $p$, say from 0.35 to 0.65, if we run a very large poll with 100,000 people, theory tells us that we would predict the election perfectly since the largest possible margin of error is around 0.3\%. Here are the calculations:
 
-```{r}
+```{r standard-error-versus-p}
 N <- 100000
 p <- seq(0.35, 0.65, length = 100)
 SE <- sapply(p, function(x) 2*sqrt(x*(1-x)/N))
-data.frame(p=p, SE = SE) %>% ggplot(aes(p, SE)) + 
+
+data.frame(p=p, SE = SE) %>% 
+  ggplot(aes(p, SE)) + 
   geom_line()
 ``` 
 
 One reason is that running such a poll is very expensive. Another possibly more important reason is that theory has its limitations. Polling is much more complicated than picking beads from an urn. Some people might lie to pollsters and others might not have phones. But perhaps the most important way an actual poll differs from an urn model is that we actually don't know for sure who is in our population and who is not. How do we know who is going to vote? Are we reaching all possible voters? Hence, even if our margin of error is very small, it might not be exactly right that our expected value is $p$. We call this bias. Historically, we observe that polls are indeed biased, although not by that much. The typical bias appears to be about 1-2%. This makes election forecasting a bit more interesting and we will talk about how to model this in a later chapter.
 
-### Exercises {-}
+## Exercises {-}
 
 1. Write an _urn model_ function that takes the proportion of Democrats $p$ and the sample size $N$ as arguments and returns the sample average if Democrats are 1s and Republicans are 0s. Call the function `take_sample`. 
 
@@ -170,7 +179,7 @@ hist(errors)
 4. The error $\bar{X}-p$ is a random variable. In practice, the error is not observed because we do not know $p$. Here we observe it because we constructed the simulation. What we can do in practice is describe the size of the error. What is the average size of the error if we define the size by taking the absolute value $\mid \bar{X} - p \mid$ ?
 
 
-5. The standard error is related to the value we just computed. It is related to the typical **size** of the error we make when predicting. We say **size** because we just saw that the errors are centered around 0, so in that sense the typical error is 0. For mathematical reasons related to the central limit theorem, we actually use the standard deviation of `errors` rather than the average of the absolute values. As we have discussed, the standard error is the squared root of the average squared distance $(\bar{X} - p)^$. What is this standard deviation, defined as the squared root of the distance squared?
+5. The standard error is related to the value we just computed. It is related to the typical **size** of the error we make when predicting. We say **size** because we just saw that the errors are centered around 0, so in that sense the typical error is 0. For mathematical reasons related to the central limit theorem, we actually use the standard deviation of `errors` rather than the average of the absolute values. As we have discussed, the standard error is the squared root of the average squared distance $(\bar{X} - p)^2$. What is this standard deviation, defined as the squared root of the distance squared?
 
 6. The theory we just learned tells us what this standard deviation is going to be because it is the standard error of $\bar{X}$. Generate a sample and create an estimate of the standard error of $\bar{X}$.
 
@@ -194,7 +203,7 @@ hist(errors)
     D. not a random variable.
     
 
-10. Based on the answer from exercise 8, errors $\bat{X} - p$ are:
+10. Based on the answer from exercise 8, errors $\bar{X} - p$ are:
 
     A. practically equal to 0.
     B. approximately normal with expected value $0$ and standard error $\sqrt{p(1-p)/N}$.
