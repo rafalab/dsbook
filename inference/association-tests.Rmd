@@ -1,6 +1,8 @@
 # Association Tests
 
 ```{r, echo=FALSE}
+library(tidyverse)
+library(dslabs)
 set.seed(1)
 ```
 
@@ -13,7 +15,7 @@ A [2014 PNAS paper](http://www.pnas.org/content/112/40/12349.abstract) analyzed 
 
 > results reveal gender bias favoring male applicants over female applicants in the prioritization of their "quality of researcher" (but not "quality of proposal") evaluations and success rates, as well as in the language use in instructional and evaluation materials.
 
-The main evidence for this conclusion comes down to a comparison of the percentages. Table S1 in the paper includes the information we need. Here are the three columns showing the overal outcomes:
+The main evidence for this conclusion comes down to a comparison of the percentages. Table S1 in the paper includes the information we need. Here are the three columns showing the overall outcomes:
 
 ```{r}
 data("research_funding_rates")
@@ -190,6 +192,20 @@ The odds ratio is the ratio for these two odds: how many times larger are the od
 odds_men / odds_women
 ```
 
+We often see two by two tables written out as 
+
+```{r, echo=FALSE, results="asis"}
+mat <- cbind(c(" a "," c "), c(" b "," d "))
+colnames(mat) <- c("Men","Women")
+rownames(mat) <- c("Awarded", "Not Awarded")
+print(xtable::xtable(data.frame(mat)), type="html",
+      html.table.attributes = 
+        "border=1")
+```
+
+In this case, the odds ratio is $\frac{a/c}{b/d}$
+which is equivalent to $(ad) / (bc)$
+
 ## Large samples, small p-values
 
 As mentioned earlier, reporting only p-values is not an appropriate
@@ -214,47 +230,50 @@ Yet the odds ratio is unchanged.
 
 ## Confidence intervals for the odds ratio
 
-Computing confidence intervals for the odds ratio is not mathematically
-straightforward. Unlike other statistics, for which we can derive
-useful approximations of their distributions, the odds ratio is not only a
+Computing confidence intervals for the odds ratio is not mathematically straightforward. Unlike other statistics, for which we can derive useful approximations of their distributions, the odds ratio is not only a
 ratio, but a ratio of ratios. Therefore, there is no simple way of
 using, for example, the CLT. 
   
-One approach is to use the theory of *generalized linear models*. You can learn more about these in this book:
+However, statistical theory tells us that when all four entries of the two by two table are large enough, then the log of the odds ratio is approximately normal with standard error 
+
+$$
+\sqrt{1/a + 1/b + 1/c + 1/d} 
+$$
+
+This implies that a 95% confidence interval for the log odds ratio can be formed by:
+
+$$
+\log \{ (ad) / (cd) \} \pm 1.96 \sqrt{1/a + 1/b + 1/c + 1/d} 
+$$
+
+By exponentiating these two numbers we can construct a confidence interval of the odds ratio. 
+
+Using R we can compute this confidence interval as follows:
+```{r}
+log_or <- log( odds_men / odds_women )
+se <- two_by_two %>% 
+  select(-awarded) %>%
+  summarize(se = sqrt(sum(1/men) + sum(1/women))) %>%
+  .$se
+ci <- log_or + c(-1,1) * qnorm(0.975) * se
+ci
+```
+
+If we want to convert it back to the odds ratio scale we can exponentiate:
+
+```{r}
+exp(ci)
+```
+
+Note that 0 is not included in the confidence interval for the log odds ratio (1 not included for odds ratio) which must mean that the p-value is smaller then 0.05. We can confirm this using:
+
+```{r}
+2*(1 - pnorm(log_or, 0, se))
+```
+
+This is a slightly different p-value that with the chi-squared test. This is because we are using a different asymptotic approximation to the null distribution. To learn more about inference and asymptotic theory for odds ratio consult the book by
 [McCullagh and Nelder, 1989](https://books.google.com/books?hl=en&lr=&id=h9kFH2_FfBkC).
 
-Although we do not describe the details, know that in R we can use the `glm` function to estimate the log odds ratio and its standard error. The general idea is to perform a type of regression in which compute the effect of gender on the counts. We have to form a matrix with success in the first row and failures in the second row which we can form like this:
 
-```{r}
-y <- rbind(two_by_two$men[2:1], two_by_two$women[2:1])
-y
-```
 
-Then form a covariate representing gender:
-
-```{r}
-men <- c(TRUE, FALSE) 
-```
-
-Now we the function `glm` function to estimate the log odds
-
-```{r}
-fit <- glm(y ~ men, family = "binomial")
-summary(fit)$coef
-```
-
-Note that we get the same answer as above:
-
-```{r}
-exp(fit$coefficients)
-odds_men / odds_women
-```
-
-But we can now construct confidence intervals for the odds ratios:
-
-```{r}
-confint(fit)
-```
-
-Note that with this approach we obtain a slighlty different p-value that with the chi-squared test. This is because we are using a different asymptotic approximation to the null distribution. 
 
