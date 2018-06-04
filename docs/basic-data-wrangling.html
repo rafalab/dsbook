@@ -7,7 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Introduction to Data Science</title>
   <meta name="description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown.">
-  <meta name="generator" content="bookdown 0.5 and GitBook 2.6.7">
+  <meta name="generator" content="bookdown 0.7 and GitBook 2.6.7">
 
   <meta property="og:title" content="Introduction to Data Science" />
   <meta property="og:type" content="book" />
@@ -25,7 +25,7 @@
 <meta name="author" content="Rafael A. Irizarry">
 
 
-<meta name="date" content="2017-11-27">
+<meta name="date" content="2018-06-04">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -606,77 +606,77 @@ grades
 <span class="kw">data</span>(murders)</code></pre></div></li>
 <li><p>The pipe <code>%&gt;%</code> can be used to perform operations sequentially without having to define intermediate objects. After redefining murder to include rate and rank.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)
-murders &lt;-<span class="st"> </span><span class="kw">mutate</span>(murders, <span class="dt">rate =</span>  total <span class="op">/</span><span class="st"> </span>population <span class="op">*</span><span class="st"> </span><span class="dv">100000</span>, <span class="dt">rank =</span> (<span class="op">-</span>rate))</code></pre></div>
+murders &lt;-<span class="st"> </span><span class="kw">mutate</span>(murders, <span class="dt">rate =</span>  total <span class="op">/</span><span class="st"> </span>population <span class="op">*</span><span class="st"> </span><span class="dv">100000</span>, <span class="dt">rank =</span> <span class="kw">rank</span>(<span class="op">-</span>rate))</code></pre></div>
 <p>in the solution to the previous exercise we did the following:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Created a table </span>
 my_states &lt;-<span class="st"> </span><span class="kw">filter</span>(murders, region <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Northeast&quot;</span>, <span class="st">&quot;West&quot;</span>) <span class="op">&amp;</span><span class="st"> </span>rate <span class="op">&lt;</span><span class="st"> </span><span class="dv">1</span>)
 
 <span class="co"># Used select to show only the state name, the murder rate and the rank</span>
 <span class="kw">select</span>(my_states, state, rate, rank)
-<span class="co">#&gt;           state  rate   rank</span>
-<span class="co">#&gt; 1        Hawaii 0.515 -0.515</span>
-<span class="co">#&gt; 2         Idaho 0.766 -0.766</span>
-<span class="co">#&gt; 3         Maine 0.828 -0.828</span>
-<span class="co">#&gt; 4 New Hampshire 0.380 -0.380</span>
-<span class="co">#&gt; 5        Oregon 0.940 -0.940</span>
-<span class="co">#&gt; 6          Utah 0.796 -0.796</span>
-<span class="co">#&gt; 7       Vermont 0.320 -0.320</span>
-<span class="co">#&gt; 8       Wyoming 0.887 -0.887</span></code></pre></div>
+<span class="co">#&gt;           state  rate rank</span>
+<span class="co">#&gt; 1        Hawaii 0.515   49</span>
+<span class="co">#&gt; 2         Idaho 0.766   46</span>
+<span class="co">#&gt; 3         Maine 0.828   44</span>
+<span class="co">#&gt; 4 New Hampshire 0.380   50</span>
+<span class="co">#&gt; 5        Oregon 0.940   42</span>
+<span class="co">#&gt; 6          Utah 0.796   45</span>
+<span class="co">#&gt; 7       Vermont 0.320   51</span>
+<span class="co">#&gt; 8       Wyoming 0.887   43</span></code></pre></div>
 <p>The pipe <code>%&gt;%</code> permits us to perform both operation sequentially and without having to define an intermediate variable <code>my_states</code>. We therefore could have mutated and selected in the same line like this:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mutate</span>(murders, <span class="dt">rate =</span>  total <span class="op">/</span><span class="st"> </span>population <span class="op">*</span><span class="st"> </span><span class="dv">100000</span>, <span class="dt">rank =</span> (<span class="op">-</span>rate)) <span class="op">%&gt;%</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mutate</span>(murders, <span class="dt">rate =</span>  total <span class="op">/</span><span class="st"> </span>population <span class="op">*</span><span class="st"> </span><span class="dv">100000</span>, <span class="dt">rank =</span> <span class="kw">rank</span>(<span class="op">-</span>rate)) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">select</span>(state, rate, rank)
-<span class="co">#&gt;                   state   rate    rank</span>
-<span class="co">#&gt; 1               Alabama  2.824  -2.824</span>
-<span class="co">#&gt; 2                Alaska  2.675  -2.675</span>
-<span class="co">#&gt; 3               Arizona  3.630  -3.630</span>
-<span class="co">#&gt; 4              Arkansas  3.189  -3.189</span>
-<span class="co">#&gt; 5            California  3.374  -3.374</span>
-<span class="co">#&gt; 6              Colorado  1.292  -1.292</span>
-<span class="co">#&gt; 7           Connecticut  2.714  -2.714</span>
-<span class="co">#&gt; 8              Delaware  4.232  -4.232</span>
-<span class="co">#&gt; 9  District of Columbia 16.453 -16.453</span>
-<span class="co">#&gt; 10              Florida  3.398  -3.398</span>
-<span class="co">#&gt; 11              Georgia  3.790  -3.790</span>
-<span class="co">#&gt; 12               Hawaii  0.515  -0.515</span>
-<span class="co">#&gt; 13                Idaho  0.766  -0.766</span>
-<span class="co">#&gt; 14             Illinois  2.837  -2.837</span>
-<span class="co">#&gt; 15              Indiana  2.190  -2.190</span>
-<span class="co">#&gt; 16                 Iowa  0.689  -0.689</span>
-<span class="co">#&gt; 17               Kansas  2.208  -2.208</span>
-<span class="co">#&gt; 18             Kentucky  2.673  -2.673</span>
-<span class="co">#&gt; 19            Louisiana  7.743  -7.743</span>
-<span class="co">#&gt; 20                Maine  0.828  -0.828</span>
-<span class="co">#&gt; 21             Maryland  5.075  -5.075</span>
-<span class="co">#&gt; 22        Massachusetts  1.802  -1.802</span>
-<span class="co">#&gt; 23             Michigan  4.179  -4.179</span>
-<span class="co">#&gt; 24            Minnesota  0.999  -0.999</span>
-<span class="co">#&gt; 25          Mississippi  4.044  -4.044</span>
-<span class="co">#&gt; 26             Missouri  5.360  -5.360</span>
-<span class="co">#&gt; 27              Montana  1.213  -1.213</span>
-<span class="co">#&gt; 28             Nebraska  1.752  -1.752</span>
-<span class="co">#&gt; 29               Nevada  3.110  -3.110</span>
-<span class="co">#&gt; 30        New Hampshire  0.380  -0.380</span>
-<span class="co">#&gt; 31           New Jersey  2.798  -2.798</span>
-<span class="co">#&gt; 32           New Mexico  3.254  -3.254</span>
-<span class="co">#&gt; 33             New York  2.668  -2.668</span>
-<span class="co">#&gt; 34       North Carolina  2.999  -2.999</span>
-<span class="co">#&gt; 35         North Dakota  0.595  -0.595</span>
-<span class="co">#&gt; 36                 Ohio  2.687  -2.687</span>
-<span class="co">#&gt; 37             Oklahoma  2.959  -2.959</span>
-<span class="co">#&gt; 38               Oregon  0.940  -0.940</span>
-<span class="co">#&gt; 39         Pennsylvania  3.598  -3.598</span>
-<span class="co">#&gt; 40         Rhode Island  1.520  -1.520</span>
-<span class="co">#&gt; 41       South Carolina  4.475  -4.475</span>
-<span class="co">#&gt; 42         South Dakota  0.983  -0.983</span>
-<span class="co">#&gt; 43            Tennessee  3.451  -3.451</span>
-<span class="co">#&gt; 44                Texas  3.201  -3.201</span>
-<span class="co">#&gt; 45                 Utah  0.796  -0.796</span>
-<span class="co">#&gt; 46              Vermont  0.320  -0.320</span>
-<span class="co">#&gt; 47             Virginia  3.125  -3.125</span>
-<span class="co">#&gt; 48           Washington  1.383  -1.383</span>
-<span class="co">#&gt; 49        West Virginia  1.457  -1.457</span>
-<span class="co">#&gt; 50            Wisconsin  1.706  -1.706</span>
-<span class="co">#&gt; 51              Wyoming  0.887  -0.887</span></code></pre></div>
+<span class="co">#&gt;                   state   rate rank</span>
+<span class="co">#&gt; 1               Alabama  2.824   23</span>
+<span class="co">#&gt; 2                Alaska  2.675   27</span>
+<span class="co">#&gt; 3               Arizona  3.630   10</span>
+<span class="co">#&gt; 4              Arkansas  3.189   17</span>
+<span class="co">#&gt; 5            California  3.374   14</span>
+<span class="co">#&gt; 6              Colorado  1.292   38</span>
+<span class="co">#&gt; 7           Connecticut  2.714   25</span>
+<span class="co">#&gt; 8              Delaware  4.232    6</span>
+<span class="co">#&gt; 9  District of Columbia 16.453    1</span>
+<span class="co">#&gt; 10              Florida  3.398   13</span>
+<span class="co">#&gt; 11              Georgia  3.790    9</span>
+<span class="co">#&gt; 12               Hawaii  0.515   49</span>
+<span class="co">#&gt; 13                Idaho  0.766   46</span>
+<span class="co">#&gt; 14             Illinois  2.837   22</span>
+<span class="co">#&gt; 15              Indiana  2.190   31</span>
+<span class="co">#&gt; 16                 Iowa  0.689   47</span>
+<span class="co">#&gt; 17               Kansas  2.208   30</span>
+<span class="co">#&gt; 18             Kentucky  2.673   28</span>
+<span class="co">#&gt; 19            Louisiana  7.743    2</span>
+<span class="co">#&gt; 20                Maine  0.828   44</span>
+<span class="co">#&gt; 21             Maryland  5.075    4</span>
+<span class="co">#&gt; 22        Massachusetts  1.802   32</span>
+<span class="co">#&gt; 23             Michigan  4.179    7</span>
+<span class="co">#&gt; 24            Minnesota  0.999   40</span>
+<span class="co">#&gt; 25          Mississippi  4.044    8</span>
+<span class="co">#&gt; 26             Missouri  5.360    3</span>
+<span class="co">#&gt; 27              Montana  1.213   39</span>
+<span class="co">#&gt; 28             Nebraska  1.752   33</span>
+<span class="co">#&gt; 29               Nevada  3.110   19</span>
+<span class="co">#&gt; 30        New Hampshire  0.380   50</span>
+<span class="co">#&gt; 31           New Jersey  2.798   24</span>
+<span class="co">#&gt; 32           New Mexico  3.254   15</span>
+<span class="co">#&gt; 33             New York  2.668   29</span>
+<span class="co">#&gt; 34       North Carolina  2.999   20</span>
+<span class="co">#&gt; 35         North Dakota  0.595   48</span>
+<span class="co">#&gt; 36                 Ohio  2.687   26</span>
+<span class="co">#&gt; 37             Oklahoma  2.959   21</span>
+<span class="co">#&gt; 38               Oregon  0.940   42</span>
+<span class="co">#&gt; 39         Pennsylvania  3.598   11</span>
+<span class="co">#&gt; 40         Rhode Island  1.520   35</span>
+<span class="co">#&gt; 41       South Carolina  4.475    5</span>
+<span class="co">#&gt; 42         South Dakota  0.983   41</span>
+<span class="co">#&gt; 43            Tennessee  3.451   12</span>
+<span class="co">#&gt; 44                Texas  3.201   16</span>
+<span class="co">#&gt; 45                 Utah  0.796   45</span>
+<span class="co">#&gt; 46              Vermont  0.320   51</span>
+<span class="co">#&gt; 47             Virginia  3.125   18</span>
+<span class="co">#&gt; 48           Washington  1.383   37</span>
+<span class="co">#&gt; 49        West Virginia  1.457   36</span>
+<span class="co">#&gt; 50            Wisconsin  1.706   34</span>
+<span class="co">#&gt; 51              Wyoming  0.887   43</span></code></pre></div>
 <p>Notice that <code>select</code> no longer has a data frame as the first argument. The first argument is assumed to be the result of the operation conducted right before the <code>%&gt;%</code></p>
 <p>Repeat the previous exercise, but now instead of creating a new object, show the result and only include the state, rate, and rank columns. Use a pipe <code>%&gt;%</code> to do this in just one line.</p></li>
 <li><p>Now we will make murders the original table one gets when loading using <code>data(murders)</code>. Use just one line to create a new data frame, called <code>my_states</code>, that has a murder rate and a rank column, considers only states in the Northeast or West, which have a murder rate lower than 1, and contains only the state, rate, and rank columns. The line should have four components separated by three <code>%&gt;%</code>.</p>
@@ -715,10 +715,11 @@ gitbook.start({
 "facebook": true,
 "twitter": true,
 "google": false,
+"linkedin": false,
 "weibo": false,
 "instapper": false,
 "vk": false,
-"all": ["facebook", "google", "twitter", "weibo", "instapaper"]
+"all": ["facebook", "google", "twitter", "linkedin", "weibo", "instapaper"]
 },
 "fontsettings": {
 "theme": "white",
@@ -742,9 +743,11 @@ gitbook.start({
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
-    if (location.protocol !== "file:" && /^https?:/.test(script.src))
-      script.src  = script.src.replace(/^https?:/, '');
+    var src = "";
+    if (src === "" || src === "true") src = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(src))
+      src = src.replace(/^https?:/, '');
+    script.src = src;
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

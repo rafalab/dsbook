@@ -7,7 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Introduction to Data Science</title>
   <meta name="description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown.">
-  <meta name="generator" content="bookdown 0.5 and GitBook 2.6.7">
+  <meta name="generator" content="bookdown 0.7 and GitBook 2.6.7">
 
   <meta property="og:title" content="Introduction to Data Science" />
   <meta property="og:type" content="book" />
@@ -25,7 +25,7 @@
 <meta name="author" content="Rafael A. Irizarry">
 
 
-<meta name="date" content="2017-11-27">
+<meta name="date" content="2018-06-04">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -463,7 +463,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <blockquote>
 <p>results reveal gender bias favoring male applicants over female applicants in the prioritization of their “quality of researcher” (but not “quality of proposal”) evaluations and success rates, as well as in the language use in instructional and evaluation materials.</p>
 </blockquote>
-<p>The main evidence for this conclusion comes down to a comparison of the percentages. Table S1 in the paper includes the information we need. Here are the three columns showing the overal outcomes:</p>
+<p>The main evidence for this conclusion comes down to a comparison of the percentages. Table S1 in the paper includes the information we need. Here are the three columns showing the overall outcomes:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(<span class="st">&quot;research_funding_rates&quot;</span>)
 research_funding_rates <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">select</span>(discipline, <span class="kw">contains</span>(<span class="st">&quot;total&quot;</span>))
@@ -591,6 +591,44 @@ chisq_test
 <p>The odds ratio is the ratio for these two odds: how many times larger are the odds for men than for women?</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">odds_men <span class="op">/</span><span class="st"> </span>odds_women
 <span class="co">#&gt; [1] 1.23</span></code></pre></div>
+<p>We often see two by two tables written out as</p>
+<!-- html table generated in R 3.5.0 by xtable 1.8-2 package -->
+<!-- Mon Jun  4 17:00:36 2018 -->
+<table border="1">
+<tr>
+<th>
+</th>
+<th>
+Men
+</th>
+<th>
+Women
+</th>
+</tr>
+<tr>
+<td align="right">
+Awarded
+</td>
+<td>
+a
+</td>
+<td>
+b
+</td>
+</tr>
+<tr>
+<td align="right">
+Not Awarded
+</td>
+<td>
+c
+</td>
+<td>
+d
+</td>
+</tr>
+</table>
+<p>In this case, the odds ratio is <span class="math inline">\(\frac{a/c}{b/d}\)</span> which is equivalent to <span class="math inline">\((ad) / (bc)\)</span></p>
 </div>
 <div id="large-samples-small-p-values" class="section level2">
 <h2><span class="header-section-number">38.5</span> Large samples, small p-values</h2>
@@ -611,22 +649,31 @@ chisq_test
 <div id="confidence-intervals-for-the-odds-ratio" class="section level2">
 <h2><span class="header-section-number">38.6</span> Confidence intervals for the odds ratio</h2>
 <p>Computing confidence intervals for the odds ratio is not mathematically straightforward. Unlike other statistics, for which we can derive useful approximations of their distributions, the odds ratio is not only a ratio, but a ratio of ratios. Therefore, there is no simple way of using, for example, the CLT.</p>
-<p>One approach is to use the theory of <em>generalized linear models</em>. You can learn more about these in this book: <a href="https://books.google.com/books?hl=en&amp;lr=&amp;id=h9kFH2_FfBkC">McCullagh and Nelder, 1989</a>.</p>
-<p>Although we do not describe the details, know that in R we can use the <code>glm</code> function to estimate the log odds ratio and its standard error:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">count &lt;-<span class="st"> </span><span class="kw">select</span>(two_by_two, <span class="op">-</span>awarded) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.matrix</span>()
-gender &lt;-<span class="st"> </span><span class="kw">factor</span>(two_by_two<span class="op">$</span>awarded)
-fit &lt;-<span class="st"> </span><span class="kw">glm</span>(count <span class="op">~</span><span class="st"> </span>gender, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)
-<span class="kw">summary</span>(fit)<span class="op">$</span>coef
-<span class="co">#&gt;             Estimate Std. Error z value Pr(&gt;|z|)</span>
-<span class="co">#&gt; (Intercept)    0.285     0.0416    6.86 6.99e-12</span>
-<span class="co">#&gt; genderyes      0.208     0.1041    2.00 4.54e-02</span></code></pre></div>
-<p>From this we can construct confidence intervals for the odds ratios:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">confint</span>(fit)
-<span class="co">#&gt; Waiting for profiling to be done...</span>
-<span class="co">#&gt;               2.5 % 97.5 %</span>
-<span class="co">#&gt; (Intercept) 0.20402  0.367</span>
-<span class="co">#&gt; genderyes   0.00535  0.414</span></code></pre></div>
-<p>Note that with this approach we obtain a slighlty different p-value that with the chi-squared test. This is because we are using a different asymptotic approximation to the null distribution.</p>
+<p>However, statistical theory tells us that when all four entries of the two by two table are large enough, then the log of the odds ratio is approximately normal with standard error</p>
+<p><span class="math display">\[
+\sqrt{1/a + 1/b + 1/c + 1/d} 
+\]</span></p>
+<p>This implies that a 95% confidence interval for the log odds ratio can be formed by:</p>
+<p><span class="math display">\[
+\log \{ (ad) / (cd) \} \pm 1.96 \sqrt{1/a + 1/b + 1/c + 1/d} 
+\]</span></p>
+<p>By exponentiating these two numbers we can construct a confidence interval of the odds ratio.</p>
+<p>Using R we can compute this confidence interval as follows:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">log_or &lt;-<span class="st"> </span><span class="kw">log</span>( odds_men <span class="op">/</span><span class="st"> </span>odds_women )
+se &lt;-<span class="st"> </span>two_by_two <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>awarded) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">se =</span> <span class="kw">sqrt</span>(<span class="kw">sum</span>(<span class="dv">1</span><span class="op">/</span>men) <span class="op">+</span><span class="st"> </span><span class="kw">sum</span>(<span class="dv">1</span><span class="op">/</span>women))) <span class="op">%&gt;%</span>
+<span class="st">  </span>.<span class="op">$</span>se
+ci &lt;-<span class="st"> </span>log_or <span class="op">+</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>) <span class="op">*</span><span class="st"> </span><span class="kw">qnorm</span>(<span class="fl">0.975</span>) <span class="op">*</span><span class="st"> </span>se
+ci
+<span class="co">#&gt; [1] 0.0043 0.4123</span></code></pre></div>
+<p>If we want to convert it back to the odds ratio scale we can exponentiate:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">exp</span>(ci)
+<span class="co">#&gt; [1] 1.00 1.51</span></code></pre></div>
+<p>Note that 0 is not included in the confidence interval for the log odds ratio (1 not included for odds ratio) which must mean that the p-value is smaller then 0.05. We can confirm this using:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(log_or, <span class="dv">0</span>, se))
+<span class="co">#&gt; [1] 0.0454</span></code></pre></div>
+<p>This is a slightly different p-value that with the chi-squared test. This is because we are using a different asymptotic approximation to the null distribution. To learn more about inference and asymptotic theory for odds ratio consult the book by <a href="https://books.google.com/books?hl=en&amp;lr=&amp;id=h9kFH2_FfBkC">McCullagh and Nelder, 1989</a>.</p>
 
 </div>
 </div>
@@ -654,10 +701,11 @@ gitbook.start({
 "facebook": true,
 "twitter": true,
 "google": false,
+"linkedin": false,
 "weibo": false,
 "instapper": false,
 "vk": false,
-"all": ["facebook", "google", "twitter", "weibo", "instapaper"]
+"all": ["facebook", "google", "twitter", "linkedin", "weibo", "instapaper"]
 },
 "fontsettings": {
 "theme": "white",
@@ -681,9 +729,11 @@ gitbook.start({
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
-    if (location.protocol !== "file:" && /^https?:/.test(script.src))
-      script.src  = script.src.replace(/^https?:/, '');
+    var src = "";
+    if (src === "" || src === "true") src = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(src))
+      src = src.replace(/^https?:/, '');
+    script.src = src;
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

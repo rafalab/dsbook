@@ -7,7 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Introduction to Data Science</title>
   <meta name="description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown.">
-  <meta name="generator" content="bookdown 0.5 and GitBook 2.6.7">
+  <meta name="generator" content="bookdown 0.7 and GitBook 2.6.7">
 
   <meta property="og:title" content="Introduction to Data Science" />
   <meta property="og:type" content="book" />
@@ -25,7 +25,7 @@
 <meta name="author" content="Rafael A. Irizarry">
 
 
-<meta name="date" content="2017-11-27">
+<meta name="date" content="2018-06-04">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -509,7 +509,7 @@ polls
 <p>Of course, this was just a simulation to illustrate the idea. The actual data science exercise of forecasting elections is much more complicated and it involves modeling. Below we explain how pollsters fit multilevel models to the data and use this to forecast election results. In the 2008 and 2012 US presidential elections, Nate Silver used this approach to make an almost perfect prediction and silence the pundits.</p>
 <p>Since the 2008 elections, other organizations have started their own election forecasting group that, like Nate Silver’s, aggregates polling data and uses statistical models to make predictions. In 2016, forecasters underestimated Trump’s chances of winning greatly.</p>
 <p><img src="inference/img/pollster-2016-predictions.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>For example, the Princeton Election Consortium gave Trump less than 1% chance of winning, while the Huffington Post gave him a 2% chance. In contrast, FiveThirtyEight had Trump’s probability of winning at 29%, higher than tossing two coins and getting two heads. By understanding statistical models and how these forecasters use them, we will start to understand how this happened.</p>
+<p>For example, the Princeton Election Consortium gave Trump less than 1% chance of winning, while the Huffington Post gave him a 2% chance. In contrast, FiveThirtyEight had Trump’s probability of winning at 29%, higher than tossing two coins and getting two heads. In fact, four days before the election FiveThirtyEight published an article titled <a href="https://fivethirtyeight.com/features/trump-is-just-a-normal-polling-error-behind-clinton/"><em>Trump Is Just A Normal Polling Error Behind Clinton</em></a>. By understanding statistical models and how these forecasters use them, we will start to understand how this happened.</p>
 <p>Although not nearly as interesting as predicting the electoral college, for illustrative purposes we will start by looking at predictions for the popular vote. FiveThirtyEight predicted a 3.6% advantage for Clinton, included the actual result of 2.1% (48.2% to 46.1%) in their interval, and was much more confident about Clinton winning the election, giving her a 81.4% chance.</p>
 <p><img src="inference/img/popular-vote-538.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>We introduce actual data from the 2016 US presidential election to show how models are motivated and built to produce these predictions.</p>
@@ -554,14 +554,14 @@ moe
 <p>Notice that various pollsters are involved and some are taking several polls a week:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">polls <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(pollster) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="kw">n</span>())
 <span class="co">#&gt; # A tibble: 15 x 2</span>
-<span class="co">#&gt;                                                     pollster `n()`</span>
-<span class="co">#&gt;                                                       &lt;fctr&gt; &lt;int&gt;</span>
-<span class="co">#&gt; 1                                   ABC News/Washington Post     7</span>
-<span class="co">#&gt; 2                                          Angus Reid Global     1</span>
-<span class="co">#&gt; 3                                    CBS News/New York Times     2</span>
+<span class="co">#&gt;   pollster                                                   `n()`</span>
+<span class="co">#&gt;   &lt;fct&gt;                                                      &lt;int&gt;</span>
+<span class="co">#&gt; 1 ABC News/Washington Post                                       7</span>
+<span class="co">#&gt; 2 Angus Reid Global                                              1</span>
+<span class="co">#&gt; 3 CBS News/New York Times                                        2</span>
 <span class="co">#&gt; 4 Fox News/Anderson Robbins Research/Shaw &amp; Company Research     2</span>
-<span class="co">#&gt; 5                                                   IBD/TIPP     8</span>
-<span class="co">#&gt; 6                                              Insights West     1</span>
+<span class="co">#&gt; 5 IBD/TIPP                                                       8</span>
+<span class="co">#&gt; 6 Insights West                                                  1</span>
 <span class="co">#&gt; # ... with 9 more rows</span></code></pre></div>
 <p>Let’s visualize the data for the pollsters that are regularly polling:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">polls <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(pollster) <span class="op">%&gt;%</span><span class="st"> </span>
@@ -575,13 +575,13 @@ moe
 <span class="st">  </span><span class="kw">filter</span>(<span class="kw">n</span>() <span class="op">&gt;=</span><span class="st"> </span><span class="dv">6</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">se =</span> <span class="dv">2</span> <span class="op">*</span><span class="st"> </span><span class="kw">sqrt</span>( p_hat <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>p_hat) <span class="op">/</span><span class="st"> </span><span class="kw">median</span>(samplesize)))
 <span class="co">#&gt; # A tibble: 5 x 2</span>
-<span class="co">#&gt;                   pollster     se</span>
-<span class="co">#&gt;                     &lt;fctr&gt;  &lt;dbl&gt;</span>
+<span class="co">#&gt;   pollster                     se</span>
+<span class="co">#&gt;   &lt;fct&gt;                     &lt;dbl&gt;</span>
 <span class="co">#&gt; 1 ABC News/Washington Post 0.0265</span>
-<span class="co">#&gt; 2                 IBD/TIPP 0.0333</span>
-<span class="co">#&gt; 3                    Ipsos 0.0225</span>
+<span class="co">#&gt; 2 IBD/TIPP                 0.0333</span>
+<span class="co">#&gt; 3 Ipsos                    0.0225</span>
 <span class="co">#&gt; 4 The Times-Picayune/Lucid 0.0196</span>
-<span class="co">#&gt; 5    USC Dornsife/LA Times 0.0183</span></code></pre></div>
+<span class="co">#&gt; 5 USC Dornsife/LA Times    0.0183</span></code></pre></div>
 <p>is between 0.018 and 0.033, which agrees with the within poll variation we see. However, there appears to be differences <em>across the polls</em>. Note, for example, how the USC Dornsife/LA Times pollster is predicting a 4% win for Trump, while Ipsos is predicting a win larger than 5% for Clinton. The theory we learned says nothing about different pollsters producing polls with different expected values. All the polls should have the same expected value. FiveThirtyEight refers to these differences as “house effects”. We can also call them <em>pollster bias</em>.</p>
 <p>In the following section, rather than use the urn model theory, we are instead going to develop a data-driven model.</p>
 </div>
@@ -603,7 +603,7 @@ moe
 <p>Our task is to estimate <span class="math inline">\(d\)</span>. Because we model the observed values <span class="math inline">\(X_1,\dots X_N\)</span> as a random sample from the urn, the CLT still works in this situation because it is an average of independent random variables. For a large enough sample size <span class="math inline">\(N\)</span>, the probability distribution of the sample average <span class="math inline">\(\bar{X}\)</span> is approximately normal with expected value <span class="math inline">\(\mu\)</span> and standard error <span class="math inline">\(\sigma/\sqrt{N}\)</span>. If we are willing to consider <span class="math inline">\(N=15\)</span> large enough, we can use this to construct confidence intervals.</p>
 <p>A problem is that we don’t know <span class="math inline">\(\sigma\)</span>. But theory tells us that we can estimate the urn model <span class="math inline">\(\sigma\)</span> with the <em>sample standard deviation</em> defined as:</p>
 <p><span class="math display">\[
-s = \frac{1}{N-1}\sum_{i=1}^N (X_i - \bar{X})^2
+s = \sqrt{ \frac{1}{N-1}\sum_{i=1}^N (X_i - \bar{X})^2}
 \]</span></p>
 <p>Unlike for the population standard deviation definition, we now divide by <span class="math inline">\(N-1\)</span>. This makes <span class="math inline">\(s\)</span> a better estimate of <span class="math inline">\(\sigma\)</span>. There is a mathematical explanation for this, which is explained in most statistics textbooks, but we don’t cover it here.</p>
 <p>The <code>sd</code> function in R computes the sample standard deviation:</p>
@@ -734,10 +734,11 @@ gitbook.start({
 "facebook": true,
 "twitter": true,
 "google": false,
+"linkedin": false,
 "weibo": false,
 "instapper": false,
 "vk": false,
-"all": ["facebook", "google", "twitter", "weibo", "instapaper"]
+"all": ["facebook", "google", "twitter", "linkedin", "weibo", "instapaper"]
 },
 "fontsettings": {
 "theme": "white",
@@ -761,9 +762,11 @@ gitbook.start({
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
-    if (location.protocol !== "file:" && /^https?:/.test(script.src))
-      script.src  = script.src.replace(/^https?:/, '');
+    var src = "";
+    if (src === "" || src === "true") src = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(src))
+      src = src.replace(/^https?:/, '');
+    script.src = src;
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

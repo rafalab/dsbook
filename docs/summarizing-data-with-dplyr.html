@@ -7,7 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Introduction to Data Science</title>
   <meta name="description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown.">
-  <meta name="generator" content="bookdown 0.5 and GitBook 2.6.7">
+  <meta name="generator" content="bookdown 0.7 and GitBook 2.6.7">
 
   <meta property="og:title" content="Introduction to Data Science" />
   <meta property="og:type" content="book" />
@@ -25,7 +25,7 @@
 <meta name="author" content="Rafael A. Irizarry">
 
 
-<meta name="date" content="2017-11-27">
+<meta name="date" content="2018-06-04">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -531,13 +531,13 @@ us_murder_rate
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">heights <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(sex)
 <span class="co">#&gt; # A tibble: 1,050 x 2</span>
 <span class="co">#&gt; # Groups:   sex [2]</span>
-<span class="co">#&gt;      sex height</span>
-<span class="co">#&gt;   &lt;fctr&gt;  &lt;dbl&gt;</span>
-<span class="co">#&gt; 1   Male     75</span>
-<span class="co">#&gt; 2   Male     70</span>
-<span class="co">#&gt; 3   Male     68</span>
-<span class="co">#&gt; 4   Male     74</span>
-<span class="co">#&gt; 5   Male     61</span>
+<span class="co">#&gt;   sex    height</span>
+<span class="co">#&gt;   &lt;fct&gt;   &lt;dbl&gt;</span>
+<span class="co">#&gt; 1 Male       75</span>
+<span class="co">#&gt; 2 Male       70</span>
+<span class="co">#&gt; 3 Male       68</span>
+<span class="co">#&gt; 4 Male       74</span>
+<span class="co">#&gt; 5 Male       61</span>
 <span class="co">#&gt; 6 Female     65</span>
 <span class="co">#&gt; # ... with 1,044 more rows</span></code></pre></div>
 <p>the result does not look very different from <code>heights</code>, except we see this <code>Groups: sex [2]</code> when we print the object. Although not immediately obvious from its appearance, this is now a special data frame called a <em>grouped data frame</em> and dplyr functions, in particular <code>summarize</code>, will behave differently when acting on this object. Conceptually, you can think of this table as many tables, with the same columns but not necessarily the same number of rows, stacked together in one object. When we summarize the data after grouping, this is what happens:</p>
@@ -545,22 +545,22 @@ us_murder_rate
 <span class="st">  </span><span class="kw">group_by</span>(sex) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">average =</span> <span class="kw">mean</span>(height), <span class="dt">standard_deviation =</span> <span class="kw">sd</span>(height))
 <span class="co">#&gt; # A tibble: 2 x 3</span>
-<span class="co">#&gt;      sex average standard_deviation</span>
-<span class="co">#&gt;   &lt;fctr&gt;   &lt;dbl&gt;              &lt;dbl&gt;</span>
+<span class="co">#&gt;   sex    average standard_deviation</span>
+<span class="co">#&gt;   &lt;fct&gt;    &lt;dbl&gt;              &lt;dbl&gt;</span>
 <span class="co">#&gt; 1 Female    64.9               3.76</span>
-<span class="co">#&gt; 2   Male    69.3               3.61</span></code></pre></div>
+<span class="co">#&gt; 2 Male      69.3               3.61</span></code></pre></div>
 <p>The <code>summarize</code> function applies the summarization to each group separately.</p>
 <p>For another example, let’s compute the median murder rate in the four regions of the country:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">group_by</span>(region) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">median_rate =</span> <span class="kw">median</span>(murder_rate))
 <span class="co">#&gt; # A tibble: 4 x 2</span>
-<span class="co">#&gt;          region median_rate</span>
-<span class="co">#&gt;          &lt;fctr&gt;       &lt;dbl&gt;</span>
-<span class="co">#&gt; 1     Northeast        1.80</span>
-<span class="co">#&gt; 2         South        3.40</span>
+<span class="co">#&gt;   region        median_rate</span>
+<span class="co">#&gt;   &lt;fct&gt;               &lt;dbl&gt;</span>
+<span class="co">#&gt; 1 Northeast            1.80</span>
+<span class="co">#&gt; 2 South                3.40</span>
 <span class="co">#&gt; 3 North Central        1.97</span>
-<span class="co">#&gt; 4          West        1.29</span></code></pre></div>
+<span class="co">#&gt; 4 West                 1.29</span></code></pre></div>
 </div>
 <div id="sorting-data-frames" class="section level2">
 <h2><span class="header-section-number">20.4</span> Sorting data frames</h2>
@@ -699,10 +699,11 @@ gitbook.start({
 "facebook": true,
 "twitter": true,
 "google": false,
+"linkedin": false,
 "weibo": false,
 "instapper": false,
 "vk": false,
-"all": ["facebook", "google", "twitter", "weibo", "instapaper"]
+"all": ["facebook", "google", "twitter", "linkedin", "weibo", "instapaper"]
 },
 "fontsettings": {
 "theme": "white",
@@ -726,9 +727,11 @@ gitbook.start({
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
-    if (location.protocol !== "file:" && /^https?:/.test(script.src))
-      script.src  = script.src.replace(/^https?:/, '');
+    var src = "";
+    if (src === "" || src === "true") src = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(src))
+      src = src.replace(/^https?:/, '');
+    script.src = src;
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>
