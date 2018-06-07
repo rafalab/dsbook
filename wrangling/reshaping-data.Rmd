@@ -1,0 +1,172 @@
+# Reshaping data
+
+```{r, echo=FALSE}
+library(tidyverse) 
+path <- system.file("extdata", package="dslabs")
+filename <- file.path(path,  "fertility-two-countries-example.csv")
+wide_data <- read_csv(filename)
+```
+
+As we have seen, having data in _tidy_ format is what makes the tidyverse flow. After the first step in the data analysis process, importing data,  
+a common next step is to reshape the data into a form that facilitates the rest of the analysis. The `tidyr` package includes several functions that are useful for tyding data. 
+
+## `gather`
+
+One of the most used functions in the `tidyr` package is `gather`, which converts wide data into tidy data. 
+
+In the third argument of the `gather` function you specify the columns that will be _gathered_. The default is to gather all columns, so in most cases we have to specify the columns. Here we want columns `1960`, `1961` up to `2015`. The first argument sets the column/variable name that will hold the variable that is currently kept in the wide data column names. In our case it makes sense to set name to `year`, but we can name it anything. The second argument sets the new column/variable name that will hold the values. In this case we call it `fertility` since this what is stored in this file. Note that nowhere in this file does it tell us this is fertility data. Instead, this information was kept in the file name.
+
+The gathering code looks like this:
+
+```{r}
+new_tidy_data <- wide_data %>%
+  gather(year, fertility, `1960`:`2015`)
+```
+
+We can see that the data have been converted to tidy format with columns `year` and `fertility`:
+
+```{r}
+head(new_tidy_data)
+```
+
+However, each year resulted in two rows since we have two countries and this column was not gathered.
+
+A somewhat quicker way to write this code is to specific which column will **not** be gathered rather than all the columns that will be gathered:
+
+```{r}
+new_tidy_data <- wide_data %>%
+  gather(year, fertility, -country)
+```
+
+The `new_tidy_data` object looks like the original `tidy_data` we used. There is just one minor difference. Can you spot it? Look at the data type of the year column:
+
+```{r}
+class(tidy_data$year)
+class(new_tidy_data$year)
+```
+
+The `gather` function assumes that column names are characters. So we need a bit more wrangling before we are ready to make a plot. We need to convert the year column to numbers. The `gather` function has an argument for that, the `convert` argument:
+
+```{r}
+new_tidy_data <- wide_data %>%
+  gather(year, fertility, -country, convert = TRUE)
+class(new_tidy_data$year)
+```
+
+We could have also used the `mutate` and `as.numeric`.
+
+Now that the data is tidy we can use the same ggplot code as before
+
+```{r}
+new_tidy_data %>% ggplot(aes(year, fertility, color = country)) +
+  geom_point()
+```
+
+## `spread`
+
+As we will see in later examples it is sometimes useful for data wrangling purposes to convert tidy data into wide data. We often use this as intermediate step in tidying up data. The `spread` function is basically the inverse of `gather`. The first argument is for the data but since we are using the pipe we don't show it. The second agrument tells `spread` which variable will be used as the column names. The third argument specifies which variable to use to fill out the cells:
+
+```{r}
+new_wide_data <- new_tidy_data %>% spread(year, fertility)
+select(new_wide_data, country, `1960`:`1967`)
+```
+
+The following diagram can help remind you how these two functions work
+
+```{r, echo=FALSE}
+knitr::include_graphics("wrangling/img/gather-spread.png")
+```
+
+## `separate`
+
+The data wrangling shown above was simple compared to what is usually required. In our example spreadsheet files we include an example that is slightly more complicated. It includes two variables: life expectancy as well as fertility. However, the way it is stored is not tidy and, as we will explain, not optimal.
+
+```{r}
+path <- system.file("extdata", package = "dslabs")
+filename <- file.path(path, "life-expectancy-and-fertility-two-countries-example.csv")
+
+raw_dat <- read_csv(filename)
+select(raw_dat, 1:5)
+```
+
+First note that the data is in wide format. Second, note that this table includes  values for two variables, fertility and life expectancy, with the column name encoding which column represents which variable. This is not a recommended way to store information, encoded in column names, but it is quite common. We will put our wrangling skills to work to extract this information and store it in a tidy fashion.
+
+We can start the data wrangling with the `gather` function, but we should no longer use the column name `year` for the new column since since it also contains the variable type. We will call it `key`, the default, for now:
+
+```{r}
+dat <- raw_dat %>% gather(key, value, -country)
+head(dat)
+```
+
+The result is not exactly what we refer to as tidy since each observation is associated with two, not one, rows. We want to have the values from the two variables, fertility and life expectancy, in two separate columns. The first challenge to achieve this is to separate the `key` column into the year and the variable type. Note that the entries in this column separate the year from the variable name with an underscore: 
+
+```{r}
+dat$key[1:5]
+```
+
+Encoding multiple variables in a column name is such a common problem that the `readr` package includes a function to separate these columns into two or more. Apart from the data, the `separate` function takes three arguments: the name of the column to be separated, the names to be used for the new columns and the character that separates the variables. So a first attempt at this is:
+
+```{r, eval=FALSE}
+dat %>% separate(key, c("year", "variable_name"), "_")
+```
+
+Because "_" is the default separator assumed by `separate`, we do not have to include it in the code:
+
+```{r}
+dat %>% separate(key, c("year", "variable_name"))
+```
+
+The function does separate the values, but we run into a new problem. Note that we receive the warning `Too many values at 112 locations:` and the that `life_exepectancy` variable is truncated to `life`. This is because the `_` is used to separate `life` and `expectancy` not just year and variable name! We could add a third column to catch this and let the `separate` function know which column to _fill in_ with missing values, `NA`, when there is no third value. Here we tell it to fill the column on the right:
+
+```{r}
+dat %>% separate(key, c("year", "first_variable_name", "second_variable_name"), 
+                 fill = "right")
+```
+
+However, if we read the `separate` help file we find that a better approach is to merge the last two variables when there is an extra separation:
+
+```{r}
+dat %>% separate(key, c("year", "variable_name"), extra = "merge")
+```
+
+This achieves the separation we wanted. However, we are not done yet. We need to create a column for each variable. As we learned, the `spread` function can do  this:
+
+```{r}
+dat %>% 
+  separate(key, c("year", "variable_name"), extra = "merge") %>%
+  spread(variable_name, value) 
+```
+
+The data is now in tidy format with one row for each observation with three variable: year, fertility and life expectancy.
+
+## `unite`
+
+It is sometimes useful to do the inverse of `separate`, unite two columns into one. To demonstrate how to use `unite` we show code that although this is *not* an optimal approach, serves as an illustration. Suppoed that we did not know about `extra` and used this command to separate: 
+
+```{r}
+dat %>% 
+  separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right")
+```
+
+We can achieve the same final result by uniting the second and third column like this:
+
+```{r}
+dat %>% 
+  separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
+  unite(variable_name, first_variable_name, second_variable_name, sep="_")
+```
+
+Then spreading the columns:
+
+```{r}
+dat %>% 
+  separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
+  unite(variable_name, first_variable_name, second_variable_name, sep="_") %>%
+  spread(variable_name, value) %>%
+  rename(fertlity = fertility_NA)
+```
+
+
+
+
+

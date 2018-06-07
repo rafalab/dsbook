@@ -1,0 +1,255 @@
+# Combining tables
+
+```{r, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(ggrepel)
+library(dslabs)
+ds_theme_set()
+```
+
+The information we need for a given analysis may not be just on one table. For example, when forecasting elections we used the function `left_join` to combine the information from two tables. Here we use a simpler example to illustrate the general challenge of combining tables.
+
+Suppose we want to explore the relationship between population size for US states and electoral votes. We have the populatio size in this table
+
+```{r}
+data(murders)
+head(murders)
+```
+
+and electoral votes in this one:
+
+```{r}
+data(polls_us_election_2016)
+head(results_us_election_2016)
+```
+
+Notice that just joining these two tables together will not work since the order of the states is not quite the same:
+
+```{r}
+identical(results_us_election_2016$state, murders$state)
+```
+
+The _join_ functions described below, are designed to handle this challenge.
+
+## Joins
+
+The _join_ functions in the `dplyr` package make sure that the tables are combined so that matching rows are together. If you know SQL you will notice the approach and syntax is very similar. The general idea is that one needs to identify one or more columns that will serve to match the two tables. Then a new table with the combined information is returned. Note what happens if we join the two tables above by state using `left_join`:
+
+```{r}
+tab <- left_join(murders, results_us_election_2016, by = "state")
+head(tab)
+```
+
+The data has been successfully joined and we can now, for example, make a plot to explore the relationship
+
+```{r}
+tab %>% ggplot(aes(population/10^6, electoral_votes, label = abb)) +
+  geom_point() +
+  geom_text_repel() + 
+  scale_x_continuous(trans = "log2") +
+  scale_y_continuous(trans = "log2") +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+We see the relationship is close to linear with about 2 electoral votes for every million persons, but with smaller states getting higher ratios.
+
+
+In practice, it is not always the case that each row in one table has a matching row in the other. For this reason we have several versions of join. To illustrate this challenge, we will take subsets of the tables above. We create the tables `tab1` and `tab2` so that they have some states in common but not all:
+
+```{r}
+tab_1 <- slice(murders, 1:6) %>% 
+  select(state, population)
+tab_1
+
+tab_2 <- slice(results_us_election_2016, c(1:3, 5, 7:8)) %>% 
+  select(state, electoral_votes)
+tab_2
+```
+
+
+We will use these two tables as examples in the next sections.
+
+### Left join
+
+Suppose we want a table like `tab_1` but adding electoral votes to whatever states we have available. For this we use left join with `tab_1` as the first argument.
+
+```{r}
+left_join(tab_1, tab_2)
+```
+
+Note that `NA`s are added to the two states not appearing in `tab_2`. Also note that this function, as well as all the other joins, can receive the first arguments through the pipe:
+
+```{r}
+tab_1 %>% left_join(tab_2)
+```
+
+
+### Right join
+
+If instead of a table like `tab_1` we want one like `tab_2` we can use `right_join`:
+
+```{r}
+tab_1 %>% right_join(tab_2)
+```
+
+Notice that now the NAs are in the column coming from `tab_1`.
+
+### inner join
+
+If we want to keep only the rows that have information in both tables we use inner join. You can think of this an an intersection:
+
+```{r}
+inner_join(tab_1, tab_2)
+```
+
+### full join
+
+And if we want to keep all the rows, and fill the missing parts with NAs, we can use a full join. You can think of this as a union:
+
+```{r}
+full_join(tab_1, tab_2)
+```
+
+### semi join
+
+The `semi_join` let's us keep the part of first table for which we have information in the second. It does not add the columns of the second:
+
+```{r}
+semi_join(tab_1, tab_2)
+```
+
+
+### anti join
+
+The function `anti_join` is the opposite of `semi_join`. It keeps the elements of the first table for which there is no information in the second:
+
+```{r}
+anti_join(tab_1, tab_2)
+```
+
+The following diagram summarizes the above joins
+
+
+```{r, echo=FALSE}
+knitr::include_graphics("wrangling/img/joins.png")
+```
+
+## Binding
+
+Although we have yet to use it in this book, another common way in which datasets are combined is by _binding_ them. Unlike the join function, the binding functions do no try to match by a variable but rather just combine datasets. If the datasets don't match by the appropriate dimensions one obtains error.
+
+### Binding columns
+
+The `dplyr` function _bind_cols_ binds two objects by making them columns in a tibble. For example we quickly want to make data frame consisting of numbers we can use.
+
+```{r}
+bind_cols(a = 1:3, b = 4:6)
+```
+
+This function requires that we assign names to the columns. Here we chose `a` and `b`. 
+
+Note there is an R-base function `cbind` that with the exact same functionality. An important difference is that `cbind` can creates different type of objects while `bind_cols` always produces a data frame.
+
+`bind_cols` can also bind two different data frames. For example here we break up the `tab` data frame and then bind them back together:
+
+```{r}
+tab_1 <- tab[, 1:3]
+tab_2 <- tab[, 4:6]
+tab_3 <- tab[, 7:9]
+new_tab <- bind_cols(tab_1, tab_2, tab_3)
+head(new_tab)
+```
+
+
+### Binding by rows
+
+The `bind_rows` function is similar to `bind_cols` but binds rows instead of columns:
+
+```{r}
+tab_1 <- tab[1:2,]
+tab_2 <- tab[3:4,]
+bind_rows(tab_1, tab_2)
+```
+
+This is based on an R-base function `rbind`.
+
+## Set Operators
+
+Another set of commands useful for combing datasets are the set operators. When applied to vectors, these behave as their names suggest, `intersect` and `union`. However, if the `tidyvers`, or more specifically, `dplyr` is loaded, these function can be used on data frames as opposed to just on vectors.
+
+### Intersect
+
+You can take intersections of vectors of any type, For example numeric
+
+```{r}
+intersect(1:10, 6:15)
+```
+or characters
+```{r}
+intersect(c("a","b","c"), c("b","c","d"))
+```
+
+But with `dplyr` loaded we can also do this for tables having the same column names:
+
+```{r}
+tab_1 <- tab[1:5,]
+tab_2 <- tab[3:7,]
+intersect(tab_1, tab_2)
+```
+
+
+### Union
+
+Similarly _union_ takes the union of vectors. For example
+
+```{r}
+union(1:10, 6:15)
+union(c("a","b","c"), c("b","c","d"))
+```
+
+But with `dplyr` loaded we can also do this for tables having the same column names:
+
+```{r}
+tab_1 <- tab[1:5,]
+tab_2 <- tab[3:7,]
+union(tab_1, tab_2)
+```
+
+
+### `setdiff`
+
+The set difference between a first and second argument can be obtained with `setdiff`. Not unlike `instersect` and `union`, this function is not symmetric:
+
+
+```{r}
+setdiff(1:10, 6:15)
+setdiff(6:15, 1:10)
+```
+
+As the others we can apply it to data frames:
+```{r}
+tab_1 <- tab[1:5,]
+tab_2 <- tab[3:7,]
+setdiff(tab_1, tab_2)
+```
+
+### `setequal`
+
+Finally, the function `set_equal` tells us if two sets are the same, regardless of order. So notice that 
+
+```{r}
+setequal(1:5, 1:6)
+```
+
+but
+
+```{r}
+setequal(1:5, 5:1)
+```
+
+When applied to data frames that are not equal regardless of order, it provides a useful message letting us know how the sets are different:
+
+```{r}
+setequal(tab_1, tab_2)
+```
+
