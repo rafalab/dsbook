@@ -2,11 +2,11 @@
 
 ## The date data type
 
-We have desribed three main types of vectors: numeric, character, and logical. In data science projects we very often encouter varialbles that are dates. Although we can represent a date with a string, for example, `November 2, 2017`, once we pick a reference day, referred to as the _epoch_, they can be converted to numbers as well. Computer languages usually use January 1, 1970 as the epoch. So November 2, 2017 is day 17,204. 
+We have described three main types of vectors: numeric, character, and logical. In data science projects, we very often encounter variables that are dates. Although we can represent a date with a string, for example `November 2, 2017`, once we pick a reference day, referred to as the _epoch_, they can be converted to numbers as well. Computer languages usually use January 1, 1970, as the epoch. So November 2, 2017, is day 17,204. 
 
-Now how should we represents dates and times when analyzing data in R? We could just use days since the epoch, but then it is almost impossible to interpret. If I tell you its November 2, 2017 you know what this means immediately. If I tell you it's day 17,204 you will be quite confused. Similar problems arise with times. In this case it gets even more complicated due to time zones. 
+Now how should we represent dates and times when analyzing data in R? We could just use days since the epoch, but then it is almost impossible to interpret. If I tell you it's November 2, 2017, you know what this means immediately. If I tell you it's day 17,204, you will be quite confused. Similar problems arise with times and more complications can appear due to time zones. 
 
-For this reason R defines a data type just for dates and times. We saw an exmaple in the polls data:
+For this reason, R defines a data type just for dates and times. We saw an example in the polls data:
 
 ```{r}
 library(dslabs)
@@ -14,7 +14,7 @@ data("polls_us_election_2016")
 polls_us_election_2016$startdate %>% head
 ```
 
-These look like strings. But they are not:
+These look like strings, but they are not:
 
 ```{r}
 class(polls_us_election_2016$startdate)
@@ -28,7 +28,7 @@ as.numeric(polls_us_election_2016$startdate) %>% head
 
 It turns them into dates since the epoch. 
 
-Plotting functions, such as those in ggplot, are aware of the date format. This means that, for example, a scatter plot can use the numeric representation to decide on the poisition of the point, but include the string in the labels:
+Plotting functions, such as those in ggplot, are aware of the date format. This means that, for example, a scatterplot can use the numeric representation to decide on the position of the point, but include the string in the labels:
 
 ```{r}
 polls_us_election_2016 %>% filter(pollster == "Ipsos" & state =="U.S.") %>%
@@ -38,15 +38,16 @@ polls_us_election_2016 %>% filter(pollster == "Ipsos" & state =="U.S.") %>%
 
 Note in particular that the months are displayed. 
 
-## The `lubridate` package
+## The lubridate package
 
-The tidyverse includesfunctionality for dealing with dates through the `lubridate` package. 
+The tidyverse includes functionality for dealing with dates through the lubridate package. 
 
 ```{r}
 library(lubridate)
 ```
 
 We will take a random sample of dates to show some of the useful things one can do:
+
 ```{r}
 set.seed(2)
 dates <- sample(polls_us_election_2016$startdate, 10) %>% sort
@@ -78,24 +79,24 @@ ymd(x)
 ```
 
 
-A further complication comes from the fact that dates often come in different formats in which the order of year month and day are different. The preferred format is to show year (with all four digits), month (two digits) and then day or what is called the ISO 8601. Specifically we use YYYY-MM-DD so that if we order the string it will be ordered by date. You can see the function `ymd` returns them in this format.
+A further complication comes from the fact that dates often come in different formats in which the order of year, month, and day are different. The preferred format is to show year (with all four digits), month (two digits) and then day, or what is called the ISO 8601. Specifically we use YYYY-MM-DD so that if we order the string, it will be ordered by date. You can see the function `ymd` returns them in this format.
 
-What if you encouter dates such as "09/01/02"? This could be September 1, 2002 or Janary 2, 2009 or January 9, 2002. 
-In these cases examining the entire vector of dates will help you determine what format it is by process of elimination. Once you know you can use of the many parses provided by lubridate.
+What if you encounter dates such as "09/01/02"? This could be September 1, 2002 or January 2, 2009 or January 9, 2002. 
+In these cases, examining the entire vector of dates will help you determine what format it is by process of elimination. Once you know, you can use the many parses provided by lubridate.
 
-For example if the string is
+For example, if the string is:
 
 ```{r}
 x <- "09/01/02"
 ```
 
-The `ymd` function assumes the first entry is the year the second the month and the third the day so it coverts it to:
+The `ymd` function assumes the first entry is the year, the second is the month, and the third is the day, so it converts it to:
 
 ```{r}
 ymd(x)
 ```
 
-The `mdy` function assumes the first entry is the month then the day then the year:
+The `mdy` function assumes the first entry is the month, then the day, then the year:
 
 ```{r}
 mdy(x)
@@ -109,7 +110,7 @@ dmy(x)
 dym(x)
 ```
 
-Lubridate is also useful for dealing with times. In R, you can get the current time tpying `Sys.time()`. Lubridate provides a slightly more advanced function, `now`, that permits you define the time zone
+Lubridate is also useful for dealing with times. In R, you can get the current time typing `Sys.time()`. Lubridate provides a slightly more advanced function, `now`, that permits you define the time zone:
 
 ```{r}
 now()
@@ -118,7 +119,7 @@ now("GMT")
 
 You can see all the available times zones with `OlsonNames()` function.
 
-Lubridate also has function to extract hours, minutes as seconds:
+Lubridate also has a function to extract hours, minutes as seconds: [AN: "hours and minutes as seconds"?]
 
 ```{r}
 now() %>% hour()
@@ -126,7 +127,7 @@ now() %>% minute()
 now() %>% second()
 ```
 
-as as function to conver parse strings into times:
+as a function to convert parse strings into times:
 
 ```{r}
 x <- c("12:34:56")
@@ -140,20 +141,5 @@ x <- "Nov/2/2012 12:34:56"
 mdy_hms(x)
 ```
 
-This package has many other useful function. Two particulalry useful functions not described above are  `make_date` and `round_date`. 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+This package has many other useful functions. Two particular ones not described above are  `make_date` and `round_date`. 
 

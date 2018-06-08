@@ -1,25 +1,25 @@
 # Text mining
 
-With the exception of labels used to represent categorical data, we have focused on numerical data. But in many application data starts as text. Well known examples are spam filtering, cyber-crime prevention, counter-terrorism and sentiment analysis. In all these examples the raw data is composed of free form texts. Our task is to extract insights from these data. In this section we learn how to generate useful numerical summaries from text data on which we can apply some of the powerful data visualization and analysis techniques we have learned.  
+With the exception of labels used to represent categorical data, we have focused on numerical data. But in many applications data starts as text. Well known examples are spam filtering, cyber-crime prevention, counter-terrorism and sentiment analysis. In all these examples, the raw data is composed of free form texts. Our task is to extract insights from these data. In this section we learn how to generate useful numerical summaries from text data to which we can apply some of the powerful data visualization and analysis techniques we have learned.  
 
 
-## Case study: Trump Tweets
+## Case study: Trump tweets
 
-During he 2016 US presidential election then candidate Donald J. Trump used his tweeter account as a way to communicate with potential voters. On August 6, 2016 Todd Vaziri [tweeted](https://twitter.com/tvaziri/status/762005541388378112/photo/1) about Trump that "Every non-hyperbolic tweet is from iPhone (his staff). Every hyperbolic tweet is from Android (from him)." 
-Data scientist David Robison conducted an [analysis](http://varianceexplained.org/r/trump-tweets/) to determine if data supported this assertion. Here we go through David's analysis to learn some of the basics of text mining. To learn more about text mining in R we recommend [this book](https://www.tidytextmining.com/).
+During the 2016 US presidential election, then candidate Donald J. Trump used his twitter account as a way to communicate with potential voters. On August 6, 2016, Todd Vaziri [tweeted](https://twitter.com/tvaziri/status/762005541388378112/photo/1) about Trump that "Every non-hyperbolic tweet is from iPhone (his staff). Every hyperbolic tweet is from Android (from him)." 
+Data scientist David Robinson conducted an [analysis](http://varianceexplained.org/r/trump-tweets/) to determine if data supported this assertion. Here we go through David's analysis to learn some of the basics of text mining. To learn more about text mining in R we recommend [this book](https://www.tidytextmining.com/).
 
 ```{r,echo=FALSE}
 set.seed(1)
 ```
 
-We will use the following libraries
+We will use the following libraries:
 ```{r,message=FALSE}
 library(lubridate)
 library(tidyr)
 library(scales)
 ```
 
-In general, we can extract data directly from twtiter using the \emph{rtweet} package. However, in this case, a group has already compiled data for us and made it available at [http://www.trumptwitterarchive.com](http://www.trumptwitterarchive.com). We can get the data from their JSON API using a script like this:
+In general, we can extract data directly from twitter using the \emph{rtweet} package. However, in this case, a group has already compiled data for us and made it available at [http://www.trumptwitterarchive.com](http://www.trumptwitterarchive.com). We can get the data from their JSON API using a script like this:
 
 ```{r, eval=FALSE}
 url <- 'http://www.trumptwitterarchive.com/data/realdonaldtrump/%s.json'
@@ -29,7 +29,7 @@ trump_tweets <- map(2009:2017, ~sprintf(url, .x)) %>%
   mutate(created_at = parse_date_time(created_at, orders = "a b! d! H!:M!:S! z!* Y!", tz="EST")) 
 ```
 
-For convinience we include the result of the code above in  the `dslabs` package:
+For convenience, we include the result of the code above in the dslabs package:
 
 ```{r}
 library(dslabs)
@@ -43,6 +43,7 @@ head(trump_tweets)
 ```
 
 with the following variables included:
+
 ```{r}
 names(trump_tweets)
 ```
@@ -53,13 +54,13 @@ The help file `?trump_tweets` provides details on what each variable represents.
 trump_tweets %>% select(text) %>% head
 ```
 
-and the source variable tells us the device that was used to compose and upload each tweet:
+and the source variable tells us which device was used to compose and upload each tweet:
 
 ```{r}
 trump_tweets %>% count(source) %>% arrange(desc(n))
 ```
 
-To start we willuse `extract` to remove the `Twitter for` part of the source and filter out retweets.
+To start, we will use `extract` to remove the `Twitter for` part of the source and filter out retweets.
 
 ```{r}
 trump_tweets %>% 
@@ -67,7 +68,7 @@ trump_tweets %>%
   count(source) 
 ```
 
-We are interested in what happened during the campaign, so for the analysis here we will focus on what was tweeted between the day Trump announced his campaign and election day. So we define the following table containing just the tweets from that time period:
+We are interested in what happened during the campaign, so for this analysis we will focus on what was tweeted between the day Trump announced his campaign and election day. We define the following table containing just the tweets from that time period:
 
 ```{r}
 campaign_tweets <- trump_tweets %>% 
@@ -79,7 +80,7 @@ campaign_tweets <- trump_tweets %>%
   arrange(created_at)
 ```
 
-We can now use data visualization to explore the possibility that two different groups were tweeting from these devices. For each tweet, we will extract the hour, east coast time (EST), it was tweeted and then compute the proportion of tweets tweeted at each hour for each device:
+We can now use data visualization to explore the possibility that two different groups were tweeting from these devices. For each tweet, we will extract the hour, East Coast time (EST), it was tweeted and then compute the proportion of tweets tweeted at each hour for each device:
 
 ```{r}
 ds_theme_set()
@@ -99,9 +100,9 @@ campaign_tweets %>%
 ```
 
 
-We notice a big peak for the Android in the early hours of the moring, between 6 and 8 AM. There seems to be a clear difference in these patterns. We will therefore assume that two different entities are using these two devices. 
+We notice a big peak for the Android in the early hours of the morning, between 6 and 8 AM. There seems to be a clear difference in these patterns. We will therefore assume that two different entities are using these two devices. 
 
-We will now study how the tweets differ when we compare Android to iPhone. To do this we introduce the _tidytext_ package.
+We will now study how the tweets differ when we compare Android to iPhone. To do this, we introduce the _tidytext_ package.
 
 
 ## Text as data
@@ -121,7 +122,7 @@ example
 example %>% unnest_tokens(word, text)
 ```
 
-Now let's look at a example from the tweets. We will look at tweet number 3008 becasue it will later permit us to illustrate a couple of points:
+Now let's look at an example from the tweets. We will look at tweet number 3008 because it will later permit us to illustrate a couple of points:
 
 ```{r}
 i <- 3008
@@ -131,13 +132,13 @@ campaign_tweets[i,] %>%
   select(word)
 ```
 
-Note that the function tries to convert tokens into words. However, to do this it strips characters important that are important in the context of twitter. Namely, the function removes all the `#` and `@`. A _token_ in the context of twitter is not the same as in the context of spoken or written engligh. For this reason instead of using the default, words, we define a regex that capatures twitter character. This may appears complex but all we are defining is a pattern that starts with  @, # or neither and is followed by any combination of letter or digits:
+Note that the function tries to convert tokens into words. However, to do this, it strips characters that are important in the context of twitter. Namely, the function removes all the `#` and `@`. A _token_ in the context of twitter is not the same as in the context of spoken or written English. For this reason, instead of using the default, words, we define a regex that captures twitter characters. This may appear complex but all we are defining is a pattern that starts with @, # or neither, and is followed by any combination of letters or digits:
 
 ```{r}
 pattern <- "([^A-Za-z\\d#@']|'(?![A-Za-z\\d#@]))"
 ```
 
-We can now use the `unnest_tokens` function with the `regex` option and appropriately extract the hashtags and mentions. We demonstrate with out example tweet:
+We can now use the `unnest_tokens` function with the `regex` option and appropriately extract the hashtags and mentions. We demonstrate with our example tweet:
 
 ```{r}
 campaign_tweets[i,] %>% 
@@ -173,13 +174,14 @@ tweet_words %>%
   arrange(desc(n))
 ```
 
-It is not surprising that these are the top words. The top workds are not informative. The _tidytext_ package has database of these commonly used words, referred to as _stop words_, in text minind:
+It is not surprising that these are the top words. The top words are not informative. The _tidytext_ package has a database of these commonly used words, referred to as _stop words_, in text mining:
 
 ```{r}
 stop_words
 ```
 
 If we filter out rows representing stop words with `filter(!word %in% stop_words$word)`:
+
 ```{r}
 tweet_words <- campaign_tweets %>% 
   mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", ""))  %>%
@@ -197,7 +199,7 @@ tweet_words %>%
   arrange(desc(n))
 ```
 
-Some exploration of the resulting words (not show here) reveals a couple of unwanted characterisitcs in our tokens. First, some of our tokens are just numbers (years for example). We want to remove these and we can find them using the regex `^\d+$`. Second, some of our tokens come from a quote and they start with `'`. We want to remove the `'` when it is at the start of a word so we will just `str_replace`. We add these two lines to the code above to generate are final table:
+Some exploration of the resulting words (not shown here) reveals a couple of unwanted characteristics in our tokens. First, some of our tokens are just numbers (years, for example). We want to remove these and we can find them using the regex `^\d+$`. Second, some of our tokens come from a quote and they start with `'`. We want to remove the `'` when it is at the start of a word so we will just `str_replace`. We add these two lines to the code above to generate our final table:
 
 
 ```{r}
@@ -209,9 +211,9 @@ tweet_words <- campaign_tweets %>%
   mutate(word = str_replace(word, "^'", ""))
 ```
 
-Now that we have all our words in a table, along with information about what device was used to compose the tweet they came from, we can start exploring which words are more common when comparing Adroid to iPhone. 
+Now that we have all our words in a table, along with information about what device was used to compose the tweet they came from, we can start exploring which words are more common when comparing Android to iPhone. 
 
-For each word we want to know if it is more likely to come from an Android tweet or an iPhone tweet. We previously introduced the odds ratio as a summary statistic useful for quantifying these differences. Foreach device and a given word, let's call it `y`, we compute the odds or the ratio between the proportion of words that are `y` and not `y` and compute the ratio of those odds. Here we will have many proportions that are 0 so we use the 0.5 correction described in the Association Test section.
+For each word, we want to know if it is more likely to come from an Android tweet or an iPhone tweet. We previously introduced the odds ratio as a summary statistic useful for quantifying these differences. For each device and a given word, let's call it `y`, we compute the odds or the ratio between the proportion of words that are `y` and not `y` and compute the ratio of those odds. Here we will have many proportions that are 0, so we use the 0.5 correction described in the Association Test section.
 
 ```{r}
 android_iphone_or <- tweet_words %>%
@@ -223,7 +225,7 @@ android_iphone_or %>% arrange(desc(or))
 android_iphone_or %>% arrange(or)
 ```  
 
-Given that several of these words are overall low frequency words we can impose a filter based on the total frequency like this:
+Given that several of these words are overall low frequency words, we can impose a filter based on the total frequency like this:
 
 ```{r}
 android_iphone_or %>% filter(Android+iPhone > 100) %>%
@@ -233,13 +235,13 @@ android_iphone_or %>% filter(Android+iPhone > 100) %>%
   arrange(or)
 ```
 
-We already see somewhat of a pattern in the types of words that are being tweeted more in one device versus the other. However, we are not interested in specific words but rather in the tone. Vaziri's assertion is that the Android tweets are more hyperbolic. So how can we check this with data? _Hyperbolic_ is a hard sentiment to extract from words as it relies on interpreting phrases. However, words can be associated to more baisc sentiment such as as anger, fear, joy and suprise. In the next section we demonstrate basic sentiment analysis. 
+We already see somewhat of a pattern in the types of words that are being tweeted more from one device versus the other. However, we are not interested in specific words but rather in the tone. Vaziri's assertion is that the Android tweets are more hyperbolic. So how can we check this with data? _Hyperbolic_ is a hard sentiment to extract from words as it relies on interpreting phrases. However, words can be associated to more basic sentiment such as anger, fear, joy and surprise. In the next section, we demonstrate basic sentiment analysis. 
 
-## Sentiment Analysis
+## Sentiment analysis
 
-In sentiment analysis we assign a word to one or more "sentiments". Although this approach will miss context dependent sentiments, such as sarcasm, when performed on large numbers of words, summaries can provide insights.
+In sentiment analysis, we assign a word to one or more "sentiments". Although this approach will miss context dependent sentiments, such as sarcasm, when performed on large numbers of words, summaries can provide insights.
 
-The first step in sentiment analysis is to assign a sentiment to each word. The tidytext package includes several maps or lexicons in the obejct `sentiments`:
+The first step in sentiment analysis is to assign a sentiment to each word. The tidytext package includes several maps or lexicons in the object `sentiments`:
 
 ```{r}
 table(sentiments$lexicon)
@@ -257,7 +259,8 @@ The `AFINN` lexicon assigns a score between -5 and 5, with -5 the most negative 
 get_sentiments("afinn")
 ```
 
-The `loughran` and `nrc` lexicons provid several different sentiments:
+The `loughran` and `nrc` lexicons provide several different sentiments:
+
 ```{r}
 get_sentiments("loughran") %>% count(sentiment)
 ```
@@ -285,7 +288,7 @@ tweet_words %>% inner_join(nrc, by = "word") %>%
   sample_n(10)
 ```
 
-Now we are ready to perform a quantitative analysis comparing Android and iPhone by comparing the sentiments of the tweets posted from each device. Here we could perform a tweet by tweet analysis, assigning a sentiment to each tweet. However, this will be challenging since each tweet will have several sentiments attached to it, one for each word appearing in the lexicon. For illustrative purposes we will perform a much simpler analysis: we will count and compare the frequencies of each sentiment appearing in each device.
+Now we are ready to perform a quantitative analysis comparing Android and iPhone by comparing the sentiments of the tweets posted from each device. Here we could perform a tweet by tweet analysis, assigning a sentiment to each tweet. However, this will be challenging since each tweet will have several sentiments attached to it, one for each word appearing in the lexicon. For illustrative purposes, we will perform a much simpler analysis: we will count and compare the frequencies of each sentiment appearing in each device.
 
 
 ```{r}
@@ -297,7 +300,7 @@ sentiment_counts <- tweet_words %>%
 sentiment_counts
 ```
 
-For each sentiment we can compute the odds of being in the device: proportion of words with sentiment versus proportion of words without and then compute the odds ratio comapring the two devices
+For each sentiment, we can compute the odds of being in the device: proportion of words with sentiment versus proportion of words without, and then compute the odds ratio comparing the two devices.
 
 ```{r}
 sentiment_counts %>%
@@ -307,9 +310,9 @@ sentiment_counts %>%
   arrange(desc(or))
 ```
  
-So we do see some differences and the order is interesting: the largest three sentiments are disgust, anger, and negative! But are they staitistcally significant? How does this compare if we are just assigning sentiments at random? 
+So we do see some differences and the order is interesting: the largest three sentiments are disgust, anger, and negative! But are they statistically significant? How does this compare if we are just assigning sentiments at random? 
 
-To answer this question we can compute, for each sentiment, an odds ratio and a confidence interval. We will add the two values we need to form a two-by-two table and the odd rat
+To answer this question we can compute, for each sentiment, an odds ratio and a confidence interval. We will add the two values we need to form a two-by-two table and the odd ratio:
 
 ```{r}
 library(broom)
@@ -323,7 +326,7 @@ log_or <- sentiment_counts %>%
 log_or
 ```
 
-A graphical visualization shows some sentiments that are clearly overrepresneted:
+A graphical visualization shows some sentiments that are clearly overrepresented:
 
 ```{r}
 log_or %>%
@@ -335,9 +338,9 @@ log_or %>%
   coord_flip() 
 ```
 
-We see that the disgust, anger, negative sadness and fear sentiments are associated with the Android in a way that is hard to explain by chance alone. Words not associated to a sentiment were strongly associated with the iPhone source, which is in agreement with the original claim about hyperbolic tweets.
+We see that the disgust, anger, negative, sadness and fear sentiments are associated with the Android in a way that is hard to explain by chance alone. Words not associated to a sentiment were strongly associated with the iPhone source, which is in agreement with the original claim about hyperbolic tweets.
 
-If we are itnerested in exploring which specific words are driving these differences, we can back to our `android_iphone_or` object:
+If we are interested in exploring which specific words are driving these differences, we can [AN: "refer"?] back to our `android_iphone_or` object:
 
 ```{r}
 android_iphone_or %>% inner_join(nrc) %>%
@@ -360,8 +363,8 @@ android_iphone_or %>% inner_join(nrc, by = "word") %>%
 ```
 
 
-This is just a simple example of the many analyses one can before with tidytext.
-To learn more we again recommend [this book](https://www.tidytextmining.com/).
+This is just a simple example of the many analyses one can [AN: insert "perform"?] before with tidytext.
+To learn more, we again recommend [this book](https://www.tidytextmining.com/).
 
 
 
