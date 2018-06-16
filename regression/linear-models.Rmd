@@ -1,0 +1,1048 @@
+# Confounding 
+
+```{r, echo=FALSE, message=FALSE}
+set.seed(1)
+library(tidyverse)
+library(dslabs)
+ds_theme_set()
+library(Lahman)
+library(HistData)
+data("GaltonFamilies")
+galton_heights <- GaltonFamilies %>%
+  filter(childNum == 1 & gender == "male") %>%
+  select(father, childHeight) %>%
+  rename(son = childHeight)
+```
+
+If we find the regression line for predicting runs from 
+bases on balls we a get slope of:
+```{r}
+bb_slope <- Teams %>% 
+  filter(yearID %in% 1961:2001 ) %>% 
+  mutate(BB_per_game = BB/G, R_per_game = R/G) %>% 
+  lm(R_per_game ~ BB_per_game, data = .) %>% 
+  .$coef  %>% 
+  .[2] 
+bb_slope 
+```
+So does this mean that if we go and hire low salary players with many BB, that increase the number of walks per game by 2, our team will score `r bb_slope*2` more runs per game? 
+
+We are again reminded that association is not causation. The data does provide strong evidence that a team with two more BB per game than the average team scores `r bb_slope*2` runs per game. But this does not mean that BB are the cause. 
+
+If we do compute the regression line slope for singles we get
+```{r}
+singles_slope <- Teams %>% 
+  filter(yearID %in% 1961:2001 ) %>%
+  mutate(Singles_per_game = (H-HR-X2B-X3B)/G, R_per_game = R/G) %>%
+  lm(R_per_game ~ Singles_per_game, data = .) %>%
+  .$coef  %>%
+  .[2]
+singles_slope 
+```
+
+a lower value.
+
+Note that a single gets you to first base just like a BB. Those that know about baseball, will tell you that with a single, runners on base have a better chance of scoring than with BB. So how can BB be more predictive of runs? The reason this happen is because of confounding. Note the correlation between HR, BB, and singles:
+
+```{r}
+Teams %>% 
+  filter(yearID %in% 1961:2001 ) %>% 
+  mutate(Singles = (H-HR-X2B-X3B)/G, BB = BB/G, HR = HR/G) %>%  
+  summarize(cor(BB, HR), cor(Singles, HR), cor(BB,Singles))
+```
+
+It turns out that pitchers, afraid of HRs, will sometimes avoid throwing strikes to HR hitters. As a result HR hitters tend to have more BB. Thus a team with many HR will also have more BB and as a result it may appear that BB cause Runs but it is actually the HR that cause the runs. We say that BB are _confounded_ with HR. But could it be that BB still help? To find out we somehow have to adjust for the HR effect. Regression can help with this as well.
+
+## Understanding confounding through stratification 
+
+A first approach is to keep HRs fixed at a certain value and then examine the relationship. As we did when we stratified fathers by rounding to the closest inch, here we can stratify HR per game to the closest tenth (we filter out the strata with few points):
+
+```{r}
+dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
+  mutate(HR_strata = round(HR/G,1), 
+         BB_per_game = BB/G,
+         R_per_game = R/G) %>%
+  filter(HR_strata >= 0.4 & HR_strata <=1.2) 
+```
+
+and then make a scatter plot for each strata:
+
+```{r}
+dat %>% 
+  ggplot(aes(BB_per_game, R_per_game)) +  
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  facet_wrap(~HR_strata) 
+```
+
+Remember that the regression slope for predicting runs with BB was `bb_slope`. Once we stratify by HR these slopes are substantially reduced:
+
+```{r}
+dat %>%  
+  group_by(HR_strata) %>%
+  summarize(slope = cor(BB_per_game, R_per_game)*sd(R_per_game)/sd(BB_per_game))
+```
+
+These values are closer the the slope we obtained from singles `r singles_slope`, which is more consistent with our intuition since both singles and BB get us to first base, they should have about the same predictive power.
+
+Now, although our understanding of the application tells us that HR cause BB but not the other way around, we can still check if stratifying by BB makes the effect of BB go down. We use the same code except we swap HR and BBs to get this plot:
+
+```{r, echo=FALSE}
+dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
+  mutate(BB_strata = round(BB/G,1), 
+         HR_per_game = HR/G,
+         R_per_game = R/G) %>%
+  filter(BB_strata >= 2.8 & BB_strata <= 3.9)
+dat %>% 
+  ggplot(aes(HR_per_game, R_per_game)) +  
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  facet_wrap(~BB_strata) 
+```
+
+In this case, the slopes:
+
+```{r, echo=FALSE}
+dat %>% group_by(BB_strata) %>%
+   summarize(slope = cor(HR_per_game, R_per_game)*sd(R_per_game)/sd(HR_per_game))
+```
+
+do not change much from the original:
+
+```{r}
+hr_slope <- Teams %>% 
+  filter(yearID %in% 1961:2001 ) %>% 
+  mutate(HR_per_game = HR/G, R_per_game = R/G) %>% 
+  lm(R_per_game ~ HR_per_game, data = .) %>% 
+  .$coef  %>% 
+  .[2]; 
+hr_slope
+```
+
+Regardless, it seems that if we stratify by HR we have bivariate distributions for runs versus BB. Similarly if we stratify by BB, we have approximate bivariate normal distributions for  HR versus runs. 
+
+#  Multivariate Regression
+
+It is somewhat complex to be computing regression lines for each strata. We are essentially fitting models like this
+
+$$
+\mbox{E}[R \mid BB = x_1, HR = x_2] = \beta_0 + \beta_1(x_2) x_1 + \beta_2(x_1) x_2
+$$
+
+with the slopes for $x_1$ changing for different values of $x_2$ and vice versa. Is there an easier approach?
+
+Note that, if we take random variability into account, the slopes in the strata don't appear to change much. If these slopes are in fact the same, this implies that $\beta_1(x_2)$ and $\beta_2(x_1)$ are constants. Which in turn implies that the expectation of runs conditioned on HR and BB can be written like this:
+
+$$
+\mbox{E}[R \mid BB = x_1, HR = x_2] = \beta_0 + \beta_1 x_1 + \beta_2 x_2
+$$
+
+This model implies that if the number of HR is fixed at $x_2$ we observe a linear relationship between runs and BB with an intercept of $\beta_0 + \beta_2 x_2$. The model also implies that as the number of HR grows, the intercept grows is linear as well and determined by $\beta_1 x_1$. 
+
+In this analysis, referred to as _multivariate regression_ we say that the BB slope $\beta_1$ is _adjusted_ for the HR effect. If the model is correct then confounding has been accounted for. But how do we estimate $\beta_1$ and $\beta_2$ from the data? For this, we learn about linear models and least squares estimates.
+
+# Linear Models
+
+Since Galton's original development, regression has become one of the most widely used tools in data science. One reason for this has to do with the fact that regression permits us to find relationships between two variables while adjusting for others, as we have just shown for BB, HR and runs in baseball. This has been particularly popular in fields where randomized experiments are hard to run, such as Economics and Epidemiology. When we are not able to randomly assign each individual to a treatment or control group, confounding is particularly prevalent. For example, consider estimating the effect of eating fast foods on life expectancy using data collected from a random sample of people in a jurisdiction. Fast food consumers are more likely to be smokers, drinkers, and have lower incomes. Therefore, a naive regression model may lead to an overestimate of a negative health effect. So how do we do adjust for confounding in practice?
+
+We have described how if data is bivariate normal then the conditional expectations follow the regression line. That the conditional expectation is a line is not an extra assumption but rather a result derived. However, in practice it is common to explicitly write down a model that describes the relationship between two or more variables using a _linear model_. 
+
+We note that "Linear" here does not refer to lines exclusively, but rather to the fact that the conditional expectation is linear combinations of known quantities. In math we call a linear combination of variables, say $x$, $y$ and $z$ and combination that multiply them by a constant and then adds then with shifts permuted, for example $2 + 3x - 4y + 5z$. So $\beta_0 + \beta_1 x_1 + \beta_2 x_2$ is a linear combination of $x_1$ and $x_2$.
+The simplest linear model is a constant $\beta_0$, the second simplest is a line $\beta_0 + \beta_1 x$. 
+
+For Galton's data we would denote the $N$ observe red father's heights with $x_1, \dots, x_n$. Then we model the $N$ son heights we are trying to predict with 
+
+$$ 
+Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i, \, i=1,\dots,N 
+$$
+
+with $x_i$ is the father's height, which is fixed (not random) due to the conditioning, and $Y_i$ is the random son's height that we want to predict. We further assume that $\varepsilon_i$ are independent from each other, have expected value 0 and the standard deviation, call it $\sigma$, does not depend on $i$. We know the $x_i$, but to have a useful model for prediction  we need $\beta_0$ and $\beta_1$. We estimate these from the data. Once we do we can predict son's heights for any father's height $x$. 
+
+Note that if we further assume that the $\varepsilon$ is normally distributed, then this model is exactly the same one we derived earlier. A somewhat nuanced difference is that in the first approach we assumed the data was bivariate normal and the linear model was derived not assumed. In practice, linear models are just assumed without necessarily assuming normality: the distribution of the $\varepsilon$s is not specified. But, nevertheless, if your data is bivariate normal, the above linear model holds. If your data is not bivariate normal, then you will need to have other ways of justifying the model.
+
+One reason linear models are popular is that they are interpret able. In the case of Galton's data we can interpret the data like this: due to inherited genes, the son's height prediction grows by $\beta_1$ for each inch we increase the father height $x$. Because not all sons with fathers of height $x$ are of equal height, we need the term $\varepsilon$, which explains the remaining variability. This remaining variability includes the mother's genetic effect, environmental factors, and other biological randomness. 
+
+Note that, given how we wrote the model above, the intercept $\beta_0$ is not very interpret able as it is the predicted height of a son with a father with no height. Due to regression to the mean the prediction will usually be a bit larger than 0. To make the slope parameter more interpret able we can rewrite the model slightly as
+
+$$ 
+Y_i = \beta_0 + \beta_1 (x_i - \bar{x}) + \varepsilon_i, \, i=1,\dots,N 
+$$
+
+
+
+$x_i$ to $x_i - \bar{x}$ in which case $\beta_0$ would be the height when $x_i = \bar{x}$ which is the son of an average father.
+
+# Least Squares Estimates (LSE)
+
+For linear models to be useful we have to estimate the unknown $\beta$s. The standard approach in science is to find the values that minimize the distance of the fitted model to the data. The following is called the least squares (LS) equation and we will see it often in this chapter. For Galton's data we would write
+
+$$ 
+RSS = \sum_{i=1}^n \left\{  Y_i - \left(\beta_0 + \beta_1 x_i \right)\right\}^2 
+$$
+
+This quantity is called the residual sum of squares (RSS). Once we find the values that minimize the RSS, we will call the values the least squares estimates (LSE) and denote them with $\hat{\beta}_0$ and $\hat{\beta}_1$. 
+
+Let's write a function that computes the RSS for any pair of values  $\beta_0$ and $\beta_1$:
+
+```{r}
+rss <- function(beta0, beta1, data){
+  resid <- galton_heights$son - (beta0+beta1*galton_heights$father)
+  return(sum(resid^2))
+}
+```
+
+So for any pair of values we get an RSS. Here is a plot of the RSS as a function of $\beta_1$ when we keep the $\beta_0$ fixed at 25. 
+
+```{r rss-versus-estimate, fig.cap="Residual sum of squares obtained for several values of the parameters."}
+beta1 = seq(0, 1, len=nrow(galton_heights))
+results <- data.frame(beta1 = beta1,
+                      rss = sapply(beta1, rss, beta0 = 25))
+results %>% ggplot(aes(beta1, rss)) + geom_line() + 
+  geom_line(aes(beta1, rss), col=2)
+```
+
+We can see a clear minimum for $\beta_1$ at around 0.65. However, this minimum for $\beta_1$ is for when $\beta_0=25$. But we don which we don't know if it minimizes the pair $(25, 0.65)$ minimize the equation across all pairs. 
+
+Trial and error here is not going to work. Instead, we will use calculus: take the partial derivatives, set them to 0 and solve. Of course, if we have many parameters, these equations can get rather complex. But there are functions in R that do these calculations for us. We will learn these soon. To learn the mathematics behind this you can consult a book on linear models. 
+
+## The `lm` function
+
+In R we can obtain the least squares estimates using the the `lm` function. To fit the model
+
+$$
+Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i
+$$
+
+with $Y_i$ the son's height and $x_i$ the fathers height we write:
+
+```{r}
+fit <- lm(son ~ father, data = galton_heights)
+fit
+```
+
+and obtain the lest squares estimates. The general way we use `lm` is by using the character `~` to let `lm` which is the variable we are predicting (left) and which we are using to predict (right). The intercept is added automatically to the model that will be fit. 
+
+The object `fit` includes more information about the fit. We can use the function `summary` to extract more of this information
+
+```{r}
+summary(fit)
+```
+
+To understand some of the columns included in this summary we need to remember that the LSE are random variables. Mathematical statistics gives us some ideas of the distribution of these random variables
+
+
+## LSE are random variables 
+
+The LSE are derived from the data $Y_1,\dots,Y_N$, which are random.  This implies that our estimates are random variables. To see this we can run a Monte Carlo simulation in which we assume the son and father height data defines a population, take a random sample of size $N=50$ and compute the regression slope coefficient for each one:
+
+```{r}
+B <- 1000
+N <- 50
+lse <- replicate(B, {
+  sample_n(galton_heights, N, replace = TRUE) %>% 
+   lm(son ~ father, data = .) %>% .$coef 
+})
+lse <- data.frame(beta_0 = lse[1,], beta_1 = lse[2,]) 
+```
+
+We can see the variability of the estimates by plotting their distributions:
+
+```{r}
+library(gridExtra)
+p1 <- lse %>% ggplot(aes(beta_0)) + geom_histogram(binwidth = 5, color = "black") 
+p2 <- lse %>% ggplot(aes(beta_1)) + geom_histogram(binwidth = 0.1, color = "black") 
+grid.arrange(p1, p2, ncol = 2)
+```
+
+The reason these look normal is because the central limit theorem applies here as well: for large enough $N$ the least squares estimates will be approximately normal with expected value $\beta_0$ and $\beta_1$ respectively. The standard errors are bit complicated to compute but mathematical theory does allow us to compute them and they are included in the summary provided by the `lm` function. Here it is for one of our simulated data sets:
+
+```{r}
+ sample_n(galton_heights, N, replace = TRUE) %>% 
+   lm(son ~ father, data = .) %>% summary
+```
+
+You can see that the standard errors estimates reported by the `summary` are close to the standard errors from the simulation:
+
+```{r}
+lse %>% summarize(se_0 = sd(beta_0), se_1 = sd(beta_1))
+```
+
+The `summary` function also reports t-statistics (`t value`) and p-values (`Pr(>|t|)`). The t-statistic is not actually based on the central limit theorem but rather on the assumption that the $\varepsilon$s follow a normal distribution. Under this assumption, mathematical theory tells is that the LSE divided by their standard error, $\hat{\beta}_0 / \hat{\mbox{SE}}(\hat{\beta}_0 )$ and $\hat{\beta}_1 / \hat{\mbox{SE}}(\hat{\beta}_1 )$ follow a t-distribution whit $N-p$ degrees of freedom with $p$ the number of parameters in our model. In the case of height $p=2$. The two p-value are testing the null hypothesis that $\beta_0 = 0$ and $\beta_1=0$ respectively.  Note that, as we described previously, for large enough $N$ the CLT works and the t-distribution becomes almost the same as the normal distribution. Also note that we can construct confidence intervals, but we will soon learn about broom, an add-on package that makes this easy.
+
+We note here that although we do not show examples in this book, hypothesis testing with regression models is very commonly used in Epidemiology and Economics to make statements such as "the effect of A on B was statistically significant after adjusting for X, Y and Z". Note that several assumptions have to hold for these statements to hold.
+
+## LSE are correlated (advanced)
+
+Although interpretation is not straight-forward, it is also useful to know that the LSE can be strongly correlated.
+
+```{r}
+lse %>% summarise(cor(beta_0, beta_1))
+```
+
+However, the correlation depends on how the predictors are defined or transformed. Here we standardize father heights which changes $x_i$ to $x_i - \bar{x}$
+
+
+```{r}
+B <- 1000
+N <- 50
+lse <- replicate(B, {
+  sample_n(galton_heights, N, replace = TRUE) %>% 
+  mutate(father = father - mean(father)) %>%
+  lm(son ~ father, data = .) %>% .$coef 
+})
+cor(lse[1,], lse[2,]) 
+```
+
+## Predicted values are random variables 
+
+Once we fit our model, we can obtain prediction of $Y$ by plugin the estimates into the regression model. For example, if the father's height is $x$, then our
+prediction $\hat{Y}$ for the son's height we will:
+
+$$\hat{Y} = \hat{\beta}_0 + \hat{\beta}_1 x$$
+
+When we plot $\hat{Y}$ versus $x$ we see the regression line.
+
+Note that the prediction $\hat{Y}$ is also a random variable and mathematical theory tells us what the standard errors are. If we assume the errors are normal our have a large enough sample size, we can use theory to construct confidence intervals as well. In fact, the ggplot2 layer `geom_smooth(method = "lm")` that we previously used plots $\hat{Y}$ and surrounds it by confidence intervals:
+
+```{r}
+galton_heights %>% ggplot(aes(son, father)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+The R function `predict` takes an `lm` object as input and returns the prediction
+
+
+```{r}
+galton_heights %>% 
+  mutate(Y_hat = predict(lm(son ~ father, data = .))) %>%
+  ggplot(aes(father, Y_hat)) +
+  geom_line()
+```
+
+If requested, the standard errors and other information from which we can construct confidence intervals:
+
+```{r}
+fit <- galton_heights %>% lm(son ~ father, data = .) 
+Y_hat <- predict(fit, se.fit = TRUE)
+names(Y_hat)
+```
+
+
+# Advanced tidyverse: tibbles and `do`
+
+Let's go back to the baseball. In a previous example we estimated regression lines to predict runs for BB in different HR strata. 
+We first constructed a data frame similar to this:
+
+```{r}
+dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
+  mutate(HR = round(HR/G, 1), 
+         BB = BB/G,
+         R = R/G) %>%
+  select(HR, BB, R) %>%
+  filter(HR >= 0.4 & HR<=1.2) 
+```
+
+Then, to compute the regression line in each strata, since we didn't know the `lm` function, we used the formula directly like this:
+
+```{r}
+dat %>%  
+  group_by(HR) %>%
+  summarize(slope = cor(BB,R)*sd(R)/sd(BB))
+```
+
+We argued that the slopes are similar and that the differences were perhaps due to random variation. To provide a more rigorous defense of the slopes being the same, which led to our multivariate model, we could compute confidence intervals for each slope. We have not learned the formula for this, but the `lm` function provides enough information to construct them. 
+
+First, note that if we try to use the `lm` function to get the estimated slope like this:
+
+```{r}
+dat %>%  
+  group_by(HR) %>%
+  lm(R ~ BB, data = .) %>%
+  .$coef
+```
+
+we don't get what we want. The `lm` function ignored the `group_by`. This is expected because `lm` is not part of the tidyverse and does not know how to handle the outcome of `group_by`, a grouped _tibble_.
+
+
+## Tibbles
+
+When `summarize` receives the output of `group_by` it somehow knows which rows of the tables go with which groups. Where is this information stored in the data.frame? 
+
+```{r}
+dat %>%  group_by(HR) %>% head()
+```
+
+Note that there are no columns with this information. But, if you look closely at the output above you notice the line `A tibble: 6 x 3`. We can learn the class of the returned object using
+
+```{r}
+dat %>%  group_by(HR) %>% class()
+```
+
+The `tbl`, pronounced tibble, or `tbl_df`, is a special kind of data frame. We have seen them before because `tidyverse` functions such as `group_by` and `summarize` always return this type of data frame. The `group_by` function returns a special kind of `tbl`, the `grouped_df`. We will say more about these  latter.
+
+The manipulation verbs,  `select`, `filter`, `mutate`, and `arrange` preserve the class of the input: if they receive a data frame they return a data frame.
+But tibbles are the default data frame in the tidyverse. 
+
+Tibbles are very similar to data frames. You can think of them as a modern version of data frames. Here we briefly described three important differences.
+
+
+### Tibbles diplsay better 
+
+The print method for tibbles is more readable than that of data frame. To see this compare these two outputs:
+
+```{r, eval=FALSE}
+Teams
+```
+
+`Teams` is a data frame with many rows and columns. Nevertheless the output shows everything, wraps around and is hard to read. It is so bad we don't print it here, we let you print it on your screen. If you convert this data frame to a tibble data frame, the output is much more readable:
+
+```{r}
+as_tibble(Teams)
+```
+
+Also note that the output adjusts to your window size.
+
+### Subsets of Tibbles are Tibbles
+
+If you subset the columns of data frame you may get back an object that is not a data frame. For example
+
+```{r}
+class(Teams[,20])
+```
+
+is not a data frame. With tibbles this does not happen:
+
+```{r}
+class(as_tibble(Teams)[,20])
+```
+
+This is useful in the tidyverse since functions require data frames as input. 
+
+With tibbles, if you want to access the vector that defines a column, and not get back a data frame,  you need to use the accessor `$`:
+
+```{r}
+class(as_tibble(Teams)$HR)
+```
+
+A related feature is that tibbles will give you a warning if you try to access a column that does not exist. If we accidentally write `hr` instead of `HR` this
+
+```{r}
+Teams$hr
+```
+
+returns a `NULL` with no warning, which can make it harder to debug. In contrast this
+
+```{r}
+as_tibble(Teams)$hr
+```
+
+gives you an informative warning.
+
+### Tibbles can have complex entries
+
+While the columns or data frames need to be vectors of numbers, strings or Boolean, tibbles can have more complex objects such as lists or functions. Also note that we can create tibbles with `tibble` or `data_frame` functions:
+
+```{r}
+tibble(id = c(1, 2, 3), func = c(mean, median, sd))
+```
+
+
+### Tibbles can be grouped
+
+The function `group_by` returns a special kind of tibble: a grouped tibble. This class stores information that lets you know which rows are in which groups. The tidyverse functions, in particular the `summarize` function, are aware of the group information. In our example above we saw that the `lm` function, which is not part of the tidyverse, does not know how to deal with grouped tibbles. The object is basically converted to a regular data frame and the function runs ignoring the groups. This is why we only get one pair of estimates:
+
+```{r}
+dat %>%  
+  group_by(HR) %>%
+  lm(R ~ BB, data = .)
+```
+
+To make these non-tidyverse functions work integrate with the tidyverse we will learn about `do`.
+
+## `do`
+
+The tidyverse functions know how to interpret grouped tibbles. Furthermore, to facilitate stringing commands through the pipe `%>%`
+tidyverse function consistently return data frames, since this assures that the output of one is accepted as the input of another. 
+
+But most R functions do not recognize grouped tibbles nor do they return data frames. The `lm` function is an example. The `do` functions serves as a bridge between R functions such as `lm` and the tidyverse. The `do` function understands grouped tibbles and always returns a data frame.
+
+So, let's try to use the `do` function to fit a regression line to each HR strata:
+
+```{r}
+dat %>%  
+  group_by(HR) %>%
+  do(fit = lm(R ~ BB, data = .))
+```
+
+Notice that we did in fact fit a regression line to each strata. The `do` function will create a data frame with the first column being the strata value and a column named `fit` (we chose the name, but it can be anything). The column will contain the result of the `lm` call. Therefore, the returned tibble has a column with `lm` objects which is not very useful. 
+
+Also note that if we do not name a column then `do` will return the actual output of `lm`, not a data frame, and this will result in an error since `do` is expecting a data frame as output.
+
+```{r, eval=FALSE}
+dat %>%  
+  group_by(HR) %>%
+  do(lm(R ~ BB, data = .))
+```
+
+`Error: Results 1, 2, 3, 4, 5, ... must be data frames, not lm`
+
+
+For a useful data frame to be constructed, the output of the function must be a data frame too. We could build a function that returns only what we want in the form of a data frame:
+
+```{r}
+get_slope <- function(data){
+  fit <- lm(R ~ BB, data = data)
+  data.frame(slope = fit$coefficients[2], 
+             se = summary(fit)$coefficient[2,2])
+}
+```
+
+And the use `do` **without** naming the output, since we are already getting a data frame: 
+
+```{r}
+dat %>%  
+  group_by(HR) %>%
+  do(get_slope(.))
+```
+
+If we name the output then we get a column containing a data frames:
+
+```{r}
+dat %>%  
+  group_by(HR) %>%
+  do(slope = get_slope(.))
+```
+
+which is not very useful.
+
+We cover one last feature of `do`. If the data frame being returned has more than one row, these will be concatenated appropriately. Here is an example in which we return both estimated parameters:
+
+```{r}
+get_lse <- function(data){
+  fit <- lm(R ~ BB, data = data)
+  data.frame(term = names(fit$coefficients),
+    slope = fit$coefficients, 
+    se = summary(fit)$coefficient[,2])
+}
+dat %>%  
+  group_by(HR) %>%
+  do(get_lse(.))
+```
+
+If you think this is all a bit too complicated, you are not alone. To simplify things, we introduce the broom package which was designed to facilitate the use of model fitting functions, such as `lm`, with the tidyverse.
+
+# The broom package
+
+Our original task was to provide an estimate and confidence interval for the slope estimates of each strata. The broom package will make this quite easy.
+
+Broom has three main functions, all of which extract information from the object returned by `lm` and return it in a tidyverse friendly data frame. These functions are `tidy`, `glance` and `augment`. The `tidy` function returns estimates and related information as a data frame:
+
+```{r}
+library(broom)
+fit <- lm(R ~ BB, data = dat)
+tidy(fit)
+```
+
+We can add other important summaries such as confidence intervals:
+
+```{r}
+tidy(fit, conf.int = TRUE)
+```
+
+Because the outcome is a data frame we can immediately use it with `do` to and string together the commands that produce the table we are after:
+
+
+```{r}
+dat %>%  
+  group_by(HR) %>%
+  do(tidy(lm(R ~ BB, data = .), conf.int = TRUE))
+```
+
+Because a data frame is returned we can filter and select the rows and columns we want:
+
+```{r}
+dat %>%  
+  group_by(HR) %>%
+  do(tidy(lm(R ~ BB, data = .), conf.int = TRUE)) %>%
+  filter(term == "BB") %>%
+  select(HR, estimate, conf.low, conf.high)
+```
+
+A table like this can then be easily visualized with ggplot2:
+
+```{r}
+dat %>%  
+  group_by(HR) %>%
+  do(tidy(lm(R ~ BB, data = .), conf.int = TRUE)) %>%
+  filter(term == "BB") %>%
+  select(HR, estimate, conf.low, conf.high) %>%
+  ggplot(aes(HR, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_errorbar() +
+  geom_point()
+```
+
+No we return to discussing our original task of determining if slopes changed. The plot we just made, using `do` and `broom`, 
+shows that the confidence intervals overlap which provides a nice visual confirmation that our assumption that the slope does not change is safe.
+
+The other functions provided by broom, `glance` and `augment` relate to model specific and observation specific outcomes respectively. Here we can see the model fit summaries `glance` returns:
+
+```{r}
+glance(fit)
+```
+
+You can learn more about these summaries in any regression text book. 
+
+We will see an example of `augment` in the next section.
+
+
+# Putting it all together: building a better offensive metric for baseball 
+
+In trying to answer how well BB predict runs, data exploration led us to a model
+
+
+$$
+\mbox{E}[R \mid BB = x_1, HR = x_2] = \beta_0 + \beta_1 x_1 + \beta_2 x_2
+$$
+
+Here the data is approximately normal and conditional distributions were also normal. Thus we are justified to pose a linear model:
+
+$$
+Y_i = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \varepsilon_i
+$$
+
+with $Y_i$ runs per game, $x_1$ walks per game, and $x_2$. To use `lm` here we need to let it know we have two predictor variables. So we use the `+` symbol as follows:
+
+
+```{r}
+fit <- Teams %>% 
+  filter(yearID %in% 1961:2001) %>% 
+  mutate(BB = BB/G, HR = HR/G,  R = R/G) %>%  
+  lm(R ~ BB + HR, data = .)
+```
+
+We can use `tidy` to see a nice summary:
+
+```{r}
+tidy(fit, conf.int = TRUE) 
+```
+
+
+When we fit the model with only one variable the estimated slopes were `r bb_slope` and `r hr_slope`  for BB and HR respectively. Note that when fitting the multivariate model both go down, with the BB effect decreasing much more. 
+
+Now, if we want to construct a metric to pick players, we need to consider singles, doubles, and triples as well. Can we build a model that predicts runs based on all these outcomes? 
+
+Now we are going to take somewhat a "leap of faith" and assume that these five variables are jointly normal. This means that if we pick any one of them, and hold the other four fixed, the relationship with the outcome is linear and the slope does not depend on the four values held constant. If this is true then a linear model for our data is
+
+$$
+Y_i = \beta_0 + \beta_1 x_{i,1} + \beta_2 x_{i,2} + \beta_3 x_{i,3}+ \beta_4 x_{i,4} + \beta_5 x_{i,5} + \varepsilon_i
+$$
+
+with $x_1, x_2, x_3, x_4, x_5$ representing BB, singles, doubles, triples, and HR respectively. 
+
+Using `lm` we can quickly find the LSE for the parameters using:
+
+
+```{r}
+fit <- Teams %>% 
+  filter(yearID %in% 1961:2001) %>% 
+  mutate(BB = BB/G, 
+         singles = (H-X2B-X3B-HR)/G, 
+         doubles = X2B/G, 
+         triples =X3B/G, 
+         HR=HR/G,
+         R=R/G) %>%  
+  lm(R ~ BB + singles + doubles + triples + HR, data = .)
+```
+
+We can see the coefficients using `tidy`:
+
+```{r}
+coefs <- tidy(fit, conf.int = TRUE)
+coefs
+```
+
+To see how well our metric actually predicts runs we can predict the number of runs for each team in 2002 using the function `predict` then make a plot:
+
+
+```{r}
+Teams %>% 
+  filter(yearID %in% 2002) %>% 
+  mutate(BB = BB/G, 
+         singles = (H-X2B-X3B-HR)/G, 
+         doubles = X2B/G, 
+         triples =X3B/G, 
+         HR=HR/G,
+         R=R/G)  %>% 
+  mutate(R_hat = predict(fit, newdata = .)) %>%
+  ggplot(aes(R_hat, R, label = teamID)) + 
+  geom_point() +
+  geom_text(nudge_x=0.1, cex = 2) + 
+  geom_abline()
+```
+
+Our model does quite a good job as demonstrated by the fact that points from the observed versus predicted plot fall close to the identity line.
+
+
+So instead of using batting average or just number of HR as a measure of picking players, we can use our fitted model to form a more metric that relates more directly to run production. Specifically, to define a metric for player A, we imagine a team made up of players just like player A and use our fitted regression model to predict how many runs this team would produce. The formula would look like this: 
+`r coefs$estimate[1]` + 
+`r coefs$estimate[2]` $\times$ BB +
+`r coefs$estimate[3]` $\times$ singles +
+`r coefs$estimate[4]` $\times$ doubles +
+`r coefs$estimate[5]` $\times$ triples +
+`r coefs$estimate[6]` $\times$ HR +
+
+To define a player specific metric we have a bit more work to do. A challenge here is that we derived the metric for teams, based on team-level summary statistics. For example, the HR value that is entered into the equation is HR per game for the entire team. If we compute the HR per game for a player it will be much lower as the total is accumulated by 9 batters. Furthermore, if a player only plays part of the game, and gets less opportunities than average, it is still considered a game played. For players, a rate that takes into account opportunities is the per-plate-appearance rate. 
+
+To make the per-game team rate comparable to the per-plate-appearance player rate comparable we compute the average number of team plate appearances per game:
+
+```{r}
+pa_per_game <- Batting %>% filter(yearID == 2002) %>% 
+  group_by(teamID) %>%
+  summarize(pa_per_game = sum(AB+BB)/max(G)) %>% 
+  .$pa_per_game %>% 
+  mean
+```
+
+We compute the per-plate-appearance rates for players available in 2002 on data from 1999-2001. To avoid small sample artifacts we filter players with few plate appearances. Here is the entire calculation in one line:
+
+```{r}
+players <- Batting %>% filter(yearID %in% 1999:2001) %>% 
+  group_by(playerID) %>%
+  mutate(PA = BB + AB) %>%
+  summarize(G = sum(PA)/pa_per_game,
+    BB = sum(BB)/G,
+    singles = sum(H-X2B-X3B-HR)/G,
+    doubles = sum(X2B)/G, 
+    triples = sum(X3B)/G, 
+    HR = sum(HR)/G,
+    AVG = sum(H)/sum(AB),
+    PA = sum(PA)) %>%
+  filter(PA >= 300) %>%
+  select(-G) %>%
+  mutate(R_hat = predict(fit, newdata = .))
+```
+
+The player specific predicted runs computed here can be interpreted as the number of runs we predict a team will score if all batters are exactly like that player. The distribution shows that there is wide variability across players:
+
+```{r}
+players %>% ggplot(aes(R_hat)) + 
+  geom_histogram(binwidth = 0.5, color = "black")
+```
+
+To actually build the team we will need to know their salaries as well as their defensive position. For this we join the `players` data frame we just created with the player information data frame included in some of the other Lahman data tables. We will learn more about the join function in a later chapter. 
+
+Start by adding the 2002 salary of each player:
+
+```{r}
+players <- Salaries %>% 
+  filter(yearID == 2002) %>%
+  select(playerID, salary) %>%
+  right_join(players, by="playerID")
+```
+
+Next we add their defensive position. This is a somewhat complicated task because players play more than one position each year. Here we pick the one the position player most played using the `top_n` function. To make sure  we only pick one position in the case of ties pick the first row of the resulting data frame. We also remove the `OF` position which stands for outfielder, a generalization of three positions left field (LF), center filed (CF), and right field (RF). We also remove pitchers since they don't bat in the league the Athletics play.
+
+```{r}
+players <- Fielding %>% filter(yearID == 2002) %>%
+  filter(!POS %in% c("OF","P")) %>%
+  group_by(playerID) %>%
+  top_n(1, G) %>%
+  filter(row_number(G) == 1) %>%
+  ungroup() %>%
+  select(playerID, POS) %>%
+    right_join(players, by="playerID") %>%
+  filter(!is.na(POS)  & !is.na(salary))
+```
+
+Finally we add their name and last name:
+```{r}
+players <- Master %>%
+  select(playerID, nameFirst, nameLast, debut) %>%
+  right_join(players, by="playerID")
+```
+
+If you are a baseball fan you will recognize the top 10 players:
+
+```{r}
+players %>% select(nameFirst, nameLast, POS, salary, R_hat) %>% 
+  arrange(desc(R_hat)) %>% 
+  top_n(10) 
+```
+
+Note the very high salaries for most players. In fact, we see that players with a higher metric have higher salaries:
+
+```{r}
+players %>% ggplot(aes(salary, R_hat, color = POS)) + 
+  geom_point() +
+  scale_x_log10()
+```
+
+We do see some low cost players with very high metrics. These will be great for our team. Unfortunately, these are likely young players that have not yet been able to negotiate a salary and not available. For example, the lowest earner in our top 10 list, Albert Pujols. was a rookie in 2001. Here is the plot without players that debuted before 1997:
+
+```{r}
+players %>% filter(debut < 1998) %>%
+ ggplot(aes(salary, R_hat, color = POS)) + 
+  geom_point() +
+  scale_x_log10()
+```
+
+We can search for good deals by looking at players that produce many more runs that others with similar salaries. We can use this table to decide what players to pick and keep our total salary below the 40 million dollars Billy Bean had to work with. This can be done using what compute scientist called linear programming. This is not something we teach but we include the code anyway:
+
+```{r}
+library(reshape2)
+library(lpSolve)
+
+players <- players %>% filter(debut <= 1997 & debut > 1988)
+constraint_matrix <- acast(players, POS ~ playerID, fun.aggregate = length)
+npos <- nrow(constraint_matrix)
+constraint_matrix <- rbind(constraint_matrix, salary = players$salary)
+constraint_dir <- c(rep("==", npos), "<=")
+constraint_limit <- c(rep(1, npos), 50*10^6)
+lp_solution <- lp("max", players$R_hat,
+                  constraint_matrix, constraint_dir, constraint_limit,
+                  all.int = TRUE) 
+```
+
+This algorithm chooses these 9 players:
+
+```{r}
+our_team <- players %>%
+  filter(lp_solution$solution == 1) %>%
+  arrange(desc(R_hat))
+our_team %>% select(nameFirst, nameLast, POS, salary, R_hat)
+```
+
+We note that these players all have above average BB and HR rates while the same is not true for singles.
+
+```{r}
+my_scale <- function(x) (x - median(x))/mad(x)
+players %>% mutate(BB = my_scale(BB), 
+                   singles = my_scale(singles),
+                   doubles = my_scale(doubles),
+                   triples = my_scale(triples),
+                   HR = my_scale(HR),
+                   AVG = my_scale(AVG),
+                   R_hat = my_scale(R_hat)) %>%
+  filter(playerID %in% our_team$playerID) %>%
+  select(nameFirst, nameLast, BB, singles, doubles, triples, HR, AVG, R_hat) %>%
+  arrange(desc(R_hat))
+```
+
+
+## On base plus slugging (OPS)
+
+Since the 1980s, sabbermetricians have used a summary statistic different from batting average to evaluate players. They realized walks were important and that doubles, triples and HR should be weighted much more than singles and  proposed the following metric:
+
+$$
+\frac{\mbox{BB}}{\mbox{PA}} + \frac{\mbox{Singles} + 2 \mbox{Doubles} + 3 \mbox{Triples} + 4\mbox{HR}}{\mbox{AB}}
+$$
+
+The called this on-base-percentage plus slugging percentage (OPS). Although the sabbermetricians probably  did not use regression, this metric is impressively close to what one gets with regression:
+
+```{r}
+Batting %>% 
+  filter(yearID %in% 1990:2001) %>% 
+  group_by(playerID, yearID) %>%
+  filter(BB + AB >= 300) %>%
+  mutate(PA = BB + AB, 
+         singles = (H-X2B-X3B-HR),
+         OPS = BB / PA + 
+           (singles + 2*X2B + 3*X3B + 4*HR)/AB,
+         G = PA/pa_per_game, 
+         BB = BB/G,
+         singles = singles/G,
+         doubles = X2B/G, 
+         triples = X3B/G,
+         HR = HR/G) %>%
+  ungroup() %>%
+  mutate(R_hat = predict(fit, newdata = .)) %>%
+  ungroup %>%
+  ggplot(aes(OPS, R_hat)) + 
+  geom_point()
+```
+
+
+# Regression Fallacy
+
+Wikipedia defines the _sophomore slump_ as 
+
+> A sophomore slump or sophomore jinx or sophomore jitters refers to an instance in which a second, or sophomore, effort fails to live up to the standards of the first effort. It is commonly used to refer to the apathy of students (second year of high school, college or university), the performance of athletes (second season of play), singers/bands (second album),television shows (second seasons) and movies (sequels/prequels).
+
+In Major League Baseball the rookie of the year (ROY) award is given to the first year player that is judged to have performed the best. The _sophmore slump_ phrase is used to describe the observation that ROY award winners don't do as well during their second year. Note for example that in this recent Fox Sports [article](http://www.foxsports.com/mlb/story/kris-bryant-carlos-correa-rookies-of-year-award-matt-duffy-francisco-lindor-kang-sano-120715) asks "Will MLB's tremendous rookie class of 2015 suffer a sophomore slump?".
+
+Does the data confirm the existence of a sophomore slump? Let's take a look
+Examining the data for batting average we see that this observation holds true. 
+
+
+The data is available in the Lahman library but we have to do some work to create a table with the statistics for all the ROY. First we create a table with player ID, their names, and their most played position.
+```{r}
+library(Lahman)
+playerInfo <- Fielding %>% 
+  group_by(playerID) %>% 
+  arrange(desc(G)) %>%
+  slice(1) %>%
+  ungroup %>% 
+  left_join(Master, by="playerID") %>% 
+  select(playerID, nameFirst, nameLast, POS)
+```
+
+Now we will create a table with only the ROY award winners and add their batting statistics. We filter out out pitchers, since pitchers are not given awards for batting and we are going to focus on offense. Specifically we will focus on batting average since it is the summary that most pundits talk about when discussing the sophomore slump:
+
+
+```{r}
+ROY <- AwardsPlayers %>%
+  filter(awardID == "Rookie of the Year") %>% 
+  left_join(playerInfo, by="playerID") %>%
+  rename(rookie_year = yearID) %>%
+  right_join(Batting, by="playerID") %>% 
+  mutate(AVG = H/AB) %>% 
+  filter(POS != "P")
+```
+
+Now we will keep only the rookie and sophomore seasons and remove players that did not play sophomore seasons
+```{r}
+ROY <- ROY %>%  
+  filter(yearID == rookie_year | yearID == rookie_year+1) %>% 
+  group_by(playerID) %>% 
+  mutate(rookie = ifelse(yearID == min(yearID), "rookie", "sophomore")) %>%
+  filter(n() == 2) %>% 
+  ungroup %>%
+  select(playerID, rookie_year, rookie, nameFirst, nameLast, AVG) 
+```
+
+Finally, we will use the spread function to have one column for the rookie and sophomore years batting averages:
+```{r}
+ROY <- ROY %>%  spread(rookie, AVG) %>% arrange(desc(rookie))
+```
+
+We can see the top performs in their first year
+
+```{r}
+ROY
+```
+
+and just by eyeballing we see the sophomore slump. In fact the proportion of players that have a lower batting average their sophomore year is
+
+```{r}
+mean(ROY$sophomore - ROY$rookie <= 0)
+```
+
+So is it "jitters" or "jinx"? To answer this question let's turn our attention to all players that played the 2013 and 2014 seasons and batted more than 130 times (minimum to win Rookie of the Year). We perform a similar operations as we did above 
+
+```{r}
+two_years <- Batting %>% 
+  filter(yearID %in% 2013:2014) %>% 
+  group_by(playerID, yearID) %>%  
+  filter(sum(AB) >= 130) %>% 
+  summarize(AVG = sum(H)/sum(AB)) %>% 
+  ungroup %>% 
+  spread(yearID, AVG) %>% 
+  filter(!is.na(`2013`) & !is.na(`2014`)) %>%
+  left_join(playerInfo, by="playerID") %>% 
+  filter(POS!="P") %>% 
+  select(-POS) %>%
+  arrange(desc(`2013`)) %>% 
+  select(-playerID)
+```  
+
+Note that the same pattern arises when we look at the top performers: batting averages go down for the most of the top performers.
+
+```{r}
+two_years
+```
+
+But these are not rookies! Also note what happens to the worst performers of 2013:
+
+```{r}
+arrange(two_years, `2013`)
+```
+
+There batting averages go up! Is this some sort of reverse sophomore slump? It is not. There is no such thing as the sophomore slump. This is all explained with a simple statistical fact: the correlation for performance in two separate years is high, but not perfect:
+
+```{r}
+two_years %>% ggplot(aes(`2013`, `2014`)) + 
+  geom_point() 
+```
+
+The correlation is 
+
+```{r}
+summarize(two_years, cor(`2013`,`2014`))
+```
+
+The data look very much like a bivariate normal distribution which means we predict 2014 batting average $Y$ for any given player that had 2013 batting average $X$ with:
+
+$$ \frac{Y - .255}{.032} = 0.46 \left( \frac{X - .261}{.023}\right) $$
+
+Because the correlation is not perfect regression tells us that on average, expect high performs from 2013 will to do a bit worse in 2014. It's not a jinx, it's just due to the chance. The ROY are selected from the top values of $X$ so it is excepted that $Y$ will regress to the mean.
+
+
+# Measurement error models
+
+Up to now, all our linear regression examples have been applied to two or more random variables. We assume the pairs are bivariate normal and used this to motivates a linear model. This approach cover most real life examples of linear regression. The other major application comes from measurement errors models. In these application, it is common to have a non-random covariate, such as time, and randomness is introduced from measurement error rather than sampling or natural variability.
+
+To understand these models, imagine you are Galileo in the 16th century trying to describe the velocity of a falling object. An assistant climbs the Tower of Pisa and drops a ball, while several other assistants record the position at different times. Let's simulate some data using the equations we know today and adding some measurement error:
+
+```{r}
+falling_object <- rfalling_object()
+```
+
+The assistants hand the data to Galileo and this is what he sees:
+
+```{r gravity, fig.cap="Simulated data for distance travelled versus time of falling object measured with error."}
+falling_object %>% 
+  ggplot(aes(time, observed_distance)) + 
+  geom_point() +
+  ylab("Distance in meters") + 
+  xlab("Time in seconds")
+```
+
+Galileo does not know the exact equation, but by looking at the plot above he deduces that the position should follow a parabola, which we can write like this
+
+$$ f(x) = \beta_0 + \beta_1 x + \beta_2 x^2$$
+
+The data does not fall exactly on a parabola. Galileo knows this is due to measurement error. His helpers make mistakes when measuring the distance. To account for this he models the data with:
+
+$$ Y_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \varepsilon_i, i=1,\dots,n $$
+
+With $Y_i$ representing distance in meters, $x_i$ representing time in seconds, and $\varepsilon$ accounting for measurement error. The measurement error is assumed to be random, independent from each other, and having the same distribution for each $i$. We also assume that there is no bias which means the expected value $\mbox{E}[\varepsilon] = 0$.
+
+Note that this is a linear model because it is a linear combination of known quantities, $x$ and $x^2$ are known, and unknown parameters (the $\beta$ s). Unlike our previous examples $x$ are fixed quantities, we are not conditioning. 
+
+To pose a new physical theory and start making predictions about other falling objects Galileo needs actual numbers, rather than unknown parameters. The LSE seem like a reasonable approach. How do we find the LSE?
+
+Note that the LSE calculations do not require the errors to be approximately normal. The `lm` function will find the $\beta$ s that will minimize the residual sum of squares:
+
+```{r}
+fit <- falling_object %>% 
+  mutate(time_sq = time^2) %>% 
+  lm(observed_distance~time+time_sq, data=.)
+tidy(fit)
+```
+
+To check if the estimated parabola fits the data. The broom function `augment` let's us do this easily
+
+```{r}
+augment(fit) %>% 
+  ggplot() +
+  geom_point(aes(time, observed_distance)) + 
+  geom_line(aes(time, .fitted), col = "blue")
+```
+
+
+Thanks to my high school physics teacher, I know that the equation for the trajectory of a falling object is: 
+
+$$d = h_0 + v_0 t -  0.5 \times 9.8 t^2$$
+
+with $h_0$ and $v_0$ the starting height and velocity respectively. The data we simulated above followed this equation and added measurement error to simulate `n` observations for dropping the ball $(v_0=0)$ from the tower of Pisa $(h_0=56.67)$. 
+
+These are consistent with the parameter estimates
+
+```{r}
+tidy(fit, conf.int = TRUE)
+```
+
+The tower of Pisa height is within the confidence interval for $\beta_0$, the initial velocity 0 is in the confidence interval for $\beta_1$ (not the p-value is larger than 0.05), and the acceleration constant is in a confidence interval for -2 $\times \beta_2$.
+
+

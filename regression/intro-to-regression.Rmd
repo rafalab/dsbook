@@ -1,0 +1,436 @@
+# (PART) Regression {-}
+
+# Introduction
+
+```{r}
+library(tidyverse)
+library(dslabs)
+ds_theme_set()
+set.seed(0)
+```
+
+Up to this point, this book has focused mainly on _univariate_ variables. However, in data science applications it is very common to be interested in the relationship between two or more variables. For instance, later in the chapter we will try to build a baseball team, with a limit budget, by examining the relationship between player statistics and runs (points). Before delving into this more complex example, we introduce necessary concepts needed to understand regression using a simpler example. We actually use the dataset from which regression was born.
+
+The example is from Genetics. [Francis Galton](https://en.wikipedia.org/wiki/Francis_Galton) studied the variation and heredity of human traits. Among many other traits, Galton collected and studied height data from families to try to understand heredity. While doing this, he developed the concepts of correlation and regression and a connection to pairs of data that follow a normal distribution. Or course, at the time this data was collected, our knowledge regarding genetics was limited compared to  what we know today. A very specific question Galton tried to answer was how well can we predict a child's height based on the parents' height. The technique he developed to answer this question, regression, can also be applied to our baseball question. For example, we will ask if bases on ball predict runs?
+
+# Case study: is height hereditary?
+
+We have access to Galton's family height data through the `HistData` package. To immitate Galon's analysis, we will create a dataset with the heights of fathers and the first born son of each family. However, this dataset includes daughters, mothers, and younger progeny as well. In the exercises we will look at these data. To construct a dataset with fathers and first born sons we can do this:
+
+```{r}
+library(HistData)
+data("GaltonFamilies")
+galton_heights <- GaltonFamilies %>%
+  filter(childNum == 1 & gender == "female") %>%
+  select(father, childHeight) %>%
+  rename(son = childHeight)
+```
+
+Suppose we were asked to summarize these data. Since both distributions are well approximated by the normal distribution, we could use the two averages and two standard deviations as summaries:
+
+```{r, message=FALSE, warning=FALSE}
+galton_heights %>% 
+  summarize(mean(father), sd(father), mean(son), sd(son))
+```
+
+However, this summary fails to describe an important characteristic of the data: the trend that the taller the father, the taller the son. 
+
+```{r scatterplot, fig.cap="Heights of father and son pairs plotted against each other."}
+galton_heights %>% ggplot(aes(father, son)) + 
+  geom_point(alpha = 0.5)
+```
+
+We will learn that the correlation coefficient is a summary of how two variables move together and then see how this can be used to predict.
+
+# Correlation and the regression line
+
+## The correlation coefficient 
+
+The correlation coefficient is defined for a list of pairs $(x_1, y_1), \dots, (x_n,y_n)$ as:
+
+$$
+\rho = \frac{1}{n} \sum_{i=1}^n \left( \frac{x_i-\mu_x}{\sigma_x} \right)\left( \frac{y_i-\mu_y}{\sigma_y} \right)
+$$
+with $\mu_x, \mu_y$ the averages of $x_1,\dots, x_n$ and $y_1, \dots, y_n$ respectively and $\sigma_x, \sigma_y$ the standard deviations. The Greek letter $\rho$ is commonly used in statistics books to denote the correlation. The reason is that $\rho$ is the Greek letter for $r$, the first letter of regression. Soon we learn about the connection between correlation and regression.
+
+To understand why this equation does in fact summarize how two variables move together, consider the $i$-th entry of $x$ is  $\left( \frac{x_i-\mu_x}{\sigma_x} \right)$ SDs away from the average. Similarly, the $y_i$ that is paired with $x_i$, is $\left( \frac{y_1-\mu_y}{\sigma_y} \right)$ SDs away from the average $y$. If $x$ and $y$ are unrelated, the product $\left( \frac{x_i-\mu_x}{\sigma_x} \right)\left( \frac{y_i-\mu_y}{\sigma_y} \right)$ will be positive ( $+ \times +$ and $- \times -$ ) as often as negative ($+ \times -$ and $- times +$) and will average out to about 0. This correlation is the average and therefore unrelated variables will have 0 correlation. If instead the quantities vary together, then we are averaging mostly positive products ( $+ \times +$ and $- \times -$) and we get a positive correlation. If they vary in opposite directions, we get a negative correlation. 
+
+The correlation coefficient is always between -1 and 1. We can show this mathematically: consider that we can't have higher correlation than when we compare a list to itself (perfect correlation) and in this case the correlation is:
+
+$$
+\rho = \frac{1}{n} \sum_{i=1}^n \left( \frac{x_i-\mu_x}{\sigma_x} \right)^2 = 1/\sigma^2 
+\frac{1}{n} \sum_{i=1}^n \left( x_i-\mu_x \right)^2 = 1
+$$
+A similar argument with $x$ and its exact opposite proves the correlation has to be bigger or equal to -1.
+
+So, for example, the correlation between a variable and itself is 1 and the correlation between a variable and its negative is -1.  For other pairs, the correlation is in between -1 and 1. For instance, the correlation between father and son's heights is about 0.5:
+
+```{r}
+galton_heights %>% summarize(r = cor(father, son))
+```
+
+To see what data looks like for different values of $\rho$, here are six examples of pairs with correlations ranging from -0.9 to 0.99:
+
+```{r, echo=FALSE}
+n <- 250
+cors <- c(-0.9,-0.5,0,0.5,0.9,0.99)
+sim_data <- lapply(cors,function(r) MASS::mvrnorm(n,c(0,0), matrix(c(1,r,r,1),2,2)))
+sim_data <- Reduce(rbind, sim_data)
+sim_data <- cbind( rep(cors, each=n), sim_data)
+colnames(sim_data) <- c("r","x","y")
+as.data.frame(sim_data) %>% ggplot(aes(x,y)) +facet_wrap(~r) + geom_point() +geom_vline(xintercept = 0,lty=2) + geom_hline(yintercept = 0,lty=2) 
+```
+
+
+## Sample correlation is a random variable
+
+Before we continue connecting correlation to regression, let's remind ourselves about random variability.
+
+In most data science applications, we do not observe the population but rather a sample. As with the average and standard deviation, the **sample** correlation is the most commonly used estimate of the population correlation. This implies that the correlation we compute and use as a summary is a random variable.
+
+By way of illustration, let's assume that the `r nrow(galton_heights)` pairs of fathers and sons is our entire population. A less fortunate geneticist can only afford measurements from a random sample of 25 pairs. The sample correlation of the sample:
+
+```{r}
+R <- sample_n(galton_heights, 25, replace = TRUE) %>% 
+  summarize(r = cor(father, son))
+```
+
+is a random variable. We can run a Monte Carlo simulation to see its distribution:
+
+```{r}
+B <- 1000
+N <- 25
+R <- replicate(B, {
+  sample_n(galton_heights, N, replace = TRUE) %>% 
+    summarize(r=cor(father, son)) %>% .$r
+})
+data.frame(R) %>% ggplot(aes(R)) + geom_histogram(binwidth = 0.05, color = "black")
+```
+
+We see that is the expected value is the population correlation:
+
+```{r}
+mean(R)
+```
+
+and that it has a relatively high standard error:
+
+```{r}
+sd(R)
+```
+
+That correlations derived from samples are estimates, containing uncertainity, is something to keep in mind when interpreting correlations.
+
+Also note that because the sample correlation is an average of independent draws, the central limit actually applies. Therefore, for large enough $N$, the distribution of `R` is approximately normal with expected value $\rho$. The standard deviation, which is somewhat complex to derive, is $\sqrt{\frac{1-r^2}{N-2}}$. 
+
+In our example, $N=25$ does not seem to be large enough to make the approximation a good one:
+
+```{r}
+data.frame(R) %>% 
+  ggplot(aes(sample=R)) + 
+  stat_qq() + 
+  geom_abline(intercept = mean(R), 
+              slope = sqrt((1-mean(R)^2)/(N-2)))
+```
+
+If you increase $N$, you will see the distribution converging to normal.
+
+## When is correlation a useful summary?
+
+Correlation is not always a good summary of the relationship between two variables. A famous example used to illustrate this, are the following four artificial datasets, referred to as Anscombe's quartet. All these pairs have a correlation of 0.82:
+
+```{r ,echo=FALSE}
+library(tidyr)
+anscombe %>% mutate(row = seq_len(n())) %>%
+  gather(name, value, -row) %>% 
+  separate(name, c("axis", "group"), sep=1) %>%
+  spread(axis, value) %>% select(-row) %>%
+  ggplot(aes(x,y)) +
+  facet_wrap(~group)  +
+  geom_smooth(method="lm", fill=NA, fullrange=TRUE, color="blue") +
+  geom_point(bg="orange",color="red",cex=3,pch=21)
+```
+
+Correlation is only meaningful in a particular context. To help us understand when it is that correlation is meaningful, as a summary statistic, we will get back to the example of predicting son's height using the father's height. This will help motivate and define linear regression. We start by demonstrating how correlation can be useful for prediction.
+
+## Prediction based on stratification
+
+Suppose we are asked to guess the height of a randomly selected son and we don't know his father's height. Because the distribution of sons' heights is approximately normal, we know the average height, `r mean(galton_heights$son)`, is the value with the highest proportion and would be the prediction with the chances of minimizing the error. But what if we are told that the father is 72 inches tall, do we sill guess `r mean(galton_heights$son)` for the son? 
+
+It turns out that if we were able to collect data from a very large number of fathers that are 72 inches, the distribution of their sons' heights would be normally distributed. This implies that the average of the distribution computed on this subset would be our best prediction. Can we figure out what this average is?
+
+We call this approach _stratifying_ or _conditioning_. The distribution of the strata is called the _conditional distribution_ and the average of this distribution the _conditional aveage_. In our case we are computing the average son height _conditioned_ on the father being 72 inches tall. A challenge when using this approach in practice is that for continuous data, we don't have many data points matching exactly one value. For example, we have only: 
+
+```{r}
+sum(galton_heights$father == 72)
+```
+
+fathers that are exactly 72 inches. If we change the number to 72.5 we only get 
+
+```{r}
+sum(galton_heights$father == 72.5)
+```
+
+The small samples sizes will result in averages with large standard errors that are not useful for prediction. 
+
+For now, we will take the approach of creating strata of fathers with very similar heights. Specifically, we will round father heights to the nearest inch and assume that they are all 72 inches. If we do this, we end up with the following prediction for the son of a father that is 72 inches tall:
+
+```{r}
+conditional_avg <- galton_heights %>% 
+  filter(round(father) == 72) %>%
+  summarize(avg = mean(son)) %>% .$avg
+conditional_avg
+```
+
+
+Note that a 72 inch father is taller than average. Specifically, (72 - `mean(galton_heights$father)`/`sd(galton_heights$father)` =
+`r (72 -mean(galton_heights$father))/sd(galton_heights$father)` standard deviations taller than the average father. Our prediction `r conditional_avg` is also taller than average, but only `r (conditional_avg - mean(galton_heights$son)) /sd(galton_heights$son)` standard deviations larger than the average son. The sons of 72 inch fathers have _regressed_ some to the average height. We notice that the reduction in how much taller is about 0.5, which happens to be the correlation. As we will see in a later section, this is not a coincidence.
+
+If we want to make a prediction of any height, not just 72, we could apply the same approach to each strata. Stratification followed by boxplots lets us see the distribution of each group:
+
+```{r boxplot-1, fig.cap="Boxplot of son heights stratified by father heights."}
+galton_heights %>% mutate(father_strata = factor(round(father))) %>% 
+  ggplot(aes(father_strata, son)) + 
+  geom_boxplot() + 
+  geom_point()
+```
+
+Not surprisingly, the centers of the groups are increasing with height. 
+
+```{r boxplot-2, fig.cap="Boxplot of son heights stratified by father heights."}
+galton_heights %>% 
+  mutate(father = round(father)) %>% 
+  group_by(father) %>%
+  summarize(son_conditional_avg = mean(son)) %>%
+  ggplot(aes(father, son_conditional_avg)) + 
+  geom_point()
+```
+
+Furthermore, these centers appear to follow a linear relationship. Below we plot the averages of each group. If we take into account that these averages are random variables, with standard errors, it does appear that they follow a straight line:
+
+```{r}
+r <- galton_heights %>% summarize(r = cor(father, son)) %>% .$r
+galton_heights %>% 
+  mutate(father = round(father)) %>% 
+  group_by(father) %>%
+  summarize(son = mean(son)) %>%
+  mutate(z_father = scale(father), z_son = scale(son)) %>%
+  ggplot(aes(z_father, z_son)) + 
+  geom_point() +
+  geom_abline(intercept = 0, slope = r)
+```
+
+In the next section we explain the line these averages follow is what we call the *regression line* and describe Galton's theoretical justification for using this line to estimate conditional means. Here we define it and compute the regression line for the data at hand. 
+
+## The regression line
+
+If we are predicting a random variable $Y$ knowing the value of another $X=x$ using a regression line, then we predict that for every standard deviation, $\sigma_X$, that $x$ increases above the average $mu_X$, $Y$ increase $\rho$ standard deviations $\sigma_Y$ above the average $\mu_Y$ with $\rho$ the correlation between $X$ and $Y$. The formula for the regression is therefore:
+
+$$ 
+\left( \frac{Y-\mu_Y}{\sigma_Y} \right) = \rho \left( \frac{x-\mu_X}{\sigma_X} \right)
+$$
+We can rewrite it like this:
+
+$$ 
+Y = \mu_Y + \rho \left( \frac{x-\mu_X}{\sigma_X} \right) \sigma_Y
+$$
+
+If there is perfect correlation, we predict an increase that is the same number of SDs. If there is 0 correlation, then we don't use $x$ at all for the prediction and simply predict the average $\mu_Y$.  For values between 0 and 1, the prediction is somewhere in between. If the correlation is negative, we predict a reduction instead of an increase. For negative values, we predict in the opposite direction.
+
+
+Note that if the correlation is positive and lower than 1, our prediction is closer, in standard units, to the average height than the value using to predict, $x$, is to the average of the $x$s. This is why we call it _regression_: the son regresses to the average height. In fact, the title of Galton's paper was:
+
+>> Regression toward mediocrity in hereditary stature
+
+
+To add regression lines to plots, we will need the above formula in the form: 
+
+$$
+y= b + mx \mbox{ with slope } m = \rho \frac{\sigma_y}{\sigma_x} \mbox{ and intercept } b=\mu_y - m \mu_x
+$$
+
+Here we add the regression line to the original data:
+
+```{r}
+mu_x <- mean(galton_heights$father)
+mu_y <- mean(galton_heights$son)
+s_x <- sd(galton_heights$father)
+s_y <- sd(galton_heights$son)
+r <- cor(galton_heights$father, galton_heights$son)
+
+m <-  r * s_y / s_x
+b <- mu_y - m*mu_x
+
+galton_heights %>% 
+  ggplot(aes(father, son)) + 
+  geom_point(alpha = 0.5) +
+  geom_abline(intercept = b, slope = m ) 
+```
+
+If we first standardize the variables, that is subtract the average and divide by the standard deviation, then the regression line has intercept 0 and slope equal to the correlation $\rho$. Here is the same plot, but using standard units:
+
+```{r}
+galton_heights %>% 
+  ggplot(aes(scale(father), scale(son))) + 
+  geom_point(alpha = 0.5) +
+  geom_abline(intercept = 0, slope = r) 
+```
+
+
+## Regression improves precision 
+
+Let's compare the two approaches to prediction we have presented: 
+
+1. Round father's heights to closest inch, stratify, and then take the average.
+2. Compute the regression line and use it to predict.
+
+We use a Monte Carlo simulation sampling $N=50$ families:
+
+```{r}
+B <- 1000
+N <- 50
+
+set.seed(1)
+conditional_avg <- replicate(B, {
+  dat <- sample_n(galton_heights, N)
+  dat %>% filter(round(father) == 72) %>% 
+    summarize(avg = mean(son)) %>% 
+    .$avg
+  })
+
+regression_prediction <- replicate(B, {
+  dat <- sample_n(galton_heights, N)
+  mu_x <- mean(dat$father)
+  mu_y <- mean(dat$son)
+  s_x <- sd(dat$father)
+  s_y <- sd(dat$son)
+  r <- cor(dat$father, dat$son)
+  
+  mu_y + r*(72 - mu_x)/s_x*s_y
+})
+```
+
+Although the expected value of these two random variables is about the same:
+
+```{r}
+mean(conditional_avg, na.rm = TRUE)
+mean(regression_prediction)
+```
+
+The standard error for the regression prediction is substantially smaller:
+
+
+```{r}
+sd(conditional_avg, na.rm = TRUE)
+sd(regression_prediction)
+```
+
+The regression line is therefore much more stable than the conditional mean. There is an intuitive reason for this. The conditional average is computed on a relatively small subset: the fathers that are about 72 inches tall. In fact, in some of the permutations we have no data, which is why we use `na.rm=TRUE`. The regression always uses all the data. So why not always use the regression for prediction? Because it is not always appropriate. For example, Anscombe provided cases for which the data does not have a linear relationship. So are we justified in using the regression line to predict? Galton answered this in the positive for height data.
+
+## Bivariate normal distribution (advanced)
+
+Correlation and the regression line are widely used summary statistic but they are often misused or misinterpreted. Anscombe's examples provide toy examples of dataset in which summarizing with correlation would be a mistake. But there are many more real life examples.
+
+The main way we motivate the use of correlation involves what is called the _bivariate normal distribution_. 
+
+When a pair of random variables are approximated by the bivariate normal distribution, scatterplots look like ovals. They can be thin (high correlation) or circle-shaped (no correlation). We saw some of these above:
+
+```{r}
+n <- 250
+cors <- c(-0.9,-0.5,0,0.5,0.9,0.99)
+sim_data <- lapply(cors,function(r) MASS::mvrnorm(n,c(0,0), matrix(c(1,r,r,1),2,2)))
+sim_data <- Reduce(rbind, sim_data)
+sim_data <- cbind( rep(cors, each=n), sim_data)
+colnames(sim_data) <- c("r","x","y")
+as.data.frame(sim_data) %>% ggplot(aes(x,y)) +facet_wrap(~r) + geom_point() +geom_vline(xintercept = 0,lty=2) + geom_hline(yintercept = 0,lty=2) 
+```
+
+
+A more technical way to define the bivariate normal distribution is the following: if $X$ is a normally distributed random variable, $Y$ is also a normally distributed random variable, and for any stratum of $X$, say $X=x$, $Y$ is approximately normal in that stratum, then the pair is approximately bivariate normal. 
+
+When we fix $X=x$ in this way we then refer to the resulting distribution of the $Y$s in the strata as the _conditional distribution_ of $Y$ given $X=x$. We write it like notation like this:
+
+$$ f_{Y \mid X=x} \mbox{ is the notation for conditional distribution and } \mbox{E}(Y \mid X=x) \mbox{ is the notation for conditional expected value.}$$
+
+If we think the height data is well approximated by the bivariate normal distribution, then we should see the normal approximation hold for each strata. Here we stratify the son heights by the standardized father heights and see that the assumption appears to hold:
+
+```{r qqnorm-of-strata, fig.cap="qqplots of son heights for four strata defined by father heights.",fig.width=7.5,fig.height=7.5}
+galton_heights %>%
+  mutate(z_father = round((father - mean(father))/sd(father))) %>%
+  filter(z_father %in% -2:2) %>%
+  ggplot() +  
+  stat_qq(aes(sample=son)) +
+  facet_wrap(~z_father) 
+```
+
+Now we come back to defining correlation. Galton used mathematical statistics to demonstrate that when two variables follow a bivariate normal distribution. We don't show the derivation here but, we can show that under this assumption, for any given value of $x$, the expected value of the $Y$ in pairs for which $X=x$ is:
+
+$$ 
+\mbox{E}(Y | X=x) = \mu_Y +  \rho \frac{X-\mu_X}{\sigma_X}\sigma_Y
+$$
+
+This is the regression line: the line has slope  $$\rho \frac{\sigma_Y}{\sigma_X}$$ and intercept $\mu_y - m\mu_X$. It is equivalent to the line we showed earlier:
+
+$$
+\frac{\mbox{E}(Y \mid X=x)  - \mu_Y}{\sigma_Y} = \rho \frac{x-\mu_X}{\sigma_X}
+$$
+
+This implies that, if our data is approximately bivariate, the regression line gives the conditional probability. Therefore, we can obtain a much more stable estimate of the conditional expectation by finding the regression line and using it to predict.
+
+In summary, if our data is approximately bivariate, then the conditional expectation, the best prediction of $Y$ given we know the value of $X$, is given by the regression line.
+
+## Variance explained
+
+The bivariate normal theory also tells us that the standard deviation of the _conditional_ distribution described above is:
+
+$$
+\mbox{SD}(Y \mid X=x ) = \sigma_Y \sqrt{1-\rho^2} 
+$$
+
+To see why this is intuitive, notice that without conditioning, $\mbox{SD}(Y) = \sigma_Y$, we are looking at the variability of all the sons. But once we condition, we are only looking at the variability of the sons with a tall, 72 inch, father. This group will all tend to be somewhat tall so the standard deviation is reduced. 
+
+Specifically, it is reduced to $\sqrt{1-\rho^2} = \sqrt{1 - 0.25}$ = 0.86 of what it was originally. We could say that the fathers height "explains" 14% of the sons height variability. 
+
+The statement $X$ explains such and such percent of the variability is commonly used in academic papers. In this case this percent actually refers to the variance (the SD squared). So if the data is bivariate normal, the variance is reduced by $1-\rho^2$ so we say that $X$ explains $1- (1-\rho^2)=\rho^2$ (the correlation squared) of the variance. 
+
+But it is important to remember that the "variance explained" statement only makes sense when the data is approximated by a bivariate normal distribution.
+
+## Warning: there are two regression lines
+
+We computed a regression line to predict the son's height from father's height. We used these calculations: 
+
+```{r}
+mu_x <- mean(galton_heights$father)
+mu_y <- mean(galton_heights$son)
+s_x <- sd(galton_heights$father)
+s_y <- sd(galton_heights$son)
+r <- cor(galton_heights$father, galton_heights$son)
+m_1 <-  r * s_y / s_x
+b_1 <- mu_y - m_1*mu_x
+```
+
+which gives us the function $\mbox{E}(Y\mid X=x) =$ `r b_1` + `r m_1` $x$. 
+
+What if we want to predict the father's height based on the son's? It is important to know that this is not determined by computing the inverse function: 
+$x = \{ \mbox{E}(Y\mid X=x) -$ `r b_1` $\} /$ `r m_1`. 
+
+We need to compute $\mbox{E}(X \mid Y=y)$. Because the data is approximately bivariate normal, the theory described above tells us that this conditional expectation will follow a line with slope and intercept:
+
+```{r}
+m_2 <-  r * s_x / s_y
+b_2 <- mu_x - m_2*mu_y
+```
+
+So we get $\mbox{E}(X \mid Y=y) =$ `r b_2` + `r m_2`y. Again we see regression to the average: the prediction for the father is closer to the father average than the son heights $y$ is to the son average.
+
+Here is a plot showing the two regression lines:
+
+```{r}
+galton_heights %>% 
+  ggplot(aes(father, son)) + 
+  geom_point(alpha = 0.5) + 
+  geom_abline(intercept = b_1, slope = m_1, col = "blue") +
+  geom_abline(intercept = -b_2/m_2, slope = 1/m_2, col = "red") 
+```
+
+with blue for the predicting son heights with father heights and red for predicting father heights with son heights.
