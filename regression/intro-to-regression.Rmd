@@ -9,13 +9,13 @@ ds_theme_set()
 set.seed(0)
 ```
 
-Up to this point, this book has focused mainly on _univariate_ variables. However, in data science applications it is very common to be interested in the relationship between two or more variables. For instance, later in the chapter we will try to build a baseball team, with a limit budget, by examining the relationship between player statistics and runs (points). Before delving into this more complex example, we introduce necessary concepts needed to understand regression using a simpler example. We actually use the dataset from which regression was born.
+Up to this point, this book has focused mainly on _univariate_ variables. However, in data science applications, it is very common to be interested in the relationship between two or more variables. For instance, later in the chapter we will try to use a limited budget to build a baseball team by examining the relationship between player statistics and runs (points). Before delving into this more complex example, we introduce necessary concepts needed to understand regression using a simpler illustration. We actually use the dataset from which regression was born.
 
-The example is from Genetics. [Francis Galton](https://en.wikipedia.org/wiki/Francis_Galton) studied the variation and heredity of human traits. Among many other traits, Galton collected and studied height data from families to try to understand heredity. While doing this, he developed the concepts of correlation and regression and a connection to pairs of data that follow a normal distribution. Or course, at the time this data was collected, our knowledge regarding genetics was limited compared to  what we know today. A very specific question Galton tried to answer was how well can we predict a child's height based on the parents' height. The technique he developed to answer this question, regression, can also be applied to our baseball question. For example, we will ask if bases on ball predict runs?
+The example is from Genetics. [Francis Galton](https://en.wikipedia.org/wiki/Francis_Galton) studied the variation and heredity of human traits. Among many other traits, Galton collected and studied height data from families to try to understand heredity. While doing this, he developed the concepts of correlation and regression, and a connection to pairs of data that follow a normal distribution. Of course, at the time this data was collected, our knowledge of genetics was quite limited compared to what we know today. A very specific question Galton tried to answer was: how well can we predict a child's height based on the parents' height? The technique he developed to answer this question, regression, can also be applied to our baseball question. For example, we will ask if bases on ball predict runs?
 
-# Case study: is height hereditary?
+# Case study: Is height hereditary?
 
-We have access to Galton's family height data through the `HistData` package. To immitate Galon's analysis, we will create a dataset with the heights of fathers and the first born son of each family. However, this dataset includes daughters, mothers, and younger progeny as well. In the exercises we will look at these data. To construct a dataset with fathers and first born sons we can do this:
+We have access to Galton's family height data through the `HistData` package. This data contains heights on several dozen families: mothers, fathers, daughters and sons. To imitate Galton's analysis, we will create a dataset with the heights of fathers and the firstborn son of each family: 
 
 ```{r}
 library(HistData)
@@ -26,7 +26,9 @@ galton_heights <- GaltonFamilies %>%
   rename(son = childHeight)
 ```
 
-Suppose we were asked to summarize these data. Since both distributions are well approximated by the normal distribution, we could use the two averages and two standard deviations as summaries:
+In the exercises, we will look at other relatioships. 
+
+Suppose we were asked to summarize the father and son data. Since both distributions are well approximated by the normal distribution, we could use the two averages and two standard deviations as summaries:
 
 ```{r, message=FALSE, warning=FALSE}
 galton_heights %>% 
@@ -40,7 +42,7 @@ galton_heights %>% ggplot(aes(father, son)) +
   geom_point(alpha = 0.5)
 ```
 
-We will learn that the correlation coefficient is a summary of how two variables move together and then see how this can be used to predict.
+We will learn that the correlation coefficient is a summary of how two variables move together and then see how this can be used to predict one variable using the other.
 
 # Correlation and the regression line
 
@@ -88,7 +90,7 @@ Before we continue connecting correlation to regression, let's remind ourselves 
 
 In most data science applications, we do not observe the population but rather a sample. As with the average and standard deviation, the **sample** correlation is the most commonly used estimate of the population correlation. This implies that the correlation we compute and use as a summary is a random variable.
 
-By way of illustration, let's assume that the `r nrow(galton_heights)` pairs of fathers and sons is our entire population. A less fortunate geneticist can only afford measurements from a random sample of 25 pairs. The sample correlation of the sample:
+By way of illustration, let's assume that the `r nrow(galton_heights)` pairs of fathers and sons is our entire population. A less fortunate geneticist can only afford measurements from a random sample of 25 pairs. The sample correlation can be computed with:
 
 ```{r}
 R <- sample_n(galton_heights, 25, replace = TRUE) %>% 
@@ -107,7 +109,7 @@ R <- replicate(B, {
 data.frame(R) %>% ggplot(aes(R)) + geom_histogram(binwidth = 0.05, color = "black")
 ```
 
-We see that is the expected value is the population correlation:
+We see that the expected value of `R` is the population correlation:
 
 ```{r}
 mean(R)
@@ -119,7 +121,7 @@ and that it has a relatively high standard error:
 sd(R)
 ```
 
-That correlations derived from samples are estimates, containing uncertainity, is something to keep in mind when interpreting correlations.
+When interpreting correlations, keep in mind that correlations derived from samples are estimates containing uncertainty.
 
 Also note that because the sample correlation is an average of independent draws, the central limit actually applies. Therefore, for large enough $N$, the distribution of `R` is approximately normal with expected value $\rho$. The standard deviation, which is somewhat complex to derive, is $\sqrt{\frac{1-r^2}{N-2}}$. 
 
@@ -137,7 +139,7 @@ If you increase $N$, you will see the distribution converging to normal.
 
 ## When is correlation a useful summary?
 
-Correlation is not always a good summary of the relationship between two variables. A famous example used to illustrate this, are the following four artificial datasets, referred to as Anscombe's quartet. All these pairs have a correlation of 0.82:
+Correlation is not always a good summary of the relationship between two variables. The following four artificial datasets, referred to as Anscombe's quartet, famously illustrate this point. All these pairs have a correlation of 0.82:
 
 ```{r ,echo=FALSE}
 library(tidyr)
@@ -151,21 +153,21 @@ anscombe %>% mutate(row = seq_len(n())) %>%
   geom_point(bg="orange",color="red",cex=3,pch=21)
 ```
 
-Correlation is only meaningful in a particular context. To help us understand when it is that correlation is meaningful, as a summary statistic, we will get back to the example of predicting son's height using the father's height. This will help motivate and define linear regression. We start by demonstrating how correlation can be useful for prediction.
+Correlation is only meaningful in a particular context. To help us understand when it is that correlation is meaningful as a summary statistic, we will return to the example of predicting son's height using the father's height. This will help motivate and define linear regression. We start by demonstrating how correlation can be useful for prediction.
 
 ## Prediction based on stratification
 
-Suppose we are asked to guess the height of a randomly selected son and we don't know his father's height. Because the distribution of sons' heights is approximately normal, we know the average height, `r mean(galton_heights$son)`, is the value with the highest proportion and would be the prediction with the chances of minimizing the error. But what if we are told that the father is 72 inches tall, do we sill guess `r mean(galton_heights$son)` for the son? 
+Suppose we are asked to guess the height of a randomly selected son and we don't know his father's height. Because the distribution of sons' heights is approximately normal, we know the average height, `r mean(galton_heights$son)`, is the value with the highest proportion and would be the prediction with the highest chance of minimizing the error. But what if we are told that the father is 72 inches tall, do we sill guess `r mean(galton_heights$son)` for the son? 
 
 It turns out that if we were able to collect data from a very large number of fathers that are 72 inches, the distribution of their sons' heights would be normally distributed. This implies that the average of the distribution computed on this subset would be our best prediction. Can we figure out what this average is?
 
-We call this approach _stratifying_ or _conditioning_. The distribution of the strata is called the _conditional distribution_ and the average of this distribution the _conditional aveage_. In our case we are computing the average son height _conditioned_ on the father being 72 inches tall. A challenge when using this approach in practice is that for continuous data, we don't have many data points matching exactly one value. For example, we have only: 
+We call this approach _stratifying_ or _conditioning_. The distribution of the strata is called the _conditional distribution_ and the average of this distribution the _conditional average_. In our case, we are computing the average son height _conditioned_ on the father being 72 inches tall. A challenge when using this approach in practice is that for continuous data, we don't have many data points matching exactly one value. For example, we have only: 
 
 ```{r}
 sum(galton_heights$father == 72)
 ```
 
-fathers that are exactly 72 inches. If we change the number to 72.5 we only get 
+fathers that are exactly 72 inches. If we change the number to 72.5 we only get: 
 
 ```{r}
 sum(galton_heights$father == 72.5)
@@ -220,7 +222,7 @@ galton_heights %>%
   geom_abline(intercept = 0, slope = r)
 ```
 
-In the next section we explain the line these averages follow is what we call the *regression line* and describe Galton's theoretical justification for using this line to estimate conditional means. Here we define it and compute the regression line for the data at hand. 
+In the next section, we explain that the line these averages follow is what we call the *regression line* and describe Galton's theoretical justification for using this line to estimate conditional means. Here we define it and compute the regression line for the data at hand. 
 
 ## The regression line
 
@@ -279,7 +281,7 @@ galton_heights %>%
 
 ## Regression improves precision 
 
-Let's compare the two approaches to prediction we have presented: 
+Let's compare the two approaches to prediction that we have presented: 
 
 1. Round father's heights to closest inch, stratify, and then take the average.
 2. Compute the regression line and use it to predict.
@@ -329,7 +331,7 @@ The regression line is therefore much more stable than the conditional mean. The
 
 ## Bivariate normal distribution (advanced)
 
-Correlation and the regression line are widely used summary statistic but they are often misused or misinterpreted. Anscombe's examples provide toy examples of dataset in which summarizing with correlation would be a mistake. But there are many more real life examples.
+Correlation and the regression line are a widely used summary statistic, but they are often misused or misinterpreted. Anscombe's examples provide over-simplified examples of dataset in which summarizing with correlation would be a mistake. But there are many more real life examples.
 
 The main way we motivate the use of correlation involves what is called the _bivariate normal distribution_. 
 
@@ -348,7 +350,7 @@ as.data.frame(sim_data) %>% ggplot(aes(x,y)) +facet_wrap(~r) + geom_point() +geo
 
 A more technical way to define the bivariate normal distribution is the following: if $X$ is a normally distributed random variable, $Y$ is also a normally distributed random variable, and for any stratum of $X$, say $X=x$, $Y$ is approximately normal in that stratum, then the pair is approximately bivariate normal. 
 
-When we fix $X=x$ in this way we then refer to the resulting distribution of the $Y$s in the strata as the _conditional distribution_ of $Y$ given $X=x$. We write it like notation like this:
+When we fix $X=x$ in this way, we then refer to the resulting distribution of the $Y$s in the strata as the _conditional distribution_ of $Y$ given $X=x$. We can write it using mathematical notation like this  :
 
 $$ f_{Y \mid X=x} \mbox{ is the notation for conditional distribution and } \mbox{E}(Y \mid X=x) \mbox{ is the notation for conditional expected value.}$$
 
@@ -363,7 +365,7 @@ galton_heights %>%
   facet_wrap(~z_father) 
 ```
 
-Now we come back to defining correlation. Galton used mathematical statistics to demonstrate that when two variables follow a bivariate normal distribution. We don't show the derivation here but, we can show that under this assumption, for any given value of $x$, the expected value of the $Y$ in pairs for which $X=x$ is:
+Now we come back to defining correlation. Galton used mathematical statistics to demonstrate that when two variables follow a bivariate normal distribution computing the regression line is equivalent to computing conditional expectations. We don't show the derivation here but, we can show that under this assumption, for any given value of $x$, the expected value of the $Y$ in pairs for which $X=x$ is:
 
 $$ 
 \mbox{E}(Y | X=x) = \mu_Y +  \rho \frac{X-\mu_X}{\sigma_X}\sigma_Y
@@ -391,7 +393,7 @@ To see why this is intuitive, notice that without conditioning, $\mbox{SD}(Y) = 
 
 Specifically, it is reduced to $\sqrt{1-\rho^2} = \sqrt{1 - 0.25}$ = 0.86 of what it was originally. We could say that the fathers height "explains" 14% of the sons height variability. 
 
-The statement $X$ explains such and such percent of the variability is commonly used in academic papers. In this case this percent actually refers to the variance (the SD squared). So if the data is bivariate normal, the variance is reduced by $1-\rho^2$ so we say that $X$ explains $1- (1-\rho^2)=\rho^2$ (the correlation squared) of the variance. 
+The statement $X$ explains such and such percent of the variability is commonly used in academic papers. In this case, this percent actually refers to the variance (the SD squared). So if the data is bivariate normal, the variance is reduced by $1-\rho^2$ so we say that $X$ explains $1- (1-\rho^2)=\rho^2$ (the correlation squared) of the variance. 
 
 But it is important to remember that the "variance explained" statement only makes sense when the data is approximated by a bivariate normal distribution.
 
