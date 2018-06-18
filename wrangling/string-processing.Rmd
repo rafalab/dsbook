@@ -57,8 +57,7 @@ Make sure you choose the correct single quote since using the back quote will gi
 s <- `Hello`
 ```
 
-Now, what happens if our string includes double quotes? For example, if we want to write 10 inches like this `10"`? For this you can use the single quotes:  [AN: nothing follows the colon]
-
+Now, what happens if our string includes double quotes? For example, if we want to write 10 inches like this `10"`? 
 You can't use:
 
 ```{r, eval=FALSE}
@@ -94,7 +93,7 @@ closes the string after 5 and this:
 ```{r, eval=FALSE}
 s <- "5'10""
 ```
-closes the string after 10. Keep in mind that if we type one of the above code sniptes [AN: snippets?] into R, it will get stuck waiting for you to close the open quote and you will have to escape with the _esc_ button.
+closes the string after 10. Keep in mind that if we type one of the above code snippets into R, it will get stuck waiting for you to close the open quote and you will have to escape with the _esc_ button.
 
 In this situation, we need to _escape_ the function of the quotes. This is done with the backslash `\`. You can escape either character like this:
 
@@ -285,7 +284,7 @@ length(problems)
 
 problematic entries!
 
-We can now view all the cases by simply printing them. We don't do that here because there are 297, but after surveying them carefully, we three patterns that followed by three large groups. [AN: that last clause needs editing]
+We can now view all the cases by simply printing them. We don't do that here because there are 297, but after surveying them carefully, we see that three patterns can be used to define three large groups within these exceptions.
 
 1. A pattern of the form `x'y` or `x' y''` or `x'y\"` with `x` and `y` representing feet and inches respectively. Here are ten examples:
 
@@ -425,7 +424,7 @@ Keep in mind that characters do have an order and the digits do follow the numer
 
 ### Anchors
 
-What if we want a match when we have exactly 1 digit? This will be useful in our case study since feet are never more than 1 digit so a restriction will help us. One way to do this with regex is by using _anchors_ which lets us define patterns that must start or end a specific places. [AN: check preceding sentence] The two most common anchors are 
+What if we want a match when we have exactly 1 digit? This will be useful in our case study since feet are never more than 1 digit so a restriction will help us. One way to do this with regex is by using _anchors_, which let us define patterns that must start or end at a specific place. The two most common anchors are 
 `^` and `$` which represent the beginning and end of a string respectively. So the pattern `^\\d$` is read as: 
 
 >> start of the string followed by one digit followed by end of string. 
@@ -444,7 +443,7 @@ The ` 1` does not match because it does not start with the digit but rather a sp
 
 ### Quantifiers
 
-For the inches part we can have one or two digits. This can be specified in regex with _quantifiers_. This is done by following the pattern by curly brackets with the possible number of times the previous entry repeats. [AN: check preceding sent] So the pattern for one or two digits is:
+For the inches part we can have one or two digits. This can be specified in regex with _quantifiers_. This is done by following the pattern by curly brackets containing the number of times the previous entry can be repeated. We use an example to illistrate: the pattern for one or two digits is:
 
 ```{r}
 pattern <- "^\\d{1,2}$"
@@ -585,7 +584,7 @@ We might be tempted to avoid doing this by removing all the spaces with `str_rep
 ### Groups
 
 The second large group of problematic entries were of the form `x.y`, `x,y` and `x y`. We want to change all these to our common format `x'y`. But we can't just do a search and replace because we would change values such as `70.5` into `70'5`. 
-Our strategy will therefore be to search for a very specific pattern that assures us feet and inches are being provided, then for those that match replace appropriately. [AN: review last clause]
+Our strategy will therefore be to search for a very specific pattern that assures us feet and inches are being provided, and then, for those that match, replace appropriately.
 
 _Groups_ are a powerful aspect of regex that permits the extraction values. Groups are defined using parentheses. They don't affect the pattern matching per-se. Instead, it permits tools to identify specific parts of the pattern so we can extract them. 
 
@@ -694,8 +693,7 @@ problems <- reported_heights %>%
 length(problems)
 ```
 
-Let's see how many of these we can make fit our pattern after we the several processing we developed [AN: we what? missing verb].
-Here we leverage the pipe, one of the advantages of using `stringr`:
+Let's see how many of these fit our pattern after the processing steps we developed above:
 
 ```{r}
 converted <- problems %>% 
@@ -708,7 +706,7 @@ index <- str_detect(converted, pattern)
 mean(index)
 ```
 
-We have well over half now [AN: half of what?]. Let's examine the remaining cases:
+Note how we leveraged the pipe, one of the advantages of using `stringr`. This last piece of code shows that we have matched well over half of the strings. Let's examine the remaining cases:
 
 ```{r}
 converted[!index]
@@ -722,7 +720,7 @@ Four clear patterns arise and some other minor problems:
 4. Some entries have spaces at the end, for example `5 ' 9 `.
 5. Some entries are in meters and some of these use European decimals: `1.6`, `1,7`. 
 6. Two students added `cm`. 
-7. A student spelled out the numbers: `Five foot eight inches`.  [AN: Five FEET? or are you quoting?]
+7. A student spelled out the numbers: `Five foot eight inches`.  
 
 It is not necessarily clear that it is worth writing code to handle all these cases since they might be rare enough. However, some of them provide us with an opportunity to learn a few more regex techniques, so we will build a fix.
 
@@ -737,7 +735,7 @@ s <- c(yes, no)
 str_replace(s, "^([4-7])$", "\\1'0")
 ```
 
-The pattern says it has to start (`^`) followed by a digit between 4 and 7 and end there (`$`). The parenthesis defines the group that we pass as `\\1` to the replace regex. [AN: to replace "the"" regex? or just regex?]
+The pattern says it has to start (`^`) followed by a digit between 4 and 7 and end there (`$`). The parenthesis defines the group that we pass as `\\1` to generate the replacement regex string. 
 
 We can adapt this code slightly to handle the case 2 as well, which covers the entry `5'`. Note `5'` is left untouched. This is because the extra `'` makes the pattern not match since we have to end with a 5 or 6. We want to permit the 5 or 6 to be followed by 0 or 1 feet sign. So we can simply add `'{0,1}` after the `'` to do this. However, we can use the none or once special character `?`. As we saw above, this is different from `*` which is none or more. We now see that the fourth case is also converted:
 
@@ -747,7 +745,7 @@ str_replace(s, "^([56])'?$", "\\1'0")
 
 Here we only permit 5 and 6, but not 4 and 7. This is because 5 and 6 feet tall is quite common, so we assume those that typed 5 or 6 really meant `60` or `72` inches. However, `4` and `7` feet tall are so rare that, although we accept `84` as a valid entry, we assume `7` was entered in error. 
 
-We can use quantifies to deal with **case 3**. [AN: quantifies or quantifiers?]  These entries are not matched because the inches include decimals and our pattern does not permit this. We need to allow the second group to include decimals not just digits. This means we must permit zero or one period `.` then zero or more digits. So we will be using both `?` and `*`.
+We can use quantifiers to deal with **case 3**. These entries are not matched because the inches include decimals and our pattern does not permit this. We need to allow the second group to include decimals not just digits. This means we must permit zero or one period `.` then zero or more digits. So we will be using both `?` and `*`.
 Also remember that, for this particular case, the period needs to be escaped since it is a special character (it means any character except line break). Here is a simple example of how we can use `*`. 
 
 So we can adapt our pattern, currently `^[4-7]\\s*'\\s*\\d{1,2}$` to permit a decimal at the end:
@@ -791,15 +789,14 @@ str_trim("5 ' 9 ")
 
 ### To uppercase and to lowercase
 
-One of the entries writes out numbers as words `Five foot eight inches`. Although not efficient, we could add 12 extra [AN: extra "characters"?] `str_replace` to convert `zero` to `0`, `one` to `1`, and so on. To avoid having to write two separate operations for `Zero` and `zero`, `One` and `one`, etc., we can use the `str_to_lower` function to make all works lowercase first:
+One of the entries writes out numbers as words `Five foot eight inches`. Although not efficient, we could add 13 extra `str_replace` calls to convert `zero` to `0`, `one` to `1`, and so on. To avoid having to write two separate operations for `Zero` and `zero`, `One` and `one`, etc., we can use the `str_to_lower` function to make all works lowercase first:
 
 ```{r}
 s <- c("Five feet eight inches")
 str_to_lower(s)
 ```
 
-We are now be ready to define a procedure that converts all the problematic cases to: [AN: to what]
-
+We are now be ready to define a procedure that converts all the problematic cases to inches.
 ## Case study 2 (part 2)
 
 We now put all this together into a function that takes a string vector and tries to convert as many strings as possible to one format. We write a function that puts together what we have done above.
@@ -846,7 +843,7 @@ index <- str_detect(remaining_problems, pattern)
 remaining_problems[!index]
 ```
 
-they all seem to be cases that [AN: is this the proper end of this sent?] 
+they all seem to be cases that are impossible to fix.
 
 ## `separate`
 
@@ -864,8 +861,7 @@ we have already learned to use the separate function:
 tab %>% separate(x, c("feet", "inches"), sep = "'")
 ```
 
-The `extract` function from the tidyr package lets us use regex groups to extract the desired values. Here is the equivalent code using `extract` to the code above using `separate`:  [AN: creo que this last sent un poco unclear]
-
+The `extract` function from the tidyr package lets us use regex groups to extract the desired values. Above we showed how to use `separate` to split the data as desired. Here is the equivalent code using `extract`:  
 ```{r}
 tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
 ```
@@ -896,11 +892,7 @@ We are now ready to put it all together and wrangle our reported heights data to
 
 We start by cleaning up the `height` column so that the heights are closer to a feet'inches format. We added an original heights column so we can compare before and after. 
 
-Let's start by writing a function that cleans up strings so that all the feet and inches formats use the same `x'y` format when appropriate:  [AN: falta algo after colon?]
-
 ## Putting it all together continued
-
-Now we can adapt the code above using the new techniques we learned  [AN: this sent and the one that follows seem disconnected, two 'now']
 
 Now we are ready to wrangle our reported heights dataset:
 
@@ -935,7 +927,7 @@ new_heights %>%
 ```
 
 
-One last comment. [AN: remove preceding sent?] If we look at the shortest students in our course:
+A final observation is that if we look at the shortest students in our course:
 
 ```{r}
 new_heights %>% arrange(height) %>% head(n=7)
@@ -985,7 +977,7 @@ However, because this is such a common task, purrr provides a shortcut. If the s
 map(x, 1) %>% head()
 ```
 
-To for map [AN: to "force" map?] to return a character vector instead of a list, we can use `map_chr`. Similarly `map_int` returns integers. So to create our data frame we can use:
+To force `map` to return a character vector instead of a list, we can use `map_chr`. Similarly `map_int` returns integers. So to create our data frame we can use:
 
 ```{r}
 dat <- data.frame(map_chr(x, 1),  
@@ -998,7 +990,7 @@ dat <- data.frame(map_chr(x, 1),
 dat %>% head
 ```
 
-Using other functions included in the purrr package, we can accomplish with more efficient code: [AN: accomplish what?]
+If you learn more about the purrr package, you will be able to write the code above more efficiently:
 
 ```{r}
 dat <- x %>%
@@ -1008,7 +1000,8 @@ dat <- x %>%
   as.data.frame() 
 ```
 
-It turns out there [AN: "It turns out that in this case? or the previous case?"] we can use the function argument `simplify=TRUE` to have `str_split` return a matrix instead of a:
+
+It turns that we can avoid all the work shown above after the call to `str_split`. Specifically, if we know that the data we are extracting can be reprented as a table, we can use the argument `simplify=TRUE` and `str_split` return a matrix instead of a list:
 
 ```{r}
 x <- str_split(lines, ",", simplify = TRUE) 
@@ -1052,7 +1045,7 @@ If we examine the object text, we notice that it is a character vector with an e
 raw_data_research_funding_rates <- txt[2]
 ```
 
-The steps avoid can actually be skipped [AN: steps avoid?] because we include this raw data in the dslabs package as well:
+The steps above can actually be skipped  because we include this raw data in the dslabs package as well:
 
 ```{r}
 data("raw_data_research_funding_rates")
@@ -1064,7 +1057,7 @@ Examining this object:
 raw_data_research_funding_rates %>% head
 ```
 
-we see that it is a long string and each line on the page, including the table rows, are separated by the symbol for newline: `\n`. We therefore can create a list the lines of the text as elements: [AN: preceding sent]
+we see that it is a long string and each line on the page, including the table rows, are separated by the symbol for newline: `\n`. We therefore can create a list with the lines of the text as elements as follows:
 
 ```{r}
 tab <- str_split(raw_data_research_funding_rates, "\n")
@@ -1089,15 +1082,13 @@ the_names_1 <- tab[3]
 the_names_2 <- tab[4]
 ```
 
-In the table, the column information is spread across two lines. We want to create one vector with one name for each column. Using some of the functions we have just learned, we do this:  [AN: incomplete previous sent]
-
-Let's start with the first line:
+In this table, the column information is spread across two lines. 
 
 ```{r}
 the_names_1
 ```
 
-We want to remove the leading space and anything following the comma. We use regex for the latter. Then we can obtain the elements by splitting using the space. [AN: splitting using?] We want to split only when there are 2 or more spaces to avoid splitting `success rate`. So we use the regex `\\s{2,}`
+We want to create one vector with one name for each column. Using some of the functions we have just learned, we do this. Let's start with the first line shown above. We want to remove the leading space and anything following the comma. We use regex for the latter. Then we can obtain the elements by splitting strings separated by space.  We want to split only when there are 2 or more spaces to avoid splitting `success rate`. So we use the regex `\\s{2,}`
 
 ```{r}
 the_names_1 <- the_names_1 %>%
@@ -1108,8 +1099,7 @@ the_names_1
 ```
 
 
-Now looking that the second line: [AN: "at"" the second line?]
-
+Now we will look that the second line: 
 ```{r}
 the_names_2
 ```
@@ -1154,7 +1144,7 @@ identical(research_funding_rates, new_research_funding_rates)
 
 ## Re-coding
 
-Another common operation involving string is recoding the names of categorical variables. For example, if you have a really names for your levels [AN: do you mean "really long names"?] and you will be displaying them in plots, you might want to use shorter versions of these names. For example, in character vectors with country names, you might want to change "United States of America" to "USA" and "United Kingdom" to UK, and so on. We can do this with `case_when` but the tidyverse offers options that are specifically designed for this task: the `recode` function. 
+Another common operation involving strings is recoding the names of categorical variables. For example, if you have really long names for your levels, and you will be displaying them in plots, you might want to use shorter versions of these names. For example, in character vectors with country names, you might want to change "United States of America" to "USA" and "United Kingdom" to UK, and so on. We can do this with `case_when` but the tidyverse offers options that are specifically designed for this task: the `recode` function. 
 
 Here is an example that shows how to rename countries with long names:
 
@@ -1196,6 +1186,5 @@ gapminder %>% filter(region=="Caribbean") %>%
   geom_line()
 ```
 
-Other similar functions `recode_factor` and `fct_recoder` in the forcats tidyverse package. [AN: forcats ok?]
-
+There are other similar functions in other R packages, such as `recode_factor` and `fct_recoder` in the forcats tidyverse package. 
 
