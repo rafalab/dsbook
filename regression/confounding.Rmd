@@ -10,7 +10,7 @@ ds_theme_set()
 
 Correlation is not causation is perhaps the most important lesson one learns in a statistics class. In this chapter, we have described tools useful for quantifying associations between variables. However, we must be careful not to overinterpret these associations. 
 
-There are many reasons that a variable $X$ can be correlated with a variable $Y$ without either being a cause for the other. Here we examine three common ways that can lead to misinterpreting data.
+There are many reasons that a variable $X$ can be correlated with a variable $Y$ without either being a cause for the other. Here, we examine three common ways that can lead to misinterpreting data.
 
 ### Spurious correlation
 
@@ -32,9 +32,9 @@ divorce_margarine %>%
 
 Does this mean that margarine causes divorces? Or do divorces cause people to eat more margarine? Of course the answer to both these questions is no. This is just an example of what we call a _spurious correlation_.
 
-You can see many more absurd examples of [this wesbsite](http://tylervigen.com/spurious-correlations) completely dedicated to _spurious correlations_. 
+You can see many more absurd examples on [this website](http://tylervigen.com/spurious-correlations) completely dedicated to _spurious correlations_. 
 
-The cases presented in the _spurious correlation_ site are all examples of what is generally called _data dredging_, _data fishing_, or _data snooping_. It's basically a form of what in the US they call _cherry picking_. An example of data dredging would be if you look through many results produced by a random process and pick the one that shows a relationship that supports a theory you want to defend.
+The cases presented in the _spurious correlation_ site are all instances of what is generally called _data dredging_, _data fishing_, or _data snooping_. It's basically a form of what in the US they call _cherry picking_. An example of data dredging would be if you look through many results produced by a random process and pick the one that shows a relationship that supports a theory you want to defend.
 
 A Monte Carlo simulation can be used to show how data dredging can result in finding high correlations among uncorrelated variables. We will save the results of our simulation into a tibble: 
 ```{r, cache=TRUE}
@@ -43,7 +43,7 @@ G <- 1000000
 sim_data <- tibble(group = rep(1:G, each = N), X = rnorm(N*G), Y = rnorm(N*G))
 ```
 
-The first columns denotes group and we simulated `r cat(prettyNum(G, big.mark=",",scientific=FALSE))` of groups each with `r N` observations. For each group we generate `r N` observations, which are stored in the second and third columns. These are just random independent normally distributed data. So we know, because we constructed the simulation, that $X$ and $Y$ are not correlated.
+The first columns denotes group and we simulated `r cat(prettyNum(G, big.mark=",",scientific=FALSE))` of groups each with `r N` observations. For each group, we generate `r N` observations, which are stored in the second and third columns. These are just random independent normally distributed data. So we know, because we constructed the simulation, that $X$ and $Y$ are not correlated.
 
 Next, we compute the correlation between `X` and `Y` for each group and look at the max:
 
@@ -67,9 +67,9 @@ Remember that the correlation summary is a random variable. Here is the distribu
 res %>% ggplot(aes(x=r)) + geom_histogram(binwidth = 0.1, color = "black")
 ```
 
-It is just a mathematical fact that if we observe `r cat(prettyNum(G,big.mark=",",scientific=FALSE))` random correlations that are expected to be 0 but have a standard error of `r sd(res$r)`, the largest one will be close 1. 
+It's just a mathematical fact that if we observe `r cat(prettyNum(G,big.mark=",",scientific=FALSE))` random correlations that are expected to be 0, but have a standard error of `r sd(res$r)`, the largest one will be close 1. 
 
-Note that if we performed regression on this group and interpreted the p-value, we would incorrectly claim this was a statistically significant relation:
+If we performed regression on this group and interpreted the p-value, we would incorrectly claim this was a statistically significant relation:
 
 ```{r}
 sim_data %>% 
@@ -77,7 +77,7 @@ sim_data %>%
   do(tidy(lm(Y ~ X, data = .)))
 ```
 
-This particular form of data dredging is referred to as _p-hacking_. P-hacking is a topic of much discussion because it is a problem in scientific publications. Because publishers tend to reward statistically significant results over negative results, there is an incentive to report significant results. In epidemiology and the social sciences, for example, researchers may look for associations between an adverse outcome and several exposures and report only the one exposure that resulted in a small p-value. Furthermore, they might try fitting several different models to adjust for confounding and pick the one that yields the smallest p-value. In experimental disciplines, an experiment might be repeated more than once, yet only the results of the one experiment with a small p-value reported. This does not necessarily happen due to unethical behavior, but rather to statistical ignorance or wishful thinking. In advanced statistics courses you learn methods to adjust for these multiple comparisons.
+This particular form of data dredging is referred to as _p-hacking_. P-hacking is a topic of much discussion because it is a problem in scientific publications. Because publishers tend to reward statistically significant results over negative results, there is an incentive to report significant results. In epidemiology and the social sciences, for example, researchers may look for associations between an adverse outcome and several exposures and report only the one exposure that resulted in a small p-value. Furthermore, they might try fitting several different models to adjust for confounding and pick the one that yields the smallest p-value. In experimental disciplines, an experiment might be repeated more than once, yet only the results of the one experiment with a small p-value reported. This does not necessarily happen due to unethical behavior, but rather as a result of statistical ignorance or wishful thinking. In advanced statistics courses, you learn methods to adjust for these multiple comparisons.
 
 
 ## Outliers
@@ -93,6 +93,7 @@ y[-23] <- scale(y[-23])
 ```
 
 The data look like this:
+
 ```{r}
 tibble(x,y) %>% ggplot(aes(x,y)) + geom_point(alpha = 0.5)
 ```
@@ -103,7 +104,7 @@ Not surprisingly, the correlation is very high:
 cor(x,y)
 ```
 
-But this is driven by the one outlier. If we remove this outlier, the correlation is greatly reduced to almost 0, what it should be:
+But this is driven by the one outlier. If we remove this outlier, the correlation is greatly reduced to almost 0, which is what it should be: 
 
 ```{r}
 cor(x[-23], y[-23])
@@ -129,21 +130,18 @@ Spearman correlation can also be calculated like this:
 cor(x, y, method = "spearman")
 ```
 
-There are also methods for robust fitting of linear models which you can learn about in, for instance, this book: Robust Statistics: Edition 2
-Peter J. Huber Elvezio M. Ronchetti 
+There are also methods for robust fitting of linear models which you can learn about in, for instance, this book: Robust Statistics: Edition 2 by Peter J. Huber & Elvezio M. Ronchetti. 
 
 
 ## Reversing cause and effect
 
 Another way association is confused with causation is when the cause and effect are reversed. An example of this is claiming that tutoring makes students perform worse because they test lower than peers that are not tutored. In this case, the tutoring is not causing the low test scores, but the other way around.  
 
-A form of this claim was actually made it into an op-ed in the New York Times titled [Parental Involvement Is Overrated](https://opinionator.blogs.nytimes.com/2014/04/12/parental-involvement-is-overrated/?rref=opinion&module=ArrowsNav&contentCollection=Opinion&action=keypress&region=FixedLeft&pgtype=Blogs). Consider this quote from the article:
+A form of this claim actually made it into an op-ed in the New York Times titled [Parental Involvement Is Overrated](https://opinionator.blogs.nytimes.com/2014/04/12/parental-involvement-is-overrated/?rref=opinion&module=ArrowsNav&contentCollection=Opinion&action=keypress&region=FixedLeft&pgtype=Blogs). Consider this quote from the article:
 
 >> When we examined whether regular help with homework had a positive impact on children’s academic performance, we were quite startled by what we found. Regardless of a family’s social class, racial or ethnic background, or a child’s grade level, consistent homework help almost never improved test scores or grades... Even more surprising to us was that when parents regularly helped with homework, kids usually performed worse.
 
-A very likely possibility is that the children needing regular parental help, receive this help because they don't perform well in school.
-
-We can easily construct an example of cause and effect reversal using the father and son height data. If we fit the model:
+A very likely possibility is that the children needing regular parental help, receive this help because they don't perform well in school. We can easily construct an example of cause and effect reversal using the father and son height data. If we fit the model:
 
 $$X_i = \beta_0 + \beta_1 y_i + \varepsilon_i, i=1, \dots, N$$
 
@@ -168,7 +166,7 @@ Confounders are perhaps the most common reason that leads to associations begin 
 
 If $X$ and $Y$ are correlated, we call $Z$ a _confounder_ if changes in $Z$ causes changes in both $X$ and $Y$. Earlier, when studying baseball data, we saw how Home Runs was a confounder that resulted in a higher correlation than expected when studying the relationship between Bases on Balls and Runs. In some cases, we can use linear models to account for confounders. However, this is not always the case.
 
-Incorrect interpretation due to confounders are ubiquitous in the lay press. They are sometimes hard to detect. Here we present two examples, both related to gender discrimination.
+Incorrect interpretation due to confounders are ubiquitous in the lay press and they are often hard to detect. Here, we present two examples, both related to gender discrimination.
 
 ### Example: UC Berkeley admissions 
 
@@ -209,9 +207,10 @@ Four out of the six majors favor women. More importantly all the differences are
 
 The paradox is that analyzing the totals suggests a dependence between admission and gender, but when the data is grouped by major, this dependence seems to disappear.  What's going on? This actually can happen if an uncounted confounder is driving most of the variability.
 
-So let's define three variables: $X$ is 1 for men and 0 for women, $Y$ is 1 for those admitted and 0 otherwise, and $Z$ quantifies how selective is the major. A gender bias claim would be based on the fact that $\mbox{Pr}(Y=1 | X = x)$ is higher for $x=1$ then $x=0$. But $Z$ is an important confounder to consider. Clearly $Z$ is associated with  $Y$, as the more selective a major, the lower $\mbox{Pr}(Y=1 | Z = z)$. But is major selectivity $Z$ associated with gender $X$?
+So let's define three variables: $X$ is 1 for men and 0 for women, $Y$ is 1 for those admitted and 0 otherwise, and $Z$ quantifies the selectivity of the major. A gender bias claim would be based on the fact that $\mbox{Pr}(Y=1 | X = x)$ is higher for $x=1$ then $x=0$. [AN: "then" or "than"?] However, $Z$ is an important confounder to consider. Clearly $Z$ is associated with  $Y$, as the more selective a major, the lower $\mbox{Pr}(Y=1 | Z = z)$. But is major selectivity $Z$ associated with gender $X$?
 
 One way to see this is to plot the total percent admitted to a major versus the percent of women that made up the applicants:
+
 ```{r}
 admissions %>% 
   group_by(major) %>% 
@@ -221,12 +220,12 @@ admissions %>%
   geom_text()
 ```
 
-There seems to be association. The plot suggests that women were much more likely to apply to the two "hard" majors: gender and major's selectivity are confounded. Compare, for example,  major B and major E. Major B is much harder to enter than major E and over 60% of applicants to major B were women while less than 30% of the applicants of major E were women. 
+There seems to be association. The plot suggests that women were much more likely to apply to the two "hard" majors: gender and major's selectivity are confounded. Compare, for example, major B and major E. Major B is much harder to enter than major E and over 60% of applicants to major B were women while less than 30% of the applicants of major E were women. 
 
 
 ### Confounding explained graphically
 
-The following plot shows the percent of applicants that were accepted by gender.
+The following plot shows the percent of applicants that were accepted by gender:
 
 ```{r}
 admissions %>% 
@@ -235,12 +234,12 @@ admissions %>%
   geom_bar(stat = "identity", position = "stack")
 ```
 
-It also breaks down the acceptance rates by major: the size of the colored bars represents the percent of each major students were admitted to. This breakdown allows us tp see that the majority of accepted men come from two majors: A and B. It also lets us see that few women applied to these majors. What the plot does **not** show us is what the percent admitted by major. 
+It also breaks down the acceptance rates by major: the size of the colored bars represents the percent of each major students were admitted to. This breakdown allows us to see that the majority of accepted men came from two majors: A and B. It also lets us see that few women applied to these majors. What the plot does **not** show us is the percent admitted by major. 
+
 
 ### Average after stratifying
 
-
-In this plot, we can see that if we condition or stratify by major, and then look at differences, we control for the confounder and this effect goes away. 
+In this plot, we can see that if we condition or stratify by major, and then look at differences, we control for the confounder and this effect goes away:
 
 ```{r admission-by-major, fig.cap="Admission percentage by major for each gender."}
 admissions %>% 
@@ -250,7 +249,7 @@ admissions %>%
 
 Now we see that major by major, there is not much difference. The size of the dot represents the number of applicants, and explains the paradox: we see large red dots and small blue dots for the easiest majors, A and B.
 
-If we average the difference by major we find that the percent ad actually 3.5% higher for women.
+If we average the difference by major, we find that the percent ad actually 3.5% higher for women. [AN: "the percent ad"?]
 
 ```{r}
 admissions %>%  group_by(gender) %>% summarize(average = mean(admitted))
@@ -259,7 +258,7 @@ admissions %>%  group_by(gender) %>% summarize(average = mean(admitted))
 
 # Simpson's Paradox 
 
-The case we have just covered is an example of Simpson's Paradox. It is called a paradox because we see the sign of the correlation of flip when comparing the entire publication and specific strata. The following is an illustrative example. Suppose you have three variables $X$, $Y$ and $Z$. Here is a scatterplot of $Y$ versus $X$:
+The case we have just covered is an example of Simpson's Paradox. It is called a paradox because we see the sign of the correlation of flip [AN: "of flip"?] when comparing the entire publication and specific strata. The following is an illustrative example. Suppose you have three variables $X$, $Y$ and $Z$. Here is a scatterplot of $Y$ versus $X$:
 
 ```{r, echo=FALSE}
 N <- 100
@@ -274,7 +273,7 @@ dat %>% ggplot(aes(X,Y)) + geom_point(alpha = .5) +
   ggtitle(paste("correlation = ", round(cor(dat$X, dat$Y), 2)))
 ```
 
-You can see that $X$ and $Y$ are negatively correlated. However, once we stratify by $Z$ (shown in different colors), which we have not yet shown, another pattern emerges. 
+You can see that $X$ and $Y$ are negatively correlated. However, once we stratify by $Z$ (shown in different colors), which we have not yet shown, another pattern emerges: [AN: two "shown"s; use synonym]
 
 ```{r, echo=FALSE}
 means <- tbl_df(Reduce(rbind, means)) %>% setNames(c("x","y")) %>%
@@ -288,13 +287,13 @@ dat %>% ggplot(aes(X, Y, color = Z)) +
   annotate("text", x = means$x, y = means$y, label = paste("Z=", means$z), cex = 5)  
 ```
 
-It is really $Z$ that is negatively correlated with $X$. If we stratify by $Z$, the $X$ and $Y$ are actually positively correlated:
+It is really $Z$ that is negatively correlated with $X$. If we stratify by $Z$, the $X$ and $Y$ are actually positively correlated:  [AN: missing graph or plot]
 
 
 
 ### Gender contributes to personal research funding success in The Netherlands
 
-Here we examine a similar case to the UC Berkeley admissions example, but much more subtle.
+Let's examine a similar case to the UC Berkeley admissions example, but one which is much more subtle.
 
 A [2014 PNAS paper](http://www.pnas.org/content/112/40/12349.abstract) analyzed success rates from funding agencies in the Netherlands and concluded that their:
 
@@ -329,7 +328,7 @@ Compute the difference in percentage:
 two_by_two %>% mutate(men = round(men/sum(men)*100, 1), women = round(women/sum(women)*100, 1)) %>% filter(awarded == "yes")
 ```
 
-note that it's lower for women, and find that it is almost statistically significant at the 0.05 level:
+Notice that it's lower for women, and find that it is almost statistically significant at the 0.05 level: [AN: who finds?]
 
 ```{r}
 two_by_two %>% select(-awarded) %>% chisq.test() %>% tidy
@@ -379,7 +378,7 @@ res <- research_funding_rates %>%
 res 
 ```
 
-We see that for Earth/Life Sciences, there is a difference of 10% favoring men and this has a p-value of 0.04. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 would be cherry picking. 
+For Earth/Life Sciences, there is a difference of 10% favoring men and this has a p-value of 0.04. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 would be an example of cherry picking. 
 
 The overall average of the difference is only -0.3%, which is much smaller than the standard error:
 
@@ -388,7 +387,7 @@ res %>% summarize(overall_avg = mean(difference),
                   se = sd(difference)/sqrt(n()))
 ```
 
-Furthermore, note that the differences appear to follow a normal distribution:
+Furthermore, the differences appear to follow a normal distribution:
 
 ```{r}
 res %>% ggplot(aes(sample = scale(difference))) + stat_qq() + geom_abline()
