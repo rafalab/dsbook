@@ -82,7 +82,7 @@ campaign_tweets <- trump_tweets %>%
 
 We can now use data visualization to explore the possibility that two different groups were tweeting from these devices. For each tweet, we will extract the hour, East Coast time (EST), it was tweeted and then compute the proportion of tweets tweeted at each hour for each device:
 
-```{r}
+```{r tweets-by-time-by-device}
 ds_theme_set()
 campaign_tweets %>%
   mutate(hour = hour(with_tz(created_at, "EST"))) %>%
@@ -328,7 +328,7 @@ log_or
 
 A graphical visualization shows some sentiments that are clearly overrepresented:
 
-```{r}
+```{r tweets-log-odds-ratio}
 log_or %>%
   mutate(sentiment = reorder(sentiment, log_or)) %>%
   ggplot(aes(x = sentiment, ymin = conf.low, ymax = conf.high)) +
@@ -350,7 +350,7 @@ android_iphone_or %>% inner_join(nrc) %>%
 
 and we can make a graph:
 
-```{r}
+```{r log-odds-by-word}
 android_iphone_or %>% inner_join(nrc, by = "word") %>%
   mutate(sentiment = factor(sentiment, levels = log_or$sentiment)) %>%
   mutate(log_or = log(or)) %>%

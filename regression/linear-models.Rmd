@@ -325,7 +325,7 @@ When we plot $\hat{Y}$ versus $x$, we see the regression line.
 
 Keep in mind that the prediction $\hat{Y}$ is also a random variable and mathematical theory tells us what the standard errors are. If we assume the errors are normal, or have a large enough sample size, we can use theory to construct confidence intervals as well. In fact, the ggplot2 layer `geom_smooth(method = "lm")` that we previously used, plots $\hat{Y}$ and surrounds it by confidence intervals:
 
-```{r}
+```{r father-son-regression}
 galton_heights %>% ggplot(aes(son, father)) +
   geom_point() +
   geom_smooth(method = "lm")
@@ -333,7 +333,7 @@ galton_heights %>% ggplot(aes(son, father)) +
 
 The R function `predict` takes an `lm` object as input and returns the prediction. If requested, the standard errors and other information from which we can construct confidence intervals:
 
-```{r}
+```{r father-son-predictor}
 galton_heights %>% 
   mutate(Y_hat = predict(lm(son ~ father, data = .))) %>%
   ggplot(aes(father, Y_hat)) +
@@ -789,7 +789,7 @@ players %>% select(nameFirst, nameLast, POS, salary, R_hat) %>%
 
 Notice the very high salaries for most players. In fact, we see that players with a higher metric have higher salaries:
 
-```{r}
+```{r predicted-runs-vs-salary}
 players %>% ggplot(aes(salary, R_hat, color = POS)) + 
   geom_point() +
   scale_x_log10()
@@ -797,7 +797,7 @@ players %>% ggplot(aes(salary, R_hat, color = POS)) +
 
 We do see some low cost players with very high metrics. These will be great for our team. Unfortunately, many of these are likely young players that have not yet been able to negotiate a salary and are unavailable. For example, the lowest earner in our top 10 list, Albert Pujols, was a rookie in 2001 and could not negotiate with other teams. Here is the plot without players that debuted before 1997:
 
-```{r}
+```{r predicted-runs-vs-salary-no-rookies}
 players %>% filter(debut < 1998) %>%
  ggplot(aes(salary, R_hat, color = POS)) + 
   geom_point() +
@@ -857,7 +857,7 @@ $$
 
 They called this on-base-percentage plus slugging percentage (OPS). Although the sabermetricians probably did not use regression, this metric is impressively close to what one gets with regression:
 
-```{r}
+```{r OPS-versus-regression}
 Batting %>% 
   filter(yearID %in% 1990:2001) %>% 
   group_by(playerID, yearID) %>%
@@ -1041,7 +1041,7 @@ tidy(fit)
 
 Let's check if the estimated parabola fits the data. The broom function `augment` let's us do this easily:
 
-```{r}
+```{r falling-object-fit}
 augment(fit) %>% 
   ggplot() +
   geom_point(aes(time, observed_distance)) + 
