@@ -1,0 +1,161 @@
+# Distance
+
+The concept of distance is quite intuitive. For example, when we cluster animals into subgroups (reptiles, amphibians, mammals), we are implicitly defining a distance that permits us to say what animals are "close" to each other.
+Many of the analyses we perform with high-dimensional data relate directly or indirectly to distance. Many clustering and machine learning techniques rely on being able to define distance between observations, using features or predictors. 
+
+## Euclidean Distance
+
+As a review, let's define the distance between two points, $A$ and $B$, on a Cartesian plane.
+
+```{r euclidean-distance, echo=FALSE,fig.cap=""}
+library(rafalib)
+mypar()
+plot(c(0,1,1),c(0,0,1),pch=16,cex=2,xaxt="n",yaxt="n",xlab="",ylab="",bty="n",xlim=c(-0.25,1.25),ylim=c(-0.25,1.25))
+lines(c(0,1,1,0),c(0,0,1,0))
+text(0,.2,expression(paste('(A'[x]*',A'[y]*')')),cex=1.5)
+text(1,1.2,expression(paste('(B'[x]*',B'[y]*')')),cex=1.5)
+text(-0.1,0,"A",cex=2)
+text(1.1,1,"B",cex=2)
+```
+
+The euclidean distance between $A$ and $B$ is simply:
+
+$$
+\mbox{dist}(A,B) = \sqrt{ (A_x-B_x)^2 + (A_y-B_y)^2}
+$$
+
+
+Note this definitions applies to the case of one dimension in which the distance between two numbers is simply the absolute value of their difference. So if our two one-dimensional numbers are $A$ and $B$ the distance is 
+
+$$
+\mbox{dist}(A,B) = \sqrt{ (A - B)^2 } = | A - B |
+$$
+
+
+
+## Distance in Higher Dimensions
+
+Earlier we introduced training dataset with feature matrix measurements for 784 features. For illustrative purposes we ill look at a random sample of 2s and 7s.
+
+```{r}
+set.seed(0)
+if(!exists("mnist")) mnist <- read_mnist()
+
+ind <- which(mnist$train$labels %in% c(2,7)) %>% sample(500)
+x <- mnist$train$images[ind,]
+y <- mnist$train$labels[ind]
+```
+
+The predictors are in `x` and the labels in `y`.
+
+For the purposes of, for example, smoothing, we are interested in describing distance between observation, in this case digits. Later for the purposes of selecting features, we might also be interested in finding pixels that _behave similarly_ across samples.
+
+To define distance, we need to know what _points_ are since mathematical distance is computed between points. With high dimensional data, points are no longer on the Cartesian plane. Instead, points are in higher dimensions.  We can no longer visualize them and need to think abstractly. For example, predictors $\mathbf{X}_i$ are defined as a point in 784 dimensional space: $\mathbf{X}_i = (x_{i,1},\dots,x_{i,784})^\top$. 
+
+Once we define points this way, the Euclidean distance is defined very similarly as it was for two dimensions. For instance, the distance between the predictors for two observations, say observations $i=1$ and $i=2$ is:
+
+$$
+\mbox{dist}(1,2) = \sqrt{ \sum_{j=1}^{784} (x_{1,j}-x_{2,j })^2 }
+$$
+
+This is just on non-negative number just as it is for two dimensions.
+
+## Example
+
+The labels for the first three observations are:
+
+```{r}
+y[1:3]
+```
+
+The vector of predictors for each of these observations are:
+
+```{r}
+x_1 <- x[1,]
+x_2 <- x[2,]
+x_3 <- x[3,]
+```
+
+The first two numbers are seven and the third one a 2. We expect the distances between the same number 
+```{r}
+sqrt(sum((x_1-x_2)^2))
+```
+
+to be smaller than between different numbers
+```{r}
+sqrt(sum((x_1-x_3)^2))
+sqrt(sum((x_2-x_3)^2))
+```
+
+As expected, the 7s are closer to each other. 
+
+If you know matrix algebra, note that a faster way to compute this is using matrix algebra:
+
+```{r}
+sqrt(crossprod(x_1-x_2))
+sqrt(crossprod(x_1-x_3))
+sqrt(crossprod(x_2-x_3))
+```
+
+We can also compute **all** the distances at once relatively quickly using the function `dist`, which computes the distance between each row and produces an object of class `dist`:
+
+
+```{r}
+d <- dist(x)
+class(d)
+```
+
+There are several machine learning related function in R that take objects of class `dist` as input. To access the entries using row and column indices, we need to coerce it into a matrix. We can see the distance we calculated above like this: 
+
+```{r}
+as.matrix(d)[1:3,1:3]
+```
+
+We can quickly see an image of these distances using this code: 
+
+```{r distance-image}
+image(as.matrix(d))
+```
+If we order this distance by the labels, we can see that, in general the twos are closer to each other and the sevens are closer to each other:
+
+```{r diatance-image-ordered}
+image(as.matrix(d)[order(y), order(y)])
+```
+
+On thing we notice here is that there appears to be more uniformity in how the sevens are drawn, since they appear to be closer (more red).
+
+
+
+## Distance between predictors
+
+
+We can also compute distances between predictors. If $N$ is the number of observations, the distance between two predictors, say 1 and 2, is
+
+$$
+\mbox{dist}(1,2) = \sqrt{ \sum_{i=1}^{N} (x_{i,1}-x_{i,2})^2 }
+$$
+
+To compute the distance between all pairs of the 784 predictors we can transpose the matrix first and then use `dist`:
+```{r}
+d <- dist(t(x))
+dim(as.matrix(d))
+```
+
+An interesting thing to note here is that if we pick a predictor (a pixel) we can see which pixels are close meaning that they either have ink together or don't. The distance with the pixel 492 are:
+
+```{r}
+d_492 <- as.matrix(d)[492,]
+```
+ 
+We can now see the spatial
+
+```{r distnace-rows}
+image(1:28, 1:28, matrix(d_492, 28, 28))
+```
+
+Not surprisingly, points physically near by are mathematically closer.
+
+
+
+
+
