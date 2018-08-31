@@ -1,0 +1,443 @@
+# Matrices 
+
+In machine learning, situations in which all predictors are numeric, or can be converted to numerics in a meaningful way, are common. The digits data set is an example: every pixel records a number between 0 and 255. Let's load the data:
+
+```{r}
+if(!exists("mnist")) mnist <- read_mnist()
+```
+
+In these cases it is often convenient to save the predictors in a matrix and the outcome in a vector rather than using a data frame. You can see that the predictors are saved as a matrix:
+
+```{r}
+class(mnist$train$images)
+```
+
+This matrix represents 60,000 digits so for the examples in this chapter, we will take a more manageable subset. We will take the first 1,000 predictors `x` and labels `y`:
+
+```{r}
+x <- mnist$train$images[1:1000,] 
+y <- mnist$train$labels[1:1000]
+```
+
+The main reason for using matrices is that certain mathematical operations needed to develop efficient code can be performed using techniques from a branch of mathematics called _linear algebra_. In fact, linear algebra and matrix notation are key elements of the language used in academic papers describing machine learning techniques. We will not cover linear algebra in detail here, but will demonstrate how to use matrices in R so that you can apply the linear algebra techniques already implemented in R base or other packages.
+
+To motivate the use of matrices we will pose five questions/challenges. 
+
+1. Do some digits require more ink than others? Study the distribution of the total pixel darkness and how it varies by digits.  
+2. Are some pixels uninformativs? Study the variation of each pixel and remove predictors (columns) associated with pixels that don't change much and thus can't provide much information for classification.
+3. Can we remove smudges?  First, look at the distribution of all pixel values, use this to pick a cutoff to define unwritten space. Then make anything below that cutoff to 0. 
+4. Binarize the data. First, look at the distribution of all pixel values, use this to pick a cutoff to distinguish between writing and no writing. Then convert all entries into either 1 or 0 respectively.
+5. Scale each the predictors in each entry to have the same average and standard deviation.
+
+To complete these we will have to perform mathematical operations involving several variables. The tidyverse is not developed to perform this type of mathematical operations. For this task it is convenient to use matrices. 
+
+Before we do this, we will introduce matrix notation and basic R code to define and operate on matrices.
+
+## Notation
+
+In matrix algebra we have three main types of objects: scalars, vectors and matrices.
+Let's start by defining and showing the notation for matrices
+
+A scalar is just one number. For example $a = 1$. To denote scalars in matrix notation we usually use a lower case letter and do not bold.
+
+Vectors are like the numeric vectors we define in R: they include several scalar entries. For example, the column containing the first pixel:
+
+```{r}
+length(x[,1])
+```
+
+entries. In matrix algebra we use the following notation:
+
+$$ 
+\mathbf{X} = \begin{pmatrix}
+x_1\\\
+x_2\\\
+\vdots\\\
+x_N
+\end{pmatrix}
+$$
+
+
+Similarly, we can use math notation to represent different features
+mathematically,  by adding an index:
+
+$$ 
+\mathbf{X}_1 = \begin{pmatrix}
+x_{1,1}\\
+\vdots\\
+x_{N,1}
+\end{pmatrix} \mbox{ and }
+\mathbf{X}_2 = \begin{pmatrix}
+x_{1,2}\\
+\vdots\\
+x_{N,2}
+\end{pmatrix}
+$$
+
+If we are writing out a column,  such as $\mathbf{X}_1$, in a sentence we often use the notation: $\mathbf{X}_1 = ( x_{1,1}, \dots x_{N,1})^\top$ with the $^\top$ the transpose operation that converts columns into rows and rows into columns.
+
+A matrix can be defined as a series of vectors of the same size joined together each forming a column:
+
+```{r}
+x_1 <- 1:5
+x_2 <- 6:10
+cbind(x_1, x_2)
+```
+
+Mathematical we represent them with bold upper case letters:
+
+$$ 
+\mathbf{X} = [ \mathbf{X}_1 \mathbf{X}_2 ] = \begin{pmatrix}
+x_{1,1}&x_{1,2}\\
+\vdots\\
+x_{N,1}&x_{N,2}
+\end{pmatrix}
+$$
+
+The _dimenstion_ of a matrix is often an important characteristic needed to assure certain operations can be performed. The _dimension_ is a two number summary defined as the number of rows $\times$ the number of columns. In R we can extract the dimension of a matrix with the function `dim`:
+
+```{r}
+dim(x)
+```
+
+Note that vectors can be thought of as $N\times 1$ matrices. However, in R a vector does not have dimensions:
+
+```{r}
+dim(x_1)
+```
+
+However, we explicitly convert a vector into a matrix using the function `as.matrix`:
+
+```{r}
+dim(as.matrix(x_1))
+```
+
+We can use this notation to denote an arbitrary number of predictors with the following $N\times p$ matrix, for example, with $p=784$:
+
+$$
+\mathbf{X} = \begin{pmatrix}
+  x_{1,1}&\dots & x_{1,p} \\
+  x_{2,1}&\dots & x_{2,p} \\
+   & \vdots & \\
+  x_{N,1}&\dots & x_{N,p} 
+  \end{pmatrix}
+$$
+
+We stored this in x:
+```{r}
+dim(x)
+```
+
+## Matrix operations
+
+We will learn several useful operations related to matrix algebra. We use the three motivating examples listed above.
+
+
+### Converting a vector to matrix 
+
+It is often useful to convert a vector to a matrix. For example, because the variables are pixels on a grid, we can convert the rows of pixel intensities into a matrix representing this grid. 
+
+We can convert a vector into matrix with the `matrix` function and specifying the number of rows and columns that the resulting matrix should have. The matrix is filled in **by column**: the first column is filled first, then the second second and so on. This example helps illustrate:
+
+```{r}
+my_vector <- 1:15
+mat <- matrix(my_vector, 5, 3)
+mat
+```
+
+We can fill by row by using the `byrow` argument. So for example to _transpose_ the matrix `mat` we can use
+
+```{r}
+mat_t <- matrix(my_vector, 3, 5, byrow = TRUE)
+mat_t
+```
+
+When we turn the columns into rows we refer to the operations as _transposing_ the matrix. The function `t` can be used to directly transpose a matrix:
+
+```{r}
+identical(t(mat), mat_t)
+```
+
+
+Note that the `matrix` function recycles values in the vector **without wargning** if the product of columns and rows does not match the length of the vector:
+
+```{r}
+matrix(my_vector, 5, 5)
+```
+
+To put the pixel intensities of our, say, 3rd entry, which is a `r mnist$train$label[3]` into grid we can use:
+
+```{r}
+grid <- matrix(x[3,], 28, 28)
+```
+
+To confirm that in fact we have done this correctly, we can use the function `image` which shows an image of its third argument:
+
+```{r matrix-image}
+image(1:28, 1:28, grid)
+```
+
+Note that the top of this plot is pixel 1 which is shown at the bottom so the image is flipped. To flip it back we can use:
+
+```{r flip-matrix-image}
+image(1:28, 1:28, grid[,28:1])
+```
+
+### Row and column summaries
+
+For the first task, related to total pixel darkness ,  we want to sum the values of each row and the visualize how these values vary by digit.
+
+The function `rowSums` takes a matrix as input and computes the desired values:
+
+```{r}
+sums <- rowSums(x)
+```
+
+We can also compute the averages with `rowMeans` if we want the values to remain between 0 and 255:
+
+```{r}
+avg <- rowMeans(x)
+```
+
+Once we have this we can simply generate a boxplot:
+
+```{r boxplot-of-digit-averages}
+data.frame(labels = as.factor(y), row_averages = avg) %>%
+  ggplot(aes(labels, row_averages)) +
+  geom_boxplot()
+```
+
+From this plot we see that, not surprisingly, 1s use less ink than the other digits.
+
+Note that cab compute the column sums and averages using the function `colSums` and `colMeans` respectively. 
+
+The package `matrixStats` adds functions that performs operation on each row or column very efficiently including the functions `rowSds` and `colSds`.
+
+### `apply`
+
+The functions just described are performing an operation similar to what `sapply` and the purrr function `map` do: apply the same function to a part of your object. In this case either each row or each column. The apply function let's you apply any function, not just `sum` or `mean` to a matrix. The first argument is the matrix, the second is the dimension, 1 for rows, 2 for columns, and the third is the function. So, for example, `rowMeans` can be written as:
+
+```{r}
+avgs <- apply(x, 1, mean)
+```
+
+But note that, just like with `sapply` and `map`, we can perform any function. So if we wanted the standard deviation for each column we could write
+
+```{r}
+sds <- apply(x, 2, sd)
+```
+
+What you pay for in this flexibility is that these are not as fast as dedicated functions such as `rowMeans` 
+
+### Filtering columns based on summaries 
+
+
+We now turn to task 2: study the variation of each pixel and remove columns associated with pixels that don't change much thus not informing the classification. Although a simplistic approach, we will quantify the variation of each pixel with its standard deviation across all entries. Since each column represents a pixel, we use the `colSds` function from the `matrixStats` package:
+
+```{r}
+library(matrixStats)
+sds <- colSds(x)
+```
+
+A quick look at the distribution of these values shows that some pixels have very low entry to entry variability:
+
+```{r sds-histogram}
+qplot(sds, bins = "30", color = I("black"))
+```
+
+This makes sense since we don't write in some parts of the box. Here is the variance plotted by location:
+
+```{r pixel-variance}
+image(1:28, 1:28, matrix(sds, 28, 28)[, 28:1])
+```
+
+We see that there is little variation in the corners.
+
+So we could remove features that have no variation since these  can't help us predict.
+
+In the R chapter we described the operations used to extract columns 
+
+```{r, eval=FALSE}
+x[ ,c(351,352)]
+```
+
+and rows:
+
+```{r, eval=FALSE}
+x[c(2,3),]
+```
+
+We can also use logical indexes to determine which columns or rows to keep. 
+So, if we wanted to remove uninformative predictors from our matrix we could write this one line of code
+
+```{r}
+new_x <- x[ ,colSds(x) > 60]
+dim(new_x)
+```
+
+Only the columns for which the standard deviation is above 60 are kept, which removes over half the predictors.
+
+Here we add an important warning related to subsetting matrices:  if you select one column or one row, the result is no longer a matrix but a vector:
+
+```{r}
+class(x[,1])
+dim(x[1,])
+```
+
+However, we can preserve the matrix class by using the argument `drop`
+
+```{r}
+class(x[ , 1, drop=FALSE])
+dim(x[, 1, drop=FALSE])
+```
+
+### Indexing with matrices 
+
+We can quickly make a histogram of all the values in our dataset. We saw how we can turn vectors into matrix. We can also undo this an turn matrices into vectors. The operation will happen by row:
+
+```{r}
+mat <- matrix(1:15, 5, 3)
+mat
+as.vector(mat)
+```
+
+So to see a histogram of all our predictor data we can use
+
+```{r histogram-all-pixels}
+qplot(as.vector(x), bins = 30, color = I("black"))
+```
+
+We notice a clear dichotomy which is explained as part with ink and parts without. If we think that values below, say, 25 are  smudges we can quickly make them zero using:
+
+```{r, eval=FALSE}
+new_x <- x
+new_x[new_x < 50] <- 0
+```
+
+To see what this does we look at a smaller matrix:
+
+
+```{r}
+mat <- matrix(1:15, 5, 3)
+mat[mat < 3] <- 0
+mat
+```
+
+We can also use logical operations with matrix logical
+
+```{r}
+mat <- matrix(1:15, 5, 3)
+mat[mat > 6 & mat <12] <- 0
+mat
+```
+
+### Binarizing the data
+
+The histogram above seems to suggest that this data is mostly binary. A pixel either has ink or does not. Using what we have learned we can binarize the data using just matrix operations:
+
+```{r}
+bin_x <- x
+bin_x[bin_x < 255/2] <- 0 
+bin_x[bin_x > 255/2] <- 1
+```
+
+We can also convert to a matrix of logicals and then coerce to numbers like this:
+
+```{r}
+bin_X <- (x > 255/2)*1
+```
+
+We can see that least the entry we looked at before does not change much:
+
+```{r binarized-image, echo=FALSE}
+rafalib::mypar(1,2)
+rows <- 1:28
+columns <- 1:28
+image(rows, columns, matrix(-x[8,], 28, 28), main = "Original")
+image(rows, columns, matrix(-bin_x[8,], 28, 28), main ="Binarized")
+```
+
+### Vectorization for matrices
+
+In R, if we subtract a vector from a matrix, the first element of the vector is subtracted from the first row, the second element from the second row and so on. So using mathematical notation we would write it like this:
+
+$$
+ \begin{pmatrix}
+  X_{1,1}&\dots & X_{1,p} \\
+  X_{2,1}&\dots & X_{2,p} \\
+   & \vdots & \\
+  X_{N,1}&\dots & X_{N,p} 
+  \end{pmatrix}
+-
+\begin{pmatrix}
+a_1\\\
+a_2\\\
+\vdots\\\
+a_N
+\end{pmatrix}
+=
+\begin{pmatrix}
+  X_{1,1}-a_1&\dots & X_{1,p} -a_1\\
+  X_{2,1}-a_2&\dots & X_{2,p} -a_2\\
+   & \vdots & \\
+  X_{N,1}-a_n&\dots & X_{N,p} -a_n
+  \end{pmatrix}
+-
+$$
+
+
+
+The same holds true for other arithmetic operations. This implies that we can scale each row of a matrix like this:
+
+```{r, eval=FALSE}
+(x - rowMeans(x)) / rowSds(x)
+```
+
+If you want to scale each column, be careful becuase this approach does not work for columns. To perform a similar operation we convert the columns to rows using the transpose `t`, proceed as above, and then transpose back: 
+```{r, eval=FALSE}
+t(t(X) - colMeans(X))
+```
+
+We can also use a function called `sweep` the works similarly to `apply`. It takes each entry of a vector and subtracts it from the corresponding row or column.
+
+```{r, eval=FALSE}
+X_mean_0 <- sweep(x, 2, colMeas(x))
+```
+
+The function `sweep` actually has another argument that lets you define the arithmetic operation. So to divide by the standard deviation we do the following:
+
+```{r}
+x_mean_0 <- sweep(x, 2, colMeans(x))
+x_standardized <- sweep(x_mean_0, 2, colSds(x), FUN = "/")
+```
+
+
+## Matrix Algebrea opeations 
+
+Finally, although we do not cover matrix algebra operations such as matrix multiplication we share here the relevant commands for those that know the mathematics and want to learn the code:
+
+1. Matrix multiplication is done with `%*%` so the cross product, for example, is
+
+    ```{r, eval=FALSE}
+t(x) %*% x
+```
+
+2. We can compute the cross product directly with the function with that name:
+
+    ```{r, eval=FALSE}
+crossprod(x)
+```
+
+3. To compute the inverse of a function we use `solve`. Here it is applied to the cross product
+
+    ```{r, eval=FALSE}
+solve(crossprod(x))
+```
+
+4. The QR decomposition is readily available by using the `qr` function:
+
+    ```{r, eval=FALSE}
+qr(x)
+```
+
+

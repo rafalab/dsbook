@@ -1,0 +1,274 @@
+# Case study: MNIST
+
+Now that we have learned several methods and illustrate them with illustrative example, we are going to try them out on a real example: the MNIST digits. 
+
+We can load this data using the following dslabs package:
+
+```{r}
+mnist <- read_mnist()
+```
+
+The dataset includes two components: a training set and test set:
+
+```{r}
+names(mnist)
+```
+
+Each of these components includes a matrix with features in the columns:
+
+```{r}
+dim(mnist$train$images)
+```
+
+and vector with the classes as integers:
+
+```{r}
+class(mnist$train$labels)
+table(mnist$train$labels)
+```
+
+Because we want this example to run a small laptop and in less than one hour, we will consider a subset of the dataset. We will sample 10,000 random rows from the training set and 1,000 random rows from the test set:
+
+```{r}
+set.seed(123)
+index <- sample(nrow(mnist$train$images), 10000)
+x <- mnist$train$images[index,]
+y <- factor(mnist$train$labels[index])
+
+index <- sample(nrow(mnist$train$images), 1000)
+x_test <- mnist$train$images[index,]
+y_test <- factor(mnist$train$labels[index])
+```
+
+## Preprocessing
+
+In machine learning we often transform predictors before running the machine algorithm. We also remove predictors that are clearly not useful. We call these steps _preprocessing_. 
+
+Examples of preprocessing include standardizing the predictors, taking the log transform of some predictors, removing predictors that are highly correlated with others, and removing predictors with very few non-unique values or close to zero variation. We show an example of this one here.
+
+We can run the `nearZero` function to see that several feature that do not vary much from observation to observation. We can see that there are a large number of features with 0 variability
+
+```{r pixel-sds}
+library(matrixStats)
+sds <- colSds(x)
+qplot(sds, bins = 256, color = I("black"))
+```
+
+This is expected because there are parts of the image that rarely contain writing (dark pixels). 
+
+The caret packages includes a function that recommends features to be removed due _near zero variance_:
+
+```{r}
+library(caret)
+nzv <- nearZeroVar(x)
+```
+
+We can see the columns that are removed:
+```{r near-zero-image}
+image(matrix(1:784 %in% nzv, 28, 28))
+```
+
+So we end up keeping these many columns:
+
+```{r}
+col_index <- setdiff(1:ncol(x), nzv)
+length(col_index)
+```
+
+Now we are ready to fit some models. Before we start we need to add column names to the feature matrices as these are required by caret:
+
+```{r}
+colnames(x) <- 1:ncol(mnist$train$images)
+colnames(x_test) <- colnames(mnist$train$images)
+```
+
+## kNN
+
+Let's start with kNN. The first step is to optimize for $k$. Keep in mind that when we run the algorithm we will have to compute a distance between each observation in the test set and each observation in the training set. These are a lot of computations. We will therefore use k-fold cross validation to improve speed.
+
+If we run the following code, the computing time on a standard laptop will be several minutes. 
+
+```{r mnist-knn-fit, eval=FALSE}
+control <- trainControl(method = "cv", number = 10, p = .9)
+train_knn <- train(x[,col_index], y, 
+                   method = "knn", 
+                   tuneGrid = data.frame(k = c(3,5,7)),
+                   trControl = control)
+ggplot(train_knn)
+```
+
+In general, it is a good idea to test out with a subset of the data first to get an idea of timing before we start running code that might take hours to run.  You can do this like this:
+
+```{r, eval = FALSE}
+n <- 1000
+b <- 2
+index <- sample(nrow(x), n)
+control <- trainControl(method = "cv", number = b, p = .9)
+train_knn <- train(x[index ,col_index], y[index,] 
+                   method = "knn", 
+                   tuneGrid = data.frame(k = c(3,5,7)),
+                   trControl = control)
+```
+
+increase `n` and `b` to get an idea of how long it takes a function of these values.
+
+Once we optimize our algorithm, we can fit it to the entire dataset:
+
+```{r}
+fit_knn<- knn3(x[ ,col_index], y,  k = 5)
+```
+
+The accuracy is almost 0.95!
+```{r}
+y_hat_knn <- predict(fit_knn, 
+                        x_test[, col_index], 
+                        type="class")
+cm <- confusionMatrix(y_hat_knn, factor(y_test))
+cm$overall["Accuracy"]
+```
+
+From the specificity and sensitivity we also see that 8s are the hardest to detect and the most commonly incorrectly predicted digit is 7.
+
+```{r}
+cm$byClass[,1:2]
+```
+
+Now let's see if we can do even better with random forests. 
+
+With random forest computation time is a challenge. For each forest we need to build hundreds of trees. We also have several parameters we can tune. Here we implement 
+
+We use the random forest implementation in the Rborist package which is faster than the one in randomForest. 
+
+Because with random forests the fitting is the slowest part of the procedure rather than the predicting (as with kNN) we will use only 5 fold cross validation.
+
+We will also keep the reduce the number of trees that are fit since we 
+since we are not yet building our final model. 
+
+Finally, we will take of sample observations when constructing each tree. We can change this number with the `nSamp` argument.
+
+
+```{r mnist-rf}
+library(Rborist)
+control <- trainControl(method="cv", number = 5, p = 0.8)
+grid <- expand.grid(minNode = c(1) , predFixed = c(10, 15, 35))
+
+train_rf <-  train(x[ , col_index], 
+                   y, 
+                   method = "Rborist", 
+                   nTree = 50,
+                   trControl = control,
+                   tuneGrid = grid,
+                   nSamp = 5000)
+
+ggplot(train_rf)
+train_rf$bestTune
+```
+
+Now that we have optimized our tree, we are ready to fit our final model:
+```{r}
+fit_rf <- Rborist(x[, col_index], y, 
+                  nTree = 1000,
+                  minNode = train_rf$bestTune$minNode,
+                  predFixed = train_rf$bestTune$predFixed)
+```
+
+
+We now achieve an accuracy of almost 0.955!
+```{r}
+y_hat_rf <- factor(levels(y)[predict(fit_rf, x_test[ ,col_index])$yPred])
+```
+
+Here are some examples of the original images and our calls:
+```{r mnist-examples-of-calls, echo=FALSE}
+rafalib::mypar(3,4)
+for(i in 1:12){
+  image(matrix(x_test[i,], 28, 28)[, 28:1], 
+        main = paste("Our prediction:", y_hat_rf[i]),
+        xaxt="n", yaxt="n")
+}
+```
+
+We achieve an accuracy of over 0.95:
+```{r}
+cm <- confusionMatrix(y_hat_rf, y_test)
+cm$overall["Accuracy"]
+```
+
+With some further tunning we can get even higher accuracy.
+
+## Variable importance 
+
+Unfortunately the Rborist implementation of random forest does not yet support importance calculations. So we demonstrate with a quick fit using randomForest:
+
+```{r}
+library(randomForest)
+rf <- randomForest(x, y,  ntree = 50)
+```
+
+The following function computes the importance of each feature.
+```{r}
+imp <- importance(rf)
+```
+
+We can see which features most being used by plotting an image:
+
+```{r importance-image}
+image(matrix(imp, 28, 28))
+```
+
+## Visual assessments
+
+An important part of data science is visualizing results to determine why we  are failing. How we do this depends on the application. Here we will find digits for which we were quite certain of the cal
+
+We can compare what we get with kNN to random forests:
+
+Here is kNN
+```{r knn-images, echo=FALSE}
+p_max <- predict(fit_knn, x_test[,col_index])
+p_max <- apply(p_max, 1, max)
+ind  <- which(y_hat_knn != y_test)
+ind <- ind[order(p_max[ind], decreasing = TRUE)]
+
+rafalib::mypar(3,4)
+for(i in ind[1:12]){
+  image(matrix(x_test[i,], 28, 28)[, 28:1], 
+        main = paste0("Pr(",y_hat_knn[i],")=",p_max[i]," is a ",y_test[i]),
+        xaxt="n", yaxt="n")
+}
+```
+ 
+And here is random forrests:
+
+```{r rf-images, echo=FALSE}
+p_max <- predict(fit_rf, x_test[,col_index])$census  
+p_max <- p_max / rowSums(p_max)
+p_max <- apply(p_max, 1, max)
+
+ind  <- which(y_hat_rf != y_test)
+ind <- ind[order(p_max[ind], decreasing = TRUE)]
+
+rafalib::mypar(3,4)
+for(i in ind[1:12]){
+  image(matrix(x_test[i,], 28, 28)[, 28:1], 
+        main = paste0("Pr(",y_hat_rf[i],")=",p_max[i]," is a ",y_test[i]),
+        xaxt="n", yaxt="n")
+}
+```
+
+# Ensambles
+
+The idea of an ensemble is similar to the idea of combining data from different pollsters to obtain a better estimate of the true support for each candidate. 
+
+In Machine Learning one can usually greatly improve the final results by combining the results of different algorithms. 
+
+Here is a simple example where we compute new class probabilities by taking the average of random forests and kNN. We can see that the accuracy improves to 0.96:
+
+```{r}
+p_rf <- predict(fit_rf, x_test[,col_index])$census  
+p_rf<- p_rf / rowSums(p_rf)
+p_knn  <- predict(fit_knn, x_test[,col_index])
+p <- (p_rf + p_knn)/2
+y_pred <- factor(apply(p, 1, which.max)-1)
+confusionMatrix(y_pred, y_test)
+```
+

@@ -1,0 +1,371 @@
+# Dimension Reduction 
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+source("../_common.R")
+set.seed(1)
+```
+
+Visualizing data is one of the most, if not the most, important part of data science. The right visualization method may reveal problems with the data that can render the results from a standard analysis, although typically appropriate, completely useless. It can also help us make us important discoveries.
+
+We have shown methods for visualizing univariate and paired data, but plots that reveal relationships between columns or between rows are more complicated due to the high dimensionality of data. For example, to compare each of the 784 features in our predicting digits example,  we would have to create, for example, 306,936 scatter plots. Creating one single scatter-plot of the data is impossible due to the high dimensionality. 
+
+We will describe a powerful techniques for exploratory data analysis based on _dimension reduction_. The general idea is to reduce the dimension of the dataset while preserving important characteristics, such as the distance between features or observations. With fewer dimensions, visualization then becomes more feasible. The technique behind it all, principal component analysis (PCA), is also useful in other contexts. Before applying PCA to high dimensional dataset, we will motivate the ideas behind with a simple example.
+
+## Example: Reducing two dimensions to one
+
+We consider an example with twin heights. Here we simulate 100 two dimensional points that represent the number of standard deviations each individual is from the mean height. Each point is a pair of twins:
+
+```{r simulate_twin_heights, fig.cap="Simulated twin pair heights.",echo=FALSE,message=FALSE}
+library(rafalib)
+set.seed(1)
+n <- 100
+lim <- c(60,78)
+X <- MASS::mvrnorm(n,
+                   c(69,69), 
+                   matrix(c(9,9*0.92,9*0.92,9*1),2,2))
+
+mypar(1,1)
+plot(X, xlim=lim, ylim=lim)
+points(X[1:2,], col="red", pch=16)
+lines(X[1:2,],col="red")
+```
+
+To help with the illustration, think of this as data with many features with with the twin pairs representing the $N$ observations and the two heights representing two features. For this illustration, we will act as if two is too high dimensional. We want to reduce the dimensions to 1.
+
+We are interested in the distance between any two samples. We can compute this using `dist`. For example, here is the distance between the two orange points in the figure above:
+
+```{r}
+d=dist(X)
+as.matrix(d)[1,2]
+```
+
+Note that if we center the data by removing the average from both columns,  the distance between pairs of twins does not change.
+
+We will go ahead a center the data:
+```{r}
+X <- sweep(X, 2, colMeans(X))
+##Can also do this (advanced): X <- t(t(X) - rowMeans(t(X)))
+```
+
+What if making two dimensional plots was too complex and we were only able to make 1 dimensional plots. Can we, for example, reduce the data to a one dimensional matrix that preserves distances between points?
+
+Let's start with the naive approach of simply removing one of the two dimensions. Let's compare the actual distances to the distance computed with just one of the dimensions. The plot below shows the comparison to the first dimension (left) and to the second (right)
+
+```{r}
+Z <- X[,1]
+
+mypar(1,2)
+plot(dist(X), dist(Z))
+abline(0,1)
+
+Z <-X[,2]
+plot(dist(X), dist(Z))
+abline(0,1)
+```
+
+Note that there is a strong correlation, but can we improve it? Furthermore, the actual distance is generally underestimated. This is actually to expected since we are adding more thing sin the actual distance. If instead we average and use this distance, 
+
+$$\sqrt{ \frac{1}{2} \sum_{j=1}^2 (X_{i,j}-X_{i,j})^2 }$$
+
+then the bias goes away
+
+```{r}
+Z <- X[,1]
+
+mypar(1,1)
+plot(dist(X)/sqrt(2), dist(Z))
+abline(0,1)
+```
+
+
+Can we pick a one dimensional summary that makes this correlation even stronger?
+
+```{r}
+cor(dist(X), dist(Z))
+```
+
+If we look back at the plot, and visualize a line between any pair of points, the length of this line is the distance between the two points. These lines tend to go along the direction of the diagonal. Notice that if we instead plot the  
+
+
+```{r rotation, fig.cap="Twin height scatterplot (left) and MA-plot (right).",fig.width=10.5,fig.height=5.25}
+avg <- rowMeans(X) ##or (X[,1] + X[,2])/2
+diff <- X[,2] - X[,1]
+Z  <- cbind( avg, diff)
+
+mypar(1,2)
+lim <- lim - 69
+
+plot(X, xlim=lim, ylim=lim)
+points(X[1:2,], col="red", pch=16)
+lines(X[1:2,], col="red")
+
+plot(Z, xlim=lim, ylim=lim)
+points(Z[1:2,], col="red", pch=16)
+lines(Z[1:2,], col="red")
+```
+
+This means that we can ignore the second dimension and not lose too much information. If the line is completely flat, we lose no information. If we use this transformation of the data instead we get much higher correlation:
+
+```{r}
+mypar(1,1)
+plot(dist(X)/sqrt(2), dist(Z[,1]))
+abline(0,1)
+cor(dist(Z[,1]), dist(X)/sqrt(2))
+```
+
+Note that each row of $X$ was transformed using a linear transformation. For any row $i$, the first entry was 
+
+$$Z_{i,1} = a_{1,1} X_{i,1} + a_{2,1} X_{i,2}$$
+
+with $a_{1,1} = 0.5$ and $a_{2,1} = 0.5$
+
+The second entry was also a linear transformation
+
+$$Z_{i,2} = a_{1,2} X_{i,1} + a_{2,2} X_{i,2}$$
+
+with $a_{1,2} = 1$ and $a_{2,2} = -1$
+
+We can also use linear transformation to get $X$ back from $Z$:
+
+$$X_{i,1} = b_{1,1} Z_{i,1} + b_{2,1} Z_{i,2}$$
+
+with $b_{1,2} = 1$ and $b_{2,1} = 0.5$ and
+
+$$X_{i,2} = b_{2,1} Z_{i,1} + b_{2,2} Z_{i,2}$$
+
+with $b_{2,1} = 1$ and $a_{1,2} = -0.5$
+
+If you are familiar with linear algebra we can write the operation we just performed like this:
+
+$$
+Z = Y A
+\mbox{ with }
+A = \,
+\begin{pmatrix}
+1/2&1\\
+1/2&-1\\
+\end{pmatrix}
+$$
+
+
+And that we can transform back by simply multiplying by $A^{-1}$ as follows:
+
+$$
+Y = Z A^{-1} 
+\mbox{ with }
+A^{-1} = \,
+\begin{pmatrix}
+1&1\\
+1/21&-1/2\\
+\end{pmatrix}
+\implies
+$$
+
+#### Orthogogal transformations (advaced)
+
+Note that we redefined distance above to account for the difference in dimensions. We can actually guarantee that the distance scales remain the same if we re-scale the columns of $A$ to assure that the sum of squares are 1:
+
+$$a_{1,1}^2 + a_{2,1}^2 = 1\mbox{ and } a_{2,1}^2 + a_{2,2}^2=1$$
+
+and the correlation of the columns is 0:
+
+$$
+a_{1,1} a_{1,2} + a_{2,1} a_{2,2} = 0
+$$
+
+In this particular example to achieve this, we multiply the first set of coefficients (first column of $A$) by $\sqrt{2}$ and the second by $1\sqrt{2}$ then we get the same exact distance if we use both dimensions and a great approximation if we use both.
+
+```{r}
+Z[,1] <- (X[,1] + X[,2])/sqrt(2)
+Z[,2] <- (X[,2] - X[,1])/sqrt(2)
+
+mypar(1,2)
+
+plot(dist(X), dist(Z) )
+abline(0,1)
+
+plot(dist(X), dist(Z[,1]))
+abline(0,1)
+```
+
+In this case $Z$ is called an orthogonal rotation of $X$: it preserves the distances between points.
+
+
+## Dimension Reduction
+
+Note that by using the transformation above we can summarize the distance between any two pair of twins with just on dimension. We reduced the number of dimensions from two to one with very little loss of information. 
+
+The reason we were able to do this is because columns of $X$ were very correlated:
+
+```{r}
+cor(X[,1], X[,2])
+```
+
+and the transformation produced uncorrelated columns with "independent" information in each column:
+
+```{r}
+cor(Z[,1], Z[,2])
+```
+
+
+## Principal Component Analysis 
+
+In the computation above the total variability in our data can be defined as the sum of squares of the columns. We assume the column are centered so we have: 
+
+$$
+v_1 = \frac{1}{N}\sum_{i=1}^N X_{i,1}^2 \mbox{ and } v_2 =  \frac{1}{N}\sum_{i=1}^N X_{i,1}^2 
+$$
+
+
+Which we can compute using:
+```{r}
+colMeans(X^2) 
+```
+
+We can show, mathematically, that if we apply an orthogonal transformation as above, then the total variation remains the same:
+
+```{r}
+sum(colMeans(X^2))
+sum(colMeans(Z^2))
+```
+
+However, while the variability in the columns of `X` is about the same, in the transformed version $Z$ 96% of the variability is included in the first dimensions:
+
+```{r}
+v <- colMeans(Z^2)
+v/sum(v)
+```
+
+The _first principal component (PC)_ of a matrix $X$ is the linear orthogonal transformation of $X$, that maximizes the variability. The function `prcomp` provides this info:
+
+```{r}
+prcomp(X)
+```
+
+It turns out that we can find this linear transformation not just for two dimensions but for matrices of any dimension $p$. 
+
+For a multidimensional matrix with $X$ with say, $p$ columns, we can find a transformation that creates $Z$ that preserves distance between rows, but with the variance of the columns in decreasing order. The second column is the second principal component, the third column is the third principal component etc... 
+
+As in our example, if past $k$ these variances are very small, it means these dimensions have little to contribute to the distance and we can approximate distance between any two points with just $k$ dimensions.
+
+
+## Iris Example
+
+The Iris data is a widely used example. It includes four measurments related to three species. 
+
+Let's compute the distance between each observation. You can clearly see the three species:
+
+```{r}
+X <- iris %>% select(-Species) %>% as.matrix()
+d <- dist(X)
+image(as.matrix(d))
+```
+
+
+Our predictors here have four dimensions but some are very correlated:
+
+
+```{r}
+cor(X)
+```
+
+If we apply PC we should be able to approximate this distance with just two dimensions:
+
+
+```{r}
+pc <- prcomp(X)
+summary(pc)
+```
+The first two dimensions account for 97%. So we should be able to approximate very well:
+
+```{r}
+d_approx <- dist(pc$x[,1:2])
+plot(d, d_approx)
+abline(0,1, col=2)
+```
+
+With two dimensions including all the necessary information we are able to visualize the data with a scatterplot:
+
+```{r}
+data.frame(pc$x[,1:2], Species=iris$Species) %>% 
+  ggplot(aes(PC1,PC2, fill = Species))+
+  geom_point(cex=3, pch=21) +
+  coord_fixed(ratio = 1)
+```
+
+
+
+## The Written Digits 
+
+We have been using the written digits example. This dataset had 784 features. Is there any room for data reduction? Can we create simple machine learning algorithms with using fewer features?
+
+
+
+```{r}
+mnist <- read_mnist()
+x <- mnist$test$images
+```
+
+Because the pixels are so small we expect those to be close to each other on the grid to be correlated, meaning that dimension reduction should be possible. Here is an image showing the correlations:
+
+```{r}
+cc = cor(x)
+cc[is.na(cc)] <- 0 ##these are for cases with all 0s
+image(cc)
+```
+
+
+Let's try PCA. This will take a few seconds as it is a rather large matrix.
+
+```{r}
+pc <- prcomp(x)
+```
+
+And explore the variance of the first PCs:
+
+```{r}
+plot(pc$sdev)
+plot(pc$sdev^2/sum(pc$sdev^2))
+summary(pc)$importance[,1:5]
+```
+
+```{r}
+data.frame(PC1 = pc$x[,1], PC2 = pc$x[,2],
+           label=factor(mnist$test$label)) %>%
+  sample_n(4500) %>% ggplot(aes(PC1, PC2, fill=label))+
+  geom_point(cex=3, pch=21)
+```
+
+We can also "see" the linear combinations on the grid to get an idea of what is getting weighted:
+
+```{r}
+tmp <- lapply( c(1:4,781:784), function(i){
+    expand.grid(Row=1:28, Column=1:28) %>%
+      mutate(id=i, label=paste0("PC",i), 
+             value = pc$rotation[,i])
+})
+tmp <- Reduce(rbind, tmp)
+
+tmp %>% filter(id<5) %>%
+  ggplot(aes(Row, Column, fill=value)) +
+  geom_raster() +
+  scale_y_reverse() + 
+  scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
+  facet_wrap(~label, nrow = 1)
+```
+
+
+```{r}
+tmp %>% filter(id>5) %>%
+  ggplot(aes(Row, Column, fill=value)) +
+  geom_raster() +
+  scale_y_reverse() +
+   scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4"))
+  facet_wrap(~label, nrow = 1)
+```
+
+
+
+
+

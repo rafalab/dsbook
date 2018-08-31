@@ -56,7 +56,7 @@ To demonstrate the use of overall accuracy we will build two competing algorithm
 Let's start by developing the simplest possible machine algorithm: guessing the outcome.
 
 ```{r}
-y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE) 
+y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE)
 ```
 
 Note that we are completely ignoring the predictor and simply guessing the sex. 
@@ -108,7 +108,7 @@ accuracy <- map_dbl(cutoff, function(x){
 
 We can make a plot showing the accuracy on the training set for males and females.
 
-```{r accuracy-v-cutoff, echo=FALSE}
+```{r accuracy-vs-cutoff, echo=FALSE}
 data.frame(cutoff, accuracy) %>% 
   ggplot(aes(cutoff, accuracy)) + 
   geom_point() + 
@@ -254,7 +254,7 @@ F_1 <- map_dbl(cutoff, function(x){
 
 As before, we can plot these $F_1$ measures versus the cutoffs:
 
-```{r, echo=FALSE}
+```{r f_1-vs-cutoff, echo=FALSE}
 data.frame(cutoff, F_1) %>% 
   ggplot(aes(cutoff, F_1)) + 
   geom_point() + 
@@ -317,7 +317,7 @@ A widely used plot that does this is the _receiver operating characterstic_ (ROC
 
 The ROC curve plots sensitivity (TPR) versus 1 - specificity or the false positive rate (FPR). Here is an ROC curve for guessing sex but using different probabilities of guessing male:
 
-```{r}
+```{r roc-1}
 probs <- seq(0, 1, length.out = 10)
 guessing <- map_df(probs, function(p){
   y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, prob=c(p, 1-p)) %>% 
@@ -344,7 +344,7 @@ height_cutoff <- map_df(cutoffs, function(x){
 
 By plotting both curves together we are able to compare sensitivity for different values of specificity.
 
-```{r}
+```{r roc-2}
 bind_rows(guessing, height_cutoff) %>%
   ggplot(aes(FPR, TPR, color = method)) +
   geom_line() +
@@ -357,7 +357,7 @@ We can see that we obtain higher sensitivity with this approach for all values o
 
 Note that when making ROC curves it is often nice to add the cutoff used to the points:
 
-```{r}
+```{r roc-3}
 map_df(cutoffs, function(x){
   y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
     factor(levels = c("Female", "Male"))
@@ -376,7 +376,7 @@ map_df(cutoffs, function(x){
 ROC curves have on weakness and it is that neither of the measures plotted depend on prevalence. In case in which prevalence matters, we may instead make a precision-recall plot. The idea is similar but we instead plot precision against recall:
 
 
-```{r}
+```{r precision-recall-1}
 guessing <- map_df(probs, function(p){
   y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, prob=c(p, 1-p)) %>% factor(levels = c("Female", "Male"))
   list(method = "Guess",
@@ -401,7 +401,7 @@ From this plot we immediately see that the precision of guessing is not high. Th
 If we change positives to mean Male instead of Female the ROC curve remains the same, but the precision recall plot changes:
 
 
-```{r}
+```{r precision-recall-2}
 guessing <- map_df(probs, function(p){
   y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, prob=c(p, 1-p)) %>% factor(levels = c("Male", "Female"))
   list(method = "Guess",
@@ -419,69 +419,4 @@ bind_rows(guessing, height_cutoff) %>%
   ggplot(aes(recall, precision, color = method)) +
   geom_line() +
   geom_point()
-```
-
-## pROC package
-
-## ROC
-
-With the example we have been examining we can make two types of errors: calling a 2 a 7 or calling a 7 a 2. More generally, we binary data we call these false positives (calling a 0 a 1) and false negatives (calling a 1 a 0). Here we have arbitrarily made 7s 1s and 2s 0s.  
-
-This concept is important in many areas and in particular in health where one type of mistake can be much more costly than another. Note that we have been predicting 1s based on the rule $\hat{f}(x_1, x_2) > 0.5$ but we pick another cutoff, depending on how the cost of errors. For example, if we are predicting if a plane will malfunction, then we want a very low false negative rate and are willing to sacrifice our true positive rate. 
-
-We can see that the estimated probabilities are in a continuum:
-
-
-```{r}
-params <- train_set %>% group_by(y) %>% 
-  summarize(avg_1 = mean(X_1), avg_2 = mean(X_2), 
-            sd_1= sd(X_1), sd_2 = sd(X_2), 
-            r = cor(X_1,X_2))
-p0 <- get_p(params[1,], dat= test_set)
-p1 <- get_p(params[2,], dat= test_set)
-pi <- 0.5
-pred_qda <- pi*p1/(pi*p1 + (1-pi)*p0)
-test_set %>% mutate(pred=pred_qda, label=as.factor(y)) %>%
-  ggplot(aes(label,pred)) + geom_boxplot()
-```
-
-The Receiver Operator Characteristic Curve plots true positive rate versus false positive rates for several choices of cutoff. We can create this curve with the following code:
-
-```{r}
-library(pROC)
-
-roc_qda <- roc(test_set$y, pred_qda)
-plot(roc_qda)
-```
-
-Here are the results for LDA
-
-```{r}
-params <-params %>% mutate(sd_1 = mean(sd_1), 
-                           sd_2 = mean(sd_1), 
-                           r=mean(r))
-p0 <- get_p(params[1,], dat = test_set)
-p1 <- get_p(params[2,], dat = test_set)
-pi <- 0.5
-pred_lda <- pi*p1/(pi*p1 + (1-pi)*p0)
-
-roc_lda <- roc(test_set$y, pred_lda)
-plot(roc_qda)
-plot(roc_lda, add=TRUE, col=2)
-```
-
-We can also compare to kin
-
-```{r}
-fit <- knn3(y~., data = train_set, k=5)
-pred_knn_5 <- predict(fit, newdata = test_set)[,2]
-roc_knn_5 <- roc(test_set$y, pred_knn_5)
-plot(roc_qda)
-plot(roc_knn_5, add=TRUE, col=3)
-
-fit <- knn3(y~., data = train_set, k=51)
-pred_knn_51 <- predict(fit, newdata = test_set)[,2]
-roc_knn_51 <- roc(test_set$y, pred_knn_51)
-plot(roc_qda)
-plot(roc_knn_51, add=TRUE, col=4)
 ```

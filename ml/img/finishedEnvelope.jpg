@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="en" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="en" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="en" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
+
+<head>
+    <title>JetBlue Fly-Fi | Fly-Fi is currently unavailable</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta charset="utf-8">
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate, private">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="X-UA-Compatible" content="IE=9" >
+<link rel="shortcut icon" href="assets/web/icon/favicon.ico" type="image/x-icon" />
+<script>var state = false;</script>
+<!-- Refactored for KAP-1183 -->
+<link rel="stylesheet" href="/assets/web/css/portal-common.css">
+<link rel="stylesheet" type="text/css" href="assets/mobile/css/liveTV.retina.mob.css" media="only screen and (-webkit-min-device-pixel-ratio: 2)" />
+<script src="/assets/web/js/libs/portal-common-head.js"></script>
+<script type="text/javascript" src="assets/fonts/bsj3pzo-1362092523.js"></script>
+<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+<!--[if !IE]><!--><script>if(/*@cc_on!@*/false){document.documentElement.className+=' ie10';}</script><!--<![endif]-->
+</head>
+
+<body>
+    <header class="headerBg">
+        <section class="headerWrapper">
+            <div class="logoWrapper">
+	<a href="/home/;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082">
+		    	<img src="/var/content/portal_content/pct_assets/en/web/pages/global/widgets/image/images/logo-jblueBeta22-5198.png"  alt="JetBlue Logo"	/>
+		    </a>
+	    </div><ul class="userInfo">
+
+    <li><a href="#" onclick="getAccessDetails()"> MY ACCOUNT<span
+            class="arrowIcon"></span>
+    </a></li>
+    <li><a href="#" onclick="getAccessDetails()"
+        class="userControlIcon"></a></li>
+</ul>
+
+<div id="myAccountFlyOut">
+    <a href="#" class="nameDropDown"> MY ACCOUNT<span
+        class="arrowIcon"></span>
+    </a>
+    <section id="accessDetails"></section>
+</div>
+
+<input id="faqUrl" type="hidden" value="/global/faq.htm;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082?#" />
+<input id="connected" type="hidden" value="CONNECTED" />
+<div id="alertDialog" style="display: none">
+	<h3 id="messageTitle" class="modalHeader"></h3>
+	<a href="javascript:void(0);" id="closeSwapModal" class="closeModal">Close</a>
+	<!--Value CLOSE will be retrieved from the resource bundle of portal-->
+	<div id="swapDevice">			
+		<p id="messagePlaceHolder"></p>			
+		<a href="javascript:void();" class="btnLink noLinkModal">Close</a>
+	</div>
+</div> 
+
+<script>
+    var notificationDingSwitch = false;
+</script>
+
+<div id="youAreConnectedMessageNot" style="display: none">
+		YOU ARE CONNECTED</div>
+<!-- notification out of coverage -->
+<section id="notOutCoverage" class="notifi_trackerBar" style="display: none">
+	<div class="innerNotifi_trackerBar">
+    	<span class="notificationIcon"></span>
+        <p class="alert">
+        	<strong id="grpNotMsg"></strong>
+            <span class="view">POSTED&nbsp;<strong id="broadcastDate"></strong></span>
+        </p>
+        <p class="alerttext">
+        <a id="viewFaqUrl" href="/global/faq.htm;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082#" title="FAQ" target="_blank">
+        	VIEW FAQ</a>
+        </p>
+        <a id="closeOutOfCoverageNot" href="javascript:void(0);" class="close align">
+          	Close</a>
+    </div>
+</section>
+
+<!-- notification out of coverage without plan-->
+<section id="notOutCoverage_WP" class="notifi_trackerBar" style="display: none">
+	<div class="innerNotifi_trackerBar">
+    	<span class="notificationIcon"></span>
+        <p class="alert">
+        	<strong id="grpNotMsg_WP"></strong>
+            <span class="view">POSTED&nbsp;<strong id="broadcastDate_WP"></strong></span>
+        </p>
+        <p class="alerttext">
+        <a href="/home/plans/;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082" title="GET FLY-FI">
+           GET FLY-FI</a>
+        </p>
+        <a id="closeOutOfCoverage_WPNot" href="javascript:void(0);" class="close align">
+          	Close</a>
+    </div>
+</section>
+  
+<input type="hidden" value="/home/plans/" id="upgradeUrl"/>
+<input type="hidden" value="Get Plan" id="exceededLabel"/>
+
+<!-- notification overlay premium -->
+<section id="notPremium" class="notifi_trackerBar" style="display: none">
+	<div class="innerNotifi_trackerBar">
+    	<span class="notificationIcon"></span>
+        <p class="alert">
+        	You used&nbsp;<strong id="dataUsed"></strong>&nbsp;of your&nbsp;<strong id="dataAllocated"></strong></p>
+        <p class="alerttext">
+        <a id="notPremiumExceeded" href="javascript:callRefill('/home/plans/upgradePlan.htm?pid=');" title="GET FLY-FI+">GET FLY-FI+</a>
+		</p>
+        <a id="closePremiumNot" href="javascript:void(0);" class="close">
+          	Close</a>
+    </div>
+</section>
+
+<!--  1.2B change: notification overlay super user -->
+<section id="notSuperUser" class="notifi_trackerBar" style="display: none">
+	<div class="innerNotifi_trackerBar">
+		<span class="notificationIcon"></span>
+        <p class="alert">
+        	You used<!-- display of used hours and minutes -->
+			<strong id="usedHours"></strong>
+        	Hr(s)<strong id="usedMinutes"></strong>
+        	Min(s)of your<!-- display of total hours and minutes -->
+        	<strong id="totalHours"></strong>
+        	Hr(s)<strong id="totalMinutes"></strong>
+        	Min(s)</p>
+        <p class="alerttext">
+        <a id="notSuperExceeded" href="javascript:callRefill('/home/plans/upgradePlan.htm?pid=');" title="GET FLY-FI+">GET FLY-FI+</a>
+		</p>
+        <a id="closeSuperUserNot" href="javascript:void(0);" class="close">
+        	Close</a>
+    </div>
+</section>
+
+<!-- throttling notifications -->
+<section id="notThrottling" class="notifi_trackerBar" style="display: none">
+	<div class="innerNotifi_trackerBar">
+    	<span class="notificationIcon"></span>
+        <p class="alert">
+        	<strong id="throttlingNotMsg"></strong>
+            <span class="view">POSTED&nbsp;<strong id="throttlingBroadcastDate"></strong></span>
+        </p>
+        <p class="alerttext">
+        <a id="ctaUrl" href="" title="" target="_blank">
+        </a>
+        </p>
+        <a id="closeThrottlingNot" href="javascript:void(0);" class="close align">
+          	Close</a>
+    </div>
+</section>
+
+<input id="completeCtaUrl" type="hidden" value="" />
+<input id="faqUrl" type="hidden" value="/global/faq.htm;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082#" />
+<div id="audioBeepDiv" style="display: none"></div>
+<div id="approachingOOC" style="display: none">
+	APPROACHING OUT OF COVERAGE AREA</div>
+<div id="notificationId" style="display: none"></div>
+<div id="newNotificationMsg" style="display: none">
+	(!) New notification</div> 
+
+<div id="outOfCoverageMessage" style="display: none">
+	We're currently out of coverage. Not to worry! We’ve got you covered with free TV shows, magazines and more on The Hub.</div>
+<div id="activationMessage" style="display: none">
+    Hey Amazon Prime users, you can now watch your favorite movies and TV shows from Amazon Prime Video on Fly-Fi! If you're looking to stream another provider, please upgrade to Fly-Fi+.</div>
+<div id="terminatedServiceMessage" style="display: none">
+    Payment was not processed successfully; your previously activated service has been terminated.</div>
+<div id="youAreConnectedMessage" style="display: none">
+	YOU ARE CONNECTED</div>
+
+<!-- Start Error messages for PAUSE/RESUME transitional activities -->
+<div id="pauseInitFailed" style="display: none">
+	Your request to pause has failed. Please try later.</div>
+<div id="pauseTimeout" style="display: none">
+	Your request to pause has failed. Please try again later.</div>
+<div id="resumeInitFailed" style="display: none">
+	Your request to resume has failed. Please try again later.</div>
+<div id="resumeTimeout" style="display: none">
+	Your request for resume has failed. Please try again later.</div>
+<div id="pauseCallbackError" style="display: none">
+	PAUSE FAILED.</div>
+<div id="resumeCallbackError" style="display: none">
+	RESUME FAILED.</div>
+<div id="errorDialogTitle" style="display: none">
+	Error</div>
+<!-- End Error messages for PAUSE/RESUME transitional activities -->
+
+<!-- Start PAUSE/RESUME donut messages -->
+<div id="pausingdonuttext" style="display: none">
+	Pausing&hellip;</div>
+<div id="resumingdonuttext" style="display: none">
+	Resuming&hellip;</div>
+<!-- End PAUSE/RESUME donut messages -->
+
+
+</section>
+    </header>
+	<nav id="topNav">
+        	<div class="topNavInner">
+			<ul>
+                <li
+							
+								class="selected"
+							
+						>
+
+						<a
+							
+
+								title="THE HUB"
+								href='/home/;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082'
+								target="_self"
+								>THE HUB</a>
+
+								<div id="moreTxt_nav">MORE</div>
+
+						</li>
+					<li
+							
+								class="selected"
+							
+						>
+
+						<a
+							
+
+								title="AMAZON.COM"
+								href='/home/plans/;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082'
+								target="_self"
+								>AMAZON.COM</a>
+
+								<div id="moreTxt_nav">MORE</div>
+
+						</li>
+					<li
+							
+								class="selected"
+							
+						>
+
+						<a
+							
+									href="#"
+									onclick="submitLink('http://www.barclaycardus.com/apply/Landing.action?campaignId=2244&cellNumber=3&referrerid=PTRBAFLYFI','_blank', 'TRUE')"
+									
+
+								title="JETBLUE CARD"
+								href='http://www.barclaycardus.com/apply/Landing.action?campaignId=2244&cellNumber=3&referrerid=PTRBAFLYFI'
+								target=""
+								>JETBLUE CARD</a>
+
+								<div id="moreTxt_nav">MORE</div>
+
+						</li>
+					<li
+							
+								class="selected"
+							
+						>
+
+						<a
+							
+									href="#"
+									onclick="submitLink('http://www.lyft.com/jetblue/wifi','_blank', 'TRUE')"
+									
+
+								title="LYFT"
+								href='http://www.lyft.com/jetblue/wifi'
+								target=""
+								>LYFT</a>
+
+								<div id="moreTxt_nav">MORE</div>
+
+						</li>
+					<li
+							
+								class="selected"
+							
+						>
+
+						<a
+							
+
+								title="MY TRIP"
+								href='/travel/;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082'
+								target="_self"
+								>MY TRIP</a>
+
+								<div id="moreTxt_nav">MORE</div>
+
+						</li>
+					<li
+							
+								class="selected"
+							
+						>
+
+						<a
+							
+
+								title="WATCH"
+								href='/destination_videos/;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082'
+								target="_self"
+								>WATCH</a>
+
+								<div id="moreTxt_nav">MORE</div>
+
+						</li>
+					<li
+							
+								class="selected"
+							
+						>
+
+						<a
+							
+
+								title="READ"
+								href='/magazines/;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082'
+								target="_self"
+								>READ</a>
+
+								<div id="moreTxt_nav">MORE</div>
+
+						</li>
+					<li
+							
+								class="selected"
+							
+						>
+
+						<a
+							
+									href="#"
+									onclick="submitLink('http://www.photoandgo.com/s/cid-36-3a9e0e70','_blank', 'TRUE')"
+									
+
+								title="PHOTO & GO"
+								href='http://www.photoandgo.com/s/cid-36-3a9e0e70'
+								target=""
+								>PHOTO & GO</a>
+
+								<div id="moreTxt_nav">MORE</div>
+
+						</li>
+					<li
+							
+								class="selected"
+							
+						>
+
+						<a
+							
+									href="#"
+									onclick="submitLink('http://www.carrental.com/abgPartners/jetblue/?iataNumber=0146845N','_blank', 'TRUE')"
+									
+
+								title="AVIS"
+								href='http://www.carrental.com/abgPartners/jetblue/?iataNumber=0146845N'
+								target=""
+								>AVIS</a>
+
+								<div id="moreTxt_nav">MORE</div>
+
+						</li>
+					</ul>
+
+            <script>
+                    // Set the available categories to be used by liveTV.main.js
+                    var availableCategories = "true";
+            </script>
+
+
+
+ 
+
+    </div>
+       </nav>
+    
+<div id="mainContent" class="errorBg clearfix">
+        <section id="globalContainer">
+            <section id="errorPageContentArea">
+			<div class="errorPageAd">
+			 <img class="errorPageAdImages" src="/assets/web/images/amazon-jb.png"/>
+			 <img class="errorPageAdImages" src="/assets/web/images/time-inc.png"/>
+			 <img class="errorPageAdImages" src="/assets/web/images/vice.png"/>
+			</div>
+                <h1>We'll connect soon. Promise!</h1>
+                <h3>We’re out of coverage or having a temporary hiccup with the connection. In the meantime, check out the free TV shows, magazines and more on The Hub and we’ll let you know once Fly-Fi becomes available again. Give us a few seconds to get things back in line, go back to the previous page, or visit the available pages in the main menu above.</h3>
+                <a href="/home/;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082" class="btnLink" title="HUB">HUB</a>
+                <img class="errorPageHubScreenshot" src="/assets/web/images/hub-screenshot.png"/>				
+
+                </section>
+        </section>
+    </div>
+	<!-- Display Footer only if user is logged in -->
+		<section id="flyTracker" style="display:none;">
+    <aside id="flightMapbtn" >
+        <span id="hiddenSeeFlight"></span>
+            </aside>
+	
+    <section id="flightContent">
+        <div class="takeOff">
+        	<span id="takeOffMarker"></span>
+        	<span id="originIATA"></span>
+        </div>
+        <div class="flightContainer">
+            <div id="progress_bar" class="ui-progress-bar">
+               <h3><span id="flightStatusText"></span><span id="promotionText"></span></h3>
+            </div>
+            <div id="dynamicScroll" class="scrollLeft"></div>
+            <div id="planeBar"></div>
+        </div>
+        <div class="descent">
+        	<span id="descentMarker"></span>
+        	<span id="flightETA"></span>
+            <span id="destinationIATA"></span>
+        </div>
+    </section>
+</section>
+<input type="hidden" id="checkTravelMSection" value="true"/>
+
+<footer>
+    <ul>
+        <li>
+                <a href="/global/faq.htm;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082" title="FAQ"
+                        
+                            target="_self"
+                        
+                    >
+                        FAQ</a>
+                </li>
+        <li>
+                <a href="JavaScript:void(0);" onclick="submitLink('http://www.jetblue.com/flyfi-feedback','_blank', 'TRUE')" title="Give feedback" >Give feedback</a>
+                    </li>
+        <li>
+                <a href="/global/privacy-policy.htm;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082" title="Privacy policy"
+                        
+                            target="_self"
+                        
+                    >
+                        Privacy policy</a>
+                </li>
+        <li>
+                <a href="/global/terms-and-conditions.htm;jsessionid=0D8EB95810C0A7EC1AB29935CC5B8082" title="Terms & Conditions"
+                        
+                            target="_self"
+                        
+                    >
+                        Terms &amp; Conditions</a>
+                </li>
+        <li>
+                <a href="JavaScript:void(0);" onclick="submitLink('http://www.jetblue.com/','_blank', 'TRUE')" title="JetBlue.com" >JetBlue.com</a>
+                    </li>
+        <li>
+                <a href="JavaScript:void(0);" onclick="submitLink('?lang=es','_self', 'FALSE')" title="Español" >Español</a>
+                    </li>
+        </ul>
+</footer>
+
+
+
+
+<!-- libs -->
+
+<script src="/assets/web/js/libs/portal-common-libs.js"></script>
+<script src="/assets/web/js/portal-common.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+       if((typeof isLogin!='undefined')&&(isLogin)){
+          getKeys();
+         }
+    });
+</script>
+<script src="/assets/web/js/portal-common-online.js"></script>
+
+</body>

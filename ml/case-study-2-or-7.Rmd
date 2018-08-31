@@ -1,0 +1,138 @@
+# Case study: Is it a 2 or a 7?
+
+In the two simple examples above we only had one predictor. We actually do not consider these machine learning challenges, which are characterized by cases with many predictors. Let's go back to the digits example in which we had 784 predictors. However, for illustrative purposes we will start by simplifying this problem to one with with 2 predictors and two classes. 
+Specifically, we define the challenge as building an algorithm that can determine if a digit is a 2 or 7 from the predictors. We are not quite ready to build algorithms with 784 predictors so we will extract two simple predictors from the 784: the proportion of dark pixels that are in the upper left quadrant ($X_1$) and the lower right quadrant ($X_2$).
+
+We then selected a random sample of 1,000 digits, 500 in the a train set and 500 in the test set and provide them here:
+
+```{r}
+data("mnist_27")
+```
+
+We can explore this data by plotting the two predictors and use colors to denote the labels:
+
+```{r two-or-seven-scatter}
+mnist_27$train %>% ggplot(aes(x_1, x_2, color = y)) +
+  geom_point()
+```
+
+We can immediately see some patterns. For example, if $X_1$ (the upper left panel) is very large, then the digit is probably a 7. Also, for smaller values of $X_1$ the 2s appear to be in the mid range values of $X_2$.
+
+These are the images of the digits with the largest and smallest values for $X_1$:
+
+```{r two-or-seven-images-large-x1, echo=FALSE}
+is <- mnist_27$index_train[c(which.min(mnist_27$train$x_1), which.max(mnist_27$train$x_1))]
+titles <- c("smallest","largest")
+tmp <- lapply(1:2, function(i){
+    expand.grid(Row=1:28, Column=1:28) %>%  
+      mutate(label=titles[i],  
+             value = mnist$train$images[is[i],])
+})
+tmp <- Reduce(rbind, tmp)
+tmp %>% ggplot(aes(Row, Column, fill=value)) + 
+    geom_raster() + 
+    scale_y_reverse() +
+    scale_fill_gradient(low="white", high="black") +
+    facet_grid(.~label) + 
+    geom_vline(xintercept = 14.5) +
+    geom_hline(yintercept = 14.5)
+```
+
+And here the original images corresponding to the largest and smallest value of $x_2$:
+
+```{r  two-or-seven-images-large-x2, echo=FALSE}
+is <- mnist_27$index_train[c(which.min(mnist_27$train$x_2), which.max(mnist_27$train$x_2))]
+titles <- c("smallest","largest")
+tmp <- lapply(1:2, function(i){
+    expand.grid(Row=1:28, Column=1:28) %>%  
+      mutate(label=titles[i],  
+             value = mnist$train$images[is[i],])
+})
+tmp <- Reduce(rbind, tmp)
+tmp %>% ggplot(aes(Row, Column, fill=value)) + 
+    geom_raster() + 
+    scale_y_reverse() +
+    scale_fill_gradient(low="white", high="black") +
+    facet_grid(.~label) + 
+    geom_vline(xintercept = 14.5) +
+    geom_hline(yintercept = 14.5)
+```
+
+We can start getting a sense for why these predictors are useful but also why the problem will be somewhat challenging.
+
+So let's try building a machine learning algorithm. We haven't really learned any algorithms yet, so let's start with logistic regression. The model is simply:
+
+$$
+p(x_1, x_2) = \mbox{Pr}(Y=1 \mid X_1=x_1 , X_2 = x_2) = 
+g^{-1}(\beta_0 + \beta_1 x_1 + \beta_2 x_2)
+$$
+
+with $g^{-1}$ the inverse of the logistic function: $g^{-1}(x) = \exp(x)/\{1+\exp(x)\}$. We fit it like this:
+
+```{r}
+fit <- glm(y ~ x_1 + x_2, data=mnist_27$train, family="binomial")
+```
+
+We can now build a decision rule based on the estimate of $\hat{p}(x_1, x_2)$:
+
+```{r}
+p_hat <- predict(fit, newdata = mnist_27$test)
+y_hat <- factor(ifelse(p_hat > 0.5, 7, 2))
+library(caret)
+confusionMatrix(data = y_hat, reference = mnist_27$test$y)
+```
+
+We get an accuracy of 0.79! Not bad for our first try. But can we do better?
+
+Because we constructed the `mnist_27` example and we had to our disposal 60,000 digits in just the MNIST dataset, we used this to build the _true_ conditional distribution $p(x_1, x_2)$. Note that this is something we don't have access to in practice, but we include it in this example because it lets us compare $\hat{p}(x_1, x_2)$ to the true $p(x_1, x_2)$ and this teaches us the limitations of different algorithms. Let's do that here. We can access and plot $p(x_1,x_2)$ like this:
+
+```{r true-p}
+mnist_27$true_p %>% ggplot(aes(x_1, x_2, fill=p)) +
+  geom_raster() 
+```
+
+We will chose better colors and draw a curve that separates pairs $(x_1,x_2)$ for which $p(x_1,x_2) > 0.5$ and cases for which $p(x_1,x_2) < 0.5$:
+
+```{r true-p-better-colors}
+mnist_27$true_p %>% ggplot(aes(x_1, x_2, z=p, fill=p)) +
+  geom_raster() +
+  scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
+  stat_contour(breaks=c(0.5),color="black")
+```
+
+So above you see a plot of the true $p(x,y)$. To start understanding the limitations of logistic regression here. First note that with logistic regression $\hat{p}(x,y)$ has to be a plane and as result the
+boundary defined by the decision rule is given by 
+
+$$ \hat{p}(x,y) = 0.5$$
+which implies the boundary can't be anything other than straight line:
+
+$$
+g^{-1}(\hat{\beta}_0 + \hat{\beta}_1 x_1 + \hat{\beta}_2 x_2) = 0.5 \implies
+\hat{\beta}_0 + \hat{\beta}_1 x_1 + \hat{\beta}_2 x_2 = g(0.5) = 0 \implies
+x_2 = -\hat{\beta}_0/\hat{\beta}_2 + -\hat{\beta}_1/\hat{\beta}_2 x_1
+$$
+
+which implies our logistic regression approach has no chance of capturing the non-linear nature of the true $p(x_1,x_2)$. Here is a visual representation of $\hat{p}(x_1, x_2)$:
+
+```{r logistic-p-hat}
+p_hat <- predict(fit, newdata = mnist_27$true_p)
+mnist_27$true_p %>% mutate(p_hat = p_hat) %>%
+  ggplot(aes(x_1, x_2,  z=p_hat, fill=p_hat)) +
+  geom_raster() +
+  scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
+  stat_contour(breaks=c(0.5),color="black") 
+```
+
+We can see where the mistakes were made mainly come from low values $x_1$ that have either high or low value of $x_2$. Logistic regression can't catch this.
+
+```{r logistic-p-hat-with-points}
+p_hat <- predict(fit, newdata = mnist_27$true_p)
+mnist_27$true_p %>% mutate(p_hat = p_hat) %>%
+  ggplot() +
+  stat_contour(aes(x_1, x_2, z=p_hat), breaks=c(0.5), color="black") + 
+  geom_point(mapping = aes(x_1, x_2, color=y), data = mnist_27$test) 
+```
+
+We need something more flexible. A method that permits estimates with shapes other than a plane. 
+We are going to learn a few new algorithms based on different ideas and concepts. But what they all have in common is that they permit more flexible approaches. We will start by describing nearest neighbor and kernel approaches. To introduce the concepts behinds these approaches we will again start with a simple one dimensional example and describe the concept of _smoothing_.
+

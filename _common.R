@@ -1,3 +1,4 @@
+library(matrixStats) 
 library(tidyverse)
 library(dslabs)
 ds_theme_set()
@@ -17,3 +18,4 @@ knitr::opts_chunk$set(
 )
 
 options(dplyr.print_min = 6, dplyr.print_max = 6)
+
