@@ -1,6 +1,6 @@
 # Smoothing
 
-Before continuing with machine learning algorithms we introduce the important concept of _smoothing_. Smoothing is a very powerful technique used all across data analysis. Other names given to this technique are _curve fitting_ and _low pass filtering_. It is designed to detect trends in the presence of noisy data in cases in which the shape of the trend is unknown.  The _smoothing_ name comes from the fact that to accomplish this feat we assume that the trend is _smooth_, as in a smooth surface. In contrast the noise, or deviation from the trend, is unpredictably wobbly:
+Before continuing with machine learning algorithms, we introduce the important concept of _smoothing_. Smoothing is a very powerful technique used all across data analysis. Other names given to this technique are _curve fitting_ and _low pass filtering_. It is designed to detect trends in the presence of noisy data in cases in which the shape of the trend is unknown. The _smoothing_ name comes from the fact that to accomplish this feat, we assume that the trend is _smooth_, as in a smooth surface. In contrast, the noise, or deviation from the trend, is unpredictably wobbly:
 
 ```{r signal-plus-noise-example, echo=FALSE}
 library(tidyverse)
@@ -16,9 +16,9 @@ p3 <- qplot(x, f+e, main = "data = smooth trend + noise", ylim = range(tmp$f+tmp
 gridExtra::grid.arrange(p1, p2, p3)
 ```
 
-Part of what we explain in this section are the assumptions that permits us to extract the trend from the noise.
+Part of what we explain in this section are the assumptions that permit us to extract the trend from the noise.
 
-**To understand why we cover this topic note that the concepts behind smoothing techniques are extremely useful in machine learning because conditional expectations/probabilities can be thought of as _trends_ of unknown shapes that we need to estimate in the presence of uncertainty.** 
+**To understand why we cover this topic, remember that the concepts behind smoothing techniques are extremely useful in machine learning because conditional expectations/probabilities can be thought of as _trends_ of unknown shapes that we need to estimate in the presence of uncertainty.** 
 
 To explain these concepts we will focus first on a problem with just one predictor. Specifically, we try to estimate the time trend in the popular vote polls (difference between Obama and McCain) from 2008. 
 
@@ -29,13 +29,13 @@ qplot(day, margin, data = polls_2008)
 
 For the purposes of this example, do not think of it as a forecasting problem. Instead, we are simply interested in learning the shape of the trend *after* the election is over.
 
-We assume that for any given day $x$ there is a true preference among the electorate $f(x)$, but due to the uncertainty introduced by the polling, each data point comes with an error $\varepsilon$. A mathematical model for the observed poll margin $Y_i$ is:
+We assume that for any given day $x$, there is a true preference among the electorate $f(x)$, but due to the uncertainty introduced by the polling, each data point comes with an error $\varepsilon$. A mathematical model for the observed poll margin $Y_i$ is:
 
 $$
 Y_i = f(x_i) + \varepsilon_i
 $$
 
-To think of this as a machine learning problem, consider that we want to predict $Y$ given a day $x$. If we knew it, we would use the conditional expectation $f(x) = \mbox{E}(Y \mid X=x)$. But we don't know it, so we have to estimate it. Let's use regression, since it is the only method we have learned up to now.
+To think of this as a machine learning problem, consider that we want to predict $Y$ given a day $x$. If we knew the conditional expectation $f(x) = \mbox{E}(Y \mid X=x)$, we would use it. But since we don't know this conditional expectation, we have to estimate it. Let's use regression, since it is the only method we have learned up to now.
 
 ```{r linear-regression-not-flexible}
 resid <- ifelse(lm(margin~day, data = polls_2008)$resid >0, "+", "-")
@@ -46,26 +46,26 @@ polls_2008 %>%
   geom_point(aes(color = resid), size = 3)
 ```
 
-The line we see does not appear to describe the trend very well. Note for example that on September 4 (day -62) the Republican Convention was held. This gave John McCain a boost in the polls which can be clearly seen in the data. The regression line does not capture this. To see the _lack of fit_ more clearly we note that points above the fitted line (blue) and those below (red) are not evenly distributed. We therefore need an alternative more flexible approach.
+The line we see does not appear to describe the trend very well. For example, on September 4 (day -62) the Republican Convention was held and gave John McCain a boost in the polls which can be clearly seen in the data. However, the regression line does not capture this. To see the _lack of fit_ more clearly, we note that points above the fitted line (blue) and those below (red) are not evenly distributed. We therefore need an alternative, more flexible approach.
 
 ## Bin Smoothing
 
-The general idea of smoothing is to group data points into strata in which the value of $f(x)$ can be assumed to be constant. We can make this assumption because we think $f(x)$ changes slowly and, as a result, $f(x)$ is almost constant in small windows of time. An example of this idea is to assume, for the `poll_2008` data, that public opinion remained approximately the same with a weeks time. With this assumption in place we have several data points with the same expected value. 
+The general idea of smoothing is to group data points into strata in which the value of $f(x)$ can be assumed to be constant. We can make this assumption because we think $f(x)$ changes slowly and, as a result, $f(x)$ is almost constant in small windows of time. An example of this idea is to assume, for the `poll_2008` data, that public opinion remained approximately the same within a week's time. With this assumption in place, we have several data points with the same expected value. 
 
-So if we fix a day to be in the center of our week, call it $x_0$, then for any other day $x$ such that $|x - x_0| \leq 3.5$ we assume $f(x)$ is a constant $f(x) = \mu$. This assumptions implies that 
+So if we fix a day to be in the center of our week, call it $x_0$, then for any other day $x$ such that $|x - x_0| \leq 3.5$, we assume $f(x)$ is a constant $f(x) = \mu$. This assumptions implies that: 
 $$
 E[Y_i | X_i = x_i ] \approx \mu \mbox{   if   }  |x_i - x_0| \leq 3.5
 $$
 
-In smoothing we call the size of the interval satisfying  $|x_i - x_0| \leq 3.5$ the _window size_, _bandwidth_ or _span_. Having a name is important becuase later we will see that we try to optimize this parameter.
+In smoothing we call the size of the interval satisfying $|x_i - x_0| \leq 3.5$ the _window size_, _bandwidth_ or _span_. Having a name is important because later we will see that we try to optimize this parameter.
 
-This assumptions implies that a good estimate for $f(x)$ is the average of the $Y_i$ values in the window. If we define $A_0$ as the set of indexes $i$ such that  $|x_i - x_0| \leq 3.5$  and $N_0$ as the number of indexes in $A_0$ then our estimate is 
+This assumptions implies that a good estimate for $f(x)$ is the average of the $Y_i$ values in the window. If we define $A_0$ as the set of indexes $i$ such that $|x_i - x_0| \leq 3.5$ and $N_0$ as the number of indexes in $A_0$, then our estimate is: 
 
 $$
 \hat{f}(x_0) = \frac{1}{N_0} \sum_{i \in A_0}  Y_i
 $$
 
-The idea of behind _bin smoothing_ is to make this calumniation with each value of $x$ as the center. So in the poll example, for each day, we would compute the average of the values within a week with that day in the center. Here are two examples, $x_0 = -125$ and $x_0 = -55$. The blue line is the resulting average.
+The idea behind _bin smoothing_ is to make this calculation with each value of $x$ as the center. So in the poll example, for each day, we would compute the average of the values within a week with that day in the center. Here are two examples: $x_0 = -125$ and $x_0 = -55$. The blue line is the resulting average.
 
 ```{r binsmoother-expained, echo=FALSE}
 span <- 3.5
@@ -83,7 +83,7 @@ tmp %>% filter(center %in% c(-125, -55)) %>%
   facet_wrap(~center)
 ```
 
-By computing this mean for every point, we form an estimate of the underlying curve $f(x)$. Below we show the procedure happening as we move from the -155 up to 0. At each value of $x_0$ we keep the estimate $\hat{f}(x_0)$ and move on to the next point:
+By computing this mean for every point, we form an estimate of the underlying curve $f(x)$. Below we show the procedure happening as we move from the -155 up to 0. At each value of $x_0$, we keep the estimate $\hat{f}(x_0)$ and move on to the next point:
 
 ```{r binsmoother-animation, echo=FALSE, cache=TRUE, fig.show="animate", interval = .1, ffmpeg.bitrate="1M", warning=FALSE}
 library(gganimate)
@@ -117,14 +117,14 @@ polls_2008 %>% mutate(smooth = fit$y) %>%
 
 ## Kernels  
 
-The final result from the bin smoother is quite wiggly. One reason for this is that each time the window moves, two points change. We can attenuate this somewhat by taking weighted averages that give the center point more weight and than far away points, with the two points at the edges that will change, receiving very little weight.
+The final result from the bin smoother is quite wiggly. One reason for this is that each time the window moves, two points change. We can attenuate this somewhat by taking weighted averages that give the center point more weight than far away points, with the two points at the edges that will change, receiving very little weight.
 
-Note that you can think of the bin smoother approach as a weighted average 
+You can think of the bin smoother approach as a weighted average:
 
 $$
 \hat{f}(x_0) = \sum_{i=1}^N w_0(x_i) Y_i
 $$
-in which each point receives a weight of either $0$ or $1/N_0$, with $N_0$ the number of points in the week. In the code above we used the argument `kernel=box` in our call to the function `ksmooth`. This is because the weight function looks like a box:
+in which each point receives a weight of either $0$ or $1/N_0$, with $N_0$ the number of points in the week. In the code above, we used the argument `kernel=box` in our call to the function `ksmooth`. This is because the weight function looks like a box:
 
 ```{r box-kernel, echo=FALSE}
 x_0 <- -125
@@ -134,7 +134,7 @@ data.frame(x = polls_2008$day) %>% mutate(w_0 = 1*I(abs(x - x_0)<=span/2)) %>%
   geom_step()
 ```
 
-The `ksmooth` function provides a "smoother" options which uses the normal density to assign weights:
+The `ksmooth` function provides a "smoother" option which uses the normal density to assign weights:
 
 ```{r gaussian-kernel, echo=FALSE}
 x_0 <- -125
@@ -146,7 +146,8 @@ data.frame(x = tmp$x, w_0 = tmp$y) %>%
   geom_line()
 ```
 
-In this animation we see that points on the edge get less weight (the size of the point is proportional to its weight):
+In this animation, we see that points on the edge get less weight (the size of the point is proportional to its weight):
+
 ```{r kernel-animation, echo=FALSE, cache=TRUE, fig.show="animate", interval = .1, ffmpeg.bitrate="1M", warning=FALSE}
 tmp <- polls_2008 %>%
   crossing(center = polls_2008$day) %>%
@@ -171,7 +172,6 @@ p <- tmp %>%
 gganimate(p)
 ```
 
-
 The final result looks like this:
 
 ```{r final-ksmooth-normal-kernel}
@@ -185,27 +185,26 @@ polls_2008 %>% mutate(smooth = fit$y) %>%
   geom_line(aes(day, smooth), color="red")
 ```
 
+Notice that the final estimate now looks smoother.
 
-Note that the final estimate looks smoother now.
-
-There are several functions in R that implement bin smoothers. One example is `ksmooth`, shown above. However, in practice, we typically prefer methods that use slightly more complex models than fitting a constant. The final result above, for example, is still somewhat wiggly in parts we don't except it to be (between -125 and -75 for example). Methods such as `loess`, which we explain next, improve on this.
+There are several functions in R that implement bin smoothers. One example is `ksmooth`, shown above. However, in practice, we typically prefer methods that use slightly more complex models than fitting a constant. The final result above, for example, is still somewhat wiggly in parts we don't expect it to be (between -125 and -75, for example). Methods such as `loess`, which we explain next, improve on this.
 
 ## Local weighted regression (loess) 
 
-A limitation of the bin smoother approach just described is that we need small windows for the approximately constant assumption to hold. As a result we end up with a small number data points to average and obtain imprecise estimates $\hat{f}(x)$. Here we describe how _local weighted regression_ (loess) permits us to consider larger window sizes. To do this we will use a mathematical result, referred to as Taylor's Theorem, which tells us that if you look close enough at any smooth function $f(x)$ it will look like a line. To see why this makes sense consider the curved edges gardeners make using straight edges:
+A limitation of the bin smoother approach just described is that we need small windows for the approximately constant assumptions to hold. As a result, we end up with a small number of data points to average and obtain imprecise estimates $\hat{f}(x)$. Here we describe how _local weighted regression_ (loess) permits us to consider larger window sizes. To do this, we will use a mathematical result, referred to as Taylor's Theorem, which tells us that if you look closely enough at any smooth function $f(x)$, it will look like a line. To see why this makes sense, consider the curved edges gardeners make using straight edges:
 
 ```{r, echo=FALSE}
 knitr::include_graphics("https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Savill_Garden_-_Windsor_Great_Park%2C_England_-_DSC06280.jpg/1920px-Savill_Garden_-_Windsor_Great_Park%2C_England_-_DSC06280.jpg")
 ```
 
 
-So instead of assuming the function is approximately constant in a window we assume the function is locally linear. With the linear assumption we can consider larger window sizes than with a constant. So instead of the one week window, we consider a larger one in which the trend is approximately linear. We start with a 3 week window and later consider and evaluate other options:
+So instead of assuming the function is approximately constant in a window, we assume the function is locally linear. We can consider larger window sizes with the linear assumption than with a constant. So instead of the one week window, we consider a larger one in which the trend is approximately linear. We start with a 3 week window and later consider and evaluate other options:
 
 $$
 E[Y_i | X_i = x_i ] = \beta_0 + \beta_1 (x_i-x_0) \mbox{   if   }  |x_i - x_0| \leq 21
 $$
 
-For every point $x_0$ loess defines a window and fits a line within that window. Here is an example showing the fits for $x_0=-125$ and $x_0 = -55$:
+For every point $x_0$, loess defines a window and fits a line within that window. Here is an example showing the fits for $x_0=-125$ and $x_0 = -55$:
 
 ```{r loess, echo=FALSE}
 span <- 21/diff(range(polls_2008$day))
@@ -299,9 +298,9 @@ tmp %>% ggplot(aes(day, margin)) +
 
 There are three other differences between `loess` and the typical bin smoother. 
 
-1. The first is that rather than keeping the bin size the same, `loess` keeps the number of points used in the local fit the same. This number is controlled via the `span` argument which expects a proportion. For example, if `N` is the number of data points and `span=0.5`, then for a given $x$ , `loess` will use the `0.5*N` closest points to $x$ for the fit. 
+1. The first is that rather than keeping the bin size the same, `loess` keeps the number of points used in the local fit the same. This number is controlled via the `span` argument which expects a proportion. For example, if `N` is the number of data points and `span=0.5`, then for a given $x$, `loess` will use the `0.5*N` closest points to $x$ for the fit. 
 
-2. When fitting a line locally `loess` uses _weighted_ approach. Basically instead of using least squares we minimize a weighted version:
+2. When fitting a line locally, `loess` uses _weighted_ approach. Basically, instead of using least squares, we minimize a weighted version:
 
 $$
 \sum_{i=1}^N w_0(x_i) \left[Y_i - \left\{\beta_0 + \beta_1 (x_i-x_0)\right\}\right]^2
@@ -312,13 +311,13 @@ However, instead of the Gaussian kernel, loess uses a function called the Tukey 
 $$
 W(u)= \left( 1  - |u|^3\right)^3 \mbox{ if } |u| \leq 1 \mbox{ and } W(u) = 0 \mbox{ if } |u| > 1
 $$
-To define the weights we denote $2h$ as the window size and define
+To define the weights, we denote $2h$ as the window size and define:
 
 $$
 w_0(x_i) = W\left(\frac{x_i - x_0}{h}\right)
 $$
 
-This kernel differs from the Gaussian kernel in that it more points get values closer to the max:
+This kernel differs from the Gaussian kernel in that more points get values closer to the max:
 
 ```{r triweight-kernel, echo=FALSE}
 data.frame(x = seq(min(polls_2008$day), max(polls_2008$day), length.out = 100)) %>%
@@ -332,14 +331,14 @@ data.frame(x = seq(min(polls_2008$day), max(polls_2008$day), length.out = 100)) 
 
 ## Fitting parabolas
 
-Taylor's Theorem also tells us that if you look at any function close enough it looks like a parabola. The theorem also tells thatthat you don't have to look as closely with parabolas as you do for the linear approximation. This means we can make our windows even larger and fit parabolas instead of lines. 
+Taylor's Theorem also tells us that if you look at any mathematical function closely enough, it looks like a parabola. The theorem also states that you don't have to look as closely when approximating with parabolas as you do when approximating with lines. This means we can make our windows even larger and fit parabolas instead of lines. 
 
 
 $$
 E[Y_i | X_i = x_i ] = \beta_0 + \beta_1 (x_i-x_0) + \beta_2 (x_i-x_0)^2 \mbox{   if   }  |x_i - x_0| \leq h
 $$
 
-This is actually the default procedure of the function `loess`. You may have noticed that when we showed the code for using loess we saw that we set `degree = 1`. This tells loess to fit polynomial of degree 1, a fancy name for lines. If you read the help page for loess you will see that the argument `degree` defaults to 2. So by default loess fits parabolas not lines. Here is a comparison of the fitting lines (red dashed) and fitting parabolas (orange solid)
+This is actually the default procedure of the function `loess`. You may have noticed that when we showed the code for using loess we saw that we set `degree = 1`. This tells loess to fit polynomials of degree 1, a fancy name for lines. If you read the help page for loess, you will see that the argument `degree` defaults to 2. So, by default, loess fits parabolas not lines. Here is a comparison of the fitting lines (red dashed) and fitting parabolas (orange solid):
 
 ```{r polls-2008-parabola-line-loess}
 total_days <- diff(range(polls_2008$day))
@@ -356,12 +355,12 @@ polls_2008 %>% mutate(smooth_1 = fit_1$fitted, smooth_2 = fit_2$fitted) %>%
   geom_line(aes(day, smooth_2), color="orange", lty = 1) 
 ```
 
-Notice that the `degree = 2` gives us more wiggly results. We actually prefer `degree = 1` as it is less prone to this kind of noise.
+The `degree = 2` gives us more wiggly results. We actually prefer `degree = 1` as it is less prone to this kind of noise.
 
 
 ## Beware of `ggplot` defaults 
 
-Note the `ggplot` uses loess in its `geom_smooth` function. 
+`ggplot` uses loess in its `geom_smooth` function. 
 
 ```{r ggplot-loess-default}
 polls_2008 %>% ggplot(aes(day, margin)) +
