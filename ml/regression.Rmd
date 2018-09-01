@@ -1,7 +1,6 @@
 # Linear regression for prediction
 
-Linear regression can be considers a machine learning algorithm. As we will see, it is too rigid to be useful in general, 
-but for some challenges it works rather well. It also serves as a baseline approach: if you can't beat it with a more complex approach, you probably want to stick to linear regression. To quickly make the connection between regression and machine learning we will reformulate Galton's study with heights: a continuous outcome.
+Linear regression can be considered a machine learning algorithm. As we will see, it is too rigid to be useful in general, but for some challenges it works rather well. It also serves as a baseline approach: if you can't beat it with a more complex approach, you probably want to stick to linear regression. To quickly make the connection between regression and machine learning, we will reformulate Galton's study with heights: a continuous outcome.
 
 ```{r}
 library(HistData)
@@ -30,7 +29,7 @@ avg <- mean(train_set$son)
 avg
 ```
 
-Our squared loss is 
+Our squared loss is: 
 
 ```{r}
 mean((avg - test_set$son)^2)
@@ -42,7 +41,7 @@ $$
 f(x) = \mbox{E}( Y  \mid  X= x ) = \beta_0 + \beta_1 x
 $$
 
-We also introduced least squares as method for estimating the slope $\beta_0$ and intercept $\beta_1$: 
+We also introduced least squares as a method for estimating the slope $\beta_0$ and intercept $\beta_1$: 
 
 ```{r}
 fit <- lm(son ~ father, data = train_set)
@@ -77,7 +76,7 @@ y_hat <- predict(fit, test_set)
 mean((y_hat - test_set$son)^2)
 ```
 
-Note that predict does not always return object of the same  types, it depends what type of object is sent to it. To learn about the specifics you need to look at the help file specific for the type of fit object is being used. The `predict` is a actually a special type of function in R (called a _generic function_) that calls other functions depending on what kind of object it receives. So if `predict` receives an object coming out of the `lm` function it will call `predict.lm`, and if it receives an object coming out of `glm` it calls `predict.glm`. These two function are similar but different. You can learn more about the differences by reading the help files:
+Predict does not always return objects of the same types; it depends on what type of object is sent to it. To learn about the specifics, you need to look at the help file specific for the type of fit object that is being used. The `predict` is a actually a special type of function in R (called a _generic function_) that calls other functions depending on what kind of object it receives. So if `predict` receives an object coming out of the `lm` function, it will call `predict.lm`. If it receives an object coming out of `glm`, it calls `predict.glm`. These two functions are similar but different. You can learn more about the differences by reading the help files:
 
 ```{r, eval=FALSE}
 ?predict.lm
@@ -89,11 +88,11 @@ and
 ?predict.glm
 ```
 
-There are many other version of `predict` with many machine learning algorithms having one.
+There are many other versions of `predict` with many machine learning algorithms having one.
 
 ## Regression for a categorical outcome
 
-The regression approach can also be applied to categorical data. To illustrate this we will apply it to our previous predicting sex example:
+The regression approach can also be applied to categorical data. To illustrate this, we will apply it to our previous predicting sex example:
 
 ```{r, echo=FALSE}
 library(dslabs)
@@ -106,7 +105,7 @@ train_set <- heights %>% slice(-test_index)
 test_set <- heights %>% slice(test_index)
 ```
 
-If we define the outcome $Y$ as 1 for females and 0 for males and $X$ as the height, in this case we are interested in the conditional probability:
+If we define the outcome $Y$ as 1 for females and 0 for males, and $X$ as the height, in this case we are interested in the conditional probability:
 
 $$
 \mbox{Pr}( Y = 1 \mid X = x)
@@ -120,7 +119,7 @@ train_set %>%
   summarize(mean(sex=="Female"))
 ```
 
-We will define $Y=1$ for females and $Y=0$ for males. To construct a prediction algorithm we want to estimate the proportion of the population that is female for any given height $X=x$ which we write as or the conditional probability described above: $\mbox{Pr}( Y = 1 | X=x)$. Let's see what this looks like for several values of $x$ (we will remove values of $x$ with few data points):
+We will define $Y=1$ for females and $Y=0$ for males. To construct a prediction algorithm, we want to estimate the proportion of the population that is female for any given height $X=x$, which we write as the conditional probability described above: $\mbox{Pr}( Y = 1 | X=x)$. Let's see what this looks like for several values of $x$ (we will remove values of $x$ with few data points):
 
 ```{r height-and-sex-conditional-probabilities}
 heights %>% 
@@ -132,13 +131,13 @@ heights %>%
   geom_point()
 ```
 
-Since the results from the plot above look close to linear, and it is the only approach we currently know, we will try regression. We assumes that:
+Since the results from the plot above look close to linear, and it is the only approach we currently know, we will try regression. We assume that:
 
 $$p(x) = \mbox{Pr}( Y = 1 | X=x)  = \beta_0 + \beta_1 x$$
 
 Note: because $p_0(x) = 1 - p_1(x)$, we will only estimate $p_1(x)$ and drop the index.
 
-If we convert the factors to 0s and 1s we can we can estimate $\beta_0$ and $\beta_1$ with least squares. 
+If we convert the factors to 0s and 1s, we can we can estimate $\beta_0$ and $\beta_1$ with least squares. 
 
 ```{r}
 lm_fit <- mutate(train_set, y = as.numeric(sex == "Female")) %>%
@@ -146,7 +145,7 @@ lm_fit <- mutate(train_set, y = as.numeric(sex == "Female")) %>%
 ```
 
 
-Once we have estimates $\hat{\beta}_0$ and $\hat{\beta}_1$ we can obtain an actual prediction. Our estimate of the conditional probability $p(x)$ is:
+Once we have estimates $\hat{\beta}_0$ and $\hat{\beta}_1$, we can obtain an actual prediction. Our estimate of the conditional probability $p(x)$ is:
 
 $$
 \hat{p}(x) = \hat{\beta}_0+ \hat{\beta}_1 x
@@ -164,7 +163,7 @@ We see this method does substantially better than guessing.
 
 # Logistic Regression
 
-Note that the function $\beta_0 + \beta_1 x$ can take any value including negatives and values larger than 1.  In fact the estimate $\hat{p}(x)$ computed in the linear regression section does indeed become negative at around 76 inches.
+The function $\beta_0 + \beta_1 x$ can take any value including negatives and values larger than 1. In fact, the estimate $\hat{p}(x)$ computed in the linear regression section does indeed become negative at around 76 inches.
 
 ```{r regression-prediction}
 heights %>% 
@@ -189,7 +188,7 @@ Logistic regression is an extension of linear regression that assures that the e
 
 $$ g(p) = \log \frac{p}{1-p}$$
 
-This logistic transformation converts probability to log odds. As discussed in the data visualization lecture, the odds tell us  how much more likely something will happen compared to not happening. So $p=0.5$ means the odds are 1 to 1, thus the odds are 1. If $p=0.75$ the odds are 3 to 1. A nice characteristic of this transformation is that it transforms probabilities to be symmetric around 0. Here is a plot of $g(p)$ versus $p$:
+This logistic transformation converts probability to log odds. As discussed in the data visualization lecture, the odds tell us how much more likely something will happen compared to not happening. So $p=0.5$ means the odds are 1 to 1, thus the odds are 1. If $p=0.75$, the odds are 3 to 1. A nice characteristic of this transformation is that it transforms probabilities to be symmetric around 0. Here is a plot of $g(p)$ versus $p$:
 
 ```{r p-versus-logistic-of-p, echo=FALSE}
 p <- seq(0.01,.99,len=100)
@@ -219,9 +218,9 @@ We can obtain prediction using the predict function:
 p_hat_logit <- predict(glm_fit, newdata = test_set, type = "response")
 ```
 
-Note that when using `predict` with a `glm` object we have to specify that we want `type="response"` if we want the conditional probabilities since the default is to return the logistic transformed values.
+When using `predict` with a `glm` object, we have to specify that we want `type="response"` if we want the conditional probabilities since the default is to return the logistic transformed values.
 
-Note that this model fits the data slightly better than the line:
+This model fits the data slightly better than the line:
 
 ```{r conditional-prob-glm-fit, echo=FALSE }
 tmp <- heights %>% 
@@ -238,14 +237,14 @@ tmp %>%
              mapping = aes(x, p_hat), lty = 2)
 ```
 
-Because we have an estimate $\hat{p}(x)$ we can obtain predictions
+Because we have an estimate $\hat{p}(x)$, we can obtain predictions:
 
 ```{r}
 y_hat_logit <- ifelse(p_hat_logit > 0.5, "Female", "Male") %>% factor
 confusionMatrix(y_hat_logit, test_set$sex)
 ```
 
-The resulting prediction are similar. This is because the two estimates of $p(x)$ are larger than 1/2 in about the same region of x:
+The resulting predictions are similar. This is because the two estimates of $p(x)$ are larger than 1/2 in about the same region of x:
 
 ```{r glm-prediction}
 data.frame(x = seq(min(tmp$x), max(tmp$x))) %>%
@@ -257,17 +256,17 @@ data.frame(x = seq(min(tmp$x), max(tmp$x))) %>%
   geom_hline(yintercept = 0.5, lty = 5)
 ```
 
-Both linear and logistic regression provide an estimate for the conditional expectation:
+Both linear and logistic regressions provide an estimate for the conditional expectation:
 
 $$
 \mbox{E}(Y \mid X=x)
 $$
-which in the case of of binary data is equivalent to the conditional probability
+which in the case of binary data is equivalent to the conditional probability:
 
 $$
 \mbox{Pr}(Y = 1 \mid X = x)
 $$
 
-Once we move on to more complex example we will see that linear regression and generalized linear regression are limited and not flexible enough to be useful. The techniques we learn are essentially approaches to estimating the conditional probability in a way that is more flexible.
+Once we move on to more complex examples, we will see that linear regression and generalized linear regression are limited and not flexible enough to be useful. The techniques we learn are essentially approaches to estimating the conditional probability in a way that is more flexible.
 
 
