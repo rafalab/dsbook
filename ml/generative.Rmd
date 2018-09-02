@@ -1,14 +1,14 @@
 # Generative Models
 
-We have described how when using squared loss, the conditional expectation/probabilities provide the best approach to developing a decision rule. We described how in a binary case, the best we can do is Bayes' rule which is a decision rule based on the true conditional probability:
+We have described how, when using squared loss, the conditional expectation/probabilities provide the best approach to developing a decision rule. In a binary case, the smallest true error we can achieve is determined by Bayes' rule, which is a decision rule based on the true conditional probability:
 
 $$
 p(\mathbf{x}) = \mbox{Pr}(Y=1 \mid \mathbf{X}=\mathbf{x}) 
 $$
 
-We have described several approaches to estimating $p(\mathbf{x})$. Note that in all these  approaches we estimate the conditional probability directly and do not consider the distribution of the predictors. In machine learning these are referred to as _discriminative_ approaches. 
+We have described several approaches to estimating $p(\mathbf{x})$. Note that in all these approaches, we estimate the conditional probability directly and do not consider the distribution of the predictors. In machine learning, these are referred to as _discriminative_ approaches. 
 
-However, Bayes' theorem tells us that knowing the distribution of the predictors $\mathbf{X}$ may be useful. Methods that model the joint distribution of $Y$ and $\mathbf{X}$ are referred to as _generatvie models_ (we model how the enitre date, $\mathbf{X}$ and $Y$, are generated). We start by describing the most general generative model, Naive Bayes, and then proceed to describe to more specific cases quadratic discriminant analysis (QDA) and linear discriminant analysis (LDA).
+However, Bayes' theorem tells us that knowing the distribution of the predictors $\mathbf{X}$ may be useful. Methods that model the joint distribution of $Y$ and $\mathbf{X}$ are referred to as _generative models_ (we model how the entire data, $\mathbf{X}$ and $Y$, are generated). We start by describing the most general generative model, Naive Bayes, and then proceed to describe to more specific cases, quadratic discriminant analysis (QDA) and linear discriminant analysis (LDA).
 
 ## Naive Bayes 
 
@@ -20,9 +20,9 @@ p(\mathbf{x}) = \mbox{Pr}(Y=1|\mathbf{X}=\mathbf{x}) = \frac{f_{\mathbf{X}|Y=1}(
 $$
 
 
-With $f_{\mathbf{X}|Y=1}$ and $f_{\mathbf{X}|Y=0}$ representing the distribution functions of the predictor $\mathbf{X}$ for the two classes $Y=1$ and $Y=0$. The formula implies that if we can estimate these conditional distributions of the predictors, we can develop a powerful decision rule. However, this is a big _if_. As we go forward we will encounter examples in which $\mathbf{X}$ has many dimensions and we do not have much information about the distribution. In these cases Naive Bayes will be practically impossible to implement. However, there are instances in which we have a small number of predictors (not much more than 2) and many categories in which generative models can be quite powerful. We describe two specific examples and use our previously described case studies to illustrate them.
+with $f_{\mathbf{X}|Y=1}$ and $f_{\mathbf{X}|Y=0}$ representing the distribution functions of the predictor $\mathbf{X}$ for the two classes $Y=1$ and $Y=0$. The formula implies that if we can estimate these conditional distributions of the predictors, we can develop a powerful decision rule. However, this is a big _if_. As we go forward, we will encounter examples in which $\mathbf{X}$ has many dimensions and we do not have much information about the distribution. In these cases, Naive Bayes will be practically impossible to implement. However, there are instances in which we have a small number of predictors (not much more than 2) and many categories in which generative models can be quite powerful. We describe two specific examples and use our previously described case studies to illustrate them.
 
-Let's start with a very simple and uninteresting, yet illustrative example: the predict sex from height example. 
+Let's start with a very simple and uninteresting, yet illustrative example: the example related to predicting sex from height. 
 
 ```{r, warning=FALSE, message=FALSE}
 library(caret)
@@ -34,7 +34,7 @@ train_set <- heights %>% slice(-test_index)
 test_set <- heights %>% slice(test_index)
 ```
 
-In this example, the Naive Bayes approach is particularly appropriate because we know that the normal distribution is a good approximation for the conditional distributions of height given sex for both both classes $Y=1$ (female) and $Y=0$ (Male). This implies that we can approximate the conditional distributions $f_{X|Y=1}$ and $f_{X|Y=0}$ by simply estimating averages and standard deviations from the data:
+In this case, the Naive Bayes approach is particularly appropriate because we know that the normal distribution is a good approximation for the conditional distributions of height given sex for both classes $Y=1$ (female) and $Y=0$ (Male). This implies that we can approximate the conditional distributions $f_{X|Y=1}$ and $f_{X|Y=0}$ by simply estimating averages and standard deviations from the data:
 
 ```{r}
 params <- train_set %>% 
@@ -43,7 +43,7 @@ params <- train_set %>%
 params
 ```
 
-The prevalence, which we will denote with $\pi = \mbox{Pr}(Y=1)$, can be estimated from the data with 
+The prevalence, which we will denote with $\pi = \mbox{Pr}(Y=1)$, can be estimated from the data with: 
 
 ```{r}
 pi <- train_set %>% 
@@ -52,7 +52,7 @@ pi <- train_set %>%
 pi
 ```
 
-Now we can use our estimates of average and standard deviation estimates to get an actual rule:
+Now we can use our estimates of average and standard deviation to get an actual rule:
 
 ```{r}
 x <- test_set$height
@@ -63,7 +63,7 @@ f1 <- dnorm(x, params$avg[1], params$sd[1])
 p_hat_bayes <- f1*pi / (f1*pi + f0*(1 - pi))
 ```
 
-Our naive Bayes estimate $\hat{p}(x)$ looks a lot like our logistic regression estimate:
+Our Naive Bayes estimate $\hat{p}(x)$ looks a lot like our logistic regression estimate:
 
 ```{r conditional-prob-glm-fit-2, echo=FALSE }
 tmp <- heights %>% 
@@ -83,19 +83,19 @@ tmp %>%
 ```
 
 
-In fact, we can show that the naive Bayes approach is similar to the logistic regression prediction mathematically. However, we leave the demonstration to a more advanced text: such as [this one](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). We can see that they are similar empirically by comparing the two resulting curves.
+In fact, we can show that the Naive Bayes approach is similar to the logistic regression prediction mathematically. However, we leave the demonstration to a more advanced text: such as [this one](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). We can see that they are similar empirically by comparing the two resulting curves.
 
 
-## Controlling prevelence
+## Controlling prevalence
 
-One useful feature of the naive Bayes approach is that it includes a parameter to account for differences in prevalence. Using our sample we estimated $f_{X|Y=1}$, $f_{X|Y=0}$ and $\pi$. If we use hats to denote the estimates we can write $\hat{p}(x)$ as
+One useful feature of the Naive Bayes approach is that it includes a parameter to account for differences in prevalence. Using our sample, we estimated $f_{X|Y=1}$, $f_{X|Y=0}$ and $\pi$. If we use hats to denote the estimates, we can write $\hat{p}(x)$ as:
 
 $$
 \hat{p}(x)= \frac{\hat{f}_{X|Y=1}(x) \hat{\pi}}
 { \hat{f}_{X|Y=0}(x)(1-\hat{\pi}) + \hat{f}_{X|Y=1}(x)\hat{\pi} }
 $$
 
-As we discussed, our sample has a much lower prevalence, `r pi`, than the general population. So if we use the rule $\hat{p}(x)>0.5$ to predict females our accuracy will be affected due to the low sensitivity: 
+As we discussed earlier, our sample has a much lower prevalence, `r pi`, than the general population. So if we use the rule $\hat{p}(x)>0.5$ to predict females, our accuracy will be affected due to the low sensitivity: 
 
 ```{r}
 y_hat_bayes <- ifelse(p_hat_bayes > 0.5, "Female", "Male")
@@ -103,13 +103,14 @@ sensitivity(data = factor(y_hat_bayes), reference = factor(test_set$sex))
 ```
 
 Again, this is because the algorithm gives more weight to specificity to account for the low prevalence:
+
 ```{r}
 specificity(data = factor(y_hat_bayes), reference = factor(test_set$sex))
 ```
 
-This is due mainly to the fact that $\hat{\pi}$ is substantially less than 0.5 so we tend to predict `Male` more often. It makes sense for a machine learning algorithm to do this in our sample, because we do have a higher percentage of males. But if we were to extrapolate this to a general population our overall accuracy would be affected by the low sensitivity. 
+This is due mainly to the fact that $\hat{\pi}$ is substantially less than 0.5, so we tend to predict `Male` more often. It makes sense for a machine learning algorithm to do this in our sample, because we do have a higher percentage of males. But if we were to extrapolate this to a general population, our overall accuracy would be affected by the low sensitivity. 
 
-The naive Bayes approach gives us a direct way to correct this since we can simply force $\hat{pi}$ to be, for example, $\pi$. So to balance specificity and sensitivity, instead of changing the cutoff in the decision rule we could simply change $\hat{\pi}$:
+The Naive Bayes approach gives us a direct way to correct this since we can simply force $\hat{pi}$ to be, for example, $\pi$. So to balance specificity and sensitivity, instead of changing the cutoff in the decision rule we could simply change $\hat{\pi}$:
 
 ```{r}
 p_hat_bayes_unbiased <- f1*0.5 / (f1*0.5 + f0*(1-0.5)) 
@@ -133,13 +134,13 @@ qplot(x, p_hat_bayes_unbiased, geom = "line") +
 
 ## Quadratic Discriminant Analysis
 
-Quadratic Discriminant Analysis (QDA) is version of  _Naive Bayes_ in which we assume that the distributions $p_{\mathbf{X}|Y=1}(x)}$ and $p_{\mathbf{X}|Y=0}(\mathbf{x})$ are multivariate normal. So the simple example we described above is actually QDA. Let's now look at a slightly more complicated example: the 2 or 7 example.
+Quadratic Discriminant Analysis (QDA) is a version of _Naive Bayes_ in which we assume that the distributions $p_{\mathbf{X}|Y=1}(x)}$ and $p_{\mathbf{X}|Y=0}(\mathbf{x})$ are multivariate normal. The simple example we described above is actually QDA. Let's now look at a slightly more complicated example: the 2 or 7 example.
 
 ```{r}
 data("mnist_27")
 ```
 
-In our case we have two predictors so we assume each one is bivariate normal. This implies we need to estimate two averages, two standard deviations, and a correlation for each case $Y=1$ and $Y=0$. Once we have these we can approximate the distributions $f_{X_1,X_2|Y=1}$ and $f_{X_1, X_2|Y=0}$. We can easily estimate parameters from the data:
+In this case, we have two predictors so we assume each one is bivariate normal. This implies we need to estimate two averages, two standard deviations, and a correlation for each case $Y=1$ and $Y=0$. Once we have these we can approximate the distributions $f_{X_1,X_2|Y=1}$ and $f_{X_1, X_2|Y=0}$. We can easily estimate parameters from the data:
 
 ```{r}
 params <- mnist_27$train %>% 
@@ -148,7 +149,7 @@ params <- mnist_27$train %>%
 params
 ```
 
-Here is a visual way of showing the approach: we plot the data and use contour plots to given an idea of what the two estimated normal densities look like (we show the curve representing a region that includes 95% of the points)
+Here we provide a visual way of showing the approach. We plot the data and use contour plots to give an idea of what the two estimated normal densities look like (we show the curve representing a region that includes 95% of the points):
 
 ```{r qda-explained}
 mnist_27$train %>% mutate(y = factor(y)) %>% 
@@ -157,7 +158,7 @@ mnist_27$train %>% mutate(y = factor(y)) %>%
   stat_ellipse(type="norm", lwd = 1.5)
 ```
 
-This defines the following estimate of $f(x_1, x_2)$ 
+This defines the following estimate of $f(x_1, x_2)$.
 
 We can use the caret package to fit the model and obtain predictors.
 
@@ -175,9 +176,7 @@ y_hat <- predict(train_qda, mnist_27$test)
 confusionMatrix(data = y_hat, reference = mnist_27$test$y)$overall["Accuracy"]
 ```
 
-The estimated conditional probability looks relatively good. 
-
-
+The estimated conditional probability looks relatively good although it does not fit as well as the kernel smoothers:
 
 ```{r, echo=FALSE}
 plot_cond_prob <- function(p_hat=NULL){
@@ -196,9 +195,7 @@ plot_cond_prob <- function(p_hat=NULL){
 plot_cond_prob(predict(train_qda, mnist_27$true_p, type = "prob")[,2])
 ```
 
-Although it does not fit as well as the kernel smoothers and there is a reason for this. Although, we can show mathematically that the boundary must be a quadratic function of the form: $x_2 = a x_1 ^2 + b x_1 + c$ 
-
-One reason QDA does not work as well as the kernel methods is perhaps because the assumption of normality do not quite hold. Although for the twos it seems reasonable, for the 7s it does seem to be off (notice the slight curvature)
+One reason QDA does not work as well as the kernel methods is perhaps because the assumption of normality does not quite hold. Although for the twos it seems reasonable, for the 7s it does seem to be off (notice the slight curvature):
 
 ```{r qda-does-not-fit}
 mnist_27$train %>% mutate(y = factor(y)) %>% 
@@ -209,13 +206,15 @@ mnist_27$train %>% mutate(y = factor(y)) %>%
 ```
 
 
-Note that although QDA worked well here, it becomes harder to use as the number of predictors increases. Here we have 2 predictors and had to compute 4 means, 4 SDs and 2 correlations. How many parameters would we have if instead of 2 predictors we had 10? 
-The main problems comes from estimating correlations for 10 of predictors. With 10, we have 45 correlations for each class. In general the formula is $K\times p(p-1)/2$ which gets big fast. Once the number of parameters approaches the size of our data, the method becomes unpractical due to overfitting.
+QDA worked well here, but it becomes harder to use as the number of predictors increases. Here we have 2 predictors and had to compute 4 means, 4 SDs and 2 correlations. How many parameters would we have if instead of 2 predictors, we had 10? 
+
+The main problem comes from estimating correlations for 10 of predictors. With 10, we have 45 correlations for each class. In general, the formula is $K\times p(p-1)/2$ which gets big fast. Once the number of parameters approaches the size of our data, the method becomes unpractical due to overfitting.
 
 
 ## Linear discriminant analysis
 
-A relatively simple solution to the problem of having too many parameters is to assume that the correlation structure is the same for all classes. Which reduces the number of parameters we need to estimate. 
+A relatively simple solution to the problem of having too many parameters is to assume that the correlation structure is the same for all classes, which reduces the number of parameters we need to estimate.  
+
 In this case, we would compute just one pair of standard deviations and one correlation, so the parameters would look something like this:
 
 ```{r}
@@ -228,7 +227,6 @@ params
 ```
 
 The distributions now look like this:
-
 
 ```{r lda-explained, echo=FALSE}
 tmp <- lapply(1:2, function(i){
@@ -245,8 +243,9 @@ mnist_27$train %>% mutate(y = factor(y)) %>%
 ```
 
 
-Note that now the size of the ellipses as well as the angle are the same. This is because they have the same standard deviations and correlations.
-When we force this assumption we can show mathematical that the boundary is a line, just as with logistic regression. For this reason we call the method _linear_ discriminant analysis (LDA).
+Now the size of the ellipses as well as the angle are the same. This is because they have the same standard deviations and correlations.
+When we force this assumption, we can show mathematically that the boundary is a line, just as with logistic regression. For this reason we call the method _linear_ discriminant analysis (LDA). Similarly, for QDA, we can show that the boundary must be a quadratic function.
+
 
 ```{r lda-estimate, echo=FALSE}
 train_lda <- train(y ~ ., 
@@ -256,9 +255,7 @@ train_lda <- train(y ~ .,
 plot_cond_prob(predict(train_lda, mnist_27$true_p, type = "prob")[,2])
 ```
 
-
-In this case the lack of flexibility does not permit us to 
-We can fit the model using caret:
+In this case, the lack of flexibility does not permit us to capture the non linearity in the true conditional probability function. We can fit the model using caret:
 
 ```{r}
 train_lda <- train(y ~ .,
@@ -271,23 +268,23 @@ confusionMatrix(data = y_hat, reference = mnist_27$test$y)$overall["Accuracy"]
 
 ## Connection distance
 
-The normal density is
+The normal density is:
 
 $$
 p(x) = \frac{1}{\sqrt{2\pi} \sigma} \exp\left\{ - \frac{(x-\mu)^2}{\sigma^2}\right\}
 $$
 
-Note that if we remove the constant $1/(\sqrt{2\pi} \sigma)$ and then take the log we get:
+If we remove the constant $1/(\sqrt{2\pi} \sigma)$ and then take the log we get:
 
 $$
 - \frac{(x-\mu)^2}{\sigma^2}
 $$
 
-which is the negative of a distance squared scaled by the standard deviation. For higher dimensions the same is true expect the scaling is more complex and involved correlations.
+which is the negative of a distance squared scaled by the standard deviation. For higher dimensions, the same is true except the scaling is more complex and involves correlations.
 
 # Case study: More than three classes
 
-We will briefly give a slightly more complex example: one with three classes instead of 2. We first create a data set similar to the 2 or 7 dataset, except now we have 1s, 2s and 7s.
+We will briefly give a slightly more complex example: one with three classes instead of 2. We first create a dataset similar to the 2 or 7 dataset, except now we have 1s, 2s and 7s.
 
 ```{r}
 if(!exists("mnist")) mnist <- read_mnist()
@@ -332,7 +329,7 @@ train_qda <- train(y ~ .,
                    data = train_set)
 ```
 
-Note that now we estimate three conditional probabilities (although they have to add to 1):
+Now we estimate three conditional probabilities (although they have to add to 1):
 
 ```{r}
 predict(train_qda, test_set, type = "prob") %>% head()
@@ -350,16 +347,17 @@ So the confusion matrix has 3 by 3 table:
 confusionMatrix(predict(train_qda, test_set), test_set$y)
 ```
 
-The actuary is 
+The actuary is:
 
 ```{r}
 confusionMatrix(predict(train_qda, test_set), test_set$y)$overal["Accuracy"]
 ```
 
-Note that for sensitivity and specificity we have a pair of values for **each** class. This is to define these terms we need a binary outcome. We therefore have three columns: one for each class as the positives and the other two as the negatives.
+For sensitivity and specificity, we have a pair of values for **each** class. To define these terms we need a binary outcome. We therefore have three columns: one for each class as the positives and the other two as the negatives.
 
 
-We can visualize what parts of the region are called 1, 2 and 7 
+We can visualize what parts of the region are called 1, 2 and 7:
+
 ```{r three-classes-plot}
 GS <- 150
 new_x <- expand.grid(x_1 = seq(min(train_set$x_1), max(train_set$x_1), len=GS),
@@ -371,7 +369,7 @@ new_x %>% mutate(y_hat = predict(train_qda, new_x)) %>%
   guides(colour = guide_legend(override.aes = list(size=2)))
 ```
 
-Here is what it looks like for lda
+Here is what it looks like for LDA:
 
 ```{r}
 train_lda <- train(y ~ .,
@@ -391,7 +389,7 @@ new_x %>% mutate(y_hat = predict(train_lda, new_x)) %>%
   guides(colour = guide_legend(override.aes = list(size=2)))
 ```
 
-The results for knn are much better:
+The results for kNN are much better:
 
 ```{r}
 train_knn <- train(y ~ .,
@@ -402,7 +400,7 @@ train_knn <- train(y ~ .,
 confusionMatrix(predict(train_knn, test_set), test_set$y)$overal["Accuracy"]
 ```
 
-wit the accuracy is much better now. 
+with much better accuracy now. 
 
 ```{r three-classes-knn-better}
 new_x %>% mutate(y_hat = predict(train_knn, new_x)) %>%
@@ -412,7 +410,7 @@ new_x %>% mutate(y_hat = predict(train_knn, new_x)) %>%
   guides(colour = guide_legend(override.aes = list(size=2)))
 ```
 
-Note it is due to lack of fit
+Note that the limitations of LDA are to the lack of fit of the normal assumption:
 
 ```{r three-classes-lack-of-fit}
 train_set %>% mutate(y = factor(y)) %>% 
@@ -420,7 +418,6 @@ train_set %>% mutate(y = factor(y)) %>%
   geom_point(show.legend = FALSE) + 
   stat_ellipse(type="norm") 
 ```
-
 
 
 Generative models can be very powerful, but only when we are able to successfully approximate the joint distribution of predictors conditioned on each class. 

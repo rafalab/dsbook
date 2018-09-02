@@ -1,6 +1,6 @@
 # The caret package
 
-We have already learned about regression, logistic regression, and kNN as machine learning algorithms. In later sections we learn several others. And this is just a small subset of all the algorithms out there. Many of these algorithms are implemented in R. However, they are distributed via different packages, developed by different authors, and often use different syntax. The caret package tries to consolidates these differences and provide consistency. It currently includes 237 different methods which are summarized [here](https://topepo.github.io/caret/available-models.html). Note that caret does not include the packages and to implement a package through caret you still need to install the library. The required package for each method is included [here](https://topepo.github.io/caret/train-models-by-tag.html).
+We have already learned about regression, logistic regression, and kNN as machine learning algorithms. In later sections, we learn several others. And this is just a small subset of all the algorithms out there. Many of these algorithms are implemented in R. However, they are distributed via different packages, developed by different authors, and often use different syntax. The caret package tries to consolidate these differences and provide consistency. It currently includes 237 different methods which are summarized [here](https://topepo.github.io/caret/available-models.html). Keep in mind that caret does not include the packages and, to implement a package through caret, you still need to install the library. The required package for each method is included [here](https://topepo.github.io/caret/train-models-by-tag.html).
 
 The caret package also provides a function that performs cross validation for us. Here we provide some examples showing how we use this incredibly helpful package. We will use the 2 or 7 example to illustrate:
 
@@ -11,7 +11,7 @@ data("mnist_27")
 
 ## The `train` functon
 
-The `train` function let's us train different algorithms using similar syntax. So for example we can type
+The `train` function lets us train different algorithms using similar syntax. So, for example, we can type:
 
 ```{r}
 library(caret)
@@ -19,7 +19,7 @@ train_glm <- train(y ~ ., method = "glm", data = mnist_27$train)
 train_knn <- train(y ~ ., method = "knn", data = mnist_27$train)
 ```
 
-To make predictions we can use the output of this function directly without needing to look at the specifics of `predict.glm` and `predict.knn`. Instead we can learn how to obtain predictions from `predict.train`.
+To make predictions, we can use the output of this function directly without needing to look at the specifics of `predict.glm` and `predict.knn`. Instead, we can learn how to obtain predictions from `predict.train`.
 
 So the code looks the same for both methods:
 ```{r}
@@ -27,7 +27,7 @@ y_hat_glm <- predict(train_glm, mnist_27$test, type = "raw")
 y_hat_knn <- predict(train_knn, mnist_27$test, type = "raw")
 ```
 
-This permits us to quickly compare the alogorithms. For example we can compare the accuracy like this:
+This permits us to quickly compare the algorithms. For example, we can compare the accuracy like this:
 
 ```{r}
 confusionMatrix(y_hat_glm, mnist_27$test$y)$overall["Accuracy"]
@@ -36,19 +36,19 @@ confusionMatrix(y_hat_knn, mnist_27$test$y)$overall["Accuracy"]
 
 ## Cross validation
 
-When an algorithm includes a tuning parameter, train automatically uses cross validation to decide among a few default values. To find out what parameter or parameters are optimized you can read [this](http://topepo.github.io/caret/available-models.html) or study the output of 
+When an algorithm includes a tuning parameter, train automatically uses cross validation to decide among a few default values. To find out what parameter or parameters are optimized you can read [this](http://topepo.github.io/caret/available-models.html) or study the output of: 
 
 ```{r, eval=FALSE}
 getModelInfo("knn")
 ```
 
-We can also us a quick look up like this:
+We can also use a quick look up like this:
 
 ```{r}
 modelLookup("knn")
 ```
 
-If we run it with default values 
+If we run it with default values: 
 
 ```{r}
 train_knn <- train(y ~ ., method = "knn", data = mnist_27$train)
@@ -60,12 +60,12 @@ you can quickly see the results of the cross-validation using the `ggplot` funct
 ggplot(train_knn, highlight = TRUE)
 ```
 
-By default the cross validation is performed by taking 25 bootstrap samples comprised of 25% of the observations. For the `knn` method, the default is to try $k=5,7,9$. To change this we use the `tuneGrid` parameters. The grid of values must be supplied by a data frame with the parameters names as specified in the `modelLookup` output. 
+By default, the cross validation is performed by taking 25 bootstrap samples comprised of 25% of the observations. For the `kNN` method, the default is to try $k=5,7,9$. To change this we use the `tuneGrid` parameters. The grid of values must be supplied by a data frame with the parameter names as specified in the `modelLookup` output. 
 
-Here we present an example trying out 30 values between 9 and 67. We need to use the column name `k` so use something like this: 
+Here we present an example where we try out 30 values between 9 and 67. To do this with caret, we need to define a column named `k`, so we use this: 
 `data.frame(k = seq(9, 67, 2))`.
 
-Note that when running this code, we were are fitting 30 version of kNN to 25 bootstrapped samples. So we are fitting $30 \times 25 = 750$ kNN models, and thus running this code will take several seconds:
+Note that when running this code, we are fitting 30 versions of kNN to 25 bootstrapped samples. Since we are fitting $30 \times 25 = 750$ kNN models, running this code will take several seconds:
 
 ```{r train-knn-plot}
 train_knn <- train(y ~ ., method = "knn", 
@@ -74,7 +74,7 @@ train_knn <- train(y ~ ., method = "knn",
 ggplot(train_knn, highlight = TRUE)
 ```
 
-To access the parameter that maximized the accuracy you can use this:
+To access the parameter that maximized the accuracy, you can use this:
 
 ```{r}
 train_knn$bestTune
@@ -93,7 +93,7 @@ confusionMatrix(predict(train_knn, mnist_27$test, type = "raw"),
                 mnist_27$test$y)$overall["Accuracy"]
 ```
 
-If we want to change of how we perform cross validation we can use the `trainControl` function. We can make the code above go a bit faster by using, for 10-fold cross validation. This means we have 10 samples using 10% of the observations each. We accomplish this:
+If we want to change of how we perform cross validation, we can use the `trainControl` function. We can make the code above go a bit faster by using, for example, 10-fold cross validation. This means we have 10 samples using 10% of the observations each. We accomplish this:
 
 ```{r cv-10-fold-accuracy-estimate}
 control <- trainControl(method = "cv", number = 10, p = .9)
@@ -104,7 +104,7 @@ train_knn_cv <- train(y ~ ., method = "knn",
 ggplot(train_knn_cv, highlight = TRUE)
 ```
 
-We notice that the accuracy estimates are more variable, as expected since we changed the number of samples used to estimate accuracy.
+We notice that the accuracy estimates are more variable, which is expected since we changed the number of samples used to estimate accuracy.
 
 We can also use the standard deviation bars obtained from the cross validation samples:
 
@@ -119,7 +119,7 @@ train_knn$results %>%
 ```
 
 
-## Example: fitting with loess
+## Example: Fitting with loess
 
 ```{r, echo=FALSE}
 plot_cond_prob <- function(p_hat=NULL){
@@ -139,9 +139,9 @@ The best fitting kNN model approximates the true conditional probability:
 plot_cond_prob(predict(train_knn, mnist_27$true_p, type = "prob")[,2])
 ```
 
-However, we do see that the boundary is somewhat wiggly. This is because kNN, like the basic bin smoother does not use a kernel. To improve this we could try loess. By reading through the [available models](https://topepo.github.io/caret/available-models.html) we see we can use the `gamLoess` method. 
+However, we do see that the boundary is somewhat wiggly. This is because kNN, like the basic bin smoother, does not use a kernel. To improve this we could try loess. By reading through the [available models](https://topepo.github.io/caret/available-models.html) we see that we can use the `gamLoess` method. 
 
-From [here](https://topepo.github.io/caret/train-models-by-tag.html) we see we need to install the `gam` package if we do not have done so already:
+[Here](https://topepo.github.io/caret/train-models-by-tag.html), we see that we need to install the `gam` package if we have done so already:
 
 ```{r, eval=FALSE}
 install.packages("gam")
@@ -153,7 +153,7 @@ Then we see that we have two parameters to optimize:
 modelLookup("gamLoess")
 ```
 
-We will stick to a degree of 1. But to try out different values for the span we still have to include a column in the table with the name `degree` so we can do this:
+We will stick to a degree of 1. But to try out different values for the span, we still have to include a column in the table with the name `degree` so we can do this:
 
 ```{r}
 grid <- expand.grid(span = seq(0.15, 0.65, len = 10), degree = 1)
@@ -176,7 +176,7 @@ confusionMatrix(data =predict(train_loess, mnist_27$test),
                 reference = mnist_27$test$y)$overall["Accuracy"]
 ```
 
-and procedures a smoother estimate of the conditional probability:
+and produces a smoother estimate of the conditional probability:
 
 ```{r gam-smooth, warning=FALSE}
 plot_cond_prob(predict(train_loess, mnist_27$true_p, type = "prob")[,2])
