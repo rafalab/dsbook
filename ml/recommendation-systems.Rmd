@@ -1,6 +1,6 @@
 # Recommendation systems
 
-Recommendation systems use ratings that _users_ have given _items_ to make specific recommendations to users. Companies like Amazon, that sell many products to many customers and permit these customers to rate their products, are able to collect massive datasets that can be used to predict what rating a given user will give a specific item. Items for which a high rating is predicted for a specific user are then recommended to that user. 
+Recommendation systems use ratings that _users_ have given _items_ to make specific recommendations to users. Companies like Amazon, that sell many products to many customers and permit these customers to rate their products, are able to collect massive datasets that can be used to predict what rating a particular user will give a specific item. Items for which a high rating is predicted for a given user are then recommended to that user. 
 
 Netflix uses a recommendation system to predict how many _stars_ a user will give a specific movie. 
 
@@ -8,8 +8,7 @@ Netflix uses a recommendation system to predict how many _stars_ a user will giv
 knitr::include_graphics("ml/img/netflix.png")
 ```
 
-Here we provide the basics of how these recommendations are predicted, motivate by some of the approaches taken by the winners of the  _Netflix challengs_.  On October 2006 Netflix offered a challenge to  the data science community: improve our recommendation algorithm by 10% and
-win a million dollars. In September 2009 
+Here we provide the basics of how these recommendations are predicted, motivated by some of the approaches taken by the winners of the  _Netflix challenges_.  On October 2006, Netflix offered a challenge to the data science community: improve our recommendation algorithm by 10% and win a million dollars. In September 2009, 
 [the winners were announced](http://bits.blogs.nytimes.com/2009/09/21/netflix-awards-1-million-prize-and-starts-a-new-contest/). You can read a good summary of how the winning algorithm was put together [here](http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/) 
 and a more detailed explanation [here](http://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf). Here we show you some of the data analysis strategies used by the winning team.
 
@@ -28,7 +27,7 @@ We can see this table is in tidy format with thousands of rows:
 head(movielens)
 ```
 
-Each row represents a rating: given by one user to one movie. 
+Each row represents a rating given by one user to one movie. 
 
 We can see the number of unique users that provided ratings and for how many unique movies they provided them for:
 
@@ -39,7 +38,7 @@ movielens %>%
             n_movies = n_distinct(movieId))
 ```
 
-If we multiply those two numbers we get a number larger than 5 million, yet our data table  has about 100,000 rows. This implies not every user rated every movie. So we can think of these data as a very large matrix, with users on the rows and movies on the columns, with many empty cells. The `gather` function permits us to convert it to this format, but if we try it for the entire matrix it will crash R. Let's show the matrix for a few users:
+If we multiply those two numbers, we get a number larger than 5 million, yet our data table has about 100,000 rows. This implies that not every user rated every movie. So we can think of these data as a very large matrix, with users on the rows and movies on the columns, with many empty cells. The `gather` function permits us to convert it to this format, but if we try it for the entire matrix, it will crash R. Let's show the matrix for a few users:
 
 ```{r, echo=FALSE}
 keep <- movielens %>% 
@@ -56,7 +55,7 @@ tab <- movielens %>%
 tab %>% knitr::kable()
 ```
 
-You can think of the task of a recommendation system as filling in the `NA`s in the table above.  To see how _sparse_ the matrix is, here is the matrix for a random sample of 100 movies and 100 users with yellow indicating a user/movie combination for which we have a rating.
+You can think of the task of a recommendation system as filling in the `NA`s in the table above. To see how _sparse_ the matrix is, here is the matrix for a random sample of 100 movies and 100 users with yellow indicating a user/movie combination for which we have a rating.
 
 ```{r sparsity-of-movie-recs, echo=FALSE}
 users <- sample(unique(movielens$userId), 100)
@@ -70,11 +69,11 @@ movielens %>% filter(userId %in% users) %>%
   abline(h=0:100+0.5, v=0:100+0.5, col = "grey")
 ```
 
-This machine learning challenge is more complicated than what we have studied up to now because each outcome $Y$ has a different set of predictors. To see this, note that if we are predicting the rating for movie $i$ by user $u$, in principle, all other ratings related to movie $i$ and by user $u$ may used as predictors, but different users rate a different number of movies and different movies. Furthermore, we may be able to use information from other movies that we have determined are similar to movie $i$ or from users determined to be similar to user $u$. So in essence the entire matrix can be used as predictors for each cell. 
+This machine learning challenge is more complicated than what we have studied up to now because each outcome $Y$ has a different set of predictors. To see this, note that if we are predicting the rating for movie $i$ by user $u$, in principle, all other ratings related to movie $i$ and by user $u$ may used as predictors, but different users rate a different number of movies and different movies. Furthermore, we may be able to use information from other movies that we have determined are similar to movie $i$ or from users determined to be similar to user $u$. So, in essence, the entire matrix can be used as predictors for each cell. 
 
 Let's look at some of the general properties of the data to better understand the challenges.
 
-The first thing we notice that some movies get rated more than others. Here is the distribution
+The first thing we notice is that some movies get rated more than others. Here is the distribution:
 
 ```{r movie-id-hist}
 movielens %>% 
@@ -85,9 +84,9 @@ movielens %>%
   ggtitle("Movies")
 ```
 
-This should not surprise us given that there are blockbuster watched by millions and artsy independent movies watched by just a few. 
+This should not surprise us given that there are blockbuster movies watched by millions and artsy, independent movies watched by just a few. 
 
-Second observation is that some users are more active than others at rating movies:
+Our second observation is that some users are more active than others at rating movies:
 
 ```{r movie-user-hist}
 movielens %>% 
@@ -99,9 +98,9 @@ movielens %>%
 ```
 
 
-## Recommendation systems as a machine learnign challenge
+## Recommendation systems as a machine learning challenge
 
-To see how this is a type of machine learning, note that we need to build an algorithm with data we have collected that will then be applied outside our control, as users look for movie recommendations. So let's create a test set to assess the accuracy of the models we implement.
+To see how this is a type of machine learning, notice that we need to build an algorithm with data we have collected that will then be applied outside our control, as users look for movie recommendations. So let's create a test set to assess the accuracy of the models we implement.
 
 ```{r}
 library(caret)
@@ -122,17 +121,17 @@ test_set <- test_set %>%
 
 ### Loss function 
 
-The Netflix challenge used the typical error loss and thus decided on a winner based on the 
- residual mean squared error (RMSE) on a test set. We define $y_{u,i}$ as the rating for movie $i$ by user $u$, and $\hat{y}_{i,u}$ our prediction, the RMSE is defined as 
+The Netflix challenge used the typical error loss and thus decided on a winner based on the residual mean squared error (RMSE) on a test set. [AN: review following sentences] We define $y_{u,i}$ as the rating for movie $i$ by user $u$ and $\hat{y}_{i,u}$ as our prediction. The RMSE is defined as: 
 
 $$
 \mbox{RMSE} = \sqrt{\frac{1}{N} \sum_{u,i}^{} \left( \hat{y}_{u,i} - y_{u,i} \right)^2 }
 $$
-with $N$ the number of user/movie combinations and the sum occurring over all these combinations.
+with $N$ being the number of user/movie combinations and the sum occurring over all these combinations.
 
-Remember that we can interpret the RMSE similarly to a standard deviation: it is the typical error we make when predicting a movie rating. If this number is larger than 1, we are typically missing by one star rating which is not good.
+Remember that we can interpret the RMSE similarly to a standard deviation: it is the typical error we make when predicting a movie rating. If this number is larger than 1, we are typically missing [AN: missing what?] by one star rating which is not good.
 
 Let's write a function that computes the RMSE for vectors of ratings and their corresponding predictors:
+
 ```{r}
 RMSE <- function(true_ratings, predicted_ratings){
     sqrt(mean((true_ratings - predicted_ratings)^2))
@@ -148,7 +147,7 @@ $$
 Y_{u,i} = \mu + \varepsilon_{u,i}
 $$
 
-with $\varepsilon_{i}$ independent errors sampled from the same distribution centered at 0 and $\mu$ the "true" rating for all movies. We know that the estimate that minimizes the RMSE is the least squares estimate of $\mu$ and in this case is the average of all ratings 
+with $\varepsilon_{i}$ independent errors sampled from the same distribution centered at 0 and $\mu$ the "true" rating for all movies. We know that the estimate that minimizes the RMSE is the least squares estimate of $\mu$ and, in this case, is the average of all ratings:
 
 ```{r}
 mu_hat <- mean(train_set$rating)
@@ -162,7 +161,7 @@ naive_rmse <- RMSE(test_set$rating, mu_hat)
 naive_rmse
 ```
 
-Note that if you plug in any other number, you get a higher RMSE. For example:
+Keep in mind that if you plug in any other number, you get a higher RMSE. For example:
 
 ```{r}
 predictions <- rep(2.5, nrow(test_set))
@@ -170,27 +169,26 @@ RMSE(test_set$rating, predictions)
 ```
 
 
-From looking at the distribution of ratings we can visualize that this this is the standard deviation of that distribution. We get a RMSE of about 1. To win the grand prize of $1,000,000, 
-a participating team had to get an RMSE of about 0.857. So we can definitely do better! 
+From looking at the distribution of ratings, we can visualize that this is the standard deviation of that distribution. We get a RMSE of about 1. To win the grand prize of $1,000,000, a participating team had to get an RMSE of about 0.857. So we can definitely do better! 
 
-As we go along we will be comparing different approaches. Let's start by creating a results table with this naive approach:
+As we go along, we will be comparing different approaches. Let's start by creating a results table with this naive approach:
 
 ```{r}
 rmse_results <- data_frame(method = "Just the average", RMSE = naive_rmse)
 ```
 
-## Modeling Movie Effects
+## Modeling movie effects
 
 We know from experience that some movies are just generally rated higher than others. 
 
-So our intuition that different movies are rated differently is confirmed by data. So we can augment our previous model by adding  term $b_i$ to represent average ranking for movie $i$: 
+So our intuition that different movies are rated differently is confirmed by data. So we can augment our previous model by adding the term $b_i$ to represent average ranking for movie $i$: 
 
 $$
 Y_{u,i} = \mu + b_i + \varepsilon_{u,i}
 $$
 
-In statistics we usually call the $b$s as effects, but in 
-the Netflix challenge papers they refer to them as "bias", thus the $b$ notation.
+In statistics, we usually call the $b$s as effects, but in 
+the Netflix challenge papers, they refer to them as "bias", thus the $b$ notation.
 
 We can again use least squared to estimate the $b_i$ in the following way:
 
@@ -198,9 +196,7 @@ We can again use least squared to estimate the $b_i$ in the following way:
 fit <- lm(rating ~ as.factor(userId), data = movielens)
 ```
 
-Note that because there are thousands of $b_i$, each movie gets one, the `lm()` function will be very slow here. So we don't recommend running the code above. However, in this particular situation we know that the 
-least square estimate $\hat{b}_i$ is just the average of $Y_{u,i} - \hat{\mu}$ 
-for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
+Because there are thousands of $b_i$, each movie gets one, the `lm()` function will be very slow here. We therefore don't recommend running the code above. However, in this particular situation, we know that the least square estimate $\hat{b}_i$ is just the average of $Y_{u,i} - \hat{\mu}$ for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
 
 ```{r}
 mu <- mean(train_set$rating) 
@@ -216,7 +212,6 @@ movie_avgs %>% qplot(b_i, geom ="histogram", bins = 10, data = ., color = I("bla
 ```
 
 Remember $\hat{\mu}=3.5$ so a $b_i = 1.5$ implies a perfect five star rating.
-
 
 Let's see how much our prediction improves once we predict using $\hat{y}_{u,i} = \hat{\mu} + \hat{b}_i$:
 
@@ -247,23 +242,23 @@ train_set %>%
   geom_histogram(bins = 30, color = "black")
 ```
 
-Note that there is substantial variability across users 
-as well: Some users are very cranky and others love every movie.
+Notice that there is substantial variability across users 
+as well: some users are very cranky and others love every movie.
 This implies that a further improvement to our model may be:
 
 $$ 
 Y_{u,i} = \mu + b_i + b_u + \varepsilon_{u,i}
 $$
 
-where is $b_u$ a user-specific effect. So now if a cranky user (negative $b_u$) rates a great movie (positive $b_i$) the effect counter each other and we may be able to correctly predict that this user gave this great movie a 3 rather than a 5. 
+where $b_u$ is a user-specific effect. So now if a cranky user (negative $b_u$) rates a great movie (positive $b_i$), the effects counter each other and we may be able to correctly predict that this user gave this great movie a 3 rather than a 5. 
 
-To fit this model, we could again use `lm` 
+To fit this model, we could again use `lm`:
 
 ```{r, eval = FALSE}
 lm(rating ~ as.factor(movieId) + as.factor(userId))
 ```
 
-but again we won't. Instead we will compute an approximation but computing $\hat{\mu}$ and $\hat{b}_i$ and estimating $\hat{b}_u$ as the average of $y_{u,i} - \hat{\mu} - \hat{b}_i$
+but again we won't. Instead, we will compute an approximation but computing $\hat{\mu}$ and $\hat{b}_i$ and estimating $\hat{b}_u$ as the average of $y_{u,i} - \hat{\mu} - \hat{b}_i$
 
 ```{r}
 user_avgs <- test_set %>% 
@@ -291,7 +286,7 @@ rmse_results %>% knitr::kable()
 
 # Regularization
 
-Note that the despite the large movie to movie variation are improvement in RMSE was only about 5%.  Let's explore where we made mistakes in our first model (using only movies). Here are the 10 largest mistakes:
+Despite the large movie to movie variation our improvement in RMSE was only about 5%. Let's explore where we made mistakes in our first model (using only movies). Here are the 10 largest mistakes:
 
 
 ```{r}
@@ -302,8 +297,7 @@ test_set %>%
   select(title,  residual) %>% slice(1:10) %>% knitr::kable()
 ```
 
-These all seem like obscure movies. Many of them have large predictions. Let's look at the top 10 worst and best movies based on $\hat{b}_i$. First let's create a database that connects `movieId` to movie title
-
+These all seem like obscure movies. Many of them have large predictions. Let's look at the top 10 worst and best movies based on $\hat{b}_i$. First, let's create a database that connects `movieId` to movie title:
 
 ```{r}
 movie_titles <- movielens %>% 
@@ -311,7 +305,7 @@ movie_titles <- movielens %>%
   distinct()
 ```
 
-Here are the the best 10 movies according to our estimate:
+Here are the best 10 movies according to our estimate:
 
 ```{r}
 movie_avgs %>% left_join(movie_titles, by="movieId") %>%
@@ -322,6 +316,7 @@ movie_avgs %>% left_join(movie_titles, by="movieId") %>%
 ```
 
 And here are the worst 10:
+
 ```{r}
 movie_avgs %>% left_join(movie_titles, by="movieId") %>%
   arrange(b_i) %>% 
@@ -350,26 +345,21 @@ train_set %>% count(movieId) %>%
   knitr::kable()
 ```
 
-So the supposed "best" and "worst" movies were rated by very few users, in most cases just 1. These movies were mostly obscure ones. This is because with just a few users, we have more uncertainty. Therefore, larger estimates 
-of $b_i$, negative or positive, are more likely. 
+The supposed "best" and "worst" movies were rated by very few users, in most cases just 1. These movies were mostly obscure ones. This is because with just a few users, we have more uncertainty. Therefore, larger estimates of $b_i$, negative or positive, are more likely. 
 
 These are noisy estimates that we should not trust, 
 especially when it comes to prediction. Large errors can 
 increase our RMSE, so we would rather be conservative
-when not sure.
+when unsure.
 
-In previous sections, we computed standard error and 
-constructed confidence intervals to account for different 
-levels of uncertainty. However, when making predictions we 
-need one number, one prediction, not an interval. For this we introduce the 
-concept of regularization.
+In previous sections, we computed standard error and constructed confidence intervals to account for different levels of uncertainty. However, when making predictions we need one number, one prediction, not an interval. For this we introduce the concept of regularization.
 
 Regularization permits us to penalize large estimates that 
 come from small sample sizes. It has commonalities with the 
 Bayesian approach that shrunk predictions. The general 
 idea is to add a penalty for large values of $b_i$ to the sum of squares equation that we minimize. So having many large $b_i$ makes it harder to minimize.
 
-One way to think about this is that if we were to fit an effect to every rating, we could, of course, make the sum of squares equation by simply making each $b$ match it's respective rating $Y$. This would yield an unstable estimate that changes drastically with new instances of $Y$. Remember $Y$ is a random variable. By penalizing the equation we optimize to be bigger when the estimated $b$ are far from 0, we then shrink the estimate towards 0. This is similar to Bayesian approach we saw earlier.
+One way to think about this is that if we were to fit an effect to every rating, we could, of course, make the sum of squares equation by simply making each $b$ match its respective rating $Y$. This would yield an unstable estimate that changes drastically with new instances of $Y$. Remember that $Y$ is a random variable. By penalizing the equation, we optimize to be bigger when the estimated $b$ are far from 0; we then shrink the estimate towards 0. This is similar to the Bayesian approach we saw earlier.
 
 To estimate the $b_i$ we now minimize this equation:
 
@@ -380,12 +370,12 @@ $$
 \hat{b}_i(\lambda) = \frac{1}{\lambda + n_i} \sum_{u=1}^{n_i} \left(Y_{u,i} - \hat{\mu}\right)
 $$
 
-where $n_i$ is the number of ratings made for  movie $i$.
+where $n_i$ is the number of ratings made for movie $i$.
 
-Note that this approach will have our4 desired effect: when $n_i$ is very large, which will give us a stable estimate, then $\lambda$ is effectively ignored since $n_i+\lambda \approx n_i$. However when $n_i$ is small then the estimate $\hat{b}_i(\lambda)$ is shrunken towards 0. The larger $\lambda$ the more we shrink.
+This approach will have our desired effect: when $n_i$ is very large, which will give us a stable estimate, then $\lambda$ is effectively ignored since $n_i+\lambda \approx n_i$. However, when $n_i$ is small, then the estimate $\hat{b}_i(\lambda)$ is shrunken towards 0. The larger $\lambda$, the more we shrink.
 
 Let's compute these regularized estimates of $b_i$ using 
-$\lambda=3$. Later we see why we picked 3. 
+$\lambda=3$. Later, we will see why we picked 3. 
 
 ```{r}
 lambda <- 3
@@ -395,7 +385,7 @@ movie_reg_avgs <- train_set %>%
   summarize(b_i = sum(rating - mu)/(n()+lambda), n_i = n()) 
 ```
 
-To see how the estimates shrink let's make a plot of the regularized estimates versus the least squares estimates.
+To see how the estimates shrink, let's make a plot of the regularized estimates versus the least squares estimates.
 
 ```{r regularization-shrinkage}
 data_frame(original = movie_avgs$b_i, 
@@ -407,7 +397,6 @@ data_frame(original = movie_avgs$b_i,
 
 Let's look at the top 10 best movies based on $\hat{b}_i(\lambda)$:
 
-
 ```{r}
 train_set %>%
   count(movieId) %>% 
@@ -418,8 +407,8 @@ train_set %>%
   slice(1:10) %>% 
   knitr::kable()
 ```
-These make much more sense! Here are the top 10 worst movies:
 
+These make much more sense! Here are the top 10 worst movies:
 
 ```{r}
 train_set %>%
@@ -431,7 +420,6 @@ train_set %>%
   slice(1:10) %>% 
   knitr::kable()
 ```
-
 
 Do we improve our results?
 
@@ -472,16 +460,17 @@ qplot(lambdas, rmses)
 lambdas[which.min(rmses)]
 ```
 
-However, note that we show this as an illustration and in practice should be using full cross validation just on the train set, without using the test set until the final assessment.
+However, while we show this as an illustration, in practice we should be using full cross validation just on the train set, without using the test set until the final assessment.
 
-We can use regularization for the estimate user effects as well. We are minimizing 
+We can use regularization for the estimate user effects as well. We are minimizing:
 
 $$
 \frac{1}{N} \sum_{u,i} \left(y_{i,u} - \mu - b_i - b_u \right)^2 + 
 \lambda \left(\sum_{i} b_i^2 + \sum_{u} b_u^2\right)
 $$
 
-The estimates that minimize this can be found similarly to what we did above. Here we use cross-validation to pick a $\lambda$.
+The estimates that minimize this can be found similarly to what we did above. Here we use cross-validation to pick a $\lambda$:
+
 ```{r best-lambdas}
 lambdas <- seq(0, 10, 0.25)
 
@@ -511,7 +500,7 @@ rmses <- sapply(lambdas, function(l){
 qplot(lambdas, rmses)  
 ```
 
-For the full model the optimal $\lambda$ is:
+For the full model, the optimal $\lambda$ is:
 
 ```{r}
 lambda <- lambdas[which.min(rmses)]
@@ -531,20 +520,19 @@ rmse_results %>% knitr::kable()
 
 Matrix factorization is a widely used concept in machine learning. It is very much related to factor analysis, singular value decomposition (SVD) and principal component analysis (PCA). Here we describe the concept in the context of movie recommendation systems.
 
-We have described how the model 
-
+We have described how the model:
 
 $$ 
 Y_{u,i} = \mu + b_i + b_u + \varepsilon_{u,i}
 $$
 
-which accounts for movie to movie differences through the $b_i$ and user to user differences through the $b_u$. But this model leaves out an important source of variation related to the fact that groups of movies have similar rating patterns and groups of uses have similar rating patterns as well. We will discover these patterns by studying the residuals 
+which accounts for movie to movie differences through the $b_i$ and user to user differences through the $b_u$. But this model leaves out an important source of variation related to the fact that groups of movies have similar rating patterns and groups of users have similar rating patterns as well. We will discover these patterns by studying the residuals:
 
 $$
 r_{u,i} = y_{u,i} - \hat{b}_i - \hat{b}_u
 $$
 
-To see this we will convert the data into a matrix so that each user gets a row and each movie gets a column so that $y_{u,i}$ is the entry in row $u$ and column $i$.For illustration purposes we will only considered a small subset of movies with many ratings and users that have rated many movies:
+To see this, we will convert the data into a matrix so that each user gets a row and each movie gets a column so that $y_{u,i}$ is the entry in row $u$ and column $i$. For illustrative purposes, we will only consider a small subset of movies with many ratings and users that have rated many movies:
 
 ```{r}
 train_small <- movielens %>% 
@@ -560,6 +548,7 @@ y <- train_small %>%
 ```
 
 We add row names and column names:
+
 ```{r}
 rownames(y)<- y[,1]
 y <- y[,-1]
@@ -574,7 +563,6 @@ y <- sweep(y, 1, rowMeans(y, na.rm=TRUE))
 y <- sweep(y, 2, colMeans(y, na.rm=TRUE))
 ```
 
-
 If the model above explains all the signal, and the $\varepsilon$ are just noise, then the residuals for different movies should be independent from each other. But they are not. Here is an example:
 
 ```{r godfathers-cor}
@@ -583,14 +571,15 @@ m_2 <- "Godfather: Part II, The"
 qplot(y[ ,m_1], y[,m_2], xlab = m_1, ylab = m_2)
 ```
 
-This plot says that users that liked The Godfather more than what the model expects them to based on the movie and user effect, also liked The Godfather II more than expected. The same is true for The Godfather and Goodfellas:
+This plot says that users that liked The Godfather more than what the model expects them to, based on the movie and user effect, also liked The Godfather II more than expected. [AN: check next sent. not sure of use of The Godfather again. Did you mean: Those who liked the Godfather were also going to be predicted to like Goodfellas?] The same is true for The Godfather and Goodfellas:
 
 ```{r godfather-goodfellas-cor}
 m_1 <- "Godfather, The"
 m_3 <- "Goodfellas"
 qplot(y[ ,m_1], y[,m_3], xlab = m_1, ylab = m_3)
 ```
-Although not as strong, their is still correlation. We see correlations between other movies as well:
+
+Although not as strong, there is still correlation. We see correlations between other movies as well:
 
 ```{r got-mail-sleepless-in-sea-cor}
 m_4 <- "You've Got Mail" 
@@ -598,20 +587,20 @@ m_5 <- "Sleepless in Seattle"
 qplot(y[ ,m_4], y[,m_5], xlab = m_4, ylab = m_5)
 ```
 
-We can see a pattern 
+We can see a pattern:
 
 ```{r}
 cor(y[, c(m_1, m_2, m_3, m_4, m_5)], use="pairwise.complete") %>% 
   knitr::kable()
 ```
 
-There seems to be people that like romantic comedies more than expected while others like gangster movies more than expected.
+There seems to be people that like romantic comedies more than expected, while others that like gangster movies more than expected.
 
 These results tell us that there is structure in the data. But how can we model this?
 
 ## Factors
 
-Here is an illustration of how we could use some structure to predict the $r_{u,i}$. Suppose our residuals look like this.
+Here is an illustration of how we can use some structure to predict the $r_{u,i}$. Suppose our residuals look like this:
 
 ```{r, echo=FALSE}
 set.seed(1)
@@ -625,26 +614,25 @@ X <- jitter(P%*%t(Q))
 X %>% knitr::kable(align = "c")
 ```
 
-There seems to be pattern here. In fact we can see very strong correlation patterns:
+There seems to be pattern here. In fact, we can see very strong correlation patterns:
 
 ```{r}
 cor(X)
 ```
 
-The structure seems to be explained by these coefficients.
+The structure seems to be explained by these coefficients:
 
 ```{r}
 t(Q) %>% knitr::kable(aling="c")
 ```
 
-Note that here we can narrow down movies to two groups: gangster and romance. 
-Note we can also reduce the users to three groups. 
+Note that here we can narrow down movies to two groups: gangster and romance. We can also reduce the users to three groups. 
 
 ```{r}
 P
 ```
 
-Those that like gangster but hate romance, the reverse, and those that don't care. The main point here is that we can reconstruct this data with 60 value with a couple of vectors totaling 17 values:
+Those that like gangster movies, but hate romance ones, the reverse, and those that don't care. [AN: check following sentences. One needs to be deleted] The main point here is that we can reconstruct this data with 60 value with a couple of vectors totaling 17 values:
 
 
 We can model the 60 residuals with this 17 parameter model:
@@ -653,13 +641,13 @@ $$
 r_{u,i} \approx p_u q_i 
 $$
 
-And we should be able to explain much more of the variance
+And we should be able to explain much more of the variance:
 
 $$
 Y_{u,i} = \mu + b_i + b_u + p_u q_i + \varepsilon_{i,j}
 $$
 
-Now the structure in our movie data seems to be much more complicated than gangster movie versus romance. We may have other factors. For example we may have:
+Now the structure in our movie data seems to be much more complicated than gangster movie versus romance. We may have other factors. For example, we may have:
 
 
 ```{r, echo=FALSE}
@@ -677,13 +665,14 @@ X <- jitter(P%*%t(Q), factor=1)
 X %>% knitr::kable(align = "c")
 ```
 
-Now we see another factor: Love, hates, or doesn't care about Al Pacino. The correlation is a bit more complicated now.
+Now we see another factor: love, hates, or doesn't care about Al Pacino. The correlation is a bit more complicated now.
 
 ```{r}
 cor(X)
 ```
 
-Now to explain the structure we need two factors 
+Now to explain the structure we need two factors:
+
 ```{r}
 t(Q) %>% knitr::kable(aling="c")
 ```
@@ -694,15 +683,13 @@ And two sets of coefficients:
 P
 ```
 
-The model now has more parameters but still less than the original data. So we should be able to fit this.
+The model now has more parameters but still less than the original data. So we should be able to fit this:
 
 $$
 Y_{u,i} = \mu + b_i + b_u + p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \varepsilon_{i,j}
 $$
 
-
-For the Netflix regularization was also used to fit penalize for large values of $p$ and $q$.
-
+[AN: check next sent] For the Netflix regularization was also used to fit penalize for large values of $p$ and $q$.
 
 Here are the actual correlations:
 
@@ -720,38 +707,40 @@ $$
 r_{u,i} \approx p_{u,1} q_{1,i} + p_{u,2} q_{2,i}
 $$
 
-is very much related to SVD and PCA. SVD and PCA are complicated concept but one way to understand it that SVD is an algorithm that finds the 
-vectors $p$ and $q$ that permit us to rewrite the matrix $\mbox{r}$ with $m$ rows and $n$ columns as 
+is very much related to SVD and PCA. SVD and PCA are complicated concepts, but one way to understand them is that SVD is an algorithm that finds the vectors $p$ and $q$ that permit us to rewrite the matrix $\mbox{r}$ with $m$ rows and $n$ columns as:
 
 $$
 r_{u,i} = p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \dots + p_{u,m} q_{m,i} 
 $$
 
-with the variability of each term decreasing and with the $p$s uncorrelated. The algorithm also computes this variability so that we can know how much of the matrices total variability is explained as we add new terms. This may permit us to see that with just a few terms we can explain most of the variability.
+with the variability of each term decreasing and with the $p$s uncorrelated. The algorithm also computes this variability so that we can know how much of the matrices total variability is explained as we add new terms. This may permit us to see that, with just a few terms, we can explain most of the variability.
 
-Let's see an example with the movie data. To compute the decomposition we will make the NAs 0 
+Let's see an example with the movie data. To compute the decomposition we will make the NAs 0:
+
 ```{r}
 y[is.na(y)] <- 0
 y <- sweep(y, 1, rowMeans(y))
 pca <- prcomp(y)
 ```
-The $q$ vectors are called the principal components and they are stored in this matrix
+
+The $q$ vectors are called the principal components and they are stored in this matrix:
 
 ```{r}
 dim(pca$rotation)
 ```
-while the $p$, or the user effects, are here:
+
+While the $p$, or the user effects, are here:
 
 ```{r}
 dim(pca$x)
 ```
 
-
-We can see the variability of each of the vectors
+We can see the variability of each of the vectors:
 
 ```{r, pca-sds}
 plot(pca$sdev)
 ```
+
 and see that just the first few already explain a large percent:
 
 ```{r var-expained-pca}
@@ -759,7 +748,7 @@ var_explained <- cumsum(pca$sdev^2/sum(pca$sdev^2))
 plot(var_explained)
 ```
 
-We also notice that the PC that are estimate are related to the structure in opinions about movies:
+We also notice that the PC that are estimate [AN: estimates? estimated?] are related to the structure in opinions about movies:
 
 ```{r movies-pca}
 library(ggrepel)
@@ -772,26 +761,29 @@ pcs %>%  ggplot(aes(PC1, PC2)) + geom_point() +
                                 PC1 < -0.1 | PC1 > 0.1 | PC2 < -0.075 | PC2 > 0.1))
 ```
 
-Just by looking at the top three in each direction we see a meaningful pattern. The first PC shows the difference between critically acclaimed movies on one side
+Just by looking at the top three in each direction, we see a meaningful pattern. The first PC shows the difference between critically acclaimed movies on one side:
 
 ```{r}
 pcs %>% select(name, PC1) %>% arrange(PC1) %>% slice(1:10)
 ```
-and Hollywood blockbusters in the other:
+
+and Hollywood blockbusters on the other:
+
 ```{r}
 pcs %>% select(name, PC1) %>% arrange(desc(PC1)) %>% slice(1:10)
 ```
 
-While the second PC seems to go from artsy independent films:
+While the second PC seems to go from artsy, independent films:
 
 ```{r}
 pcs %>% select(name, PC2) %>% arrange(PC2) %>% slice(1:10)
 ```
 
-to nerd favorites
+to nerd favorites:
+
 ```{r}
 pcs %>% select(name, PC2) %>% arrange(desc(PC2)) %>% slice(1:10)
 ```
 
-Fitting a model that incorporates these estimates into  is complicated. For those interested we recommend trying the `recommenderlab` package and do not get into the details here.
+Fitting a model that incorporates these estimates into [AN: into what?] is complicated. For those interested, we recommend trying the `recommenderlab` package and do not get into the details here [AN: fix this last sent].
 

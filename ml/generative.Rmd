@@ -6,7 +6,7 @@ $$
 p(\mathbf{x}) = \mbox{Pr}(Y=1 \mid \mathbf{X}=\mathbf{x}) 
 $$
 
-We have described several approaches to estimating $p(\mathbf{x})$. Note that in all these approaches, we estimate the conditional probability directly and do not consider the distribution of the predictors. In machine learning, these are referred to as _discriminative_ approaches. 
+We have described several approaches to estimating $p(\mathbf{x})$. In all these approaches, we estimate the conditional probability directly and do not consider the distribution of the predictors. In machine learning, these are referred to as _discriminative_ approaches. 
 
 However, Bayes' theorem tells us that knowing the distribution of the predictors $\mathbf{X}$ may be useful. Methods that model the joint distribution of $Y$ and $\mathbf{X}$ are referred to as _generative models_ (we model how the entire data, $\mathbf{X}$ and $Y$, are generated). We start by describing the most general generative model, Naive Bayes, and then proceed to describe to more specific cases, quadratic discriminant analysis (QDA) and linear discriminant analysis (LDA).
 
@@ -22,7 +22,7 @@ $$
 
 with $f_{\mathbf{X}|Y=1}$ and $f_{\mathbf{X}|Y=0}$ representing the distribution functions of the predictor $\mathbf{X}$ for the two classes $Y=1$ and $Y=0$. The formula implies that if we can estimate these conditional distributions of the predictors, we can develop a powerful decision rule. However, this is a big _if_. As we go forward, we will encounter examples in which $\mathbf{X}$ has many dimensions and we do not have much information about the distribution. In these cases, Naive Bayes will be practically impossible to implement. However, there are instances in which we have a small number of predictors (not much more than 2) and many categories in which generative models can be quite powerful. We describe two specific examples and use our previously described case studies to illustrate them.
 
-Let's start with a very simple and uninteresting, yet illustrative example: the example related to predicting sex from height. 
+Let's start with a very simple and uninteresting, yet illustrative, case: the example related to predicting sex from height. 
 
 ```{r, warning=FALSE, message=FALSE}
 library(caret)
@@ -134,13 +134,13 @@ qplot(x, p_hat_bayes_unbiased, geom = "line") +
 
 ## Quadratic Discriminant Analysis
 
-Quadratic Discriminant Analysis (QDA) is a version of _Naive Bayes_ in which we assume that the distributions $p_{\mathbf{X}|Y=1}(x)}$ and $p_{\mathbf{X}|Y=0}(\mathbf{x})$ are multivariate normal. The simple example we described above is actually QDA. Let's now look at a slightly more complicated example: the 2 or 7 example.
+Quadratic Discriminant Analysis (QDA) is a version of _Naive Bayes_ in which we assume that the distributions $p_{\mathbf{X}|Y=1}(x)}$ and $p_{\mathbf{X}|Y=0}(\mathbf{x})$ are multivariate normal. The simple example we described above is actually QDA. Let's now look at a slightly more complicated case: the 2 or 7 example.
 
 ```{r}
 data("mnist_27")
 ```
 
-In this case, we have two predictors so we assume each one is bivariate normal. This implies we need to estimate two averages, two standard deviations, and a correlation for each case $Y=1$ and $Y=0$. Once we have these we can approximate the distributions $f_{X_1,X_2|Y=1}$ and $f_{X_1, X_2|Y=0}$. We can easily estimate parameters from the data:
+In this case, we have two predictors so we assume each one is bivariate normal. This implies that we need to estimate two averages, two standard deviations, and a correlation for each case $Y=1$ and $Y=0$. Once we have these, we can approximate the distributions $f_{X_1,X_2|Y=1}$ and $f_{X_1, X_2|Y=0}$. We can easily estimate parameters from the data:
 
 ```{r}
 params <- mnist_27$train %>% 
@@ -176,7 +176,7 @@ y_hat <- predict(train_qda, mnist_27$test)
 confusionMatrix(data = y_hat, reference = mnist_27$test$y)$overall["Accuracy"]
 ```
 
-The estimated conditional probability looks relatively good although it does not fit as well as the kernel smoothers:
+The estimated conditional probability looks relatively good, although it does not fit as well as the kernel smoothers:
 
 ```{r, echo=FALSE}
 plot_cond_prob <- function(p_hat=NULL){
@@ -353,7 +353,7 @@ The actuary is:
 confusionMatrix(predict(train_qda, test_set), test_set$y)$overal["Accuracy"]
 ```
 
-For sensitivity and specificity, we have a pair of values for **each** class. To define these terms we need a binary outcome. We therefore have three columns: one for each class as the positives and the other two as the negatives.
+For sensitivity and specificity, we have a pair of values for **each** class. To define these terms, we need a binary outcome. We therefore have three columns: one for each class as the positives and the other two as the negatives.
 
 
 We can visualize what parts of the region are called 1, 2 and 7:
@@ -379,7 +379,7 @@ train_lda <- train(y ~ .,
 confusionMatrix(predict(train_lda, test_set), test_set$y)$overal["Accuracy"]
 ```
 
-The accuracy is much worse because the model is more rigid.
+The accuracy is much worse because the model is more rigid:
 
 ```{r lda-too-rigid, echo=FALSE}
 new_x %>% mutate(y_hat = predict(train_lda, new_x)) %>%
