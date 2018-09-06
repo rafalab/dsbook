@@ -81,7 +81,7 @@ We remove the `area` column because we won't use it as a predictor.
 olive <- select(olive, -area)
 ```
 
-Let's very quickly see how we can do [AN: "do' what?] using kNN:
+Let's very quickly try to predict the region using kNN:
 
 ```{r olive-knn}
 library(caret)
@@ -130,7 +130,8 @@ text(train_rpart$finalModel, fancy  = TRUE)
 Decision trees like this are often used in practice. For example, to decide if a person is at risk of having a heart attack, doctors use the following:
 
 ```{r, echo=FALSE}
-knitr::include_graphics("https://www.researchgate.net/profile/Douglas_Walton/publication/228297479/figure/fig1/AS:301828123185152@1448972840090/Decision-Tree-for-Heart-Attack-Victim-adapted-from-Gigerenzer-et-al-1999-4.png")
+# source https://www.researchgate.net/profile/Douglas_Walton/publication/228297479/figure/fig1/AS:301828123185152@1448972840090/Decision-Tree-for-Heart-Attack-Victim-adapted-from-Gigerenzer-et-al-1999-4.png
+knitr::include_graphics("ml/img/Decision-Tree-for-Heart-Attack-Victim-adapted-from-Gigerenzer-et-al-1999-4.png")
 ```
 
 The general idea of the methods we are describing is to define an algorithm that uses data to create these tress. 
@@ -150,7 +151,7 @@ qplot(day, margin, data = polls_2008)
 The general idea here is to build a decision tree and, at end of each _node_, we will have a different prediction $\hat{Y}$. The regression tree model then:
 
 1. Partitions feature space into $J$ non-overlapping regions, $R_1, R_2, \ldots, R_J$.
-2. For every observation that falls within region $x \in R_j$, predict with $\hat{f}(x) = $ the average of the training observations $Y_i$ in the region: $x_i \in R_j$.
+2. For every observation that falls within region $x \in R_j$, predict with the average of the training observations $Y_i$ in the region: $x_i \in R_j$.
 
 But how do we decide on the partition  $R_1, R_2, \ldots, R_M$ and how do we choose $M$?
 
@@ -260,7 +261,7 @@ polls_2008 %>%
 
 Classification, or decision trees, are used in classification problems, where the outcome is categorical. We use the same partitioning principle with some differences to account for the fact that we are now working with categorical data. 
 
-[AN: review following sent] The first is that rather than taking the average, in each partition we predict with class that forms the observations in the training set. 
+The first difference is that rather than taking the average in each partition, we predict with whatever class is the most common among the training set observations within the partion.
 
 The second is that we can no longer use RSS to decide on the partition. While we could use a naive approach of looking for partitions that minimize training error, better performing approaches use more sophisticated metrics. Two of the more popular ones are the _Gini Index_ and _Entropy_.  If we define $\hat{p}_{m,k}$ as the proportion of observations in partition $m$ that are of class $k$, then the  _Gini Index_ is defined as:
 
@@ -321,7 +322,8 @@ With decision trees, the boundary can't be smooth.
 
 Classification trees have certain advantages that make them very useful. They are highly interpretable, even more so than linear models. Are easy to visualize (if small enough), they (maybe) model human decision processes and don't require that dummy predictors for categorical variables be used.
 
-On the other hand, the [AN: "greedy' ok?] greedy approach via recursive partitioning is a bit harder to train than, for example, linear regression or kNN. It may not always be the best performing method since it is not very flexible and is highly unstable to changes in training data. Random Forests, explained next, improve on several of these shortcomings.
+On the other hand, the approach via recursive partitioning can easily over-train and 
+is thereofore a bit harder to train than, for example, linear regression or kNN. It may not always be the best performing method since it is not very flexible and is highly unstable to changes in training data. Random Forests, explained next, improve on several of these shortcomings.
 
 
 ## Random Forests
@@ -414,7 +416,7 @@ for(i in 1:5){
 }
 system(paste0("cd ",path,";convert -loop 0 -delay 50 *.png rf.gif; mv rf.gif ",getwd(),"/"))
 }
-knitr::include_graphics("ml/img/rf.gif")
+#knitr::include_graphics("ml/img/rf.gif")
 ```
 
 [AN: review following sent] Here is the Random Forest fit for our digits example two predictor:

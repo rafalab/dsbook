@@ -8,8 +8,18 @@ From 1989 to 1991, the A's had one of the highest payrolls in baseball. They wer
 
 As motivation for this chapter, we will pretend it is 2002 and try to build a baseball team with a limited budget, just like the A's had to do. To appreciate what you are up against, note that in 2002 the Yankees' payroll of \$125,928,583 more than tripled the Oakland A's \$39,679,746 
 
-```{r echo=FALSE}
-knitr::include_graphics("http://www.baseballchronology.com/Baseball/Years/2002/Payroll.asp")
+```{r echo=FALSE, message=FALSE}
+library(rvest)
+url <- "http://www.stevetheump.com/Payrolls.htm"
+h <- read_html(url) 
+i <- h %>% html_nodes(".style3") %>% html_text() %>% stringr::str_which("2002")
+h %>% html_nodes("table") %>% .[[i]] %>% html_table(header = TRUE) %>%  
+  mutate(Payroll = parse_number(Payroll)/10^6) %>%
+  mutate(Team = reorder(Team, Payroll)) %>%
+  ggplot(aes(Team, Payroll)) +
+  geom_bar(stat = "identity") +
+  ylab("Payroll in Millions") + 
+  coord_flip()
 ```
 
 
@@ -22,7 +32,8 @@ This changed with [Bill James](https://en.wikipedia.org/wiki/Bill_James). In the
 
 
 ```{r, echo = FALSE, eval=FALSE}
-knitr::include_graphics("http://cdn.fansided.com/wp-content/blogs.dir/17/files/2011/12/bill-james-079006079.jpg")
+## source: https://cdn.fansided.com/wp-content/blogs.dir/17/files/2011/12/bill-james-079006079.jpg
+knitr::include_graphics("regression/img/bill-james-079006079.jpg")
 ```
 
 In this chapter, to simplify the exercise, we will focus on scoring runs and ignore the two other important aspects of the game: pitching and fielding. We will see how regression analysis can help develop strategies to build a competitive baseball team with a constrained budget. The approach can be divided into two separate data analyses. In the first, we determine which recorded player-specific statistics predict runs. In the second, we examine if players were undervalued based on what our first analysis predicts. 
@@ -38,7 +49,8 @@ Here is a video showing a [success](https://www.youtube.com/watch?v=HL-XjMCPfio)
 Now there are several ways to succeed. Understanding this distinction will be important for our analysis. When the batter hits the ball, the batter wants to pass as many _bases_ as possible. There are four bases with the fourth one called _home plate_. Home plate is where batters start by trying to hit, so the bases form a cycle.
 
 ```{r, echo = FALSE}
-knitr::include_graphics("http://quarterlyspeedbump.com/wp-content/uploads/2012/03/Baseball_Diamond1.jpeg")
+## source: http://quarterlyspeedbump.com/wp-content/uploads/2012/03/Baseball_Diamond1.jpeg
+knitr::include_graphics("regression/img/Baseball_Diamond1.png")
 ```
 
 A batter who _goes around the bases_ and arrives home, scores a run. 
@@ -61,7 +73,8 @@ All these events are kept track of during the season and are available to us thr
 ## No awards for BB
  
 ```{r, echo = FALSE}
-knitr::include_graphics("http://i0.wp.com/mopupduty.com/wp-content/uploads/2010/09/JumboTron.jpg")
+# source http://i0.wp.com/mopupduty.com/wp-content/uploads/2010/09/JumboTron.jpg
+knitr::include_graphics("regression/img/JumboTron.png")
 ```
 
 Historically, the _batting average_ has been considered the most important offensive statistic. To define this average, we define a _hit_ (H) and an _at bat_ (AB). Singles, doubles, triples and home runs are hits. The fifth way to be successful, BB, is not a hit. An AB is the number of times you either get a hit or make an out; BBs are excluded. The batting average is simply H/AB and is considered the main measure of a success rate. Today this success rate ranges from 20% to 38%. We refer to the batting average in thousands so, for example, if your success rate is 25%, we call it _batting 250_.

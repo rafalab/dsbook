@@ -121,14 +121,14 @@ test_set <- test_set %>%
 
 ### Loss function 
 
-The Netflix challenge used the typical error loss and thus decided on a winner based on the residual mean squared error (RMSE) on a test set. [AN: review following sentences] We define $y_{u,i}$ as the rating for movie $i$ by user $u$ and $\hat{y}_{i,u}$ as our prediction. The RMSE is defined as: 
+The Netflix challenge used the typical error loss. Thye decided on a winner based on the residual mean squared error (RMSE) on a test set. We define $y_{u,i}$ as the rating for movie $i$ by user $u$ and denote our prediction with $\hat{y}_{i,u}$. The RMSE is then defined as: 
 
 $$
 \mbox{RMSE} = \sqrt{\frac{1}{N} \sum_{u,i}^{} \left( \hat{y}_{u,i} - y_{u,i} \right)^2 }
 $$
 with $N$ being the number of user/movie combinations and the sum occurring over all these combinations.
 
-Remember that we can interpret the RMSE similarly to a standard deviation: it is the typical error we make when predicting a movie rating. If this number is larger than 1, we are typically missing [AN: missing what?] by one star rating which is not good.
+Remember that we can interpret the RMSE similarly to a standard deviation: it is the typical error we make when predicting a movie rating. If this number is larger than 1, it means our typical error is larger than one star, is not good.
 
 Let's write a function that computes the RMSE for vectors of ratings and their corresponding predictors:
 
@@ -438,7 +438,7 @@ rmse_results %>% knitr::kable()
 
 This provides a very large improvement. 
 
-Note that $\lambda is a tuning parameter. We can use cross-validation to chose it.
+Note that $\lambda$ is a tuning parameter. We can use cross-validation to chose it.
 
 ```{r best-penalty}
 lambdas <- seq(0, 10, 0.25)
@@ -571,7 +571,7 @@ m_2 <- "Godfather: Part II, The"
 qplot(y[ ,m_1], y[,m_2], xlab = m_1, ylab = m_2)
 ```
 
-This plot says that users that liked The Godfather more than what the model expects them to, based on the movie and user effect, also liked The Godfather II more than expected. [AN: check next sent. not sure of use of The Godfather again. Did you mean: Those who liked the Godfather were also going to be predicted to like Goodfellas?] The same is true for The Godfather and Goodfellas:
+This plot says that users that liked The Godfather more than what the model expects them to, based on the movie and user effects, also liked The Godfather II more than expected. A similar relationship is seen when comparing The Godfather and Goodfellas:
 
 ```{r godfather-goodfellas-cor}
 m_1 <- "Godfather, The"
@@ -623,7 +623,7 @@ cor(X)
 The structure seems to be explained by these coefficients:
 
 ```{r}
-t(Q) %>% knitr::kable(aling="c")
+t(Q) 
 ```
 
 Note that here we can narrow down movies to two groups: gangster and romance. We can also reduce the users to three groups. 
@@ -632,10 +632,8 @@ Note that here we can narrow down movies to two groups: gangster and romance. We
 P
 ```
 
-Those that like gangster movies, but hate romance ones, the reverse, and those that don't care. [AN: check following sentences. One needs to be deleted] The main point here is that we can reconstruct this data with 60 value with a couple of vectors totaling 17 values:
+Those that like gangster movies, but hate romance ones, the reverse, and those that don't care. The main point here is that we can reconstruct this data with 60 value with a couple of vectors totaling 17 values:
 
-
-We can model the 60 residuals with this 17 parameter model:
 
 $$
 r_{u,i} \approx p_u q_i 
@@ -674,7 +672,7 @@ cor(X)
 Now to explain the structure we need two factors:
 
 ```{r}
-t(Q) %>% knitr::kable(aling="c")
+t(Q) 
 ```
 
 And two sets of coefficients:
@@ -689,7 +687,7 @@ $$
 Y_{u,i} = \mu + b_i + b_u + p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \varepsilon_{i,j}
 $$
 
-[AN: check next sent] For the Netflix regularization was also used to fit penalize for large values of $p$ and $q$.
+The winning algorithms for the Netflix challenge used regularization to penalize for large values of $p$ and $q$. Implementing this approach is beyond the scope of this book.
 
 Here are the actual correlations:
 
@@ -748,7 +746,7 @@ var_explained <- cumsum(pca$sdev^2/sum(pca$sdev^2))
 plot(var_explained)
 ```
 
-We also notice that the PC that are estimate [AN: estimates? estimated?] are related to the structure in opinions about movies:
+We also notice that the first two principal componentsare related to the structure in opinions about movies:
 
 ```{r movies-pca}
 library(ggrepel)
@@ -785,5 +783,5 @@ to nerd favorites:
 pcs %>% select(name, PC2) %>% arrange(desc(PC2)) %>% slice(1:10)
 ```
 
-Fitting a model that incorporates these estimates into [AN: into what?] is complicated. For those interested, we recommend trying the `recommenderlab` package and do not get into the details here [AN: fix this last sent].
+Fitting a model that incorporates these estimates is complicated. For those interested in implementing an approach that incorporates these ideas, we recommend trying the `recommenderlab` package. The details are beyond the scope of this book.
 
