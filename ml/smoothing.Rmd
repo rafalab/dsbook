@@ -3,9 +3,6 @@
 Before continuing with machine learning algorithms, we introduce the important concept of _smoothing_. Smoothing is a very powerful technique used all across data analysis. Other names given to this technique are _curve fitting_ and _low pass filtering_. It is designed to detect trends in the presence of noisy data in cases in which the shape of the trend is unknown. The _smoothing_ name comes from the fact that to accomplish this feat, we assume that the trend is _smooth_, as in a smooth surface. In contrast, the noise, or deviation from the trend, is unpredictably wobbly:
 
 ```{r signal-plus-noise-example, echo=FALSE}
-library(tidyverse)
-library(dslabs)
-ds_theme_set()
 set.seed(1)
 n <- 100
 x <- seq(-pi*4, pi*4, len = n)
@@ -38,7 +35,7 @@ $$
 To think of this as a machine learning problem, consider that we want to predict $Y$ given a day $x$. If we knew the conditional expectation $f(x) = \mbox{E}(Y \mid X=x)$, we would use it. But since we don't know this conditional expectation, we have to estimate it. Let's use regression, since it is the only method we have learned up to now.
 
 ```{r linear-regression-not-flexible}
-resid <- ifelse(lm(margin~day, data = polls_2008)$resid >0, "+", "-")
+resid <- ifelse(lm(margin~day, data = polls_2008)$resid > 0, "+", "-")
 polls_2008 %>% 
   mutate(resid = resid) %>% 
   ggplot(aes(day, margin)) + 
@@ -85,21 +82,41 @@ tmp %>% filter(center %in% c(-125, -55)) %>%
 
 By computing this mean for every point, we form an estimate of the underlying curve $f(x)$. Below we show the procedure happening as we move from the -155 up to 0. At each value of $x_0$, we keep the estimate $\hat{f}(x_0)$ and move on to the next point:
 
-```{r binsmoother-animation, echo=FALSE, cache=TRUE, fig.show="animate", interval = .1, ffmpeg.bitrate="1M", warning=FALSE}
+```{r binsmoother-animation, echo=FALSE, warning=FALSE} 
 library(gganimate)
 span <- 7
 fit <- with(polls_2008, ksmooth(day, margin, kernel="box", x.points = day, bandwidth = span))
 bin_fit <- data.frame(x = fit$x, .fitted=fit$y)
+  
+if(!file.exists("ml/img/binsmoother-animation.gif")){
+  p <- tmp %>% 
+    ggplot() +
+    geom_smooth(aes(day, margin, group = center, frame = center), method = "lm", formula=y~1, se = FALSE) +
+    geom_point(aes(day, margin), data = polls_2008, size = 3, alpha = .5, color = "grey") +
+    geom_point(aes(day, margin, frame = center)) +
+    geom_line(aes(x=x, y = .fitted, frame = x, cumulative = TRUE), data = bin_fit, color = "red") + 
+    ggtitle("x0 = ")
 
-p <- tmp %>% filter(center < -100) %>%
-  ggplot() +
-  geom_smooth(aes(day, margin, group = center, frame = center), method = "lm", formula=y~1, se = FALSE) +
-  geom_point(aes(day, margin), data = polls_2008, size = 3, alpha = .5, color = "grey") +
-  geom_point(aes(day, margin, frame = center)) +
-  geom_line(aes(x=x, y = .fitted, frame = x, cumulative = TRUE), data = bin_fit, color = "red") + 
-  ggtitle("x0 = ")
-
-gganimate(p)
+  gganimate(p, filename = "ml/img/binsmoother-animation.gif", interval= .1)
+}
+if(knitr::is_html_output()){
+  knitr::include_graphics("ml/img/binsmoother-animation.gif")
+} else{
+  centers <- quantile(tmp$center, seq(1,6)/6)
+  tmp_bin_fit <- crossing(center=centers,bin_fit) %>%
+    group_by(center) %>%
+    filter(x <= center) %>%
+    ungroup()
+        
+  tmp %>% filter(center %in% centers) %>%
+    ggplot() +
+    geom_smooth(aes(day, margin), method = "lm", formula=y~1, se = FALSE) +
+    geom_point(aes(day, margin), data = polls_2008, size = 3, alpha = .5, color = "grey") +
+    geom_point(aes(day, margin)) +
+    geom_line(aes(x=x, y = .fitted), data = tmp_bin_fit, color = "red") + 
+    ggtitle("x0 = ") +
+    facet_wrap(~center, nrow = 2)
+}
 ```
 
 The final result looks like this:
@@ -124,6 +141,7 @@ You can think of the bin smoother approach as a weighted average:
 $$
 \hat{f}(x_0) = \sum_{i=1}^N w_0(x_i) Y_i
 $$
+
 in which each point receives a weight of either $0$ or $1/N_0$, with $N_0$ the number of points in the week. In the code above, we used the argument `kernel=box` in our call to the function `ksmooth`. This is because the weight function looks like a box:
 
 ```{r box-kernel, echo=FALSE}
@@ -148,7 +166,7 @@ data.frame(x = tmp$x, w_0 = tmp$y) %>%
 
 In this animation, we see that points on the edge get less weight (the size of the point is proportional to its weight):
 
-```{r kernel-animation, echo=FALSE, cache=TRUE, fig.show="animate", interval = .1, ffmpeg.bitrate="1M", warning=FALSE}
+```{r kernel-animation, echo=FALSE, warning=FALSE} 
 tmp <- polls_2008 %>%
   crossing(center = polls_2008$day) %>%
   mutate(dist = abs(day - center)) %>%
@@ -160,16 +178,36 @@ span <- 7
 fit <- with(polls_2008, ksmooth(day, margin, kernel="normal", x.points = day, bandwidth = span))
 bin_fit <- data.frame(x = fit$x, .fitted=fit$y)
 
-p <- tmp %>%
-  ggplot() +
-  geom_smooth(aes(day, margin, group = center, weight = weight, frame = center), method = "lm", formula=y~1, se=FALSE) +
-  geom_point(aes(day, margin), data = polls_2008, size = 3, alpha = .5, color = "grey") +
-  geom_point(aes(day, margin, size = weight, frame = center), show.legend = FALSE) +   
-  scale_size(range = c(0, 3)) +
-  geom_line(aes(x=x, y = .fitted, frame = x, cumulative = TRUE), data = bin_fit, color = "red") + 
-  ggtitle("x0 = ")
-
-gganimate(p)
+if(!file.exists("ml/img/kernel-animation.gif")){
+  p <- tmp %>%
+    ggplot() +
+    geom_smooth(aes(day, margin, group = center, weight = weight, frame = center), method = "lm", formula=y~1, se=FALSE) +
+    geom_point(aes(day, margin), data = polls_2008, size = 3, alpha = .5, color = "grey") +
+    geom_point(aes(day, margin, size = weight, frame = center), show.legend = FALSE) +   
+    scale_size(range = c(0, 3)) +
+    geom_line(aes(x=x, y = .fitted, frame = x, cumulative = TRUE), data = bin_fit, color = "red") + 
+    ggtitle("x0 = ")
+  
+    gganimate(p, filename = "ml/img/kernel-animation.gif", interval= .1)
+} 
+if(knitr::is_html_output()){
+  knitr::include_graphics("ml/img/kernel-animation.gif")
+} else{
+  centers <- quantile(tmp$center, seq(1,6)/6)
+  tmp_bin_fit <- crossing(center=centers,bin_fit) %>%
+    group_by(center) %>%
+    filter(x <= center) %>%
+    ungroup()
+        
+  tmp %>% filter(center %in% centers) %>%
+    ggplot() +
+    geom_smooth(aes(day, margin), method = "lm", formula=y~1, se = FALSE) +
+    geom_point(aes(day, margin, size = weight), data = polls_2008, size = 3, alpha = .5, color = "grey") +
+    geom_point(aes(day, margin)) +
+    geom_line(aes(x=x, y = .fitted), data = tmp_bin_fit, color = "red") + 
+    ggtitle("x0 = ") +
+    facet_wrap(~center, nrow = 2)
+}
 ```
 
 The final result looks like this:
@@ -194,7 +232,8 @@ There are several functions in R that implement bin smoothers. One example is `k
 A limitation of the bin smoother approach just described is that we need small windows for the approximately constant assumptions to hold. As a result, we end up with a small number of data points to average and obtain imprecise estimates $\hat{f}(x)$. Here we describe how _local weighted regression_ (loess) permits us to consider larger window sizes. To do this, we will use a mathematical result, referred to as Taylor's Theorem, which tells us that if you look closely enough at any smooth function $f(x)$, it will look like a line. To see why this makes sense, consider the curved edges gardeners make using straight edges:
 
 ```{r, echo=FALSE}
-knitr::include_graphics("https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Savill_Garden_-_Windsor_Great_Park%2C_England_-_DSC06280.jpg/1920px-Savill_Garden_-_Windsor_Great_Park%2C_England_-_DSC06280.jpg")
+## url: https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Savill_Garden_-_Windsor_Great_Park%2C_England_-_DSC06280.jpg/1920px-Savill_Garden_-_Windsor_Great_Park%2C_England_-_DSC06280.jpg
+knitr::include_graphics("ml/img/Savill_Garden_-_Windsor_Great_Park,_England_-_DSC06280.ppg")
 ```
 
 
@@ -228,21 +267,41 @@ tmp %>%
 
 The fitted value at $x_0$ becomes our estimate $\hat{f}(x_0)$. The following animation demonstrates the idea:
 
-```{r loees-animation, echo=FALSE, cache=TRUE, fig.show="animate", interval = .1, ffmpeg.bitrate="1M", warning=FALSE}
+```{r loess-animation, echo=FALSE, warning=FALSE} 
 library(broom)
 fit <- loess(margin ~ day, degree=1, span = span, data=polls_2008)
 loess_fit <- augment(fit)
 
-p <- ggplot(tmp, aes(day, margin)) +
-  scale_size(range = c(0, 3)) +
-  geom_smooth(aes(group = center, frame = center, weight = weight), method = "lm", se = FALSE) +
-  geom_point(data = polls_2008, size = 3, alpha = .5, color = "grey") +
-  geom_point(aes(size = weight, frame = center)) +
-  geom_line(aes(x=day, y = .fitted, frame = day, cumulative = TRUE), 
-            data = loess_fit, color = "red") +
-  ggtitle("x0 = ")
+if(!file.exists("ml/img/loess-animation.gif")){
+  p <- ggplot(tmp, aes(day, margin)) +
+    scale_size(range = c(0, 3)) +
+    geom_smooth(aes(group = center, frame = center, weight = weight), method = "lm", se = FALSE) +
+    geom_point(data = polls_2008, size = 3, alpha = .5, color = "grey") +
+    geom_point(aes(size = weight, frame = center)) +
+    geom_line(aes(x=day, y = .fitted, frame = day, cumulative = TRUE), 
+              data = loess_fit, color = "red") +
+    ggtitle("x0 = ")
 
-gganimate(p)
+  gganimate(p, filename = "ml/img/loess-animation.gif", interval= .1)
+}
+if(knitr::is_html_output()){
+  knitr::include_graphics("ml/img/loess-animation.gif")
+} else{
+  centers <- quantile(tmp$center, seq(1,6)/6)
+  tmp_loess_fit <- crossing(center=centers, loess_fit) %>%
+    group_by(center) %>%
+    filter(day <= center) %>%
+    ungroup()
+        
+  tmp %>% filter(center %in% centers) %>%
+    ggplot() +
+    geom_smooth(aes(day, margin), method = "lm", se = FALSE) +
+    geom_point(aes(day, margin, size = weight), data = polls_2008, size = 3, alpha = .5, color = "grey") +
+    geom_point(aes(day, margin)) +
+    geom_line(aes(x=day, y = .fitted), data = tmp_loess_fit, color = "red") + 
+    ggtitle("x0 = ") +
+    facet_wrap(~center, nrow = 2)
+}
 ```
 
 The final result is a smoother fit than the bin smoother since we use larger sample sizes to estimate our local parameters:
@@ -261,7 +320,7 @@ polls_2008 %>% mutate(smooth = fit$fitted) %>%
 
 Different spans give us different estimates. We can see how different window sizes lead to different estimates:
 
-```{r loess-multi-span-animation, echo=FALSE, cache=TRUE, fig.show="animate", interval = .1, ffmpeg.bitrate="1M", warning=FALSE}
+```{r loess-multi-span-animation, echo=FALSE, warning=FALSE} 
 spans <- c(.66, 0.25, 0.15, 0.10)
 
 fits <- data_frame(span = spans) %>% 
@@ -274,17 +333,38 @@ tmp <- fits %>%
   filter(rank(dist) / n() <= span) %>%
   mutate(weight = (1 - (dist / max(dist)) ^ 3) ^ 3)
 
-p <- ggplot(tmp, aes(day, margin)) +
-  scale_size(range = c(0, 2)) +
-  geom_smooth(aes(group = center, frame = center, weight = weight), method = "lm", se = FALSE) +
-  geom_point(data = polls_2008, size = 2, alpha = .5, color = "grey") +
-  geom_line(aes(x=day, y = .fitted, frame = day, cumulative = TRUE), 
-            data = fits, color = "red") +
-  geom_point(aes(size = weight, frame = center)) +
-  facet_wrap(~span) +
-  ggtitle("x0 = ")
+if(!file.exists("ml/img/loess-multi-span-animation.gif")){
+  p <- ggplot(tmp, aes(day, margin)) +
+    scale_size(range = c(0, 2)) +
+    geom_smooth(aes(group = center, frame = center, weight = weight), method = "lm", se = FALSE) +
+    geom_point(data = polls_2008, size = 2, alpha = .5, color = "grey") +
+    geom_line(aes(x=day, y = .fitted, frame = day, cumulative = TRUE), 
+              data = fits, color = "red") +
+    geom_point(aes(size = weight, frame = center)) +
+    facet_wrap(~span) +
+    ggtitle("x0 = ")
+  
+  gganimate(p, filename = "ml/img/loess-multi-span-animation.gif", interval= .1)
+}
+if(knitr::is_html_output()){
+  knitr::include_graphics("ml/img/loess-multi-span-animation.gif")
+} else{
+  centers <- quantile(tmp$center, seq(1,4)/4)
+  tmp_fits <- crossing(center=centers, fits) %>%
+    group_by(center) %>%
+    filter(day <= center) %>%
+    ungroup()
+        
+  tmp %>% filter(center %in% centers) %>%
+    ggplot() +
+    geom_smooth(aes(day, margin), method = "lm", se = FALSE) +
+    geom_point(aes(day, margin, size = weight), data = polls_2008, size = 3, alpha = .5, color = "grey") +
+    geom_point(aes(day, margin)) +
+    geom_line(aes(x=day, y = .fitted), data = tmp_fits, color = "red") + 
+    ggtitle("x0 = ") +
+    facet_grid(span ~ center)
+}
 
-gganimate(p)
 ```
 
 Here are the final estimates:
@@ -304,13 +384,14 @@ There are three other differences between `loess` and the typical bin smoother.
 
 $$
 \sum_{i=1}^N w_0(x_i) \left[Y_i - \left\{\beta_0 + \beta_1 (x_i-x_0)\right\}\right]^2
-
 $$
+
 However, instead of the Gaussian kernel, loess uses a function called the Tukey tri-weight:
 
 $$
 W(u)= \left( 1  - |u|^3\right)^3 \mbox{ if } |u| \leq 1 \mbox{ and } W(u) = 0 \mbox{ if } |u| > 1
 $$
+
 To define the weights, we denote $2h$ as the window size and define:
 
 $$
@@ -377,4 +458,3 @@ polls_2008 %>% ggplot(aes(day, margin)) +
   geom_smooth(color="red",  span = 0.15,
               method.args = list(degree=1))
 ```
-

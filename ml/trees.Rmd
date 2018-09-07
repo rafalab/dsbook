@@ -2,7 +2,7 @@
 
 ## The Curse of dimensionality
 
-We described how methods such as LDA and QDA are not meant to be used with many predictors $p$ because the number of parameters that we need to estimate becomes too large. [AN: review following sent] For example, with the digits example $p=784$, so QDA would have 784 parameters we would have over 600,000 parameters with LDA and we would multiply that by the number of classes for QDA. Kernel methods such as kNN or local regression do not have model parameters to estimate, but they also face a challenge when multiple predictors are used due to what is referred to the _curse of dimensionality_. The _dimension_ here refers to the fact that when we have $p$ predictors, the distance between two observations is computed in $p$-dimensional space.
+We described how methods such as LDA and QDA are not meant to be used with many predictors $p$ because the number of parameters that we need to estimate becomes too large. For example, with the digits example $p=784$, so we would have over 600,000 parameters with LDA and we would multiply that by the number of classes for QDA. Kernel methods such as kNN or local regression do not have model parameters to estimate, but they also face a challenge when multiple predictors are used due to what is referred to the _curse of dimensionality_. The _dimension_ here refers to the fact that when we have $p$ predictors, the distance between two observations is computed in $p$-dimensional space.
 
 A useful way of understanding the curse of dimensionality is by considering how large we have to make a span/neighborhood/window to include a given percentage of the data. Remember that with larger neighborhoods, our methods lose flexibility. 
 
@@ -114,7 +114,7 @@ p + geom_vline(xintercept = 0.065, lty = 2) +
   geom_segment(x = -0.2, y = 10.535, xend = 0.065, yend = 10.535, color = "black", lty = 2)
 ```
 
-Specifically, we define the following decision rule. If eicosenoic is larger than 0.065, predict Southern Italy. If not, then if linolenic is larger than $10.535$, predict Sardinia and Northern Italy otherwise [AN: remove "otherwise'?]. We can draw this decision tree like this:
+Specifically, we define the following decision rule. If eicosenoic is larger than 0.065, predict Southern Italy. If not, then if linolenic is larger than $10.535$, predict Sardinia and if lower, Northern Italy. We can draw this decision tree like this:
 
 ```{r olive-tree, echo=FALSE, warning=FALSE, message=FALSE}
 library(caret)
@@ -369,57 +369,93 @@ The averaging is what permits estimates that are not step functions.
 The following animation helps illustrate this procedure. In the animated figure you see each of $b=1,\dots,50$ bootstrap samples appear in order, for each one we see the tree that is fitted, and in blue we see the result of bagging the trees up to that point.
 
 ```{r rf-animation, echo=FALSE}
-if(!file.exists("ml/img/rf.gif")){
 library(rafalib)
 set.seed(1)
 ntrees <- 50
-sum <- rep(0,nrow(polls_2008))
-res <- vector("list", ntrees)
 XLIM <- range(polls_2008$day)
 YLIM <- range(polls_2008$margin)
-path <- tempdir()
-for(i in 0:ntrees){
-  png(file.path(path,sprintf("plot%02d.png",i)), width = 480, height = 350)
-  mypar(1,1)
-  if(i==0){
-    with(polls_2008, plot(day, margin, pch = 1, main="Data", xlim=XLIM,
-                          ylim=YLIM,
-                          xlab = "Days", ylab="Obama - McCain"))
-  } else{
-    ind <- sort(sample(1:nrow(polls_2008), replace = TRUE))
-    tmp <- polls_2008[ind,]
-    fit <- rpart(margin~day, data = tmp)
-    pred <- predict(fit, newdata = tmp)
-    res[[i]] <- data_frame(day = tmp$day, margin=pred)
-    pred <- predict(fit, newdata = polls_2008)
-    sum <- sum+pred
-    avg <- sum/i
-    with(tmp, plot(day,margin, pch=1, xlim=XLIM, ylim=YLIM, type="n",
-                   xlab = "Days", ylab="Obama - McCain",
-                   main=ifelse(i==1, paste(i, "tree"),paste(i, "trees"))))
-    for(j in 1:i){
-      with(res[[j]], lines(day, margin, type="s", col="grey", lty=2))
+
+if(!file.exists("ml/img/rf.gif")){
+  sum <- rep(0,nrow(polls_2008))
+  res <- vector("list", ntrees)
+  animation::saveGIF({
+    for(i in 0:ntrees){
+      mypar(1,1)
+      if(i==0){
+        with(polls_2008, plot(day, margin, pch = 1, main = "Data", xlim=XLIM,
+                              ylim=YLIM,
+                              xlab = "Days", ylab="Obama - McCain"))
+      } else{
+        ind <- sort(sample(1:nrow(polls_2008), replace = TRUE))
+        tmp <- polls_2008[ind,]
+        fit <- rpart(margin~day, data = tmp)
+        pred <- predict(fit, newdata = tmp)
+        res[[i]] <- data_frame(day = tmp$day, margin=pred)
+        pred <- predict(fit, newdata = polls_2008)
+        sum <- sum+pred
+        avg <- sum/i
+        with(tmp, plot(day,margin, pch=1, xlim=XLIM, ylim=YLIM, type="n",
+                       xlab = "Days", ylab="Obama - McCain",
+                       main=ifelse(i==1, paste(i, "tree"),paste(i, "trees"))))
+        for(j in 1:i){
+          with(res[[j]], lines(day, margin, type="s", col="grey", lty=2))
+        }
+        with(tmp, points(day,margin, pch=1))
+        with(res[[i]], lines(day, margin, type="s",col="azure4",lwd=2))
+        lines(polls_2008$day, avg, lwd=3, col="blue")
+      }
     }
-    with(tmp, points(day,margin, pch=1))
-    with(res[[i]], lines(day, margin, type="s",col="azure4",lwd=2))
-    lines(polls_2008$day, avg, lwd=3, col="blue")
+    for(i in 1:5){
+      mypar(1,1)
+      with(polls_2008, plot(day, margin, pch = 1, main="Final", xlim=XLIM, ylim=YLIM,
+                            xlab = "Days", ylab="Obama - McCain"))
+      lines(polls_2008$day, avg, lwd=3, col="blue")
+    }
+  }, movie.name = "ml/img/rf.gif", ani.loop=0, ani.delay =50)
+}  
+
+if(knitr::is_html_output()){
+  knitr::include_graphics("ml/img/rf.gif")
+} else {
+  sum <- rep(0,nrow(polls_2008))
+  res <- vector("list", ntrees)
+
+  mypar(2,3)
+  show <- c(1, 5, 25, 50) 
+  for(i in 0:ntrees){
+      if(i==0){
+        with(polls_2008, plot(day, margin, pch = 1, main = "Data", xlim=XLIM,
+                              ylim=YLIM,
+                              xlab = "Days", ylab="Obama - McCain"))
+      } else{
+        ind <- sort(sample(1:nrow(polls_2008), replace = TRUE))
+        tmp <- polls_2008[ind,]
+        fit <- rpart(margin~day, data = tmp)
+        pred <- predict(fit, newdata = tmp)
+        res[[i]] <- data_frame(day = tmp$day, margin=pred)
+        pred <- predict(fit, newdata = polls_2008)
+        sum <- sum+pred
+        avg <- sum/i
+        if(i %in% show){
+          with(tmp, plot(day,margin, pch=1, xlim=XLIM, ylim=YLIM, type="n",
+                         xlab = "Days", ylab="Obama - McCain",
+                         main=ifelse(i==1, paste(i, "tree"),paste(i, "trees"))))
+          for(j in 1:i){
+            with(res[[j]], lines(day, margin, type="s", col="grey", lty=2))
+          }
+          with(tmp, points(day,margin, pch=1))
+          with(res[[i]], lines(day, margin, type="s",col="azure4",lwd=2))
+          lines(polls_2008$day, avg, lwd=3, col="blue")
+        }
+      }
   }
-  dev.off()
-}
-for(i in 1:5){
-  png(file.path(path,sprintf("plot%2d.png",ntrees+i)), width = 480, height = 350)
-  mypar(1,1)
   with(polls_2008, plot(day, margin, pch = 1, main="Final", xlim=XLIM, ylim=YLIM,
-                          xlab = "Days", ylab="Obama - McCain"))
+                        xlab = "Days", ylab="Obama - McCain"))
   lines(polls_2008$day, avg, lwd=3, col="blue")
-  dev.off()
 }
-system(paste0("cd ",path,";convert -loop 0 -delay 50 *.png rf.gif; mv rf.gif ",getwd(),"/"))
-}
-#knitr::include_graphics("ml/img/rf.gif")
 ```
 
-[AN: review following sent] Here is the Random Forest fit for our digits example two predictor:
+Here is the Random Forest fit for our digits example based on two predictors:
 
 ```{r mnits-27-rf-fit}
 library(randomForest)
@@ -452,6 +488,6 @@ plot_cond_prob(predict(fit, mnist_27$true_p, type = "prob")[,2])
 We can control the "smoothness" of the random forest estimate in several ways. One is to limit the size of each node. We can require the number of points per node to be larger:
 
 
-The second Random Forests feature is to use a random selection of features to split when deciding on partitions. Specifically, when building each tree $T_j$, at each recursive partition only consider a randomly selected subset of predictors to check for best split. A different random choice of predictors is made for each tree. This reduces correlation between trees in forest, improving prediction accuracy. The argument for this tuning parameter in [AN: `randomForest`?]  `randomeForrest` is `mtry`.
+The second Random Forests feature is to use a random selection of features to split when deciding on partitions. Specifically, when building each tree $T_j$, at each recursive partition only consider a randomly selected subset of predictors to check for best split. A different random choice of predictors is made for each tree. This reduces correlation between trees in forest, improving prediction accuracy. The argument for this tuning parameter in  `randomForrest` is `mtry`.
 
-A disadvantage of Random Forests is that we lose interpretability. However, we can use the fact that a bootstrap sample was used to construct trees to measure _variable importance_ from the random forest. This measure counts how often a predictor is used in the individual trees. You can learn more about _variable importance_ in an advanced [machine learning book](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). We give an example on how we use in the next section  [AN: use what? VI?].
+A disadvantage of Random Forests is that we lose interpretability. However, we can use the fact that a bootstrap sample was used to construct trees to measure _variable importance_ from the random forest. This measure counts how often a predictor is used in the individual trees. You can learn more about _variable importance_ in an advanced [machine learning book](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). We give an example on how we use varialbe importance in the next section.
