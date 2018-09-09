@@ -1,3 +1,4 @@
+library(MASS) ## load MASS and matrixStats first to avoid select and count conflict
 library(matrixStats) 
 library(tidyverse)
 library(dslabs)
