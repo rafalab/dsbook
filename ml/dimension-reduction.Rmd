@@ -3,7 +3,7 @@
 
 ## Introduction
 
-A typical machine learning challenge will include a large numbor of predictors. This makes the important step of data visualization somewhat challenging. We have shown methods for visualizing univariate and paired data, but plots that reveal relationships between many variables are more complicated in higher dimensionality. For example, to compare each of the 784 features in our predicting digits example,  we would have to create, for example, 306,936 scatter plots. Creating one single scatter-plot of the data is impossible due to the high dimensionality. 
+A typical machine learning challenge will include a large number of predictors. This makes the important step of data visualization somewhat challenging. We have shown methods for visualizing univariate and paired data, but plots that reveal relationships between many variables are more complicated in higher dimensionality. For example, to compare each of the 784 features in our predicting digits example,  we would have to create, for example, 306,936 scatter plots. Creating one single scatter-plot of the data is impossible due to the high dimensionality. 
 
 Here we describe a powerful techniques useful for exploratory data analysis, among other things, generally referred to as _dimension reduction_. The general idea is to reduce the dimension of the dataset while preserving important characteristics, such as the distance between features or observations. With fewer dimensions, visualization then becomes more feasible. The technique behind it all, the singular value decomposition, is also useful in other contexts. Principal component analysis (PCA) is the approach we will be showing. Before applying PCA to high dimensional dataset, we will motivate the ideas behind with a simple example.
 
@@ -12,8 +12,8 @@ Here we describe a powerful techniques useful for exploratory data analysis, amo
 We consider an example with twin heights. Some pairs are adults the others are children. Here we simulate 100 two dimensional points that represent the number of standard deviations each individual is from the mean height. Each point is a pair of twins. We use the `mvrnorm` function from the MASS package to simulate bivariate normal data.
 
 ```{r, message=FALSE}
-library(MASS)
 set.seed(1)
+library(MASS)
 n <- 100
 x <- rbind(mvrnorm(n/2, c(69,69), matrix(c(9, 9*0.9, 9*0.92, 9*1),2,2)),
            mvrnorm(n/2, c(55,55), matrix(c(9, 9*0.9, 9*0.92, 9*1),2,2)))
@@ -21,12 +21,12 @@ x <- rbind(mvrnorm(n/2, c(69,69), matrix(c(9, 9*0.9, 9*0.92, 9*1),2,2)),
 
 A scatter-plot quickly reveals that the correlation is high and that there are two groups of twins:
 
-```{r simulated_twin_heights, fig.cap="Simulated twin pair heights.",echo=FALSE,message=FALSE}
+```{r simulated-twin-heights, fig.cap="Simulated twin pair heights.",echo=FALSE,message=FALSE}
 lim <- c(48,78)
 plot(x, xlim=lim, ylim=lim)
 ```
 
-To help with the illustration, think of this as dataset with two features, the two heights, and $N$ observations. For illustrative purposes, we will act as if visualizing two dimensions is too challenging. We therefore want to reduce the dimensions from two to one, but stil be able to underand important characteristics of the data. For example, that the observations cluster in to two groups: adults and children.
+To help with the illustration, think of this as dataset with two features, the two heights, and $N$ observations. For illustrative purposes, we will act as if visualizing two dimensions is too challenging. We therefore want to reduce the dimensions from two to one, but still be able to understand important characteristics of the data. For example, that the observations cluster in to two groups: adults and children.
 
 ## Preserving distance 
 
@@ -56,7 +56,7 @@ z <- x[,1]
 ```
 
 Here are the approximate distances versus the original distances:
-```{r, one-dim-approx-to-dist}
+```{r one-dim-approx-to-dist}
 plot(dist(x), dist(z))
 abline(0,1, col = "red")
 ```
@@ -69,7 +69,7 @@ $$\sqrt{ \frac{1}{2} \sum_{j=1}^2 (X_{i,j}-X_{i,j})^2 }$$
 
 then the underestimation goes away
 
-```{r}
+```{r distance-approx-1}
 plot(dist(x), dist(z)*sqrt(2))
 abline(0, 1, col = "red")
 ```
@@ -89,7 +89,7 @@ If we look back at the previous scatter plot, and visualize a line between any p
 z  <- cbind((x[,2] + x[,1])/2,  x[,2] - x[,1])
 ```
 
-we can see how the distance between points in mostly explained by the first dimenstion: the average.
+we can see how the distance between points in mostly explained by the first dimension: the average.
 
 ```{r rotation, fig.cap="Twin height scatterplot (left) and MA-plot (right)."}
 plot(z, xlim=lim, ylim = lim - mean(lim))
@@ -100,7 +100,7 @@ points(z[c(1,2,51),], pch = 16)
 
 This means that we can ignore the second dimension and not lose too much information. If the line is completely flat, we lose no information at all. Using the first dimension of this transformed matrix we obtain an even better approximation:
 
-```{r}
+```{r distance-approx-2}
 plot(dist(x), dist(z[,1])*sqrt(2))
 abline(0,1)
 ```
@@ -163,7 +163,7 @@ A^{-1} = \,
 \implies
 $$
 
-Dimension reduction can often be described as applying a transformation $A$ to a matrix $X$ with many columns that _moves_ the infromation contained in $X$ to the first few columns of $Z=AX$ then keeping just these few and thus reducing the dimenstion of the vectors contained in the rows.
+Dimension reduction can often be described as applying a transformation $A$ to a matrix $X$ with many columns that _moves_ the information contained in $X$ to the first few columns of $Z=AX$ then keeping just these few and thus reducing the dimension of the vectors contained in the rows.
 
 ## Orthogogal transformations (advaced)
 
@@ -201,9 +201,9 @@ In this case $Z$ is called an orthogonal rotation of $X$: it preserves the dista
 
 ### Dimension Reduction
 
-Note that by using the transformation above we can summarize the distance between any two pair of twins with just on dimension. For example, one-dimentional data exploration of the first dimension of $Z$ clearly shows the two groups:
+Note that by using the transformation above we can summarize the distance between any two pair of twins with just on dimension. For example, one-dimensional data exploration of the first dimension of $Z$ clearly shows the two groups:
 
-```{r }
+```{r twins-pc-1-hist}
 qplot(z[,1], bins = 20, color = I("black"))
 ```
 
@@ -261,9 +261,9 @@ pca$rotation
 
 Note that the first PC is almost the same as that provided by the  $(X_1 + X_2)/\sqrt(2)$ we used earlier (except perhaps for a sign change that is arbitrary). 
 
-The function PCA returns both the rotation needed to transform $X$ so that the variability of the columns is decreasing from most variable to least as well as the resulting new matrix. By defaul the columns of $X$ are first centered. 
+The function PCA returns both the rotation needed to transform $X$ so that the variability of the columns is decreasing from most variable to least as well as the resulting new matrix. By default the columns of $X$ are first centered. 
 
-So, using the matrix multiplcition shown above, we have that the following are the same:
+So, using the matrix multiplication shown above, we have that the following are the same:
 
 ```{r}
 a <- sweep(x, 2, colMeans(x)) 
@@ -271,7 +271,7 @@ b <- pca$x %*% t(pca$rotation)
 max(abs(a - b))
 ```
 
-The rotaion is orhtogonal which means that the inverse is it's transponse. So we also have that these two are identical:
+The rotation is orthogonal which means that the inverse is it's transpose. So we also have that these two are identical:
 
 ```{r}
 a <- sweep(x, 2, colMeans(x)) %*% pca$rotation
@@ -279,7 +279,7 @@ b <- pca$x
 max(abs(a - b))
 ```
 
-We can visualize these to see how the first component summaries the data. In th plot below red represents high values and blue negative values.  Later we learn why we call these weights and patterns):
+We can visualize these to see how the first component summaries the data. In the plot below red represents high values and blue negative values.  Later we learn why we call these weights and patterns):
 
 ```{r, echo=FALSE}
 illustrate_pca <- function(x, flip=1, 
@@ -329,7 +329,7 @@ As in our example, if past $k$ these variances are very small, it means these di
 
 ## Iris Example
 
-The Iris data is a widely used example. It includes four botanical measurments related to three flower species:
+The Iris data is a widely used example. It includes four botanical measurements related to three flower species:
 
 ```{r}
 names(iris)
@@ -341,10 +341,10 @@ The data is ordered by the three species:
 iris$Species
 ```
 
-Let's compute the distance between each observation. You can clearly see the three species with one species very differnet from the other two:
+Let's compute the distance between each observation. You can clearly see the three species with one species very different from the other two:
 
 ```{r}
-x <- iris %>% select(-Species) %>% as.matrix()
+x <- iris[,1:4] %>% as.matrix()
 d <- dist(x)
 image(as.matrix(d), col = rev(RColorBrewer::brewer.pal(9, "RdBu")))
 ```
@@ -371,13 +371,13 @@ illustrate_pca(x)
 rafalib::mypar()
 ```
 
-And see that the first pattern is  Sepal Length,  Petal Length and Petal Width (red) in one direction and Sepal Width (blue) in the other. The second patter is the Sepal Length and Petal Width in one direction (blue) and Petal Length and Petal Width in the other (red). You can seee from the weights that the first PC1 drives most the variability and it clearly separates the first third (setosa) from the second two thirds (versicolor and virginica). If you look at the second column of the weights you notice that it somewhat separates versicolor (red) from virgnica (blue).
+And see that the first pattern is  Sepal Length,  Petal Length and Petal Width (red) in one direction and Sepal Width (blue) in the other. The second patter is the Sepal Length and Petal Width in one direction (blue) and Petal Length and Petal Width in the other (red). You can see from the weights that the first PC1 drives most the variability and it clearly separates the first third (setosa) from the second two thirds (versicolor and virginica). If you look at the second column of the weights you notice that it somewhat separates versicolor (red) from virgnica (blue).
 
-We can see this better by plotting the first two PCs with color representing the speicies:
+We can see this better by plotting the first two PCs with color representing the species:
 
 
 ```{r, iris-pca}
-data.frame(pc$x[,1:2], Species=iris$Species) %>% 
+data.frame(pca$x[,1:2], Species=iris$Species) %>% 
   ggplot(aes(PC1,PC2, fill = Species))+
   geom_point(cex=3, pch=21) +
   coord_fixed(ratio = 1)
@@ -385,8 +385,8 @@ data.frame(pc$x[,1:2], Species=iris$Species) %>%
 
 We see that the first two dimensions preserve the distance:
 
-```{r}
-d_approx <- dist(pc$x[,1:2])
+```{r dist-approx-4}
+d_approx <- dist(pca$x[,1:2])
 plot(d, d_approx)
 abline(0, 1, col="red")
 ```
@@ -425,7 +425,7 @@ summary(pca)$importance[,1:5] %>% knitr::kable()
 
 And just by looking at the first two PCs we see information about the class. Here is a random sample of 2,000 digits:
 
-```{r}
+```{r mnist-pca-1-2-scatter}
 data.frame(PC1 = pca$x[,1], PC2 = pca$x[,2],
            label=factor(mnist$train$label)) %>%
   sample_n(2000) %>% 
@@ -435,7 +435,7 @@ data.frame(PC1 = pca$x[,1], PC2 = pca$x[,2],
 
 We can also _see_ the linear combinations on the grid to get an idea of what is getting weighted:
 
-```{r}
+```{r mnist-pca-1-4}
 tmp <- lapply( c(1:4,781:784), function(i){
     expand.grid(Row=1:28, Column=1:28) %>%
       mutate(id=i, label=paste0("PC",i), 
@@ -453,7 +453,7 @@ tmp %>% filter(id<5) %>%
 
 The higher PCs appear related to unimportant variability in the corners:
 
-```{r}
+```{r mnist-pca-last}
 tmp %>% filter(id>5) %>%
   ggplot(aes(Row, Column, fill=value)) +
   geom_raster() +
@@ -462,7 +462,7 @@ tmp %>% filter(id>5) %>%
   facet_wrap(~label, nrow = 1)
 ```
 
-Now let's apply the transformation we learned with the trianing data to the test data, reduce the dimenstion and run knn on just a small number of dimensions.
+Now let's apply the transformation we learned with the training data to the test data, reduce the dimension and run knn on just a small number of dimensions.
 
 We try 36 dimensions since this explains about 80% of the data
 
@@ -487,4 +487,4 @@ y_hat <- predict(fit, x_test, type = "class")
 confusionMatrix(y_hat, factor(mnist$test$labels))$overall
 ```
 
-With just 36 dimensions  we get an accuraccy well above 0.95.
+With just 36 dimensions  we get an accuracy well above 0.95.
