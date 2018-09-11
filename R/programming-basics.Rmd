@@ -1,6 +1,6 @@
 # Programming basics
 
-We teach R because it greatly facilitates data analysis, the main topic of this book. By coding in R, we can efficiently perform exploratory data analysis, build data analysis pipelines and prepare data visualization to communicate results. However, R is not just a data analysis environment but a programming language. Advanced R programmers can develop complex packages and even improve R itself, but we do not cover advanced programming in this book. Nonetheless, in this section we introduce three key programming concepts: conditional expressions, for-loops and functions. These are not just key building blocks for advanced programming, but are sometimes useful during data analysis. We also provide a list of powerful functions that we do not cover in the book, but are worth exploring since they are powerful tools commonly used by expert data analysts.
+We teach R because it greatly facilitates data analysis, the main topic of this book. By coding in R, we can efficiently perform exploratory data analysis, build data analysis pipelines and prepare data visualization to communicate results. However, R is not just a data analysis environment but a programming language. Advanced R programmers can develop complex packages and even improve R itself, but we do not cover advanced programming in this book. Nonetheless, in this section, we introduce three key programming concepts: conditional expressions, for-loops and functions. These are not just key building blocks for advanced programming, but are sometimes useful during data analysis. We also provide a list of powerful functions that we do not cover in the book, but are worth exploring since they are powerful tools commonly used by expert data analysts.
 
 ## Conditionals expressions
 
@@ -78,7 +78,7 @@ no_nas <- ifelse(is.na(na_example), 0, na_example)
 sum(is.na(no_nas))
 ```
 
-Two other useful functions are `any` and `all`. The `any` function takes a vector of logicals and returns `TRUE`, if any of the entries is `TRUE`. The `all` function takes a vector of logicals and returns `TRUE`, if all of the entries are `TRUE`. Here is an example:
+Two other useful functions are `any` and `all`. The `any` function takes a vector of logicals and returns `TRUE` if any of the entries is `TRUE`. The `all` function takes a vector of logicals and returns `TRUE` if all of the entries are `TRUE`. Here is an example:
 
 ```{r}
 z <- c(TRUE, TRUE, FALSE)
@@ -149,7 +149,7 @@ compute_s_n <- function(n){
 }
 ```
 
-Now if we can compute $S_n$ for various values of $n$, say $n=1,\dots,25$, how do we do it? Do we write 25 lines of code calling `compute_s_n`? No, that is what for-loops are for in programming. In this case, we are performing exactly the same task over and over and the only thing that is changing is the value of $n$. for-loops let us define the range that our variable takes (in our example $n=1,\dots,10$), then change the value as you _loop_ and evaluate expression as you loop. 
+Now if we can compute $S_n$ for various values of $n$, say $n=1,\dots,25$, how do we do it? Do we write 25 lines of code calling `compute_s_n`? No, that is what for-loops are for in programming. In this case, we are performing exactly the same task over and over, and the only thing that is changing is the value of $n$. for-loops let us define the range that our variable takes (in our example $n=1,\dots,10$), then change the value and evaluate expression as you _loop_. 
 
 Perhaps the simplest example of a for-loop is this useless piece of code:
 ```{r}
@@ -192,7 +192,7 @@ lines(n, n*(n+1)/2)
 
 ## Vectorization and functionals
 
-Although for-loops are an important concept to understand, in R we rarely use them. As you learn more R, you will realize that _vectorization_ is the preferred over for-loops since it results in shorter and clearer code. We already saw examples in the Vector Arithmetic Section. A _vectorized_ function is a function that will apply the same operation on each of the vectors.
+Although for-loops are an important concept to understand, in R we rarely use them. As you learn more R, you will realize that _vectorization_ is preferred over for-loops since it results in shorter and clearer code. We already saw examples in the Vector Arithmetic Section. A _vectorized_ function is a function that will apply the same operation on each of the vectors.
 
 ```{r}
 x <- 1:10
@@ -201,7 +201,7 @@ y <- 1:10
 x*y
 ```
 
-To make this calculation, there is no need for for-loops. But not all functions work this way. For instance, the function we just wrote, `compute_s_n`, does not work element-wise since it is expecting a scalar. This piece of code does not run the function on each entry of `n`:
+To make this calculation, there is no need for for-loops. However, not all functions work this way. For instance, the function we just wrote, `compute_s_n`, does not work element-wise since it is expecting a scalar. This piece of code does not run the function on each entry of `n`:
 
 ```{r, eval=FALSE}
 n <- 1:25
@@ -217,7 +217,7 @@ x <- 1:10
 sapply(x, sqrt)
 ```
 
-Here each element of `x` is passed on to the function `sqrt` and the result is returned. These results are concatenated. In this case, the result is a vector of the same length as the original `x`. This implies that the for-loop above can be written as follows:
+Each element of `x` is passed on to the function `sqrt` and the result is returned. These results are concatenated. In this case, the result is a vector of the same length as the original `x`. This implies that the for-loop above can be written as follows:
 
 ```{r s_n-v-n-sapply}
 n <- 1:25
@@ -225,7 +225,7 @@ s_n <- sapply(n, compute_s_n)
 plot(n, s_n)
 ```
 
-Other functionals are `apply`, `lapply`, `tapply`, `mapply`,`vapply`, and `replicate`. We only use `sapply` and `replicate` in this book, but we recommend familiarizing yourselves with the others as they can be very useful.
+Other functionals are `apply`, `lapply`, `tapply`, `mapply`, `vapply`, and `replicate`. We only use `sapply` and `replicate` in this book, but we recommend familiarizing yourselves with the others as they can be very useful.
 
 ## map
 
@@ -237,14 +237,14 @@ n <- 1:25
 s_n <- map(n, compute_s_n)
 ```
 
-One advantage that becomes clear latter is that with the purrr functionals you know what type of object you will get back. This is different with `sapply` that can return several different types. The `map` function always returns a list. 
+One advantage that becomes clear later is that with the purrr functionals you know what type of object you will get back. This is different with `sapply` which can return several different types. The `map` function always returns a list. 
 
 ```{r}
 class(s_n)
 ```
 
 
-If we want a numeric vector we can instead use:
+If we want a numeric vector, we can instead use:
 
 ```{r, s_n-v-n-map}
 s_n <- map_dbl(n, compute_s_n)
