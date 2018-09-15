@@ -9,7 +9,7 @@ Our first data visualization building block is learning to summarize lists of fa
 
 Here we introduce a new motivating problem. It is an artificial one, but it will help us illustrate the concepts needed to understand distributions. 
 
-Pretend that we have to describe the heights of our classmates to ET, an extraterrestrial that has never seen humans. As a first step we need to collect data. To do this, we ask students to report their heights in inches. We ask them to provide sex information because we know there are two different distributions. We collect the data and save it in a data frame:
+Pretend that we have to describe the heights of our classmates to ET, an extraterrestrial that has never seen humans. As a first step, we need to collect data. To do this, we ask students to report their heights in inches. We ask them to provide sex information because we know there are two different distributions. We collect the data and save it in a data frame:
 
 ```{r, echo=FALSE, message=FALSE}
 library(tidyverse)
@@ -67,7 +67,7 @@ heights %>% filter(sex=="Male") %>% ggplot(aes(height)) +
 ```
 
 Similar to what the frequency table does for categorical data, the CDF
-defines the distribution for numerical data. From the plot we can see that 34% of the values are below 65, since $F(66)=$ `r ecdf(heights$height[heights$sex=="Male"])(66)`, or that 90% of the values are below 72, since $F(72)=$ `r ecdf(heights$height[heights$sex=="Male"])(72)`, 
+defines the distribution for numerical data. From the plot, we can see that 34% of the values are below 65, since $F(66)=$ `r ecdf(heights$height[heights$sex=="Male"])(66)`, or that 90% of the values are below 72, since $F(72)=$ `r ecdf(heights$height[heights$sex=="Male"])(72)`, 
 etc.. In fact, we can report the proportion of values between any two heights, say $a$ and $b$, by computing $F(b) - F(a)$. This means that if we send this plot above to ET, he will have all the information needed to reconstruct the entire list. Paraphrasing the expression "a picture is worth a thousands word", in this case, a picture is as informative as `r sum(heights$sex=="Male")` numbers. 
 
 A final note: because CDFs can be defined mathematically, as opposed to using data as we do here, the word _empirical_ is added to distinguish and we use the term empirical CDF (ECDF) instead. 
@@ -79,7 +79,7 @@ Although the CDF concept is widely discussed in statistics textbooks, the plot i
 
 The simplest way to make a histograms is to divide the span of our data into non-overlapping bins of the same size. Then, for each bin, we count the number of values that fall in that interval. The histogram plots these counts as bars with the base of the bar defined by the intervals. Here is the histogram for the height data splitting the range of values into one inch intervals: $[49.5, 50.5], [51.5,52.5],(53.5,54.5],...,(82.5,83.5]$
   
-```{r height-histogram, fig.cap="Histogrom of male heights.", echo=FALSE}
+```{r height-histogram, fig.cap="Histogram of male heights.", echo=FALSE}
 heights %>% 
   filter(sex=="Male") %>% 
   ggplot(aes(height)) + 
@@ -128,7 +128,7 @@ library(gridExtra)
 grid.arrange(p1, p2, p3, nrow = 1)
 ```
 
-The smooth density is basically the curve that goes through the top of the histogram bars when the bins are very, very small. To make the curve not depend on the hypothetical size of the hypothetical list, we compute the curve on frequencies rather than counts
+The smooth density is basically the curve that goes through the top of the histogram bars when the bins are very, very small. To make the curve not depend on the hypothetical size of the hypothetical list, we compute the curve on frequencies rather than counts:
 
 ```{r, simulated-density-1, echo=FALSE}
 x %>% ggplot(aes(height)) + 
@@ -358,7 +358,7 @@ grid.arrange(p1,p2,p3,ncol=2)
 
 Histograms and density plots provide excellent summaries of a distribution. But can we summarize even further? We often see the average and standard deviation used as summary statistics: a two number summary! To understand what these summaries are and why they are so widely used, we need to understand the normal distribution. 
 
-The normal distribution, also known as the bell curve and as the Gaussian distribution, is one of the most famous mathematical concepts in history. A reason for this is that approximately normal distributions occur in many situations. Examples include gambling winnings, heights, weights, blood pressure, standardized test scores, and experimental measurement errors. There are explanations for this, but we describe these in a later chapter. Here we focus on how the normal distribution helps us summarize data. 
+The normal distribution, also known as the bell curve and as the Gaussian distribution, is one of the most famous mathematical concepts in history. A reason for this is that approximately normal distributions occur in many situations, including gambling winnings, heights, weights, blood pressure, standardized test scores, and experimental measurement errors. There are explanations for this, but we describe these in a later chapter. Here we focus on how the normal distribution helps us summarize data. 
 
 Rather than using data, the normal distribution is defined with a mathematical formula. For any interval $(a,b)$, the proportion of values in that interval can be computed using this formula:
 
@@ -395,7 +395,7 @@ index <- heights$sex=="Male"
 x <- heights$height[index]
 ```
 
-The pre-built functions `mean` and `sd` [Footnote: SD divides by `length(x)-1`] can be used here:
+The pre-built functions `mean` and `sd` (note that `sd` divides by `length(x)-1` not `length(x)`) can be used here:
 ```{r}
 average <- mean(x)
 SD <- sd(x)
@@ -424,13 +424,13 @@ In R, we can obtain standard units using the function `scale`:
 z <- scale(x)
 ```
 
-Now to see how many men are within 2 SDs from the average we simply type:
+Now to see how many men are within 2 SDs from the average, we simply type:
 
 ```{r}
 mean(abs(z) < 2)
 ```
 
-The proportion is about 95%, which is what the normal distribution predicts! To further confirm that in fact the approximation is a good one, we can use quantile-quantile plots.
+The proportion is about 95%, which is what the normal distribution predicts! To further confirm that, in fact, the approximation is a good one, we can use quantile-quantile plots.
 
 
 ### Quantile-quantile QQ plots
@@ -440,7 +440,7 @@ A systematic way to assess how well the normal distribution fits the data is to 
 1. Define a series of proportions $p=0.05,\dots .95$.
 2. For each $p$, determine the value $q$ so that the proportion of values in the data below $q$ is $p$. The $q$s are referred to as the _quantiles_.
 
-To give a quick example, for the male heights data we have that:
+To give a quick example, for the male heights data, we have that:
 ```{r}
 mean(x <= 69.5)
 ```
@@ -485,11 +485,11 @@ _Percentiles_ are special cases of  _quantiles_ that are commonly used. The perc
 
 For the normal distribution the _median_ and average are the same, but this is generally not the case.
 
-Another special case that receives a name are the _quartiles_ , which are obtained when setting $p=0.25,0.50$, and $0.75$. 
+Another special case that receives a name are the _quartiles_, which are obtained when setting $p=0.25,0.50$, and $0.75$. 
 
-## Case study coninued: summarizing male heights with two numbers 
+## Case study continued: summarizing male heights with two numbers 
 
-Using the histogram, density plots and qq-plots, we have become convinced that the male height data is well approximated with a normal distribution. In this case, we report back to ET a very succinct summary: male heights follow a normal distribution with an average of `r average` inches and a SD of `r SD` inches. With this information ET will have a good idea of what to expect when he meets our male students.
+Using the histogram, density plots and qq-plots, we have become convinced that the male height data is well approximated with a normal distribution. In this case, we report back to ET a very succinct summary: male heights follow a normal distribution with an average of `r average` inches and a SD of `r SD` inches. With this information, ET will have a good idea of what to expect when he meets our male students.
 
 
 ## Exercises {-}
@@ -515,10 +515,10 @@ What proportion of the data is between 69 and 72 inches (taller than 69, but sho
 
 4. Approximate the distribution of adult men in the world as normally distributed with an average of 69 inches and a standard deviation of 3 inches. Using this approximation, estimate the proportion of adult men that are 7 feet tall or taller, referred to as _seven footers_. Hint: use the `pnorm` function.
 
-5. There are about 1 billion men between the ages of 18 and 40 in the world. Use your answer to the previous question to estimate how many these men (18-40 year olds) are seven feet tall or taller in the world?
+5. There are about 1 billion men between the ages of 18 and 40 in the world. Use your answer to the previous question to estimate how many of these men (18-40 year olds) are seven feet tall or taller in the world?
 
 
-6. There are about 10 National Basketball Association (NBA) players that are 7 feet tall or higher. Using the answer to the previous two questions, what proportion of the world's 18 to 40 year old seven footers are in the NBA?
+6. There are about 10 National Basketball Association (NBA) players that are 7 feet tall or higher. Using the answer to the previous two questions, what proportion of the world's 18 to 40 year old _seven footers_ are in the NBA?
 
 
 7. Repeat the calculations performed in the previous question for Lebron James' height: 6 feet 8 inches. There are about 150 players that are that tall.
@@ -526,7 +526,6 @@ What proportion of the data is between 69 and 72 inches (taller than 69, but sho
 
 
 8. In answering the previous questions, we found that it is not at all rare for a seven footer to become an NBA player. What would be a fair critique of our calculations:
-
     A. Practice and talent are what make a great basketball player, not height.
     B. The normal approximation is not appropriate for heights.
     C. As seen in question 3, the normal approximation tends to underestimate the extreme values. It's possible that there are more seven footers than we predicted.
