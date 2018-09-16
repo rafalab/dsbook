@@ -1,6 +1,6 @@
 # Data visualization principles
 
-We have already provided some rules to follow as we created plots for our examples. Here, we aim to provide some general principles we can use as a guide for effective data visualization. Much of this section is based on a talk by [Karl Broman](http://kbroman.org/) titled ["Creating effective figures and tables"](https://www.biostat.wisc.edu/~kbroman/presentations/graphs2017.pdf) and includes some of the figures which were made with code that Karl makes available on his [GitHub](https://github.com/kbroman/Talk_Graphs) repository, as well as class notes from Peter Aldhous' [Introduction to Data Visualization course](http://paldhous.github.io/ucb/2016/dataviz/index.html). Following Karl's approach, we show some examples of plot styles we should avoid, explain how to improve them, and use these as motivation for a list of principles. We compare and contrast plots that follow these principles to those that don't.
+We have already provided some rules to follow as we created plots for our examples. Here, we aim to provide some general principles we can use as a guide for effective data visualization. Much of this section is based on a talk by [Karl Broman](http://kbroman.org/) titled ["Creating Effective Figures and Tables"](https://www.biostat.wisc.edu/~kbroman/presentations/graphs2017.pdf) and includes some of the figures which were made with code that Karl makes available on his [GitHub](https://github.com/kbroman/Talk_Graphs) repository, as well as class notes from Peter Aldhous' [Introduction to Data Visualization course](http://paldhous.github.io/ucb/2016/dataviz/index.html). Following Karl's approach, we show some examples of plot styles we should avoid, explain how to improve them, and use these as motivation for a list of principles. We compare and contrast plots that follow these principles to those that don't.
 
 The principles are mostly based on research related to how humans detect patterns and make visual comparisons. The preferred approaches are those that best fit the way our brains process visual information. When deciding on a visualization approach, it is also important to keep our goal in mind. We may be comparing a viewable number of quantities, describing distribution for categories or numeric values, comparing the data from two groups, or describing the relationship between two variables. As a final note, we want to emphasize that for a data scientist it is important to adapt and optimize graphs to the audience. For example, an exploratory plot made for ourselves will be different than a chart intended to communicate a finding to a general audience.
 
@@ -27,7 +27,7 @@ browsers <- data.frame(Browser = rep(c("Opera","Safari","Firefox","IE","Chrome")
 ```
 
 
-To illustrate how some of these strategies compare, let's suppose we want to report the results from two hypothetical polls regarding browser preference taken in 2000 and then 2015. Here, for each year, we are simply comparing four quantities – the four percentages. A widely used graphical representation of percentages, popularized by Microsoft Excel, is the pie chart:
+To illustrate how some of these strategies compare, let's suppose we want to report the results from two hypothetical polls regarding browser preference taken in 2000 and then 2015. For each year, we are simply comparing four quantities – the four percentages. A widely used graphical representation of percentages, popularized by Microsoft Excel, is the pie chart:
 
 
 ```{r piechart, fig.cap="Pie chart of browser usage.", echo=FALSE}
@@ -121,7 +121,7 @@ data.frame(Year = as.character(c(2011, 2012, 2013)),Southwest_Border_Apprehensio
   geom_bar(stat = "identity", fill = "yellow", col = "black", width = 0.65) 
 ```
 
-Here is another example, described in detail: [here](http://flowingdata.com/2012/08/06/fox-news-continues-charting-excellence/).
+Another example, described in detail, can be found [here](http://flowingdata.com/2012/08/06/fox-news-continues-charting-excellence/).
 
 ```{r, echo=FALSE}
 ## http://i2.wp.com/flowingdata.com/wp-content/uploads/2012/08/Bush-cuts.png
@@ -190,7 +190,7 @@ gdp_data %>%
 
 ## Order by a meaningful value
 
-When one of the axes is used to show categories, as is done in barplots, the default ggplot behavior is to order the categories alphabetically when they are defined by character strings. If they are defined by factors, they are ordered by the factor levels. We rarely want to use alphabetical order. Instead we should order by a meaningful quantity. In all the cases above, the barplots where ordered by the values being displayed. The exception was the graph showing barplots comparing browsers. In this case we kept the order the same across the barplots to ease the comparison. Specifically instead of ordering the browsers separately in the two years, we ordered both years by the average value of 2000 and 2015. 
+When one of the axes is used to show categories, as is done in barplots, the default ggplot behavior is to order the categories alphabetically when they are defined by character strings. If they are defined by factors, they are ordered by the factor levels. We rarely want to use alphabetical order. Instead, we should order by a meaningful quantity. In all the cases above, the barplots where ordered by the values being displayed. The exception was the graph showing barplots comparing browsers. In this case, we kept the order the same across the barplots to ease the comparison. Specifically, instead of ordering the browsers separately in the two years, we ordered both years by the average value of 2000 and 2015. 
 
 
 We previously learned how to use the `reorder` function, which helps us achieve this goal.
@@ -304,7 +304,7 @@ p2
 
 This plot makes it much easier to notice that men are, on average, taller. 
 
-If, instead of histograms, we want the more compact summary provided by boxplots, we then align them horizontally since, by default, boxplots move up and down with changes in height. Following our _show the data_ principle, we then overlay all the data points: 
+If instead of histograms, we want the more compact summary provided by boxplots, we then align them horizontally since, by default, boxplots move up and down with changes in height. Following our _show the data_ principle, we then overlay all the data points: 
 
 ```{r boxplot-with-points-with-jitter}
 p3 <- heights %>% 
@@ -354,7 +354,7 @@ p2 <- gapminder %>% filter(year == 2015) %>%
 p2 +  geom_jitter(width = .1, alpha = .5) 
 ```
 
-Here, using a log transformation provides a much more informative plot. We compare the original barplot to a boxplot using the log scale transformation for the y-axis:
+Using a log transformation here provides a much more informative plot. We compare the original barplot to a boxplot using the log scale transformation for the y-axis:
 
 
 ```{r correc-transformation, echo=FALSE}
@@ -368,7 +368,7 @@ With the new plot, we realize that countries in Africa actually have a larger me
 
 Other transformations you should consider are the logistic transformation, useful to better see fold changes in odds, and the square root transformation, useful for count data.
 
-## Ease comparisons: Visual cues to be compared should be adjacent.
+## Ease comparisons: visual cues to be compared should be adjacent
 
 When comparing income data across regions between 1970 and 2010, we made a figure similar to the one below. A difference is that here we look at continents instead of regions, but this is not relevant to the point we are making.
 
@@ -437,7 +437,7 @@ In every single instance in which we have examined the relationship between two 
 
 One exception where another type of plot may be more informative is when you are comparing variables of the same type, but at different time points and for a relatively small number of comparisons. For example, comparing life expectancy between 2010 and 2015. In this case, we might recommend a _slope chart_. 
 
-There is no geometry for slope charts in ggplot2 but we can construct one using `geom_lines`. We need to do some tinkering to add labels. Below is an example comparing 2010 to 2015 for large western countries:
+There is no geometry for slope charts in ggplot2, but we can construct one using `geom_lines`. We need to do some tinkering to add labels. Below is an example comparing 2010 to 2015 for large western countries:
 
 ```{r slope-plot}
 west <- c("Western Europe","Northern Europe","Southern Europe",
@@ -553,11 +553,9 @@ geom_point(dat, mapping=aes(x%%9, x%/%9, shape=x), size=10, fill="blue") +
 geom_text(dat, mapping=aes(x%%9, x%/%9+0.25, label=x), size=6) 
 ```
 
-For continuous variables we can use color, intensity or size. We now show an example of how we do this with a case study.
+For continuous variables, we can use color, intensity or size. We now show an example of how we do this with a case study.
 
-When selecting colors to quantify a numeric variable, we choose between two options: sequential and diverging.
-
-Sequential colors are suited for data that goes from high to low.  High values are clearly distinguished from low values. Here are some examples offered by the package `RColorBrewer`
+When selecting colors to quantify a numeric variable, we choose between two options: sequential and diverging. Sequential colors are suited for data that goes from high to low.  High values are clearly distinguished from low values. Here are some examples offered by the package `RColorBrewer`
 
 ```{r r-color-brewer-seq}
 library(RColorBrewer)
@@ -616,7 +614,7 @@ knitr::include_graphics("dataviz/img/fig2d.png")
 
 ## Avoid too many significant digits
 
-By default, statistical software like R returns many significant digits. The default behavior in R is to show 7 significant digits. That many digits often adds no information, and the added the visual clutter can make it hard for the viewer to understand the message. As an example, here are the per 10,000 disease rates for California across the five decades
+By default, statistical software like R returns many significant digits. The default behavior in R is to show 7 significant digits. That many digits often adds no information and the added the visual clutter can make it hard for the viewer to understand the message. As an example, here are the per 10,000 disease rates for California across the five decades:
 
 ```{r, echo=FALSE}
 tmp <- options()$digits
@@ -692,12 +690,10 @@ data(us_contagious_diseases)
 ```
 
 1. Pie charts are appropriate:
-
     A. When we want to display percentages.
     B. When `ggplot2` is not available.
     C. When I am in a bakery.
     D. Never. Barplots and tables are always better.
-   
    
 2. What is the problem with the plot below:
 
@@ -710,11 +706,11 @@ library(tidyverse)
  coord_cartesian(ylim=c(200,310)) +
   ylab("Electoral Votes") +
   xlab("") +
-  ggtitle("Result of Presidential Election 2016")
+  ggtitle("Results of Presidential Election 2016")
   ```
-
+  
     A. The values are wrong. The final vote was 306 to 232.
-    B. The axis does not start at 0. Judging by the length, it appears Trump received 3 times as many votes when in fact it was about 30% more. 
+    B. The axis does not start at 0. Judging by the length, it appears Trump received 3 times as many votes when, in fact, it was about 30% more. 
     C. The colors should be the same.
     D. Percentages should be shown as a pie chart.
   
@@ -796,7 +792,7 @@ murders %>% mutate(rate = total/population*100000) %>%
   ```
  
 
-    and decide to move to a state in the western region. What is the main problem with this interpretaion?
+    and decide to move to a state in the western region. What is the main problem with this interpretation?
 
     A. The categories are ordered alphabetically.
     B. The graph does not show standard errors.
@@ -861,7 +857,7 @@ abline(v=2, col=3)
 10. For the state of California, make a time series plots showing rates for all diseases. Include only years with 10 or more weeks reporting. Use a different color for each disease.
 
   
-11. Now do the same for the rates for the US. Hint: compute the US rate by using summarize: the total divided by total population.
+11. Now do the same for the rates for the US. Hint: compute the US rate by using summarize, the total divided by total population.
 
 # Case study: the impact of vaccines on battling infectious diseases
 
@@ -902,7 +898,7 @@ dat %>% filter(state == "California" & !is.na(rate)) %>%
 
 We add a vertical line at 1963 since this is when the vaccine was introduced [Control, Centers for Disease; Prevention (2014). CDC health information for international travel 2014 the yellow book. p. 250. ISBN 9780199948505]. 
 
-Now, can we show data for all states in one plot? We have three variables to show: year, state and rate. In the WSJ figure, they use the x-axis for year, the y-axis for state and color hue to represent rates. However, the color scale they use, which goes from yellow to blue to green to orange to red, can be improved.  
+Now can we show data for all states in one plot? We have three variables to show: year, state and rate. In the WSJ figure, they use the x-axis for year, the y-axis for state and color hue to represent rates. However, the color scale they use, which goes from yellow to blue to green to orange to red, can be improved.  
 
 In our example, we want to use a sequential palette since there is no meaningful center, just low and high rates.
 

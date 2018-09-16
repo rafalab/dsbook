@@ -1,12 +1,12 @@
 # Case study: Trends in world health and economics 
 
-In this section we will demonstrate how relatively simple ggplot2 code can create insightful and aesthetically pleasing plots that help us better understand trends in world health and economics. We later augment the code somewhat to perfect the plots and describe some general data visualization principles.
+In this section, we will demonstrate how relatively simple ggplot2 code can create insightful and aesthetically pleasing plots that help us better understand trends in world health and economics. We later augment the code somewhat to perfect the plots and describe some general data visualization principles.
  
 ## Example 1: Life expectancy and fertility rates
 
 [Hans Rosling](https://en.wikipedia.org/wiki/Hans_Rosling) was the co-founder of the [Gapminder Foundation](http://www.gapminder.org/), an organization dedicated to educating the public by using data to dispel common myths about the so-called developing world. The organization uses data to show how actual trends in health and economics contradict the narratives that emanate from sensationalist media coverage of catastrophes, tragedies and other unfortunate events. As stated in the Gapminder Foundation's website:
 
->>> Journalists and lobbyists tell dramatic stories. That’s their job. They tell stories about extraordinary events and unusual people. The piles of dramatic stories pile up in peoples' minds into an over-dramatic worldview and strong negative stress feelings: "The world is getting worse!", "It’s we vs. them!” , “Other people are strange!", "The population just keeps growing!" and "Nobody cares!"
+>>> Journalists and lobbyists tell dramatic stories. That’s their job. They tell stories about extraordinary events and unusual people. The piles of dramatic stories pile up in peoples' minds into an over-dramatic worldview and strong negative stress feelings: "The world is getting worse!", "It’s we vs. them!”, “Other people are strange!", "The population just keeps growing!" and "Nobody cares!"
 
 Hans Rosling conveyed actual data-based trends in a dramatic way of his own, using effective data visualization. This section is based on two talks that exemplify this approach to education: [New Insights on Poverty](https://www.ted.com/talks/hans_rosling_reveals_new_insights_on_poverty?language=en) and [The Best Stats You've Ever Seen](https://www.ted.com/talks/hans_rosling_shows_the_best_stats_you_ve_ever_seen). Specifically, in this section, we use data to attempt to answer the following two questions:
 
@@ -38,12 +38,11 @@ When answering these questions without data, the non-European countries are typi
 To answer these questions __with data__, we can use `dplyr`. For example, for the first comparison we see that:
 
 ```{r, message=FALSE}
-library(tidyverse)
 gapminder %>% 
   filter(year == 2015 & country %in% c("Sri Lanka","Turkey")) %>% 
   select(country, infant_mortality)
 ```
-Turkey has the higher rate. 
+Turkey has the higher infant mortality rate. 
 
 We can use this code on all comparisons and find the following:
 ```{r, echo = FALSE}
@@ -60,13 +59,13 @@ tab <- inner_join(comp_table, tmp, by = "country") %>% select(-comparison)
 bind_cols(slice(tab,seq(1,9,2)), slice(tab,seq(2,10,2))) %>% knitr::kable()
 ```
 
-We see that the European countries on this list have higher child mortality rates: Poland has a higher rate than South Korea, and Russia has a higher rate than Malaysia. We also see that Pakistan has a much higher rate than Vietnam, and South Africa has a much higher rate than Thailand. It turns out that most people do worse than if they were guessing, which implies that more than ignorant, we are misinformed. 
+We see that the European countries on this list have higher child mortality rates: Poland has a higher rate than South Korea, and Russia has a higher rate than Malaysia. We also see that Pakistan has a much higher rate than Vietnam, and South Africa has a much higher rate than Thailand. It turns out that when Hans Rosling gave this quiz to educated groups of people, the average score was less than 2.5. The average score was worse than what they would have obtained had they guessed randomly. This implies that more than ignorant, we are misinformed. 
 
 ### A scatterplot {-}
 
 The reason for this stems from the preconceived notion that the world is divided into two groups: the western world (Western Europe and North America), characterized by long life spans and small families, versus the developing world (Africa, Asia, and Latin America) characterized by short life spans and large families. But, does the data support this dichotomous view?
 
-The necessary data to answer this question is also available in our `gapminder` table. Using our newly learned data visualization skills we will be able to tackle this challenge.
+The necessary data to answer this question is also available in our `gapminder` table. Using our newly learned data visualization skills, we will be able to tackle this challenge.
 
 In order to analyze this world view, our first plot is a scatterplot of life expectancy versus fertility rates (average number of children per woman).  We start by looking at data from about 50 years ago, when perhaps this view was first cemented in our minds.
 
@@ -117,7 +116,7 @@ This plot clearly shows that the majority of countries have moved from the _deve
 
 ### `facet_wrap` {-}
 
-To explore how this transformation happened through the years, we can make the plot for several years. For example, we can add 1970, 1980, 1990, and 2000. If we do this, we will not want all the plots on the same row, the default behavior of `facet_grid`, since they will become too thin to show the data. Instead we will want to use multiple rows and columns. The function `facet_wrap` permits us to do this by automatically wrapping the series of plots so that each display has viewable dimensions:
+To explore how this transformation happened through the years, we can make the plot for several years. For example, we can add 1970, 1980, 1990, and 2000. If we do this, we will not want all the plots on the same row, the default behavior of `facet_grid`, since they will become too thin to show the data. Instead, we will want to use multiple rows and columns. The function `facet_wrap` permits us to do this by automatically wrapping the series of plots so that each display has viewable dimensions:
 
 
 ```{r fertility-versus-life-expectancy-five-years}
@@ -165,7 +164,7 @@ gapminder %>%
 
 We see that the trend is not linear at all. Instead there is sharp drop during the 60s and 70s to below 2. Then the trend comes back to 2 and stabilizes during the 90s.
 
-When the points are regularly and densely spaced, as they are here, we create curves by joining the points with lines, to convey that these data are from a single country. To do this we use the `geom_line` function instead of `geom_point`. 
+When the points are regularly and densely spaced, as they are here, we create curves by joining the points with lines, to convey that these data are from a single country. To do this, we use the `geom_line` function instead of `geom_point`. 
 
 ```{r fertility-time-series-plot-curve, warning=FALSE}
 gapminder %>% 
@@ -254,8 +253,7 @@ gapminder %>%
 
 We use the `color = "black"` argument to draw a boundary and clearly distinguish the bins.
 
-In this plot we see that for the majority of countries, averages are
-below \$10 a day. However, the majority of the x-axis is dedicated to the `r filter(gapminder, year == past_year & !is.na(gdp)) %>% summarise(x = sum(dollars_per_day>10)) %>% .$x` countries with averages above \$10. So the plot is not very informative about countries with values below \$10 a day.
+In this plot, we see that for the majority of countries, averages are below \$10 a day. However, the majority of the x-axis is dedicated to the `r filter(gapminder, year == past_year & !is.na(gdp)) %>% summarise(x = sum(dollars_per_day>10)) %>% .$x` countries with averages above \$10. So the plot is not very informative about countries with values below \$10 a day.
 
 It might be more informative to quickly be able to see how many countries have average daily incomes of about $1 (extremely poor), \$2 (very poor), \$4 (poor), \$8 (middle), \$16 (well off), \$32 (rich), \$64 (very rich) per day. These changes are multiplicative and log transformations convert multiplicative changes into additive ones: when using base 2, a doubling of a value turns into an increase by 1. 
 
@@ -307,7 +305,7 @@ for log transformed data, we know that the value of $x$ is about 1.5. If the sca
 
 >> ----1----x----10------100---
 
-then, to determine `x`, we need to compute $10^{1.5}$, which is not easy to do in our heads. The advantage of using logged scales is that we see the original values on the axes. However, the advantage of showing logged scales is that the original values are displayed in the plot, which are easier to interpret. For example, we would see "32 dollars a day" instead of "5 log base 2 dollar a day".
+then, to determine `x`, we need to compute $10^{1.5}$, which is not easy to do in our heads. The advantage of using logged scales is that we see the original values on the axes. However, the advantage of showing logged scales is that the original values are displayed in the plot, which are easier to interpret. For example, we would see "32 dollars a day" instead of "5 log base 2 dollars a day".
 
 As we learned earlier, if we want to scale the axis with logs, we can use the `scale_x_ccontinuous` function. So instead of logging the values first, we apply this layer:
 
@@ -348,7 +346,7 @@ p <- gapminder %>%
 p + geom_boxplot() 
 ```
 
-Now we can't read the region names because the default gpplot2 behavior is to write the labels horizontally and, here, we run out of room. We can easily fix this by rotating the labels. Consulting the cheat sheet we find we can rotate the names by changing the `theme` through `element_text`. The `hjust=1` justifies the text so that it is next to the axis.
+Now we can't read the region names because the default gpplot2 behavior is to write the labels horizontally and here we run out of room. We can easily fix this by rotating the labels. Consulting the cheat sheet we find we can rotate the names by changing the `theme` through `element_text`. The `hjust=1` justifies the text so that it is next to the axis.
 
 ```{r dollars-per-day-boxplot-rotate-labels}
 p + geom_boxplot() +
@@ -494,7 +492,7 @@ p + geom_boxplot(aes(region, dollars_per_day, fill = continent)) +
 
 Here, we pause to introduce another powerful ggplot2 feature. Because we want to compare each region before and after, it would be convenient to have the `r past_year` boxplot next to the `r present_year` boxplot for each region. In general, comparisons are easier when data are plotted next to each other.
 
-So, instead of faceting, we keep the data from each year together and ask ggplot2 to color (or fill) them depending on the year. Note that groups are automatically separated by year and each pair of boxplots drawn next to each other. Finally, because year is a number, we turn it into a factor since ggplot2 automatically assigns a color to each category of a factor:  
+So instead of faceting, we keep the data from each year together and ask ggplot2 to color (or fill) them depending on the year. Note that groups are automatically separated by year and each pair of boxplots drawn next to each other. Finally, because year is a number, we turn it into a factor since ggplot2 automatically assigns a color to each category of a factor:  
 
 ```{r income-histogram-west-v-devel-by-year}
 p + geom_boxplot(aes(region, dollars_per_day, fill = factor(year)))
@@ -548,7 +546,7 @@ gapminder %>%
   knitr::kable()
 ```
 
-Yet when we overlay two densities, the default is to have the area represented by each distribution add up to 1, regardless of the size of each group:
+However, when we overlay two densities, the default is to have the area represented by each distribution add up to 1, regardless of the size of each group:
 
 ```{r income-smooth-density-by-year-west-v-developing}
 gapminder %>% 
@@ -636,7 +634,7 @@ p + geom_density(alpha = 0.2, bw = 0.75, position = "stack") + facet_grid(year ~
 
 Here we can clearly see how the distributions for East Asia, Latin America and others shift markedly to the right. While Sub-Saharan Africa remains stagnant. 
 
-Notice that we order the levels of the group so that the West's density are plotted first, then Sub-Saharan Africa. Having the two extremes plotted first allows us see the remaining bimodality better.
+Notice that we order the levels of the group so that the West's density are plotted first, then Sub-Saharan Africa. Having the two extremes plotted first allows us to see the remaining bimodality better.
 
 
 ### Weighted densities {-}
@@ -661,7 +659,7 @@ This particular figure shows very clearly how the income distribution gap is clo
 
 Throughout this section, we have been comparing regions of the world. We have seen that, on average, some regions do better than others. In this section, we focus on describing the importance of variability within the groups when examining the relationship between a country's infant mortality rates and average income.
 
-We start by comparing these quantities across regions, but, before doing this, we define a few more regions:
+We start by comparing these quantities across regions, but before doing this, we define a few more regions:
 
 ```{r}
 gapminder <- gapminder %>% 
