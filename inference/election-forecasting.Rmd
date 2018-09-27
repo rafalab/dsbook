@@ -1,6 +1,6 @@
 # Election forecasting
 
-In previous section we generated these data tables:
+In a previous section, we generated these data tables:
 ```{r}
 polls <- polls_us_election_2016 %>% 
   filter(state == "U.S." & enddate >= "2016-10-31" &
@@ -16,7 +16,7 @@ results <- one_poll_per_pollster %>%
   mutate(start = avg - 1.96*se, end = avg + 1.96*se) 
 ```
 
-We will use these below for our forecasting.
+Below, we will use these for our forecasting.
 
 ## Bayesian approach
 
@@ -31,7 +31,7 @@ d &\sim N(\mu, \tau^2) \mbox{ describes our best guess had we not seen any polli
 \end{aligned}
 $$
 
-For our best guess, we note that before any poll data is available we can use data sources other than polling data. A popular approach is to use what are called _fundamentals_, which are based on properties about the current economy that historically appear to have an effect in favor or against the incumbent party. We won't use these here. Instead we will use $\mu = 0$, which is interpreted as a model that simply does not provide any information on who will win. For the standard deviation, we will use recent historical data that shows the winner of the popular vote has an average spread of about 3.5%. Therefore we set $\tau = 0.035$.
+For our best guess, we note that before any poll data is available, we can use data sources other than polling data. A popular approach is to use what are called _fundamentals_, which are based on properties about the current economy that historically appear to have an effect in favor or against the incumbent party. We won't use these here. Instead, we will use $\mu = 0$, which is interpreted as a model that simply does not provide any information on who will win. For the standard deviation, we will use recent historical data that shows the winner of the popular vote has an average spread of about 3.5%. Therefore, we set $\tau = 0.035$.
 
 Now we can use the formulas for the posterior distribution for the parameter $d$: the probability of $d>0$ given the observed poll data:
 
@@ -65,7 +65,7 @@ This says we are 100\% sure Clinton will win the popular vote which seems too ov
 
 ## The general bias 
 
-After elections are over, one can look at the difference between pollster predictions and actual result. An important observation that our model does not take into account, is that it is common to see the general bias that affects many pollsters in the same way. There is no good explanation for this, but we do observe it in historical data: in one election, the average of polls favors Democrats by 2%, then in the following election they favor Republicans by 1%, then in the next election there is no bias, then in the following one Republicans are favored by 3%, and so on. In 2016, the polls were biased in favor of the democrats by 1-2%. 
+After elections are over, one can look at the difference between pollster predictions and actual result. An important observation that our model does not take into account, is that it is common to see the general bias that affects many pollsters in the same way. There is no good explanation for this, but we do observe it in historical data: in one election, the average of polls favors Democrats by 2%, then in the following election they favor Republicans by 1%, then in the next election there is no bias, then in the following one Republicans are favored by 3%, and so on. In 2016, the polls were biased in favor of the Democrats by 1-2%. 
 
 Although we know this bias term affects our polls, we have no way of knowing what this bias is until election. So we can't correct our polls accordingly. What we can do is include a term in our model that accounts for this variability.
 
@@ -80,14 +80,14 @@ We use the index $j$ to represent the different polls and we define $\varepsilon
 
 ```{r}
 set.seed(3)
-J<- 6
+J <- 6
 N <- 2000
 d <- .021
 p <- (d + 1)/2
 X <- d + rnorm(J,0,2*sqrt(p*(1-p)/N))
 ```
 
-Now suppose we $J=6$ data points from have data from $I=5$ different pollsters. To represent this we now need two indexes, one for pollster and one for the polls each pollster takes. We use $X_{ij}$ with $i$ representing the pollster and $j$ representing the $j$-th poll from that pollster. If we apply the same model, we write:
+Now suppose we have $J=6$ data points from $I=5$ different pollsters. To represent this we now need two indexes, one for pollster and one for the polls each pollster takes. We use $X_{ij}$ with $i$ representing the pollster and $j$ representing the $j$-th poll from that pollster. If we apply the same model, we write:
 
 
 
@@ -157,7 +157,7 @@ data.frame(Spread = as.vector(X) , Pollster = as.factor(rep(1:I, each=J))) %>%
 
 Note that $h_i$ is common to all the observed spreads from a specific pollster. Different pollsters have a different $h_i$, which explains why we can see the groups of points shift up and down from pollster to pollster.
 
-Now, in the model above, we assume the average house effect is 0. We think that for every pollster biased in favor of our party, there is another one in favor of the other and assume the standard deviation is $\sigma_h$. But historically we see that every election has a general bias affecting all polls. We can observe this with the 2016 data, but if we collect historical data we see that the average of polls misses by more than models like the one above predict. To see this, we would take the average of polls for each election year and compare it to the actual value. If we did this, we would see a difference with a standard deviation of between 2-3%. To incorporate this into the model, we can add another term to account for this variability:
+Now, in the model above, we assume the average house effect is 0. We think that for every pollster biased in favor of our party, there is another one in favor of the other and assume the standard deviation is $\sigma_h$. But historically we see that every election has a general bias affecting all polls. We can observe this with the 2016 data, but if we collect historical data, we see that the average of polls misses by more than models like the one above predict. To see this, we would take the average of polls for each election year and compare it to the actual value. If we did this, we would see a difference with a standard deviation of between 2-3%. To incorporate this into the model, we can add another term to account for this variability:
 $$
 X_{ij} = d + b + h_i + \varepsilon_{ij}
 $$
@@ -270,7 +270,7 @@ results %>% mutate(sigma = sd/sqrt(n),
   arrange(abs(posterior_mean))
 ```
 
-The estimates based on posterior does move the estimates towards 0, although the states with many polls are influenced less. This is expected as the more poll data we collect, the more we trust those results:
+The estimates based on posterior do move the estimates towards 0, although the states with many polls are influenced less. This is expected as the more poll data we collect, the more we trust those results:
 
 ```{r posterior-versus-original-estimates}
 results %>% mutate(sigma = sd/sqrt(n), 
@@ -468,7 +468,7 @@ cis <- cis %>% mutate(state = as.character(state)) %>% left_join(add, by = "stat
 
 
 
-6. For forecasters, it is important to call the correct winner. Hence, even if your confidence interval is incorrect, if you correctly called the right winner, your overall predictions will do better. Add two columns to the `cis` table by computing, for each poll, the difference between the predicted spread and the actual spread, and define a column `hit` that is true if the signs are the same. Hint: use the function `sign`. Call the object `resids`
+6. For forecasters, it is important to call the correct winner. Hence, even if your confidence interval is incorrect, if you correctly called the right winner, your overall predictions will do better. Add two columns to the `cis` table by computing, for each poll, the difference between the predicted spread and the actual spread, and define a column `hit` that is true if the signs are the same. Hint: use the function `sign`. Call the object `resids`.
 
 
 
@@ -480,6 +480,6 @@ cis <- cis %>% mutate(state = as.character(state)) %>% left_join(add, by = "stat
 9. We see that at the state level, the median error was 3% in favor of Clinton. The distribution is not centered at 0, but at 0.03. This is the general bias we described in the section above. Create a boxplot to see if the bias was general to all states or it affected some states differently. Use `filter(grade %in% c("A+","A","A-","B+") | is.na(grade))) ` to only include pollsters with high grades.
 
 
-10. Some of these states only have a few polls. Repeat exercise 9, but only include states with 5 good polls or more. Hint: use `group_by`, `filter` then `ungroup`.You will see that the West (Washington, New Mexico, California) underestimated Hillary's performance, while the Midwest (Michigan, Pennsylvania, Wisconsin, Ohio, Missouri) overestimated it. In our simulation, we did not model this behavior since we added general bias, rather than a regional bias. Some pollsters are now modeling correlation between similar states and estimating this correlation from historical data. To learn more about this, you can learn about random effects and mixed models. 
+10. Some of these states only have a few polls. Repeat exercise 9, but only include states with 5 good polls or more. Hint: use `group_by`, `filter` then `ungroup`. You will see that the West (Washington, New Mexico, California) underestimated Hillary's performance, while the Midwest (Michigan, Pennsylvania, Wisconsin, Ohio, Missouri) overestimated it. In our simulation, we did not model this behavior since we added general bias, rather than a regional bias. Some pollsters are now modeling correlation between similar states and estimating this correlation from historical data. To learn more about this, you can learn about random effects and mixed models. 
 
 

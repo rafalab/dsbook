@@ -8,7 +8,7 @@ set.seed(2)
 
 ## Poll aggregators
  
-As we described earlier, in the 2012 Nate Silver was giving a Obama a 90% chance of winning. How was Mr. Silver so confident? We will demonstrate Mr. Silver saw what others did not by using a Monte Carlo simulation. We generate results for 12 polls taken the week before the election. We mimic sample sizes from actual polls and construct and report 95\% confidence intervals for each of the 12 polls:
+As we described earlier, in the 2012 Nate Silver was giving a Obama a 90% chance of winning. How was Mr. Silver so confident? We will demonstrate that Mr. Silver saw what others did not by using a Monte Carlo simulation. We generate results for 12 polls taken the week before the election. We mimic sample sizes from actual polls and construct and report 95\% confidence intervals for each of the 12 polls:
 
 ```{r}
 d <- 0.039
@@ -67,7 +67,7 @@ d_hat <- polls %>%
 
 Once we have an estimate of $d$, we can construct an estimate for the proportion voting for Obama, which we can then use to estimate the standard error. Once we do this, we see that our margin of error is `r p_hat <- (1+d_hat)/2; moe <- 2*1.96*sqrt(p_hat*(1-p_hat)/sum(polls$sample_size)); moe`. 
 
-Thus we can predict that the spread will be `r round(d_hat*100,1)` plus or minus `r round(moe*100 ,1)`, which not only includes the actual result, but is quite far from including 0. Once we combine the 12 polls, we become quite certain that Obama will win the popular vote.
+Thus, we can predict that the spread will be `r round(d_hat*100,1)` plus or minus `r round(moe*100 ,1)`, which not only includes the actual result, but is quite far from including 0. Once we combine the 12 polls, we become quite certain that Obama will win the popular vote.
 
 ```{r confidence-coverage-2008-election,echo=FALSE}
 polls2 <- rbind(polls,c(13, d_hat, d_hat-moe, d_hat+moe, sum(polls$sample_size)))
@@ -112,7 +112,7 @@ data(polls_us_election_2016)
 names(polls_us_election_2016)
 ```
 
-The table includes results for national polls, as well as state polls, taken during the year prior to the election. For this first example, we will filter the data to include national polls that happened during the week before the election. We also remove polls that FiveThirtyEight has determined not to be reliable and graded with a "B" or less. Some polls have not been graded and we include those:
+The table includes results for national polls, as well as state polls, taken during the year prior to the election. For this first example, we will filter the data to include national polls conducted during the week before the election. We also remove polls that FiveThirtyEight has determined not to be reliable and graded with a "B" or less. Some polls have not been graded and we include those:
 
 ```{r}
 polls <- polls_us_election_2016 %>% 
@@ -127,10 +127,10 @@ polls <- polls %>%
   mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
 ```
 
-For illustrative purposes, we will assume that there are only two parties and call $p$ the proportion voting for Clinton and $1-p$ the proportion voting for Trump. We are interested in the spread $2p-1$. Let's call the spread $d$ (for difference). 
+For this example, we will assume that there are only two parties and call $p$ the proportion voting for Clinton and $1-p$ the proportion voting for Trump. We are interested in the spread $2p-1$. Let's call the spread $d$ (for difference). 
 
 
-Note that we have `r nrow(polls)` estimates of the spread. The theory we learned tells us that these estimates are a random variable with a probability distribution that is approximately normal. The expected value is the election night spread $d$ and the standard error is $\sqrt{p (1 - p) / N}$. Assuming the urn model we described earlier is a good one, we can use this information to construct a confidence interval based on the aggregated data. The estimated spread is:
+We have `r nrow(polls)` estimates of the spread. The theory we learned tells us that these estimates are a random variable with a probability distribution that is approximately normal. The expected value is the election night spread $d$ and the standard error is $\sqrt{p (1 - p) / N}$. Assuming the urn model we described earlier is a good one, we can use this information to construct a confidence interval based on the aggregated data. The estimated spread is:
 
 ```{r}
 d_hat <- polls %>% 
@@ -206,7 +206,7 @@ one_poll_per_pollster %>%
   geom_histogram(binwidth = 0.01)
 ```
 
-In the previous section, we saw that using the urn model theory to combine these results might not be appropriate due to the pollster effect. Instead we will model this spread data directly.
+In the previous section, we saw that using the urn model theory to combine these results might not be appropriate due to the pollster effect. Instead, we will model this spread data directly.
 
 The new model can also be thought of as an urn model, although the connection is not as direct. Rather than 0s (Republicans) and 1s (Democrats), our urn now contains poll results from all possible pollsters. We _assume_ that the expected value of our urn is the actual spread $d=2p-1$. 
 
@@ -259,7 +259,7 @@ x <- heights %>% filter(sex == "Male") %>%
   .$height
 ```
 
-Mathematically speaking, `x` is our population. Using the urn analogy, we have an urn with the values of  `x` in it. What are the population average and standard deviation of our population?
+Mathematically speaking, `x` is our population. Using the urn analogy, we have an urn with the values of  `x` in it. What are the average and standard deviation of our population?
 
 
 2.  Call the population average computed above $\mu$ and the standard deviation $\sigma$. Now take a sample of size 50, with replacement, and construct an estimate for $\mu$ and $\sigma$. Set the seed at 1 based on what has been described in this section.
@@ -281,7 +281,7 @@ Mathematically speaking, `x` is our population. Using the urn analogy, we have a
 
 6. Now run a Monte Carlo simulation in which you compute 10,000 confidence intervals as you have just done. What proportion of these intervals include $\mu$? Set the seed to 1.
 
-7. In this section we talked about pollster bias. We used visualization to motivate the presence of such bias. Here we will give it a more rigorous treatment. We will consider two pollsters that conducted daily polls. We will look at national polls for the month before the election. 
+7. In this section, we talked about pollster bias. We used visualization to motivate the presence of such bias. Here we will give it a more rigorous treatment. We will consider two pollsters that conducted daily polls. We will look at national polls for the month before the election. 
 
 ```{r}
 data(polls_us_election_2016)
@@ -344,12 +344,12 @@ polls %>%
 
 
 17. What does the CLT tells us about the distribution of $\bar{Y}_2 - \bar{Y}_1$?
-    - A. Nothing because this not the average of a sample.
+    - A. Nothing because this is not the average of a sample.
     - B. Because the $Y_{ij}$ are approximately normal, so are the averages.
     - C.  $\bar{Y}_2$ and $\bar{Y}_1$ are sample averages so if we assume $N_2$ and $N_1$ are large enough, each is approximately normal. The difference of normals is also normal.
     - D. The data are not 0 or 1, so CLT does not apply.
     
-18. So we have constructed a random variable that has expected value $b_2 - b_1$, the pollster bias difference. If our model holds, then this random variable has an approximately normal distribution and we know its standard error. The standard error depends on $\sigma_1$ and $\sigma_2$, but we can plug the sample standard deviations we computed above. We started off by asking: is $b_2 - b_1$ different from 0? Use all the information we have learned above to construct a 95% confidence interval for the difference $b_2$ and $b_1$.
+18. We have constructed a random variable that has expected value $b_2 - b_1$, the pollster bias difference. If our model holds, then this random variable has an approximately normal distribution and we know its standard error. The standard error depends on $\sigma_1$ and $\sigma_2$, but we can plug the sample standard deviations we computed above. We started off by asking: is $b_2 - b_1$ different from 0? Use all the information we have learned above to construct a 95% confidence interval for the difference $b_2$ and $b_1$.
 
 19. The confidence interval tells us there is relatively strong pollster effect resulting in a difference of about 5%. Random variability does not seem to explain it. We can compute a p-value to relay the fact that chance does not explain it. What is the p-value?
 
@@ -360,7 +360,7 @@ polls %>%
 \frac{\bar{Y}_2 - \bar{Y}_1}{\sqrt{s_2^2/N_2 + s_1^2/N_1}}
 $$
 
-    is called a the t-statistic. Later we learn of another approximation for the distribution of this statistic for values of $N_2$ and $N_1$ that aren't large enough for the CLT. Now note that we have more than two pollsters. We can also test for pollster effect using all pollsters, not just two. The idea is to compare the variability across polls to variability within polls. We can actually construct statistics to test for effects and approximate their distribution. The area of statistics that does this is called Analysis of Variance or ANOVA. We do not cover it here, but ANOVA provides a very useful set of tools to answer questions such as: is there a pollster effect? 
+    is called the t-statistic. Later we learn of another approximation for the distribution of this statistic for values of $N_2$ and $N_1$ that aren't large enough for the CLT. Now notice that we have more than two pollsters. We can also test for pollster effect using all pollsters, not just two. The idea is to compare the variability across polls to variability within polls. We can actually construct statistics to test for effects and approximate their distribution. The area of statistics that does this is called Analysis of Variance or ANOVA. We do not cover it here, but ANOVA provides a very useful set of tools to answer questions such as: is there a pollster effect? 
 
     For this exercise, create a new table:
 

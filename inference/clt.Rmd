@@ -29,7 +29,7 @@ $$
 $$
 In statistics textbooks, we use a little hat to denote estimates. The estimate can be constructed using the observed data and $N$. 
 
-Now we continue with our calculation, but dividing by $\hat{\mbox{SE}}(\bar{X})=\sqrt{\bar{X}(1-\bar{X})/N})$ instead. In our first sample we had 12 blue and 13 red so $\bar{X} = 0.48$ and so our estimate of standard error is 
+Now we continue with our calculation, but dividing by $\hat{\mbox{SE}}(\bar{X})=\sqrt{\bar{X}(1-\bar{X})/N})$ instead. In our first sample we had 12 blue and 13 red so $\bar{X} = 0.48$ and our estimate of standard error is: 
 
 ```{r}
 X_hat <- 0.48
@@ -43,7 +43,7 @@ And now we can answer the question of the probability of being close to $p$. The
 pnorm(0.01/se) - pnorm(-0.01/se)
 ```
 
-So there is a small chance that we will be close. A poll of only $N=25$ people is not really very useful, at least not for a close election. 
+Therefore, there is a small chance that we will be close. A poll of only $N=25$ people is not really very useful, at least not for a close election. 
 
 Earlier we mentioned the _margin of error_. Now we can define it because it is simply two times the standard error, which we can now estimate. In our case it is:
 
@@ -70,11 +70,11 @@ which we know is about 95\%:
 pnorm(2)-pnorm(-2)
 ```
 
-So there is a 95% probability that $\bar{X}$ will be within $2\times \hat{SE}(\bar{X})$, in our case `r round(2*se)`, to $p$. Note that 95% is somewhat of an arbitrary choice and sometimes other percentages are used, but it is the most commonly used value to define _margin of error_. 
+Hence, there is a 95% probability that $\bar{X}$ will be within $2\times \hat{SE}(\bar{X})$, in our case `r round(2*se)`, to $p$. Note that 95% is somewhat of an arbitrary choice and sometimes other percentages are used, but it is the most commonly used value to define _margin of error_. 
 
 In summary, the CLT tells us that our poll based on a sample size of $25$ is not very useful. We don't really learn much when the margin of error is this large. All we can really say is that the popular vote will not be won by a large margin. This is why pollsters tend to use larger sample sizes. 
 
-From the table above. we see that typical sample sizes range from 700 to 3500. To see how this gives us a much more practical result, notice that if we had obtained a $\bar{X}$=0.48 with a sample size of 2,000, our standard error $\hat{\mbox{SE}}(\bar{X})$ would have been `r n<-2000;se<-sqrt(0.48*(1-0.48)/n);se`. So our result is an estimate of `48`% with a margin of error of `r round(2*se*100)`%. In this case, the result is much more informative and would make us think that there are more red balls than blue. But keep in mind, this is hypothetical. We did not take a poll of 2,000 since we don't want to ruin the competition.
+From the table above, we see that typical sample sizes range from 700 to 3500. To see how this gives us a much more practical result, notice that if we had obtained a $\bar{X}$=0.48 with a sample size of 2,000, our standard error $\hat{\mbox{SE}}(\bar{X})$ would have been `r n<-2000;se<-sqrt(0.48*(1-0.48)/n);se`. So our result is an estimate of `48`% with a margin of error of `r round(2*se*100)`%. In this case, the result is much more informative and would make us think that there are more red balls than blue. Keep in mind, however, that this is hypothetical. We did not take a poll of 2,000 since we don't want to ruin the competition.
 
 
 ## A Monte Carlo simulation
@@ -93,7 +93,7 @@ Xhat <- replicate(B, {
 
 The problem is, of course, we don't know `p`. We could construct an urn like the one pictured above and run an analog (without a computer) simulation. It would take a long time, but you could take 10,000 samples, count the beads and keep track of the proportions of blue. We can use the function `take_poll(n=1000)` instead of drawing from an actual urn, but it would still take time to count the beads and enter the results.
 
-One thing we therefore do to corroborate theoretical results is to pick one or several values of `p`, and run the simulations.  Let's set `p=0.45`.  We can then simulate a poll:
+One thing we therefore do to corroborate theoretical results is to pick one or several values of `p` and run the simulations.  Let's set `p=0.45`.  We can then simulate a poll:
 
 ```{r}
 p <- 0.45
@@ -103,7 +103,7 @@ X <- sample(c(0,1), size=N, replace=TRUE, prob=c(1-p, p))
 Xhat <- mean(X)
 ```
 
-In this particular sample our estimate is `Xhat`. We can use that code to do a Monte Carlo simulation:
+In this particular sample, our estimate is `Xhat`. We can use that code to do a Monte Carlo simulation:
 
 ```{r}
 B <- 10000

@@ -2,7 +2,7 @@
 
 ## Interest rates explained with chance model
 
-More complex versions of the sampling models we have discussed are also used by banks to decide interest rates. Suppose you run a small bank that has a history of identifying potential homeowners that can be trusted to make payments. In fact, historically, in a given year, only 2% of your customers default, meaning that they don't pay back the money that you lent them. However, you are aware that if you simply loan money to everybody without interest, you will end up losing money due to this 2%. Although you know 2% of your clients will probably default, you don't know which ones. Yet by charging everybody just a bit extra in interest, you can make up the loses incurred due to that 2% and also cover your operating costs. You can also make a profit, but if you set the interest rates too high, your clients will go to another bank. We use all these facts and some probability theory to decide what interest rate you should charge.  
+More complex versions of the sampling models we have discussed are also used by banks to decide interest rates. Suppose you run a small bank that has a history of identifying potential homeowners that can be trusted to make payments. In fact, historically, in a given year, only 2% of your customers default, meaning that they don't pay back the money that you lent them. However, you are aware that if you simply loan money to everybody without interest, you will end up losing money due to this 2%. Although you know 2% of your clients will probably default, you don't know which ones. Yet by charging everybody just a bit extra in interest, you can make up the losses incurred due to that 2% and also cover your operating costs. You can also make a profit, but if you set the interest rates too high, your clients will go to another bank. We use all these facts and some probability theory to decide what interest rate you should charge.  
 
 Suppose your bank will give out 1,000 loans for \$180,000 this year. Also, after adding up all costs, suppose your bank loses \$200,000 per foreclosure. For simplicity, we assume this includes all operational costs. A sampling model for this scenario can be coded like this:
 
@@ -14,7 +14,7 @@ defaults <- sample( c(0,1), n, prob=c(1-p, p), replace = TRUE)
 sum(defaults * loss_per_foreclosure)
 ```
 
-Note that the total loss defined by the final sum is a random variable. Every time you run the above code you get a different answer.  We can easily construct a Monte Carlo simulation to get an idea of the distribution of this random variable.
+Note that the total loss defined by the final sum is a random variable. Every time you run the above code, you get a different answer.  We can easily construct a Monte Carlo simulation to get an idea of the distribution of this random variable.
 
 ```{r}
 B <- 10000
@@ -37,7 +37,7 @@ n*(p*loss_per_foreclosure + (1-p)*0)
 sqrt(n)*abs(loss_per_foreclosure)*sqrt(p*(1-p))
 ```
 
-We can now set an interest rate to guarantee that, on average, we break even. Basically, we need to add a quantity $x$ to each loan, which in this case are represent by draws, so that the expected value is 0. If we define $l$ to be the loss per foreclosure, we need:
+We can now set an interest rate to guarantee that, on average, we break even. Basically, we need to add a quantity $x$ to each loan, which in this case are represented by draws, so that the expected value is 0. If we define $l$ to be the loss per foreclosure, we need:
 
 $$
 lp  + x(1-p) = 0
@@ -51,7 +51,7 @@ which implies $x$ is
 
 or an interest rate of `r - p*loss_per_foreclosure/(1-p) / 180000`.
 
-However, we still have a problem. Although this interest rate guarantees that on average we break even, there is 50\% chance that we lose money. If our bank loses money, we have to close it down. We therefore need to pick an interest rate that makes it unlikely for this to happen. At the same time, if the interest rate is too high, our clients will go to another bank so we must be willing to take some risks. So let's say that we want our chances of losing money to be 1 in 100, what does the $x$ quantity need to be now? This one is a bit harder. We want the sum $S$ to have:
+However, we still have a problem. Although this interest rate guarantees that on average we break even, there is a 50\% chance that we lose money. If our bank loses money, we have to close it down. We therefore need to pick an interest rate that makes it unlikely for this to happen. At the same time, if the interest rate is too high, our clients will go to another bank so we must be willing to take some risks. So let's say that we want our chances of losing money to be 1 in 100, what does the $x$ quantity need to be now? This one is a bit harder. We want the sum $S$ to have:
 
 $$\mbox{Pr}(S<0) = 0.01$$
 
@@ -135,7 +135,7 @@ mean(profit<0)
 
 ## The Big Short
 
-One of your employees points out that since the bank is making `r round(loss_per_foreclosure*p + x*(1-p))` dollars per loan that you should give out more loans! Why just `n`? You explain that finding those `n` clients was hard. You need a group that is predictable and that keeps the chances of defaults low. He then points out that even if the probability of default is higher, as long as our expected value is positive, you can minimize your chances of losses by increasing $n$ and relying on the law of large numbers.
+One of your employees points out that since the bank is making `r round(loss_per_foreclosure*p + x*(1-p))` dollars per loan, the bank should give out more loans! Why just `n`? You explain that finding those `n` clients was hard. You need a group that is predictable and that keeps the chances of defaults low. He then points out that even if the probability of default is higher, as long as our expected value is positive, you can minimize your chances of losses by increasing $n$ and relying on the law of large numbers.
 
 He claims that even if the default rate is twice as high, say 4%, if we set the rate just a bit higher than:
 ```{r}
