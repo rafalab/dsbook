@@ -1,6 +1,6 @@
 # Web Scraping 
 
-The data we need to answer a question is not always in a spreadsheet, ready for us to read. For example, the US murders dataset we used in the R Basics chapter originally comes from this Wikipedia page: 
+The data we need to answer a question is not always in a spreadsheet ready for us to read. For example, the US murders dataset we used in the R Basics chapter originally comes from this Wikipedia page: 
 [https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&oldid=843135608](https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&oldid=843135608). You can see the data table when you visit the webpage:
 
 
@@ -9,9 +9,9 @@ The data we need to answer a question is not always in a spreadsheet, ready for 
 knitr::include_graphics("wrangling/img/murders-data-wiki-page.png")
 ```
 
-Unfortunately, there is no link to a data file. To make the data frame we loaded using `data(murders)` or reading-in the csv file made available through `dslabs`, we had to do some _web scrapping_. 
+Unfortunately, there is no link to a data file. To make the data frame that is loaded when we type `data(murders)`, we had to do some _web scraping_. 
 
-_Web scraping_, or _web harvesting_, are the terms we use to describe the process of extracting data from a website. The reason we can do this is because the information used by a browser to render webpages is received as a text file from a server. The text is code written in hyper text markup language (HTML). Every browser has a way to show the html source code for a page, each one different. On Chrome you can use Control-U on a PC and command+alt+U on a Mac.
+_Web scraping_, or _web harvesting_, are the terms we use to describe the process of extracting data from a website. The reason we can do this is because the information used by a browser to render webpages is received as a text file from a server. The text is code written in hyper text markup language (HTML). Every browser has a way to show the html source code for a page, each one different. On Chrome, you can use Control-U on a PC and command+alt+U on a Mac.
 
 
 ```{r, echo=FALSE}
@@ -59,7 +59,7 @@ p>The 2015 U.S. population total was 320.9 million. The 2015 U.S. overall murder
 
 You can actually see the data! We can also see a pattern of how it is stored. If you know HTML, you can write programs that leverage knowledge of these patterns to extract what we want. We also take advantage of a language widely used to make webpages look "pretty" called Cascading Style Sheets (CSS). We say more about this in the CSS Selector Section. 
 
-Although we provide tools that make it possible to scrape data without knowing HTML, for data scientists, it is quite useful to learn some HTML and CSS. Not only does this improve your scraping skills, but it might come in handy if you are creating a webpage to showcase you work. There are plenty of online courses and tutorials for learning these. Two examples are [code academy](https://www.codecademy.com/learn/learn-html) and [WWW3 school](https://www.w3schools.com/).
+Although we provide tools that make it possible to scrape data without knowing HTML, for data scientists, it is quite useful to learn some HTML and CSS. Not only does this improve your scraping skills, but it might come in handy if you are creating a webpage to showcase you work. There are plenty of online courses and tutorials for learning these. Two examples are [Codeacademy](https://www.codecademy.com/learn/learn-html) and [W3schools](https://www.w3schools.com/).
 
 ## The rvest package
 
@@ -125,12 +125,12 @@ We still have some wrangling to do. For example, we need to remove the commas an
 
 ## CSS selectors
 
-The default look of a webpage made with the most basic HTML is quite unattractive. The aesthetically pleasing pages we see today are made using CSS, which is used to add style to webpages. The fact that all pages for a company have the same style is usually a result that they all use the same CSS file to define the style. The general way these CSS files work is by defining how each of the elements of a webpage will look. The title, headings, itemized lists, tables, and links, for example, each receive their own style including font, color, size, and distance from the margin. CSS does this by leveraging patterns used to define these elements, referred to as _selectors_. An example of such a pattern, which we used above, is `table`, but there are many, many more. 
+The default look of a webpage made with the most basic HTML is quite unattractive. The aesthetically pleasing pages we see today are made using CSS, which is used to add style to webpages. The fact that all pages for a company have the same style usually results from their use of the same CSS file to define the style. The general way these CSS files work is by defining how each of the elements of a webpage will look. The title, headings, itemized lists, tables, and links, for example, each receive their own style including font, color, size, and distance from the margin. CSS does this by leveraging patterns used to define these elements, referred to as _selectors_. An example of such a pattern, which we used above, is `table`, but there are many, many more. 
 
 If we want to grab data from a webpage and we happen to know a selector that is unique to the part of the page containing this data, we can use the `html_nodes` function. However, knowing which selector can be quite complicated. 
 In fact, the complexity of webpages has been increasing as they become more sophisticated. For some of the more advanced ones, it seems almost impossible to find the notes that define a particular piece of data. However, selector gadgets actually make this possible.
 
-[SelectorGadget](http://selectorgadget.com/) is piece of software that allows you to interactively determine what CSS selector you need to extract specific components from the webpage. If you plan on scrapping data other than tables, we highly recommend you install it if you are interested in scrapping html pages. A Chrome extension is available which permits you to turn on the gadget and then, as you click through the page, it highlights parts and shows you the selector you need to extract these parts. There are various demos of how to do this including author Hadley Wickham's
+[SelectorGadget](http://selectorgadget.com/) is piece of software that allows you to interactively determine what CSS selector you need to extract specific components from the webpage. If you plan on scraping data other than tables, we highly recommend you install it if you are interested in scraping html pages. A Chrome extension is available which permits you to turn on the gadget and then, as you click through the page, it highlights parts and shows you the selector you need to extract these parts. There are various demos of how to do this including author Hadley Wickham's
 [vignetter](https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html), and  [these ](https://stat4701.github.io/edav/2015/04/02/rvest_tutorial/) [two](https://www.analyticsvidhya.com/blog/2017/03/beginners-guide-on-web-scraping-in-r-using-rvest-with-hands-on-knowledge/) tutorials based on the package vignette. 
 
 We add an example here that tries to extract the recipe name, total preparation time, and list of ingredients from [this](http://www.foodnetwork.com/recipes/alton-brown/guacamole-recipe-1940609) Guacamole recipe. Looking at the code for this page, it seems that the task is impossibly complex. For the Guacamole recipe page, we already have determined that we need the following selectors:
@@ -183,7 +183,7 @@ json <- toJSON(example, pretty = TRUE)
 json
 ```
 
-The file above actually represents a data frame. To read it, we can use the function `fromJSON` from the jsonlite package. Note that JSON files are often made available via the internet. Several organization provide a JSON API or a web service that you can connect directly to and obtain data. Here is an example:
+The file above actually represents a data frame. To read it, we can use the function `fromJSON` from the jsonlite package. Note that JSON files are often made available via the internet. Several organizations provide a JSON API or a web service that you can connect directly to and obtain data. Here is an example:
 
 ```{r}
 library(jsonlite)
