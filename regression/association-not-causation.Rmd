@@ -1,6 +1,6 @@
 # Association is not causation
 
-_Association is not causation_ is perhaps the most important lesson one learns in a statistics class. _Correlation is not causation_ is another way to say this. In this chapter, we have described tools useful for quantifying associations between variables. However, we must be careful not to overinterpret these associations. 
+_Association is not causation_ is perhaps the most important lesson one learns in a statistics class. _Correlation is not causation_ is another way to say this. In this chapter, we have described tools useful for quantifying associations between variables. However, we must be careful not to over interpret these associations. 
 
 There are many reasons that a variable $X$ can be correlated with a variable $Y$ without either being a cause for the other. Here, we examine three common ways that can lead to misinterpreting data.
 
@@ -36,7 +36,7 @@ G <- 1000000
 sim_data <- tibble(group = rep(1:G, each = N), X = rnorm(N*G), Y = rnorm(N*G))
 ```
 
-The first columns denotes group and we simulated `r cat(prettyNum(G, big.mark=",",scientific=FALSE))` of groups each with `r N` observations. For each group, we generate `r N` observations, which are stored in the second and third columns. These are just random independent normally distributed data. So we know, because we constructed the simulation, that $X$ and $Y$ are not correlated.
+The first column denotes group. We created `r cat(prettyNum(G, big.mark=",",scientific=FALSE))` groups and for each one we generated a pair of independent vectors, $X$ and $Y$, with `r N` observations each, stored in the second and third columns. Because we constructed the simulation, we know that $X$ and $Y$ are not correlated.
 
 Next, we compute the correlation between `X` and `Y` for each group and look at the max:
 
@@ -48,7 +48,7 @@ res <- sim_data %>%
 res
 ```
 
-We see a maximum correlation of `r max(res$r)` and if you just plot the data from the group achieving this correlation it shows a convincing plot that $X$ and $Y$ are in fact correlated:
+We see a maximum correlation of `r max(res$r)` and if you just plot the data from the group achieving this correlation, it shows a convincing plot that $X$ and $Y$ are in fact correlated:
 
 ```{r dredging}
 sim_data %>% filter(group == res$group[which.max(res$r)]) %>%
@@ -156,7 +156,7 @@ GaltonFamilies %>%
   do(tidy(lm(father ~ son, data = .)))
 ```
 
-The model fits the data very well. If we look at the mathematical formulation of the model above, it could easily be incorrectly interpreted as to suggest that the son being tall caused the father to be tall. But given what we know about genetics and biology, we know it's the other way around. The model is technically correct. The estimates and p-values were obtained correctly as well. What is wrong here is the interpretation.
+The model fits the data very well. If we look at the mathematical formulation of the model above, it could easily be incorrectly interpreted so as to suggest that the son being tall caused the father to be tall. But given what we know about genetics and biology, we know it's the other way around. The model is technically correct. The estimates and p-values were obtained correctly as well. What is wrong here is the interpretation.
 
 
 ## Confounders
@@ -165,7 +165,7 @@ Confounders are perhaps the most common reason that leads to associations begin 
 
 If $X$ and $Y$ are correlated, we call $Z$ a _confounder_ if changes in $Z$ causes changes in both $X$ and $Y$. Earlier, when studying baseball data, we saw how Home Runs was a confounder that resulted in a higher correlation than expected when studying the relationship between Bases on Balls and Runs. In some cases, we can use linear models to account for confounders. However, this is not always the case.
 
-Incorrect interpretation due to confounders are ubiquitous in the lay press and they are often hard to detect. Here, we present an widely used example related to college admisions.
+Incorrect interpretation due to confounders are ubiquitous in the lay press and they are often hard to detect. Here, we present a widely used example related to college admissions.
 
 ### Example: UC Berkeley admissions 
 
@@ -202,7 +202,7 @@ admissions %>% select(major, gender, admitted) %>%
   mutate(women_minus_men = women - men)
 ```
 
-Four out of the six majors favor women. More importantly all the differences are much smaller than the 14.2 difference that we see when examining the totals.
+Four out of the six majors favor women. More importantly, all the differences are much smaller than the 14.2 difference that we see when examining the totals.
 
 The paradox is that analyzing the totals suggests a dependence between admission and gender, but when the data is grouped by major, this dependence seems to disappear.  What's going on? This actually can happen if an uncounted confounder is driving most of the variability.
 
@@ -219,7 +219,7 @@ admissions %>%
   geom_text()
 ```
 
-There seems to be association. The plot suggests that women were much more likely to apply to the two "hard" majors: gender and major's selectivity are confounded. Compare, for example, major B and major E. Major E is much harder to enter than major B and over 60% of applicants to major E were women while less than 30% of the applicants of major B were women. 
+There seems to be association. The plot suggests that women were much more likely to apply to the two "hard" majors: gender and major's selectivity are confounded. Compare, for example, major B and major E. Major E is much harder to enter than major B and over 60% of applicants to major E were women, while less than 30% of the applicants of major B were women. 
 
 
 ### Confounding explained graphically
@@ -233,7 +233,7 @@ admissions %>%
   geom_bar(stat = "identity", position = "stack")
 ```
 
-It also breaks down the acceptance rates by major: the size of the colored bars represents the percent of each major students were admitted to. This breakdown allows us to see that the majority of accepted men came from two majors: A and B. It also lets us see that few women applied to these majors. What the plot does **not** show us is the percent admitted by major. 
+It also breaks down the acceptance rates by major: the size of the colored bars represents the percent of each major to which students were admitted. This breakdown allows us to see that the majority of accepted men came from two majors: A and B. It also lets us see that few women applied to these majors. What the plot does **not** show us is the percent admitted by major. 
 
 
 ### Average after stratifying
@@ -257,7 +257,7 @@ admissions %>%  group_by(gender) %>% summarize(average = mean(admitted))
 
 # Simpson's Paradox 
 
-The case we have just covered is an example of Simpson's Paradox. It is called a paradox because we see the sign of the correlation  flip when comparing the entire publication and specific strata. The following is an illustrative example. Suppose you have three variables $X$, $Y$ and $Z$. Here is a scatterplot of $Y$ versus $X$:
+The case we have just covered is an example of Simpson's Paradox. It is called a paradox because we see the sign of the correlation  flip when comparing the entire publication and specific strata. As an illustrative example, suppose you have three variables $X$, $Y$ and $Z$. Here is a scatterplot of $Y$ versus $X$:
 
 ```{r simpsons-paradox, echo=FALSE}
 N <- 100
@@ -328,7 +328,7 @@ two_by_two %>%
   filter(awarded == "yes")
 ```
 
-Notice that the success rate is lower for women with a p-valeu slightly higher than 0.05:
+Notice that the success rate is lower for women with a p-value slightly higher than 0.05:
 
 ```{r}
 two_by_two %>% select(-awarded) %>% chisq.test() %>% tidy
@@ -359,7 +359,7 @@ dat %>%
   geom_point()
 ```
 
-We do not see the same level of confounding as in the UC Berkeley example. We do see that some fields favor men and other women and  we do see that the two fields with the largest difference favoring men, are also the fields with the most applications. But unlike the UC Berkeley examples, women are not more likely to apply for the harder subjects. 
+We do not see the same level of confounding as in the UC Berkeley example. We do see that some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But unlike the UC Berkeley examples, women are not more likely to apply for the harder subjects. 
 
 So perhaps some of the selection committees are biased and others are not.
 
@@ -384,7 +384,7 @@ res
 
 For Earth/Life Sciences, there is a difference of 10% favoring men and this has a p-value of 0.04. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 might be considered an example of cherry picking. 
 
-Note als that the overall average of the difference is only -0.3%, which is much smaller than the standard error:
+Note also that the overall average of the difference is only -0.3%, which is much smaller than the standard error:
 
 ```{r}
 res %>% summarize(overall_avg = mean(difference), 
