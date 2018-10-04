@@ -21,21 +21,21 @@ y <- mnist$train$labels[1:1000]
 
 The main reason for using matrices is that certain mathematical operations needed to develop efficient code can be performed using techniques from a branch of mathematics called _linear algebra_. In fact, linear algebra and matrix notation are key elements of the language used in academic papers describing machine learning techniques. We will not cover linear algebra in detail here, but will demonstrate how to use matrices in R so that you can apply the linear algebra techniques already implemented in R base or other packages.
 
-To motivate the use of matrices, we will pose five questions/challenges. 
+To motivate the use of matrices, we will pose five questions/challenges:
 
 1. Do some digits require more ink than others? Study the distribution of the total pixel darkness and how it varies by digits.  
 2. Are some pixels uninformative? Study the variation of each pixel and remove predictors (columns) associated with pixels that don't change much and thus can't provide much information for classification.
-3. Can we remove smudges?  First, look at the distribution of all pixel values. Use this to pick a cutoff to define unwritten space. Then set anything below that cutoff to 0. 
-4. Binarize the data. First, look at the distribution of all pixel values. Use this to pick a cutoff to distinguish between writing and no writing. Then convert all entries into either 1 or 0 respectively.
+3. Can we remove smudges?  First, look at the distribution of all pixel values. Use this to pick a cutoff to define unwritten space. Then, set anything below that cutoff to 0. 
+4. Binarize the data. First, look at the distribution of all pixel values. Use this to pick a cutoff to distinguish between writing and no writing. Then, convert all entries into either 1 or 0 respectively.
 5. Scale each of the predictors in each entry to have the same average and standard deviation.
 
-To complete these, we will have to perform mathematical operations involving several variables. The tidyverse is not developed to perform these types of mathematical operations. For this task it is convenient to use matrices. 
+To complete these, we will have to perform mathematical operations involving several variables. The tidyverse is not developed to perform these types of mathematical operations. For this task, it is convenient to use matrices. 
 
 Before we do this, we will introduce matrix notation and basic R code to define and operate on matrices.
 
 ## Notation
 
-In matrix algebra we have three main types of objects: scalars, vectors and matrices. Let's start by defining and showing the notation for matrices
+In matrix algebra, we have three main types of objects: scalars, vectors and matrices. Let's start by defining and showing the notation for matrices
 
 A scalar is just one number. For example $a = 1$. To denote scalars in matrix notation, we usually use a lower case letter and do not bold.
 
@@ -184,7 +184,7 @@ image(1:28, 1:28, grid[,28:1])
 
 ### Row and column summaries
 
-For the first task, related to total pixel darkness,we want to sum the values of each row and then visualize how these values vary by digit.
+For the first task, related to total pixel darkness, we want to sum the values of each row and then visualize how these values vary by digit.
 
 The function `rowSums` takes a matrix as input and computes the desired values:
 
@@ -220,7 +220,7 @@ The functions just described are performing an operation similar to what `sapply
 avgs <- apply(x, 1, mean)
 ```
 
-But notice that, just like with `sapply` and `map`, we can perform any function. So if we wanted the standard deviation for each column, we could write:
+But notice that just like with `sapply` and `map`, we can perform any function. So if we wanted the standard deviation for each column, we could write:
 
 ```{r}
 sds <- apply(x, 2, sd)
@@ -311,7 +311,7 @@ new_x <- x
 new_x[new_x < 50] <- 0
 ```
 
-To see what this does we look at a smaller matrix:
+To see what this does, we look at a smaller matrix:
 
 ```{r}
 mat <- matrix(1:15, 5, 3)
@@ -355,7 +355,7 @@ image(rows, columns, matrix(-bin_x[8,], 28, 28), main ="Binarized")
 
 ### Vectorization for matrices
 
-In R, if we subtract a vector from a matrix, the first element of the vector is subtracted from the first row, the second element from the second row and so on. So using mathematical notation, we would write it as follows:
+In R, if we subtract a vector from a matrix, the first element of the vector is subtracted from the first row, the second element from the second row, and so on. So using mathematical notation, we would write it as follows:
 
 $$
  \begin{pmatrix}
@@ -395,7 +395,7 @@ If you want to scale each column, be careful since this approach does not work f
 t(t(X) - colMeans(X))
 ```
 
-We can also use a function called `sweep` the works similarly to `apply`. It takes each entry of a vector and subtracts it from the corresponding row or column.
+We can also use a function called `sweep` that works similarly to `apply`. It takes each entry of a vector and subtracts it from the corresponding row or column.
 
 ```{r, eval=FALSE}
 X_mean_0 <- sweep(x, 2, colMeas(x))
@@ -413,7 +413,7 @@ x_standardized <- sweep(x_mean_0, 2, colSds(x), FUN = "/")
 
 Finally, although we do not cover matrix algebra operations such as matrix multiplication, we share here the relevant commands for those that know the mathematics and want to learn the code:
 
-1. Matrix multiplication is done with `%*%` so the cross product, for example, is
+1. Matrix multiplication is done with `%*%` so the cross product, for example, is:
 
     ```{r, eval=FALSE}
 t(x) %*% x

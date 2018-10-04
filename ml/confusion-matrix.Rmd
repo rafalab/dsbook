@@ -8,7 +8,7 @@ library(caret)
 
 Later in this chapter we provide more details on this package. 
 
-In this section, we focus on describing ways in which machine learning algorithms are evaluated. For our first introduction to machine learning concepts, we will start with a boring and simple example: how to predict sex using height. As we explain machine learning step by step, this example will let us set down the first building block. Soon enough we will be attacking more interesting challenges.
+In this section, we focus on describing ways in which machine learning algorithms are evaluated. For our first introduction to machine learning concepts, we will start with a boring and simple example: how to predict sex using height. As we explain machine learning step by step, this example will let us set down the first building block. Soon enough, we will be attacking more interesting challenges.
 
 For this first example, we use the height data in dslabs:
 
@@ -105,7 +105,7 @@ accuracy <- map_dbl(cutoff, function(x){
 })
 ```
 
-We can make a plot showing the accuracy on the training set for males and females:
+We can make a plot showing the accuracy obtained on the training set for males and females:
 
 ```{r accuracy-vs-cutoff, echo=FALSE}
 data.frame(cutoff, accuracy) %>% 
@@ -137,7 +137,7 @@ mean(y_hat == test_set$sex)
 
 We see that it is a bit lower than the accuracy observed for the training set, but it is still better than guessing. And by testing on a dataset that we did not train on, we know it is not due to cherry-picking a good result.
 
-## The Confusion Matrix
+## The confusion matrix
 
 The prediction rule we developed in the previous section predicts `Male` if the student is taller than 64 inches. Given that the average female is about 65 inches, this prediction rule seems wrong. What happened? If a student is the height of the average female, shouldn't we predict `Female`? 
 
@@ -168,7 +168,7 @@ So when computing overall accuracy, the high percentage of mistakes made for fem
 
 There are several metrics that we can use to evaluate an algorithm in a way that prevalence does not cloud our assessment, and these can all be derived from the confusion matrix. A general improvement to using overall accuracy is to study _sensitivity_ and _specificity_ separately. 
 
-## Sensitivity and Specificity 
+## Sensitivity and specificity 
 
 To define sensitivity and specificity, we need a binary outcome. When the outcomes are categorical, we can define these terms for a specific category. In the digits example, we can ask for the specificity in the case of correctly predicting 2 as opposed to some other digit. Once we specify a category of interest, then we can talk about positive outcomes, $Y=1$, and negative outcomes, $Y=0$.
 
@@ -193,7 +193,7 @@ as.data.frame(mat) %>% knitr::kable()
 
 Sensitivity is typically quantified by $TP/(TP+FN)$, or the proportion of actual positives (the first column or $TP+FN$) that are called positives `TP`. This quantity is referred to as the _true positive rate_ (TPR) or _recall_. 
 
-Specificity is typically quantified as $TN/(TN+FP)$ or the proportion of negatives (the second column or $FP+TN$) that are called negatives `TN`. This quantity is also called the true negative rate (TNR). There is another way of quantifying specificity which is $TP/(TP+FP)$ or the proportion of outcomes called positives (the first row or $TP+FP$) that are actually positives $TP$. This quantity is referred to as _precision_ and also as _positive predictive value (PPV)_. Note that unlike TPR and TNR, precision depends on prevalence since higher prevalence implies you can get higher precision even when guessing. 
+Specificity is typically quantified as $TN/(TN+FP)$ or the proportion of negatives (the second column or $FP+TN$) that are called negatives `TN`. This quantity is also called the true negative rate (TNR). There is another way of quantifying specificity which is $TP/(TP+FP)$ or the proportion of outcomes called positives (the first row or $TP+FP$) that are actually positives $TP$. This quantity is referred to as _precision_ and also as _positive predictive value (PPV)_. Note that, unlike TPR and TNR, precision depends on prevalence since higher prevalence implies you can get higher precision even when guessing. 
 
 The multiple names can be confusing, so we include a table to help us remember the terms. The table includes a column that shows the definition if we think of the proportions as probabilities.
 
@@ -214,7 +214,7 @@ We can see that the high overall accuracy is possible despite relatively low sen
 
 ## Balanced accuracy and $F_1$ score
 
-Although, in general, we recommend studying both specificity and sensitivity, very often it is useful to have a one number summary, for example for optimization purposes. One metric that is preferred over overall accuracy is the average of specificity and sensitivity, referred to as _balanced accuracy_. Because specificity and sensitivity are rates, it is more appropriate to compute the _harmonic_ average of specificity and sensitivity. In fact, the _$F_1$-score_, a widely used one number summary, is the harmonic average of precision and recall:
+Although, we usually recommend studying both specificity and sensitivity, very often it is useful to have a one number summary, for example for optimization purposes. One metric that is preferred over overall accuracy is the average of specificity and sensitivity, referred to as _balanced accuracy_. Because specificity and sensitivity are rates, it is more appropriate to compute the _harmonic_ average of specificity and sensitivity. In fact, the _$F_1$-score_, a widely used one number summary, is the harmonic average of precision and recall:
 
 $$
 \frac{1}{\frac{1}{2}\left(\frac{1}{\mbox{recall}} + 
@@ -230,7 +230,7 @@ $$
 
 when defining $F_1$. 
 
-Note that, depending on the context, some type of errors are more costly than others. For example, in the case of plane safety, it is much more important to maximize sensitivity over specificity: failing to predict a plane will malfunction before it crashes is a much more costly error than grounding a plane when, in fact, the plane is in perfect condition. In a capital murder criminal case, the opposite is true since a false positive can lead to killing an innocent person. The $F_1$-score can be adapted to weigh specificity and sensitivity differently. To do this, we define $\beta$ to represent how much more important sensitivity is compared to specificity and consider a weighted harmonic average:
+Remember that, depending on the context, some type of errors are more costly than others. For example, in the case of plane safety, it is much more important to maximize sensitivity over specificity: failing to predict a plane will malfunction before it crashes is a much more costly error than grounding a plane when, in fact, the plane is in perfect condition. In a capital murder criminal case, the opposite is true since a false positive can lead to executing an innocent person. The $F_1$-score can be adapted to weigh specificity and sensitivity differently. To do this, we define $\beta$ to represent how much more important sensitivity is compared to specificity and consider a weighted harmonic average:
 
 $$
 \frac{1}{\frac{\beta^2}{1+\beta^2}\frac{1}{\mbox{recall}} + 

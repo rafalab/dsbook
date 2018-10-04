@@ -36,7 +36,7 @@ confusionMatrix(y_hat_knn, mnist_27$test$y)$overall["Accuracy"]
 
 ## Cross validation
 
-When an algorithm includes a tuning parameter, train automatically uses cross validation to decide among a few default values. To find out what parameter or parameters are optimized you can read [this](http://topepo.github.io/caret/available-models.html) or study the output of: 
+When an algorithm includes a tuning parameter, `train` automatically uses cross validation to decide among a few default values. To find out what parameter or parameters are optimized, you can read [this](http://topepo.github.io/caret/available-models.html) or study the output of: 
 
 ```{r, eval=FALSE}
 getModelInfo("knn")
@@ -62,7 +62,7 @@ ggplot(train_knn, highlight = TRUE)
 
 By default, the cross validation is performed by taking 25 bootstrap samples comprised of 25% of the observations. For the `kNN` method, the default is to try $k=5,7,9$. To change this we use the `tuneGrid` parameters. The grid of values must be supplied by a data frame with the parameter names as specified in the `modelLookup` output. 
 
-Here we present an example where we try out 30 values between 9 and 67. To do this with caret, we need to define a column named `k`, so we use this: 
+Here, we present an example where we try out 30 values between 9 and 67. To do this with caret, we need to define a column named `k`, so we use this: 
 `data.frame(k = seq(9, 67, 2))`.
 
 Note that when running this code, we are fitting 30 versions of kNN to 25 bootstrapped samples. Since we are fitting $30 \times 25 = 750$ kNN models, running this code will take several seconds:
@@ -86,14 +86,14 @@ and the best performing model like this:
 train_knn$finalModel
 ```
 
-The function `predict` will use this performing model. Here is the accuracy of the best model when applied to the test data, which we have not used at all yet, the cross validation was done on the training set:
+The function `predict` will use this best performing model. Here is the accuracy of the best model when applied to the test set, which we have not used at all yet because the cross validation was done on the training set:
 
 ```{r}
 confusionMatrix(predict(train_knn, mnist_27$test, type = "raw"),
                 mnist_27$test$y)$overall["Accuracy"]
 ```
 
-If we want to change of how we perform cross validation, we can use the `trainControl` function. We can make the code above go a bit faster by using, for example, 10-fold cross validation. This means we have 10 samples using 10% of the observations each. We accomplish this:
+If we want to change of how we perform cross validation, we can use the `trainControl` function. We can make the code above go a bit faster by using, for example, 10-fold cross validation. This means we have 10 samples using 10% of the observations each. We accomplish this using the following code:
 
 ```{r cv-10-fold-accuracy-estimate}
 control <- trainControl(method = "cv", number = 10, p = .9)
@@ -119,7 +119,7 @@ train_knn$results %>%
 ```
 
 
-## Example: Fitting with loess
+## Example: fitting with loess
 
 ```{r, echo=FALSE}
 plot_cond_prob <- function(p_hat=NULL){
@@ -141,7 +141,7 @@ plot_cond_prob(predict(train_knn, mnist_27$true_p, type = "prob")[,2])
 
 However, we do see that the boundary is somewhat wiggly. This is because kNN, like the basic bin smoother, does not use a kernel. To improve this we could try loess. By reading through the [available models](https://topepo.github.io/caret/available-models.html) we see that we can use the `gamLoess` method. 
 
-[Here](https://topepo.github.io/caret/train-models-by-tag.html), we see that we need to install the `gam` package if we have done so already:
+[Here](https://topepo.github.io/caret/train-models-by-tag.html), we see that we need to install the `gam` package if we have not done so already:
 
 ```{r, eval=FALSE}
 install.packages("gam")
