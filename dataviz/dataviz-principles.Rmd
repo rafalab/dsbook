@@ -246,6 +246,13 @@ We have focused on displaying single quantities across categories. We now shift 
 To motivate our first principle, 'show the data', we go back to our artificial example of describing heights to ET, an extraterrestrial. This time let's assume ET is interested in the difference in heights between males and females. A commonly seen plot used for comparisons between groups, popularized by software such as Microsoft Excel, shows the average and standard errors (standard errors are defined in a later chapter, but do not confuse them with the standard deviation of the data). The plot looks like this:
 
 ```{r show-data-1, echo=FALSE}
+p1 <- heights %>% group_by(sex) %>%
+  summarize(average = mean(height)) %>%
+  ggplot(aes(sex, average)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  theme_excel() +
+  ylab("Height in inches")
+p1
 ```
 
 The average of each group is represented by the top of each bar and the antennae extend out from the average to the average plus two standard errors.  If all ET receives is this plot, he will have little information on what to expect if he meets a group of human males and females. The bars go to 0, does this mean there are tiny humans measuring less than one foot? Are all males taller than the tallest females? Is there a range of heights? ET can't answer these questions since we have provided almost no information on the height distribution.
@@ -359,7 +366,7 @@ Using a log transformation here provides a much more informative plot. We compar
 
 ```{r correc-transformation, echo=FALSE}
 p2 <- p2 + geom_boxplot(coef=3) + 
-   geom_jitter(width = .1, alpha = .5) + 
+  geom_jitter(width = .1, alpha = .5) + 
   scale_y_log10(breaks = c(1,10,100,1000))
 grid.arrange(p1, p2, ncol = 2)
 ```
@@ -655,6 +662,7 @@ dat %>%
   mutate_if(is.numeric, funs(round(., digits=1))) %>%
   knitr::kable()
 ```
+
 ## Know your audience
 
 Graphs can be used for our 1) own exploratory data analysis, 2) to convey a message to experts, or 3) to help tell a story to a general audience. Make sure that the intended audience understands each element of the plot. 
@@ -697,17 +705,17 @@ data(us_contagious_diseases)
    
 2. What is the problem with the plot below:
 
-    ```{r baplot-not-from-zero-exercises, echo=FALSE, message=FALSE}
+```{r baplot-not-from-zero-exercises, echo=FALSE, message=FALSE}
 library(tidyverse)
-    ds_theme_set()
-    data.frame(candidate=c("Clinton","Trump"), electoral_votes = c(232, 306)) %>%
+ds_theme_set()
+data.frame(candidate=c("Clinton","Trump"), electoral_votes = c(232, 306)) %>%
   ggplot(aes(candidate, electoral_votes)) +
   geom_bar(stat = "identity", width=0.5, color =1, fill = c("Blue","Red")) +
- coord_cartesian(ylim=c(200,310)) +
+  coord_cartesian(ylim=c(200,310)) +
   ylab("Electoral Votes") +
   xlab("") +
   ggtitle("Results of Presidential Election 2016")
-  ```
+```
   
     A. The values are wrong. The final vote was 306 to 232.
     B. The axis does not start at 0. Judging by the length, it appears Trump received 3 times as many votes when, in fact, it was about 30% more. 
