@@ -1,8 +1,8 @@
-# Trees and random forests
+# Trees and Random Forests
 
 ## The curse of dimensionality
 
-We described how methods such as LDA and QDA are not meant to be used with many predictors $p$ because the number of parameters that we need to estimate becomes too large. For example, with the digits example $p=784$, so we would have over 600,000 parameters with LDA and we would multiply that by the number of classes for QDA. Kernel methods such as kNN or local regression do not have model parameters to estimate, but they also face a challenge when multiple predictors are used due to what is referred to the _curse of dimensionality_. The _dimension_ here refers to the fact that when we have $p$ predictors, the distance between two observations is computed in $p$-dimensional space.
+We described how methods such as LDA and QDA are not meant to be used with many predictors $p$ because the number of parameters that we need to estimate becomes too large. For example, with the digits example $p=784$, so we would have over 600,000 parameters with LDA and we would multiply that by the number of classes for QDA. Kernel methods such as kNN or local regression do not have model parameters to estimate. However, they also face a challenge when multiple predictors are used due to what is referred to the _curse of dimensionality_. The _dimension_ here refers to the fact that when we have $p$ predictors, the distance between two observations is computed in $p$-dimensional space.
 
 A useful way of understanding the curse of dimensionality is by considering how large we have to make a span/neighborhood/window to include a given percentage of the data. Remember that with larger neighborhoods, our methods lose flexibility. 
 
@@ -92,8 +92,8 @@ ggplot(fit)
 We see that using just one neighbor, we can predict relatively well. However, a bit of data exploration reveals that we should be able to do even better. For example, if we look at the distribution of each predictor stratified by region:
 
 ```{r olive-eda}
-olive %>% gather(fatty_acid, percentege, -region) %>%
-  ggplot(aes(region, percentege, fill = region)) +
+olive %>% gather(fatty_acid, percentage, -region) %>%
+  ggplot(aes(region, percentage, fill = region)) +
   geom_boxplot() +
   facet_wrap(~fatty_acid, scales = "free")
 ```
@@ -114,7 +114,7 @@ p + geom_vline(xintercept = 0.065, lty = 2) +
   geom_segment(x = -0.2, y = 10.535, xend = 0.065, yend = 10.535, color = "black", lty = 2)
 ```
 
-Specifically, we define the following decision rule. If eicosenoic is larger than 0.065, predict Southern Italy. If not, then if linolenic is larger than $10.535$, predict Sardinia and if lower, Northern Italy. We can draw this decision tree like this:
+Specifically, we define the following decision rule. If eicosenoic is larger than 0.065, predict Southern Italy. If not, then if linolenic is larger than $10.535$, predict Sardinia and if lower, predict Northern Italy. We can draw this decision tree like this:
 
 ```{r olive-tree, echo=FALSE, warning=FALSE, message=FALSE}
 library(caret)
@@ -134,7 +134,7 @@ Decision trees like this are often used in practice. For example, to decide if a
 knitr::include_graphics("ml/img/Decision-Tree-for-Heart-Attack-Victim-adapted-from-Gigerenzer-et-al-1999-4.png")
 ```
 
-The general idea of the methods we are describing is to define an algorithm that uses data to create these tress. 
+The general idea of the methods we are describing is to define an algorithm that uses data to create these trees. 
 
 Regression and decision trees operate by predicting an outcome variable $Y$ by partitioning predictor space.
 
@@ -157,7 +157,7 @@ But how do we decide on the partition  $R_1, R_2, \ldots, R_M$ and how do we cho
 
 Regression trees create partitions recursively. So suppose we already have a partition. We then have to decide what predictor $j$ to use to make the next partition and where to make it. 
 
-Imagine then that we already have a partition so that every observation $i$ is in exactly one of these partitions. For each of these partitions, we will divide further using the following algorithm:
+Imagine then that we already have a partition so that every observation $i$ is in exactly one of these partitions. For each of these partitions, we will divide further using the algorithm described below.
 
 Find predictor $j$ and value $s$ that define two new partitions $R_1(j,s)$ and $R_2(j,s)$ that split our observations into: 
 
@@ -165,7 +165,7 @@ $$
 R_1(j,s) = \{\mathbf{X} \mid X_j < s\} \mbox{  and  } R_2(j,s) = \{\mathbf{X} \mid X_j \geq s\}
 $$
 
-and define the averages $\bar{y}_{R_1}$ and $\bar{y}_{R_2}$ the average of the $y$s for the observations in both those partitions. Now we find the predictor $j$ and split location $s$ that minimizes the residual sum of square (RSS):
+and then define $\bar{y}_{R_1}$ and $\bar{y}_{R_2}$ as the averages of the observations in both those partitions. Now we find the predictor $j$ and split location $s$ that minimizes the residual sum of square (RSS):
 $$
 \sum_{i:\, x_i \in R_1(j,s)} (y_i - \hat{y}_{R_1})^2 +
 \sum_{i:\, x_i \in R_2(j,s)} (y_i - \hat{y}_{R_2})^2
@@ -180,7 +180,7 @@ Let's take a look at what this algorithm does on the 2008 presidential election 
 fit <- rpart(margin ~ ., data = polls_2008)
 ```
 
-Here there is only one predictor. So we do not have to decide which predictor $j$ to split by, we simply have to decide what value $s$ we use to split. We can visually see where the splits were made:
+Here. there is only one predictor. So we do not have to decide which predictor $j$ to split by. We simply have to decide what value $s$ we use to split. We can visually see where the splits were made:
 
 ```{r polls-2008-tree}
 plot(fit, margin = 0.1)
@@ -197,16 +197,16 @@ polls_2008 %>%
   geom_step(aes(day, y_hat), col="red")
 ```
 
-Now, why did the algorithm stop partitioning at 8? There are some details of the algorithm we did not explain above. 
+Now why did the algorithm stop partitioning at 8? There are some details of the algorithm we did not explain above. 
 
 1. **Complexity parameter**:
 Every time we split and define two new partitions, our training set RSS decreases. This is because with more partitions, our model has flexibility to adapt to the training data. In fact, if you split until every point is its own partition, then RSS goes all the way down to 0 since the average of one value is that same value. To avoid this, the algorithm sets a minimum for how much the RSS must improve for another partition to be added. This parameter is referred to as the _complexity parameter_ (cp). The RSS must improve by a factor of cp for the new partition to be added. 
 
 2. `minsplit`: The algorithm sets a minimum number of observations to be partitioned. The default is 20. 
 
-3. `minbucket`: The algorithm also sets a minimum on the number of observations in each partition. So if the optimal split results in a partition with less observations than this minimum, it is not considered. The default is `round(minsplit/3)`
+3. `minbucket`: The algorithm also sets a minimum on the number of observations in each partition. If the optimal split results in a partition with less observations than this minimum, it is not considered. The default is `round(minsplit/3)`
 
-As expected, if we set `cp = 0` and `minsplit=2` then our prediction is our original data:
+As expected, if we set `cp = 0` and `minsplit=2`, then our prediction is our original data:
 
 ```{r polls-2008-tree-over-fit}
 fit <- rpart(margin ~ ., data = polls_2008, control = rpart.control(cp = 0, minsplit = 2))
@@ -228,7 +228,7 @@ polls_2008 %>%
   geom_step(aes(day, y_hat), col="red")
 ```
 
-So how do we pick `cp`? Well, we can use cross validation just like with any tuning parameter.
+So how do we pick `cp`? We can use cross validation just like with any tuning parameter.
 
 ```{r polls-2008-tree-train}
 library(caret)
@@ -246,7 +246,7 @@ plot(train_rpart$finalModel)
 text(train_rpart$finalModel)
 ```
 
-And because we only have one predictor we can actually plot $\hat{f}(x)$:
+And because we only have one predictor, we can actually plot $\hat{f}(x)$:
 
 ```{r polls-2008-final-fit}
 polls_2008 %>% 
@@ -259,9 +259,9 @@ polls_2008 %>%
 
 ## Classification (decision) trees
 
-Classification, or decision trees, are used in classification problems, where the outcome is categorical. We use the same partitioning principle with some differences to account for the fact that we are now working with categorical data. 
+Classification, or decision trees, are used in classification problems where the outcome is categorical. We use the same partitioning principle with some differences to account for the fact that we are now working with categorical data. 
 
-The first difference is that rather than taking the average in each partition, we predict with whatever class is the most common among the training set observations within the partion.
+The first difference is that rather than taking the average in each partition, we predict with whatever class is the most common among the training set observations within the partition.
 
 The second is that we can no longer use RSS to decide on the partition. While we could use a naive approach of looking for partitions that minimize training error, better performing approaches use more sophisticated metrics. Two of the more popular ones are the _Gini Index_ and _Entropy_.  If we define $\hat{p}_{m,k}$ as the proportion of observations in partition $m$ that are of class $k$, then the  _Gini Index_ is defined as:
 
@@ -320,10 +320,10 @@ plot_cond_prob(predict(train_rpart, mnist_27$true_p, type = "prob")[,2])
 
 With decision trees, the boundary can't be smooth.
 
-Classification trees have certain advantages that make them very useful. They are highly interpretable, even more so than linear models. Are easy to visualize (if small enough), they (maybe) model human decision processes and don't require that dummy predictors for categorical variables be used.
+Classification trees have certain advantages that make them very useful. They are highly interpretable, even more so than linear model. They are easy to visualize (if small enough).  Finally, they (maybe) model human decision processes and don't require that dummy predictors for categorical variables be used.
 
 On the other hand, the approach via recursive partitioning can easily over-train and 
-is thereofore a bit harder to train than, for example, linear regression or kNN. It may not always be the best performing method since it is not very flexible and is highly unstable to changes in training data. Random Forests, explained next, improve on several of these shortcomings.
+is therefore a bit harder to train than, for example, linear regression or kNN. It may not always be the best performing method since it is not very flexible and is highly unstable to changes in training data. Random Forests, explained next, improve on several of these shortcomings.
 
 
 ## Random Forests
@@ -333,7 +333,7 @@ Random Forests are a **very popular** approach that address the shortcomings of 
 The first trick is _bootstrap aggregation_ or _bagging_. The general  scheme for bagging is as follows:
   1. Build many decision trees $T_1, T_2, \dots, T_B$ using the  training set. We later explain how we assure they are different.
   2. For every observation in the test set, form a prediction $\hat{y}_j$ using tree $T_j$.
-  3. For continuous outcomes: for a final prediction with $\hat{y} = \frac{1}{B} \sum_{j=1}^B \hat{y}_j$. For categorical data  classification: predict $\hat{y}$ with majority vote (most frequent class among $\hat{y}_1, \dots, \hat{y}_T$).
+  3. For continuous outcomes, predict with $\hat{y} = \frac{1}{B} \sum_{j=1}^B \hat{y}_j$. For categorical data  classification, predict $\hat{y}$ with majority vote (most frequent class among $\hat{y}_1, \dots, \hat{y}_T$).
      
 So how do we get many decision trees from a single training set?
 
@@ -355,7 +355,7 @@ We can see the algorithm improves as we added more trees:
 ```{r more-trees-better-fit}
 plot(fit)
 ```
-In this case, we see that by the time we get to 200 trees the algorithm is not changing much. But note that more complex problems will require more trees to converge.
+In this case, we see that by the time we get to 200 trees, the algorithm is not changing much. But note that more complex problems will require more trees to converge.
 
 ```{r polls-2008-rf-fit}
 polls_2008 %>%
@@ -366,7 +366,7 @@ polls_2008 %>%
 ```
 
 The averaging is what permits estimates that are not step functions.
-The following animation helps illustrate this procedure. In the animated figure you see each of $b=1,\dots,50$ bootstrap samples appear in order, for each one we see the tree that is fitted, and in blue we see the result of bagging the trees up to that point.
+The following animation helps illustrate this procedure. In the animated figure you see each of $b=1,\dots,50$ bootstrap samples appear in order. For each one we see the tree that is fitted, and in blue we see the result of bagging the trees up to that point.
 
 ```{r rf-animation, echo=FALSE}
 library(rafalib)
@@ -471,7 +471,7 @@ Here is what the conditional probabilities look like:
 plot_cond_prob(predict(train_rf, mnist_27$true_p, type = "prob")[,2])
 ```
 
-We can train the parameters of the random forest. Below, we use the caret package to optimize over the minimum node size:
+We can train the parameters of the Random Forest. Below, we use the caret package to optimize over the minimum node size:
 
 ```{r, cache=TRUE}
 fit <- train(y ~ .,
@@ -485,9 +485,9 @@ confusionMatrix(predict(fit, mnist_27$test), mnist_27$test$y)$overall["Accuracy"
 plot_cond_prob(predict(fit, mnist_27$true_p, type = "prob")[,2])
 ```
 
-We can control the "smoothness" of the random forest estimate in several ways. One is to limit the size of each node. We can require the number of points per node to be larger:
+We can control the "smoothness" of the Random Forest estimate in several ways. One is to limit the size of each node. We can require the number of points per node to be larger:
 
 
-The second Random Forests feature is to use a random selection of features to split when deciding on partitions. Specifically, when building each tree $T_j$, at each recursive partition only consider a randomly selected subset of predictors to check for best split. A different random choice of predictors is made for each tree. This reduces correlation between trees in forest, improving prediction accuracy. The argument for this tuning parameter in  `randomForrest` is `mtry`.
+The second Random Forests feature is to use a random selection of features to split when deciding on partitions. Specifically, when building each tree $T_j$, at each recursive partition only consider a randomly selected subset of predictors to check for best split. A different random choice of predictors is made for each tree. This reduces correlation between trees in forest, thereby improving prediction accuracy. The argument for this tuning parameter in  `randomForrest` is `mtry`.
 
-A disadvantage of Random Forests is that we lose interpretability. However, we can use the fact that a bootstrap sample was used to construct trees to measure _variable importance_ from the random forest. This measure counts how often a predictor is used in the individual trees. You can learn more about _variable importance_ in an advanced [machine learning book](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). We give an example on how we use varialbe importance in the next section.
+A disadvantage of Random Forests is that we lose interpretability. However, we can use the fact that a bootstrap sample was used to construct trees to measure _variable importance_ from the Random Forest. This measure counts how often a predictor is used in the individual trees. You can learn more about _variable importance_ in an advanced [machine learning book](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). We give an example on how we use variable importance in the next section.

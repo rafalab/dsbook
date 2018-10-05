@@ -2,15 +2,11 @@
 
 Recommendation systems use ratings that _users_ have given _items_ to make specific recommendations to users. Companies like Amazon, that sell many products to many customers and permit these customers to rate their products, are able to collect massive datasets that can be used to predict what rating a particular user will give a specific item. Items for which a high rating is predicted for a given user are then recommended to that user. 
 
-Netflix uses a recommendation system to predict how many _stars_ a user will give a specific movie. 
+Netflix uses a recommendation system to predict how many _stars_ a user will give a specific movie. One star suggests it is not a good movie, whereas five stars suggests it is an excellent movie.
 
-```{r, echo=FALSE}
-knitr::include_graphics("ml/img/netflix.png")
-```
-
-Here we provide the basics of how these recommendations are predicted, motivated by some of the approaches taken by the winners of the  _Netflix challenges_.  On October 2006, Netflix offered a challenge to the data science community: improve our recommendation algorithm by 10% and win a million dollars. In September 2009, 
+Here, we provide the basics of how these recommendations are predicted, motivated by some of the approaches taken by the winners of the  _Netflix challenges_.  On October 2006, Netflix offered a challenge to the data science community: improve our recommendation algorithm by 10% and win a million dollars. In September 2009, 
 [the winners were announced](http://bits.blogs.nytimes.com/2009/09/21/netflix-awards-1-million-prize-and-starts-a-new-contest/). You can read a good summary of how the winning algorithm was put together [here](http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/) 
-and a more detailed explanation [here](http://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf). Here we show you some of the data analysis strategies used by the winning team.
+and a more detailed explanation [here](http://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf).  We will now show you some of the data analysis strategies used by the winning team.
 
 ## Movielens data
 
@@ -121,14 +117,14 @@ test_set <- test_set %>%
 
 ### Loss function 
 
-The Netflix challenge used the typical error loss. Thye decided on a winner based on the residual mean squared error (RMSE) on a test set. We define $y_{u,i}$ as the rating for movie $i$ by user $u$ and denote our prediction with $\hat{y}_{i,u}$. The RMSE is then defined as: 
+The Netflix challenge used the typical error loss. They decided on a winner based on the residual mean squared error (RMSE) on a test set. We define $y_{u,i}$ as the rating for movie $i$ by user $u$ and denote our prediction with $\hat{y}_{i,u}$. The RMSE is then defined as: 
 
 $$
 \mbox{RMSE} = \sqrt{\frac{1}{N} \sum_{u,i}^{} \left( \hat{y}_{u,i} - y_{u,i} \right)^2 }
 $$
 with $N$ being the number of user/movie combinations and the sum occurring over all these combinations.
 
-Remember that we can interpret the RMSE similarly to a standard deviation: it is the typical error we make when predicting a movie rating. If this number is larger than 1, it means our typical error is larger than one star, is not good.
+Remember that we can interpret the RMSE similarly to a standard deviation: it is the typical error we make when predicting a movie rating. If this number is larger than 1, it means our typical error is larger than one star, which is not good.
 
 Let's write a function that computes the RMSE for vectors of ratings and their corresponding predictors:
 
@@ -140,7 +136,7 @@ RMSE <- function(true_ratings, predicted_ratings){
 
 ### A first model
 
-Let's start by building the simplest possible recommendation system: we predict the same rating for all movies regardless of user. So what number should this prediction be? We can use a model based approach. A model that assume the same rating for all movies and users with all the differences explained by random variation would look like this:
+Let's start by building the simplest possible recommendation system: we predict the same rating for all movies regardless of user. So what number should this prediction be? We can use a model based approach. A model that assumes the same rating for all movies and users with all the differences explained by random variation would look like this:
 
 
 $$
@@ -181,14 +177,13 @@ rmse_results <- data_frame(method = "Just the average", RMSE = naive_rmse)
 
 We know from experience that some movies are just generally rated higher than others. 
 
-So our intuition that different movies are rated differently is confirmed by data. So we can augment our previous model by adding the term $b_i$ to represent average ranking for movie $i$: 
+So our intuition that different movies are rated differently is confirmed by data. We can augment our previous model by adding the term $b_i$ to represent average ranking for movie $i$: 
 
 $$
 Y_{u,i} = \mu + b_i + \varepsilon_{u,i}
 $$
 
-In statistics, we usually call the $b$s as effects, but in 
-the Netflix challenge papers, they refer to them as "bias", thus the $b$ notation.
+In statistics, we usually call the $b$s as effects. However, in the Netflix challenge papers, they refer to them as "bias", thus the $b$ notation.
 
 We can again use least squared to estimate the $b_i$ in the following way:
 
@@ -196,7 +191,7 @@ We can again use least squared to estimate the $b_i$ in the following way:
 fit <- lm(rating ~ as.factor(userId), data = movielens)
 ```
 
-Because there are thousands of $b_i$, each movie gets one, the `lm()` function will be very slow here. We therefore don't recommend running the code above. However, in this particular situation, we know that the least square estimate $\hat{b}_i$ is just the average of $Y_{u,i} - \hat{\mu}$ for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
+Because there are thousands of $b_i$, each movie gets one, the `lm()` function will be very slow here. We therefore don't recommend running the code above. But in this particular situation, we know that the least square estimate $\hat{b}_i$ is just the average of $Y_{u,i} - \hat{\mu}$ for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
 
 ```{r}
 mu <- mean(train_set$rating) 
@@ -258,7 +253,7 @@ To fit this model, we could again use `lm`:
 lm(rating ~ as.factor(movieId) + as.factor(userId))
 ```
 
-but again we won't. Instead, we will compute an approximation but computing $\hat{\mu}$ and $\hat{b}_i$ and estimating $\hat{b}_u$ as the average of $y_{u,i} - \hat{\mu} - \hat{b}_i$
+but, for the reasons described earlier, we won't. Instead, we will compute an approximation but computing $\hat{\mu}$ and $\hat{b}_i$ and estimating $\hat{b}_u$ as the average of $y_{u,i} - \hat{\mu} - \hat{b}_i$
 
 ```{r}
 user_avgs <- test_set %>% 
@@ -305,7 +300,7 @@ movie_titles <- movielens %>%
   distinct()
 ```
 
-Here are the best 10 movies according to our estimate:
+Here are the 10 best movies according to our estimate:
 
 ```{r}
 movie_avgs %>% left_join(movie_titles, by="movieId") %>%
@@ -315,7 +310,7 @@ movie_avgs %>% left_join(movie_titles, by="movieId") %>%
   knitr::kable()
 ```
 
-And here are the worst 10:
+And here are the 10 worst:
 
 ```{r}
 movie_avgs %>% left_join(movie_titles, by="movieId") %>%
@@ -352,7 +347,7 @@ especially when it comes to prediction. Large errors can
 increase our RMSE, so we would rather be conservative
 when unsure.
 
-In previous sections, we computed standard error and constructed confidence intervals to account for different levels of uncertainty. However, when making predictions we need one number, one prediction, not an interval. For this we introduce the concept of regularization.
+In previous sections, we computed standard error and constructed confidence intervals to account for different levels of uncertainty. However, when making predictions, we need one number, one prediction, not an interval. For this, we introduce the concept of regularization.
 
 Regularization permits us to penalize large estimates that 
 come from small sample sizes. It has commonalities with the 
@@ -438,7 +433,7 @@ rmse_results %>% knitr::kable()
 
 This provides a very large improvement. 
 
-Note that $\lambda$ is a tuning parameter. We can use cross-validation to chose it.
+Note that $\lambda$ is a tuning parameter. We can use cross-validation to choose it.
 
 ```{r best-penalty}
 lambdas <- seq(0, 10, 0.25)
@@ -516,7 +511,7 @@ rmse_results %>% knitr::kable()
 
 ```
 
-# Matrix Factorization
+# Matrix factorization
 
 Matrix factorization is a widely used concept in machine learning. It is very much related to factor analysis, singular value decomposition (SVD) and principal component analysis (PCA). Here we describe the concept in the context of movie recommendation systems.
 
@@ -526,7 +521,7 @@ $$
 Y_{u,i} = \mu + b_i + b_u + \varepsilon_{u,i}
 $$
 
-which accounts for movie to movie differences through the $b_i$ and user to user differences through the $b_u$. But this model leaves out an important source of variation related to the fact that groups of movies have similar rating patterns and groups of users have similar rating patterns as well. We will discover these patterns by studying the residuals:
+accounts for movie to movie differences through the $b_i$ and user to user differences through the $b_u$. But this model leaves out an important source of variation related to the fact that groups of movies have similar rating patterns and groups of users have similar rating patterns as well. We will discover these patterns by studying the residuals:
 
 $$
 r_{u,i} = y_{u,i} - \hat{b}_i - \hat{b}_u
@@ -563,7 +558,7 @@ y <- sweep(y, 1, rowMeans(y, na.rm=TRUE))
 y <- sweep(y, 2, colMeans(y, na.rm=TRUE))
 ```
 
-If the model above explains all the signal, and the $\varepsilon$ are just noise, then the residuals for different movies should be independent from each other. But they are not. Here is an example:
+If the model above explains all the signals, and the $\varepsilon$ are just noise, then the residuals for different movies should be independent from each other. But they are not. Here is an example:
 
 ```{r godfathers-cor}
 m_1 <- "Godfather, The"
@@ -632,7 +627,7 @@ Note that here we can narrow down movies to two groups: gangster and romance. We
 P
 ```
 
-Those that like gangster movies, but hate romance ones, the reverse, and those that don't care. The main point here is that we can reconstruct this data with 60 value with a couple of vectors totaling 17 values:
+Those that like gangster movies, but hate romance ones, the reverse, and those that don't care. The main point here is that we can reconstruct this vector of length 60 with a couple of vectors totaling 17 values:
 
 
 $$
@@ -669,7 +664,7 @@ Now we see another factor: love, hates, or doesn't care about Al Pacino. The cor
 cor(X)
 ```
 
-Now to explain the structure we need two factors:
+Now to explain the structure, we need two factors:
 
 ```{r}
 t(Q) 
@@ -681,7 +676,7 @@ And two sets of coefficients:
 P
 ```
 
-The model now has more parameters but still less than the original data. So we should be able to fit this:
+The model now has more parameters, but still less than the original data. So we should be able to fit this:
 
 $$
 Y_{u,i} = \mu + b_i + b_u + p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \varepsilon_{i,j}
@@ -697,7 +692,7 @@ tmp <- y[,six_movies]
 cor(tmp, use="pairwise.complete")
 ```
 
-## Connetion to SVD and PCA
+## Connection to SVD and PCA
 
 The decomposition:
 
@@ -713,7 +708,7 @@ $$
 
 with the variability of each term decreasing and with the $p$s uncorrelated. The algorithm also computes this variability so that we can know how much of the matrices total variability is explained as we add new terms. This may permit us to see that, with just a few terms, we can explain most of the variability.
 
-Let's see an example with the movie data. To compute the decomposition we will make the NAs 0:
+Let's see an example with the movie data. To compute the decomposition, we will make the NAs 0:
 
 ```{r}
 y[is.na(y)] <- 0
@@ -746,7 +741,7 @@ var_explained <- cumsum(pca$sdev^2/sum(pca$sdev^2))
 plot(var_explained)
 ```
 
-We also notice that the first two principal componentsare related to the structure in opinions about movies:
+We also notice that the first two principal components are related to the structure in opinions about movies:
 
 ```{r movies-pca}
 library(ggrepel)

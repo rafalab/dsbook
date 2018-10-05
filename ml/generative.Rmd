@@ -1,4 +1,4 @@
-# Generative Models
+# Generative models
 
 We have described how, when using squared loss, the conditional expectation/probabilities provide the best approach to developing a decision rule. In a binary case, the smallest true error we can achieve is determined by Bayes' rule, which is a decision rule based on the true conditional probability:
 
@@ -83,7 +83,7 @@ tmp %>%
 ```
 
 
-In fact, we can show that the Naive Bayes approach is similar to the logistic regression prediction mathematically. However, we leave the demonstration to a more advanced text: such as [this one](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). We can see that they are similar empirically by comparing the two resulting curves.
+In fact, we can show that the Naive Bayes approach is similar to the logistic regression prediction mathematically. However, we leave the demonstration to a more advanced text, such as [this one](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). We can see that they are similar empirically by comparing the two resulting curves.
 
 
 ## Controlling prevalence
@@ -108,9 +108,9 @@ Again, this is because the algorithm gives more weight to specificity to account
 specificity(data = factor(y_hat_bayes), reference = factor(test_set$sex))
 ```
 
-This is due mainly to the fact that $\hat{\pi}$ is substantially less than 0.5, so we tend to predict `Male` more often. It makes sense for a machine learning algorithm to do this in our sample, because we do have a higher percentage of males. But if we were to extrapolate this to a general population, our overall accuracy would be affected by the low sensitivity. 
+This is due mainly to the fact that $\hat{\pi}$ is substantially less than 0.5, so we tend to predict `Male` more often. It makes sense for a machine learning algorithm to do this in our sample because we do have a higher percentage of males. But if we were to extrapolate this to a general population, our overall accuracy would be affected by the low sensitivity. 
 
-The Naive Bayes approach gives us a direct way to correct this since we can simply force $\hat{pi}$ to be, for example, $\pi$. So to balance specificity and sensitivity, instead of changing the cutoff in the decision rule we could simply change $\hat{\pi}$:
+The Naive Bayes approach gives us a direct way to correct this since we can simply force $\hat{pi}$ to be, for example, $\pi$. So to balance specificity and sensitivity, instead of changing the cutoff in the decision rule, we could simply change $\hat{\pi}$:
 
 ```{r}
 p_hat_bayes_unbiased <- f1*0.5 / (f1*0.5 + f0*(1-0.5)) 
@@ -195,7 +195,7 @@ plot_cond_prob <- function(p_hat=NULL){
 plot_cond_prob(predict(train_qda, mnist_27$true_p, type = "prob")[,2])
 ```
 
-One reason QDA does not work as well as the kernel methods is perhaps because the assumption of normality does not quite hold. Although for the twos it seems reasonable, for the 7s it does seem to be off (notice the slight curvature):
+One reason QDA does not work as well as the kernel methods is perhaps because the assumption of normality does not quite hold. Although for the 2s it seems reasonable, for the 7s it does seem to be off (notice the slight curvature):
 
 ```{r qda-does-not-fit}
 mnist_27$train %>% mutate(y = factor(y)) %>% 
@@ -244,7 +244,7 @@ mnist_27$train %>% mutate(y = factor(y)) %>%
 
 
 Now the size of the ellipses as well as the angle are the same. This is because they have the same standard deviations and correlations.
-When we force this assumption, we can show mathematically that the boundary is a line, just as with logistic regression. For this reason we call the method _linear_ discriminant analysis (LDA). Similarly, for QDA, we can show that the boundary must be a quadratic function.
+When we force this assumption, we can show mathematically that the boundary is a line, just as with logistic regression. For this reason, we call the method _linear_ discriminant analysis (LDA). Similarly, for QDA, we can show that the boundary must be a quadratic function.
 
 
 ```{r lda-estimate, echo=FALSE}
@@ -255,7 +255,7 @@ train_lda <- train(y ~ .,
 plot_cond_prob(predict(train_lda, mnist_27$true_p, type = "prob")[,2])
 ```
 
-In this case, the lack of flexibility does not permit us to capture the non linearity in the true conditional probability function. We can fit the model using caret:
+In this case, the lack of flexibility does not permit us to capture the nonlinearity in the true conditional probability function. We can fit the model using caret:
 
 ```{r}
 train_lda <- train(y ~ .,
@@ -274,7 +274,7 @@ $$
 p(x) = \frac{1}{\sqrt{2\pi} \sigma} \exp\left\{ - \frac{(x-\mu)^2}{\sigma^2}\right\}
 $$
 
-If we remove the constant $1/(\sqrt{2\pi} \sigma)$ and then take the log we get:
+If we remove the constant $1/(\sqrt{2\pi} \sigma)$ and then take the log, we get:
 
 $$
 - \frac{(x-\mu)^2}{\sigma^2}
@@ -282,9 +282,9 @@ $$
 
 which is the negative of a distance squared scaled by the standard deviation. For higher dimensions, the same is true except the scaling is more complex and involves correlations.
 
-# Case study: More than three classes
+# Case study: more than three classes
 
-We will briefly give a slightly more complex example: one with three classes instead of 2. We first create a dataset similar to the 2 or 7 dataset, except now we have 1s, 2s and 7s.
+We will briefly give a slightly more complex example: one with 3 classes instead of 2. We first create a dataset similar to the 2 or 7 dataset, except now we have 1s, 2s and 7s.
 
 ```{r}
 if(!exists("mnist")) mnist <- read_mnist()
@@ -341,7 +341,7 @@ And our predictions are one of the three classes:
 predict(train_qda, test_set)
 ```
 
-So the confusion matrix has 3 by 3 table:
+So the confusion matrix has a 3 by 3 table:
 
 ```{r}
 confusionMatrix(predict(train_qda, test_set), test_set$y)
