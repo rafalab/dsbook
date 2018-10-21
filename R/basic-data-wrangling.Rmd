@@ -1,10 +1,16 @@
 # Basic data wrangling
 
+```{r}
+library(dslabs)
+data(murders)
+```
+
+
 Up to now we have been changing vectors by reordering them and subsetting them through indexing. However, once we start more advanced analyses, we will want to prepare data tables for data analysis. We refer to this task as data wrangling. For this purpose, we will introduce the `dplyr` package which provides intuitive functionality for working with tables. In Chapter 6, we will cover the `dplyr` package in much more depth. 
 
 Once you install `dplyr`, you can load it using:
 
-```{r}
+```{r message=FALSE}
 library(dplyr)
 ```
 
@@ -79,7 +85,7 @@ We can continue to pipe values along:
 ```
 The above statement is equivalent to `log2(sqrt(16))`.
 
-Remember that the pipe sends values to the first argument so we can define other arguments as if the first argument is already defined:
+Remember that the pipe sends values to the first argument, so we can define other arguments as if the first argument is already defined:
 
 ```{r}
 16 %>% sqrt() %>% log(base = 2)
@@ -90,7 +96,7 @@ Therefore, when using the pipe with data frames and `dplyr`, we no longer need t
 ```{r, eval=FALSE}
 murders %>% select(state, region, rate) %>% filter(rate <= 0.71)
 ```
-`murders` is the first argument of the `select` function and the new data frame, formerly `new_table`, is the first argument of the `filter` function.
+`murders` is the first argument of the `select` function, and the new data frame (formerly `new_table`) is the first argument of the `filter` function.
 
 ## Creating a data frame
 
@@ -128,7 +134,7 @@ library(dslabs)
 data(murders)
     ```
 
-    You can add columns using the `dplyr` function `mutate`. This function is aware of the column names and inside the function you can call them unquoted. Like this:
+    You can add columns using the `dplyr` function `mutate`. This function is aware of the column names and inside the function you can call them unquoted:
 
     ```{r, eval=FALSE}
 murders <- mutate(murders, population_in_millions = population / 10^6)
@@ -150,7 +156,7 @@ murders <- mutate(murders, population_in_millions = population / 10^6)
 select(murders, state, population) %>% head()
     ```
 
-    Use `select` to show the state names and abbreviations in `murders`. Just show it, do not define a new object.
+    Use `select` to show the state names and abbreviations in `murders`. Do not define a new object, just show the results.
 
 
 4. The `dplyr` function `filter` is used to choose specific rows of the data frame to keep. Unlike `select` which is for columns, `filter` is for rows. For example, you can show just the New York row like this:
@@ -210,7 +216,7 @@ murders <- mutate(murders, rate =  total / population * 100000, rank = rank(-rat
     select(my_states, state, rate, rank)
     ```
 
-    The pipe `%>%` permits us to perform both operation sequentially and without having to define an intermediate variable `my_states`. We therefore could have mutated and selected in the same line like this:
+    The pipe `%>%` permits us to perform both operations sequentially without having to define an intermediate variable `my_states`. We therefore could have mutated and selected in the same line like this:
 
     ```{r}
 mutate(murders, rate =  total / population * 100000, rank = rank(-rate)) %>%
