@@ -925,14 +925,16 @@ ROY <- ROY %>%
   group_by(playerID) %>% 
   mutate(rookie = ifelse(yearID == min(yearID), "rookie", "sophomore")) %>%
   filter(n() == 2) %>% 
-  ungroup %>%
+  ungroup() %>%
   select(playerID, rookie_year, rookie, nameFirst, nameLast, AVG) 
 ```
 
 Finally, we will use the spread function to have one column for the rookie and sophomore year batting averages:
 
 ```{r}
-ROY <- ROY %>% spread(rookie, AVG) %>% arrange(desc(rookie))
+ROY <- ROY %>%
+  spread(rookie, AVG) %>%
+  arrange(desc(rookie))
 ```
 
 We can see the top performers in their first year:
@@ -955,7 +957,7 @@ two_years <- Batting %>%
   group_by(playerID, yearID) %>%  
   filter(sum(AB) >= 130) %>% 
   summarize(AVG = sum(H)/sum(AB)) %>% 
-  ungroup %>% 
+  ungroup() %>% 
   spread(yearID, AVG) %>% 
   filter(!is.na(`2013`) & !is.na(`2014`)) %>%
   left_join(playerInfo, by="playerID") %>% 
@@ -971,13 +973,13 @@ The same pattern arises when we look at the top performers: batting averages go 
 two_years
 ```
 
-But these are not rookies! Also, look at what happens to the worst performers of 2013:
+But these are not rookies and sophomores! Also, look at what happens to the worst performers of 2013:
 
 ```{r}
 arrange(two_years, `2013`)
 ```
 
-Their batting averages go up! Is this some sort of reverse sophomore slump? It is not. There is no such thing as the sophomore slump. This is all explained with a simple statistical fact: the correlation for performance in two separate years is high, but not perfect:
+Their batting averages go up! Is this some sort of reverse sophomore slump? It is not: there is no such thing as the sophomore slump. This is all explained with a simple statistical fact: the correlation for performance in two separate years is high, but not perfect:
 
 ```{r regression-fallacy}
 two_years %>% 
@@ -995,12 +997,12 @@ The data look very much like a bivariate normal distribution which means we pred
 
 $$ \frac{Y - .255}{.032} = 0.46 \left( \frac{X - .261}{.023}\right) $$
 
-Because the correlation is not perfect, regression tells us that, on average, expect high performers from 2013 to do a bit worse in 2014. It's not a jinx; it's just due to chance. The ROY are selected from the top values of $X$ so it is expected that $Y$ will regress to the mean.
+Because the correlation is not perfect, regression tells us that, on average, expect high performers from 2013 to do a bit worse in 2014. It's not a jinx; it's just due to chance. The ROY are selected from the top values of $X$, so it is expected that $Y$ will regress to the mean.
 
 
 # Measurement error models
 
-Up to now, all our linear regression examples have been applied to two or more random variables. We assume the pairs are bivariate normal and use this to motivate a linear model. This approach covers most real life examples of linear regression. The other major application comes from measurement errors models. In these applications, it is common to have a non-random covariate, such as time, and randomness is introduced from measurement error rather than sampling or natural variability.
+Up to now, all our linear regression examples have been applied to two or more random variables. We assume the pairs are bivariate normal and use this to motivate a linear model. This approach covers most real life examples of linear regression. The other major application comes from measurement error models. In these applications, it is common to have a non-random covariate, such as time, and randomness is introduced from measurement error rather than sampling or natural variability.
 
 To understand these models, imagine you are Galileo in the 16th century trying to describe the velocity of a falling object. An assistant climbs the Tower of Pisa and drops a ball, while several other assistants record the position at different times. Let's simulate some data using the equations we know today and adding some measurement error. The `dslabs` function `rfalling_object` generates these simulations:
 
@@ -1024,7 +1026,7 @@ $$ f(x) = \beta_0 + \beta_1 x + \beta_2 x^2$$
 
 The data does not fall exactly on a parabola. Galileo knows this is due to measurement error. His helpers make mistakes when measuring the distance. To account for this, he models the data with:
 
-$$ Y_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \varepsilon_i, i=1,\dots,n $$
+$$ Y_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \varepsilon_i \mbox{ for } i=1,\dots,n $$
 
 with $Y_i$ representing distance in meters, $x_i$ representing time in seconds, and $\varepsilon$ accounting for measurement error. The measurement error is assumed to be random, independent from each other, and having the same distribution for each $i$. We also assume that there is no bias, which means the expected value $\mbox{E}[\varepsilon] = 0$.
 
@@ -1037,7 +1039,7 @@ LSE calculations do not require the errors to be approximately normal. The `lm` 
 ```{r}
 fit <- falling_object %>% 
   mutate(time_sq = time^2) %>% 
-  lm(observed_distance~time+time_sq, data=.)
+  lm(observed_distance ~ time + time_sq, data=.)
 tidy(fit)
 ```
 
@@ -1051,17 +1053,17 @@ augment(fit) %>%
 ```
 
 
-Thanks to my high school physics teacher, I know that the equation for the trajectory of a falling object is: 
+Thanks to high school physics, I know that the equation for the trajectory of a falling object is: 
 
-$$d = h_0 + v_0 t -  0.5 \times 9.8 t^2$$
+$$d = h_0 + v_0 t -  4.9 t^2$$
 
-with $h_0$ and $v_0$ the starting height and velocity respectively. The data we simulated above followed this equation and added measurement error to simulate `n` observations for dropping the ball $(v_0=0)$ from the tower of Pisa $(h_0=56.67)$. 
+with $h_0$ and $v_0$ the starting height and velocity respectively. The data we simulated above followed this equation and added measurement error to simulate `n` observations for dropping the ball $(v_0=0)$ from the tower of Pisa $(h_0=55.86)$. 
 
-These are consistent with the parameter estimates:
+These are consistent with the parameter estimates from the LSE:
 
 ```{r}
 tidy(fit, conf.int = TRUE)
 ```
 
-The Tower of Pisa height is within the confidence interval for $\beta_0$, the initial velocity 0 is in the confidence interval for $\beta_1$ (note the p-value is larger than 0.05), and the acceleration constant is in a confidence interval for $-2 \times \beta_2$. 
+The Tower of Pisa height is within the confidence interval for $\beta_0$, the initial velocity 0 is in the confidence interval for $\beta_1$ (note the p-value is larger than 0.05), and the acceleration constant is in the confidence interval for $\beta_2$. 
 
