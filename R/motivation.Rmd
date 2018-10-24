@@ -1,11 +1,10 @@
 # (PART) R Basics  {-}
 
-# Introduction
+# Introduction {-}
 
 In this book we will be using the
 [R software environment](https://cran.r-project.org/) for all our
 analysis. You will learn R and data analysis techniques simultaneously. However, we need to introduce basic R syntax to get you started. In this chapter, rather than cover every R skill you need, we introduce just enough so that you can understand subsequent chapters where we provide more in depth coverage, building upon what you learned previously. We find that we better retain R knowledge when we apply it to solving specific problems. Therefore, in this chapter, as well as throughout the book, we will use a motivating case study. We ask a specific question related to crime in the United States and provide a relevant dataset. Some basic R skills will permit us to answer the motivating question. 
-
 
 #  Case study: US Gun Murders
 
@@ -18,7 +17,7 @@ knitr::include_graphics("R/img/homocides_g8_countries_640x360_wmain.jpg")
 ```
 
 (Source:
-[Graph Ma’ayan Rosenzweigh/ABC News](https://abcnews.go.com/blogs/headlines/2012/12/us-gun-ownership-homicide-rate-higher-than-other-developed-countries/) , Data from UNODC Homicide Statistics)
+[Graph Ma’ayan Rosenzweigh/ABC News](https://abcnews.go.com/blogs/headlines/2012/12/us-gun-ownership-homicide-rate-higher-than-other-developed-countries/), Data from UNODC Homicide Statistics)
 
 Or even worse, this version from [everytown.org](https://everytownresearch.org):
 
@@ -33,16 +32,14 @@ But then you remember that the US is a large and diverse country with 50 very di
  
 ```{r us-murders-by-state-map, message=FALSE, echo=FALSE}
 library(tidyverse)
-library(fiftystater)
 library(dslabs)
-data("fifty_states") # this line is optional due to lazy data loading
 
 data(murders) 
 murders %>% mutate(murder_rate = total/population*10^5,
                   state = tolower(state), 
                   colors= factor(ceiling(pmin(murder_rate, 9)))) %>%
   ggplot(aes(map_id = state)) + 
-  geom_map(aes(fill = colors), color = "black", map = fifty_states) + 
+  geom_map(aes(fill = colors), color = "black", map = map_data("state")) + 
   expand_limits(x = fifty_states$long, y = fifty_states$lat) +
   coord_map() +
   scale_x_continuous(breaks = NULL) + 
@@ -51,6 +48,9 @@ murders %>% mutate(murder_rate = total/population*10^5,
   theme(panel.background = element_blank()) + 
   scale_fill_brewer(guide=FALSE) +
   theme_minimal()
+
+## to avoid clash with purrr
+detach("package:maps", unload=TRUE)
 ```
 
 
