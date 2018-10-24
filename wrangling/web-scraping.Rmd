@@ -63,7 +63,7 @@ Although we provide tools that make it possible to scrape data without knowing H
 
 ## The rvest package
 
-The `tidyverse` provides a web harvesting package called `rvest`. The first step using this package is to import the webpage into R. The package makes this quite simple:
+The __tidyverse__ provides a web harvesting package called __rvest__. The first step using this package is to import the webpage into R. The package makes this quite simple:
 
 ```{r}
 library(rvest)
@@ -77,7 +77,7 @@ Note that the entire Murders in the US Wikipedia webpage is now contained in `h`
 class(h)
 ```
 
-The rvest package is actually more general; it handles XML documents. XML is a general markup language, that's what the ML stand for, that can be used to represent any kind of data. HTML is a specific type of XML specifically developed for representing webpages. Here we focus on HTML documents.
+The __rvest__ package is actually more general; it handles XML documents. XML is a general markup language, that's what the ML stand for, that can be used to represent any kind of data. HTML is a specific type of XML specifically developed for representing webpages. Here we focus on HTML documents.
 
 Now, how do we extract the table from the object `h`? If we print `h`, we don't really see much:
 
@@ -85,7 +85,7 @@ Now, how do we extract the table from the object `h`? If we print `h`, we don't 
 h
 ```
 
-When we know that the information is stored in an HTML table, you can see this in this line of the HTML code above `<table class="wikitable sortable">`. The different parts of an HTML document, often defined with a message in between  `<` and `>`  are referred to as _nodes_. The rvest package includes functions to extract nodes of an HTML document: `html_nodes` extracts all nodes of different types and `html_node` extracts the first one. To extract the tables from the html code we use:
+When we know that the information is stored in an HTML table, you can see this in this line of the HTML code above `<table class="wikitable sortable">`. The different parts of an HTML document, often defined with a message in between  `<` and `>`  are referred to as _nodes_. The __rvest__ package includes functions to extract nodes of an HTML document: `html_nodes` extracts all nodes of different types and `html_node` extracts the first one. To extract the tables from the html code we use:
  
 
 ```{r} 
@@ -105,7 +105,7 @@ tab[[3]]
 ```
 
 
-We are not quite there yet because this is clearly not a tidy dataset, not even a data frame. In the code above, you can definitely see a pattern and writing code to extract just the data is very doable. In fact, `rvest` includes a function just for converting HTML tables into data frames:
+We are not quite there yet because this is clearly not a tidy dataset, not even a data frame. In the code above, you can definitely see a pattern and writing code to extract just the data is very doable. In fact, __rvest__ includes a function just for converting HTML tables into data frames:
 
 
 ```{r}
@@ -169,7 +169,7 @@ get_recipe("https://www.foodnetwork.com/recipes/giada-de-laurentiis/pasta-primav
 ```
 
 
-There are several other powerful tools provided by `rvest`. For example, the functions `html_form`, `set_values`, and `submit_form` permit you to query a webpage from R. This is a more advanced topic not covered here.
+There are several other powerful tools provided by __rvest__. For example, the functions `html_form`, `set_values`, and `submit_form` permit you to query a webpage from R. This is a more advanced topic not covered here.
 
 
 ## JSON
@@ -183,7 +183,7 @@ json <- toJSON(example, pretty = TRUE)
 json
 ```
 
-The file above actually represents a data frame. To read it, we can use the function `fromJSON` from the jsonlite package. Note that JSON files are often made available via the internet. Several organizations provide a JSON API or a web service that you can connect directly to and obtain data. Here is an example:
+The file above actually represents a data frame. To read it, we can use the function `fromJSON` from the __jsonlite__ package. Note that JSON files are often made available via the internet. Several organizations provide a JSON API or a web service that you can connect directly to and obtain data. Here is an example:
 
 ```{r}
 library(jsonlite)
@@ -203,9 +203,88 @@ head(citi_bike$stationBeanList)
 ```
 
 
-You can learn much more by examining tutorials and help files from the jsonlite package. This package is intended for relatively simple tasks such as converging data into tables. For more flexibility, we recommend `rjson`.
+You can learn much more by examining tutorials and help files from the __jsonlite__ package. This package is intended for relatively simple tasks such as converging data into tables. For more flexibility, we recommend `rjson`.
 
 
+
+## Exercises {-}
+
+
+1. Visit the following web page: [http://www.stevetheump.com/Payrolls.htm](http://www.stevetheump.com/Payrolls.htm)
+
+Notice there are several tables. Say we are interested in comparing the payrolls of teams across the years. The next few exercises take us through the steps needed to do this.
+
+Start by applying what you learned to read in the website into an object called `h`.
+
+2. Note that, although not very useful, we can actually see the content of the page by typing:
+
+    ```{r, eval = FALSE}
+    html_text(h)
+    ```
+
+    The next step is to extract the tables. For this, we can use the `html_nodes` function. We learned that tables in html are associated with the `table` node.  Use the `html_nodes` function and the `table` node to extract the first table. Store it in an object `nodes`.
+
+
+
+3. The `html_nodes` function returns a list of objects of class `xml_node`. We can see the content of each one using, for example, the `html_text` function. You can see the content for an arbitrarily picked component like this:
+
+    ```{r, eval = FALSE}
+    html_text(nodes[[8]])
+    ```
+
+    If the content of this object is an html table, we can use the `html_table` function to convert it to a data frame. Use the `html_table` function to convert the 8th entry of `nodes` into a table.
+
+
+4. Repeat the above for the first 4 components of `nodes`. Which of the following are payroll tables:
+
+    A. All them.
+    B. 1
+    C. 2
+    D. 2-4
+
+
+5. Repeat the above for the first __last__ 3 components of `nodes`. Which of the following is true:
+
+    A. The last entry in `nodes` shows the average across all teams through time, not payroll per team.
+    B. All three are payroll per team tables.
+    C. All three are like the first entry, not a payroll table.
+
+
+
+6. We have learned that the first and last entries of `nodes` are not payroll tables. Redefine `nodes` so that these two are removed.
+
+
+7. We saw in the previous analysis that the first table node is not actually a table. This happens sometimes in html because tables are used to make text look a certain way, as opposed to storing numeric values. 
+Remove the first component and then use `sappy` and `html_table` to covert each node in `nodes` into a table. Note that in this case,`sapply` will return a list of tables. You can also use `lapply` to assure that a list is applied.
+
+
+
+8. Look through the resulting tables. Are they all the same? Could we just join them with `row_bind`? 
+
+
+
+9. Create three tables, call them `tab_1` and `tab_2` using entries 10 and 19.
+
+
+
+10. Use a `full_join` function to combine these two tables. Before you do this you will have to fix the missing header problem. You will also need to make the names match.
+ 
+
+11. After joining the tables, you see several NAs. This is because some teams are in one table and not the other. Use the `anti_join` function to get a better idea of why this is happening.
+
+
+
+12. We see see that one of the problem is that Yankees are listed as both _N.Y. Yankees_ and _NY Yankees_. In the next section, we will learn efficient approaches to fixing problems like this. Here we can do it "by hand" as follows:
+
+
+    ```{r, eval=FALSE}
+    tab_1 <- mutate(tab_1, Team = ifelse(Team == "N.Y. Yankees", "NY Yankees", Team))
+    ```
+
+    Now join the tables and show only Oakland and the Yankees and the payroll columns.
+
+
+13. Advanced: extract the titles of the movies that won Best Picture from this website: [https://m.imdb.com/chart/bestpicture/](https://m.imdb.com/chart/bestpicture/)
 
 
 

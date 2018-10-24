@@ -2,7 +2,7 @@
 
 Now that we have learned several methods and explored them with illustrative examples, we are going to try them out on a real example: the MNIST digits. 
 
-We can load this data using the following dslabs package:
+We can load this data using the following __dslabs__ package:
 
 ```{r}
 mnist <- read_mnist()
@@ -56,7 +56,7 @@ qplot(sds, bins = 256, color = I("black"))
 
 This is expected because there are parts of the image that rarely contain writing (dark pixels). 
 
-The caret packages includes a function that recommends features to be removed due to _near zero variance_:
+The __caret__ packages includes a function that recommends features to be removed due to _near zero variance_:
 
 ```{r}
 library(caret)
@@ -128,7 +128,7 @@ cm <- confusionMatrix(y_hat_knn, factor(y_test))
 cm$overall["Accuracy"]
 ```
 
-From the specificity and sensitivity, we also see that 8s are the hardest to detect and the most commonly incorrectly predicted digit is 7.
+We now achieve an accuracy of about 0.95. From the specificity and sensitivity, we also see that 8s are the hardest to detect and the most commonly incorrectly predicted digit is 7.
 
 ```{r}
 cm$byClass[,1:2]
@@ -137,7 +137,7 @@ cm$byClass[,1:2]
 Now let's see if we can do even better with Random Forest. 
 
 With Random Forest, computation time is a challenge. For each Forest, we need to build hundreds of trees. We also have several parameters we can tune. 
-We use the Random Forest implementation in the Rborist package which is faster than the one in the randomForest package
+We use the Random Forest implementation in the __Rborist__ package which is faster than the one in the __randomForest__ package
 
 Because with Random Forest, the fitting is the slowest part of the procedure rather than the predicting (as with kNN), we will use only 5 fold cross validation.
 
@@ -173,10 +173,11 @@ fit_rf <- Rborist(x[, col_index], y,
 ```
 
 
-We now achieve an accuracy of almost 0.955!
 
 ```{r}
 y_hat_rf <- factor(levels(y)[predict(fit_rf, x_test[ ,col_index])$yPred])
+cm <- confusionMatrix(y_hat_rf, y_test)
+cm$overall["Accuracy"]
 ```
 
 Here are some examples of the original images and our calls:
@@ -189,18 +190,11 @@ for(i in 1:12){
 }
 ```
 
-We achieve an accuracy of over 0.95:
-
-```{r}
-cm <- confusionMatrix(y_hat_rf, y_test)
-cm$overall["Accuracy"]
-```
-
 With some further tuning, we can get even higher accuracy.
 
 ## Variable importance 
 
-Unfortunately, the Rborist implementation of Random Forest does not yet support importance calculations. So we demonstrate with a quick fit using the randomForest package.
+Unfortunately, the Rborist implementation of Random Forest does not yet support importance calculations. So we demonstrate with a quick fit using the __randomForest__ package.
 
 ```{r}
 library(randomForest)
@@ -274,4 +268,55 @@ p <- (p_rf + p_knn)/2
 y_pred <- factor(apply(p, 1, which.max)-1)
 confusionMatrix(y_pred, y_test)
 ```
+
+
+
+For these exercises we are going to build several machine learning models for the
+`mnist_27` and then build an ensemble.
+
+## Exercises {-}
+
+1. Use the training set to build a model with several of the models available from the __caret__ package. For example, you can try these:
+
+    ```{r, eval = FALSE}
+    models <- c("glm", "lda",  "naive_bayes",  "svmLinear", 
+                "gamboost",  "gamLoess", "qda", 
+                "knn", "kknn", "loclda", "gam",
+                "rf", "ranger",  "wsrf", "Rborist", 
+                "avNNet", "mlp", "monmlp",
+                "adaboost", "gbm",
+                "svmRadial", "svmRadialCost", "svmRadialSigma")
+    ```
+
+    We have not explained many of these but apply them anyway using `train` with all the default parameters .You might need to install some packages. Keep in mind that you will likely get some warnings.
+
+
+2. Now that you have all the trained models in a list, use `sapply` or `map` to create a matrix of predictions for the test set. You should end up with a matrix with `length(mnist_27$test$y)` rows and `length(models)`. 
+
+
+3. Now compute accuracy for each model on the test set.
+
+
+4. Now build an ensemble prediction by majority vote and compute the accuracy of the ensemble.
+
+5. Earlier we computed the accuracy of each method on the training set and noticed they varied.  How many of the individual methods do better than the ensemble? Which methods are they?
+
+
+6. It is tempting to remove the methods that do not perform well and re-do the ensemble. The problem with this approach is that we are using the test data to make a decision. However, we could use the accuracy estimates obtained from cross validation with the training data. Obtain these estimates and save them in an object.
+
+
+7. Now let's only consider the methods with an estimated accuracy of 0.8 when constructing the ensemble. What is the accuracy now?
+
+
+8. Advanced: If two methods give results that are the same, ensembling them will not change the results at all. For each pair of metrics compare the percent of time they call the same thing. Then use the heatmap function to visualize the results. Hint: use the `method = "binary"` argument in the `dist` function.
+
+
+9. __Advanced__: Note that each method can also produce an estimated conditional probability. Instead of majority vote we can take the average of these estimated conditional probabilities. For most methods, we can the use the `type = "prob"` in the train function. However, some of the methods require you to use the argument `trControl=trainControl(classProbs=TRUE)` when calling train. Also these methods do not work if classes have numbers as names. Hint: change the levels like this:
+
+
+    ```{r, eval = FALSE}
+    dat$train$y <- recode_factor(dat$train$y, "2"="two", "7"="seven")
+    dat$test$y <- recode_factor(dat$test$y, "2"="two", "7"="seven")
+    ```
+    
 

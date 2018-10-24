@@ -61,7 +61,7 @@ mean((y_hat - test_set$son)^2)
 ```
 
 
-## The `predict` function
+# The `predict` function
 
 The `predict` function is very useful for machine learning applications. This function takes a fitted object from functions such as `lm` or `glm` (we learn about `glm` soon) and a data frame with the new predictors for which to predict. So in our current example, we would use predict like this:
 
@@ -90,9 +90,97 @@ and
 
 There are many other versions of `predict` and many machine learning algorithms have one.
 
-## Regression for a categorical outcome
 
-The regression approach can also be applied to categorical data. To illustrate this, we will apply it to our previous predicting sex example:
+## Exercises {-}
+
+1. Create a dataset using the following code.
+
+    ```{r, eval=FALSE}
+    n <- 100
+    Sigma <- 9*matrix(c(1.0, 0.5, 0.5, 1.0), 2, 2)
+    dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) %>%
+      data.frame() %>% setNames(c("x", "y"))
+    ```
+
+    Use the __caret__ package to partition into a test and training set of equal size. Train a linear model and report the RMSE. Repeat this exercise 100 times and make a histogram of the RMSEs and report the average and standard deviation. Hint: use the code shown in the previous chapter inside a call to replicate.
+
+    
+2. Now we will repeat the above, but using a larger datasets. Repeat exercise 1 but for datasets with `n <- c(100, 500, 1000, 5000, 10000)`. Save the average and standard deviation of RMSE from the 100 repetitions. Hint: use the `sapply` or `map` functions.
+
+    
+3. Describe what you observe with the RMSE as the size of the dataset becomes larger.
+
+    A. On average, the RMSE does not change much as `n` gets larger, while the variability of RMSE does decrease.
+    B. Because of the law of large numbers, the RMSE decreases: more data, more precise estimates.
+    C. `n = 10000` is not sufficiently large. To see a decrease in RMSE, we need to make it larger.
+    D. The RMSE is not a random variable.
+
+    
+4. Now repeat exercise 1, but this time make the correlation between `x` and `y` larger by changing `Sigma` like this:
+
+
+    ```{r, eval=FALSE}
+    n <- 100
+    Sigma <- 9*matrix(c(1, 0.95, 0.95, 1), 2, 2)
+    dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) %>%
+      data.frame() %>% setNames(c("x", "y"))
+    ```
+    
+    Repeat the exercise and note what happens to the RMSE now.
+
+    
+5. Which of the following best explains why the RMSE in exercise 4 is so much lower than exercise 1.
+
+    A. It is just luck. If we do it again, it will be larger.
+    B. The central limit theorem tell us the RMSE is normal.
+    C. When we increase the correlation between `x` and `y`, `x` has more predictive power and thus provides a better estimate of `y`. This correlation has a much bigger effect on RMSE than `n`. Large `n` simply provide us more precise estimates of the linear model coefficients.
+    D. These are both examples of regression so the RMSE has to be the same.
+    
+
+6.  Create a dataset using the following code.
+
+    ```{r, eval=FALSE}
+    n <- 1000
+    Sigma <- matrix(c(1.0, 0.75, 0.75, 0.75, 1.0, 0, 0.75, 0, 1.0), 3, 3)
+    dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) %>%
+      data.frame() %>% setNames(c("y", "x_1", "x_2"))
+    ```
+    
+    Note that `y` is correlated with both `x_1` and `x_2`, but the two predictors are independent of each other.
+    ```{r, eval=FALSE}
+    cor(dat)
+    ```
+
+    Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2` and both `x_1` and `x_2` Train a linear model and report the RMSE. 
+
+    
+7.  Repeat exercise 6 but now create an example in which `x_1` and `x_2` are highly correlated
+
+    ```{r, eval=FALSE}
+    n <- 1000
+    Sigma <- matrix(c(1.0, 0.75, 0.75, 0.75, 1.0, 0.95, 0.75, 0.95, 1.0), 3, 3)
+    dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) %>%
+      data.frame() %>% setNames(c("y", "x_1", "x_2"))
+    ```
+    
+    Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2` and both `x_1` and `x_2` Train a linear model and report the RMSE. 
+
+8. Compare the results in 6 and 7 and choose the statement you agree with:
+
+    A. Adding extra predictors can improve RMSE substantially, but not when they are highly correlated with another predictor.
+    B. Adding extra predictors improves predictions equally in both exercises.
+    C. Adding extra predictors results in over fitting.
+    D. Unless we include all predictors, we have no predicting power.
+
+
+# Logistic regression
+
+The regression approach can be extended to categorical data. In this chapter we first illustrate how, for binary data, one can simply assign numeric values of 0 and 1 to the outcomes $y$, and apply regression as if the data were continuous. We will then point out a limitation with this approach and introduce _logistic regression_ as a solution. Logistic regression is specific case of a set of _generalized linear models_.
+
+
+## Linear regression for a binary outcome
+
+To illustrate this, we will apply it to our previous predicting sex example:
 
 ```{r, echo=FALSE}
 library(dslabs)
@@ -161,7 +249,7 @@ confusionMatrix(y_hat, test_set$sex)
 
 We see this method does substantially better than guessing.
 
-# Logistic regression
+## Generalized Linear Models
 
 The function $\beta_0 + \beta_1 x$ can take any value including negatives and values larger than 1. In fact, the estimate $\hat{p}(x)$ computed in the linear regression section does indeed become negative at around 76 inches.
 
@@ -184,7 +272,9 @@ range(p_hat)
 
 But we are estimating a probability: $\mbox{Pr}( Y = 1 \mid X = x)$ which is constrained between 0 and 1. 
 
-Logistic regression is an extension of linear regression that assures that the estimate of  $\mbox{Pr}( Y = 1 \mid X = x)$ is between 0 and 1. This approach makes use of the  _logistics_ transformation introduced in the data visualization chapter.  
+The idea of Generalized Linear Models (GLM) is to 1) define a distribution of $Y$ that is consistent with it's possible outcomes and 
+2) find a function $g$ so that $g(\mbox{Pr}( Y = 1 \mid X = x))$ can be modeled as a linear combination of predictors. 
+Logistic regression is the most commonly used GLM. It is an extension of linear regression that assures that the estimate of  $\mbox{Pr}( Y = 1 \mid X = x)$ is between 0 and 1. This approach makes use of the  _logistics_ transformation introduced in the data visualization chapter.  
 
 $$ g(p) = \log \frac{p}{1-p}$$
 
@@ -268,5 +358,42 @@ $$
 $$
 
 Once we move on to more complex examples, we will see that linear regression and generalized linear regression are limited and not flexible enough to be useful. The techniques we learn are essentially approaches to estimating the conditional probability in a way that is more flexible.
+
+
+## Exercises {-}
+
+1. Define the following dataset:
+
+    ```{r, eval = FALSE}
+    make_data <- function(n = 1000, p = 0.5, 
+                          mu_0 = 0, mu_1 = 2, 
+                          sigma_0 = 1,  sigma_1 = 1){
+      
+      y <- rbinom(n, 1, p)
+      f_0 <- rnorm(n, mu_0, sigma_0)
+      f_1 <- rnorm(n, mu_1, sigma_1)
+      x <- ifelse(y == 1, f_1, f_0)
+      
+      test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
+      
+      list(train = data.frame(x = x, y = as.factor(y)) %>% slice(-test_index),
+           test = data.frame(x = x, y = as.factor(y)) %>% slice(test_index))
+    }
+    dat <- make_data()
+    ```
+    
+    Note that we have defined a variable `x` that is predictive of a binary outcome `y`.
+
+    ```{r, eval=FALSE}
+    dat$train %>% ggplot(aes(x, color = y)) + geom_density()
+    ```
+    
+    Compare the accuracy of linear regression and logistic regression. 
+
+
+2. Repeat exercise 1 100 times and compare the average accuracy for each method and notice they give practically the same answer.
+
+
+3. Generate 25 different datasets changing the difference between the two class: `delta <- seq(0, 3, len = 25)`. Plot accuracy versus `delta`.
 
 

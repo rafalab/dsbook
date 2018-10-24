@@ -2,26 +2,24 @@
 
 # Introduction
 
-```{r}
-library(tidyverse)
-library(dslabs)
-ds_theme_set()
-set.seed(0)
-```
-
 Up to this point, this book has focused mainly on _univariate_ variables. However, in data science applications, it is very common to be interested in the relationship between two or more variables. For instance, later in the chapter we will try to use a limited budget to build a baseball team by examining the relationship between player statistics and runs (points). Before delving into this more complex example, we introduce necessary concepts needed to understand regression using a simpler illustration. We actually use the dataset from which regression was born.
 
 The example is from Genetics. [Francis Galton](https://en.wikipedia.org/wiki/Francis_Galton) studied the variation and heredity of human traits. Among many other traits, Galton collected and studied height data from families to try to understand heredity. While doing this, he developed the concepts of correlation and regression, and a connection to pairs of data that follow a normal distribution. Of course, at the time this data was collected, our knowledge of genetics was quite limited compared to what we know today. A very specific question Galton tried to answer was: how well can we predict a child's height based on the parents' height? The technique he developed to answer this question, regression, can also be applied to our baseball question. For example, we will study if bases on ball predict runs. Regression can be applied in many other circumstances as well.
 
 # Case study: Is height hereditary?
 
-We have access to Galton's family height data through the `HistData` package. This data contains heights on several dozen families: mothers, fathers, daughters and sons. To imitate Galton's analysis, we will create a dataset with the heights of fathers and the firstborn son of each family: 
+We have access to Galton's family height data through the __HistData__ package. This data contains heights on several dozen families: mothers, fathers, daughters and sons. To imitate Galton's analysis, we will create a dataset with the heights of fathers and the firstborn son of each family: 
 
 ```{r}
 library(HistData)
 data("GaltonFamilies")
+
+set.seed(1)
 galton_heights <- GaltonFamilies %>%
-  filter(childNum == 1 & gender == "male") %>%
+  filter(gender == "male") %>%
+  group_by(family) %>%
+  sample_n(1) %>%
+  ungroup() %>%
   select(father, childHeight) %>%
   rename(son = childHeight)
 ```
@@ -95,6 +93,7 @@ By way of illustration, let's assume that the `r nrow(galton_heights)` pairs of 
 ```{r}
 R <- sample_n(galton_heights, 25, replace = TRUE) %>% 
   summarize(r = cor(father, son))
+R
 ```
 
 `R` is a random variable. We can run a Monte Carlo simulation to see its distribution:
@@ -144,7 +143,6 @@ If you increase $N$, you will see the distribution converging to normal.
 Correlation is not always a good summary of the relationship between two variables. The following four artificial datasets, referred to as Anscombe's quartet, famously illustrate this point. All these pairs have a correlation of 0.82:
 
 ```{r ascombe-quartet,echo=FALSE}
-library(tidyr)
 anscombe %>% mutate(row = seq_len(n())) %>%
   gather(name, value, -row) %>% 
   separate(name, c("axis", "group"), sep=1) %>%
@@ -187,7 +185,7 @@ conditional_avg
 ```
 
 
-Note that a 72 inch father is taller than average. Specifically, (72 - `mean(galton_heights$father)`/`sd(galton_heights$father)` =
+Note that a 72 inch father is taller than average. Specifically, (72 - `r mean(galton_heights$father)`/`sd(galton_heights$father)` =
 `r (72 -mean(galton_heights$father))/sd(galton_heights$father)` standard deviations taller than the average father. Our prediction `r conditional_avg` is also taller than average, but only `r (conditional_avg - mean(galton_heights$son)) /sd(galton_heights$son)` standard deviations larger than the average son. The sons of 72 inch fathers have _regressed_ some to the average height. We notice that the reduction in how much taller is about 0.5, which happens to be the correlation. As we will see in a later section, this is not a coincidence.
 
 If we want to make a prediction of any height, not just 72, we could apply the same approach to each strata. Stratification followed by boxplots lets us see the distribution of each group:
@@ -213,7 +211,10 @@ galton_heights %>%
 Furthermore, these centers appear to follow a linear relationship. Below we plot the averages of each group. If we take into account that these averages are random variables with standard errors, the data is consistent with these points following a straight line:
 
 ```{r conditional-averages-follow-line, echo=FALSE}
-r <- galton_heights %>% summarize(r = cor(father, son)) %>% .$r
+r <- galton_heights %>% 
+  summarize(r = cor(father, son)) %>% 
+  .$r
+
 galton_heights %>% 
   mutate(father = round(father)) %>% 
   group_by(father) %>%
@@ -439,3 +440,15 @@ galton_heights %>%
 ```
 
 with blue for the predicting son heights with father heights and red for predicting father heights with son heights.
+
+## Exercises {-}
+
+
+1. Load the `GaltonFamilies` data from the __HistData__. The children in each family are listed by gender and then by height. Create a dataset called `galton_heights` by picking a male and female at random. Set the seed to 1 before running this code as it involves a random sample. 
+
+2. Make a scatterplot for heights between mothers and daughters, mothers and sons, fathers and daughters, and fathers and sons. 
+
+
+3. Compute the correlation in heights between mothers and daughters, mothers and sons, fathers and daughters, and fathers and sons.
+
+

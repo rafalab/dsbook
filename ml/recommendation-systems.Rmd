@@ -10,7 +10,7 @@ and a more detailed explanation [here](http://www.netflixprize.com/assets/GrandP
 
 ## Movielens data
 
-The Netflix data is not publicly available, but the [GroupLens research lab](https://grouplens.org/) generated their own database with over 20 million ratings for over 27,000 movies by more than 138,000 users. We make a small subset of this data available via the dslabs package:
+The Netflix data is not publicly available, but the [GroupLens research lab](https://grouplens.org/) generated their own database with over 20 million ratings for over 27,000 movies by more than 138,000 users. We make a small subset of this data available via the __dslabs__ package:
 
 ```{r}
 library(dslabs)
@@ -279,6 +279,65 @@ rmse_results <- bind_rows(rmse_results,
 rmse_results %>% knitr::kable()
 ```
 
+
+## Exercises {-}
+
+1. Load the `movielens` data. 
+
+    ```{r, eval=FALSE}
+    data("movielens")
+    ```
+
+    Compute the number of ratings for each movie and then plot it against the year the movie came out. Use the square root transformation on the counts.
+
+  
+2. We see that, on average, movies that came out after 1993 get more ratings. We also see that with newer movies, starting in 1993, the number of ratings decreases with year: the more recent a movie is, the less time users have had to rate it. 
+
+    Among movies that came out in 1993 or later, what are the 25 movies with the most ratings per year? Also report their average rating.
+ 
+  
+3. From the table constructed in the previous example, we see that the most rated movies tend to have above average ratings. This is not surprising: more people watch popular movies. To confirm this, stratify the post 1993 movies by ratings per year and compute their average ratings. Make a plot of average rating versus ratings per year and show an estimate of the trend.
+
+  
+
+4. In the previous exercise, we see that the more a movie is rated, the higher the rating. Suppose you are doing a predictive analysis in which you need to fill in the missing ratings with some value. Which of the following strategies would you use?
+
+    A. Fill in the missing values with average rating of all movies.
+    B. Fill in the missing values with 0.
+    C. Fill in the value with a lower value than the average since lack of rating is associated with lower ratings. Try out different values and evaluate prediction in a test set.
+    D. None of the above.
+    
+  
+5. The `movielens` dataset also includes a time stamp. This variable represents the time and data in which the rating was provided. The units are seconds since January 1, 1970. Create a new column `date` with the date. Hint: use the `as_datetime` function in the __lubridate__ package.
+
+
+    
+6. Compute the average rating for each week and plot this average against day. Hint: use the `round_date` function before you `group_by`.
+
+  
+7. The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day for user's $u$ rating of movie $i$, which of the following models is most appropriate:
+
+
+    A. $Y_{u,i} = \mu + b_i + b_u + d_{u,i} + \varepsilon_{u,i}$.
+    B. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
+    C. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta_i + \varepsilon_{u,i}$.
+    D. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
+    
+  
+8. The `movielens` data also has a `genres` column. This column includes every genre that applies to the movie. Some movies fall under several genres. Define a category as whatever combination appears in this column. Keep only categories with more than 1,000 ratings. Then compute the average and standard error for each category. Plot these as error bar plots.
+
+  
+9. The plot shows strong evidence of a genre effect. If we define $g_{u,i}$ as the genre for user's $u$ rating of movie $i$, which of the following models is most appropriate:
+
+
+    A. $Y_{u,i} = \mu + b_i + b_u + d_{u,i} + \varepsilon_{u,i}$.
+    B. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
+    C. $Y_{u,i} = \mu + b_i + b_u + \sum{k=1}^K x_{u,i} \beta_k + \varepsilon_{u,i}$, with $x^k_{u,i} = 1$ if $g_{u,i}$ is genre $k$.
+    D. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
+
+  
+
+
 # Regularization
 
 Despite the large movie to movie variation our improvement in RMSE was only about 5%. Let's explore where we made mistakes in our first model (using only movies). Here are the 10 largest mistakes:
@@ -510,6 +569,74 @@ rmse_results <- bind_rows(rmse_results,
 rmse_results %>% knitr::kable()
 
 ```
+
+## Exercises {-}
+
+An education expert is advocating for smaller schools. The expert bases this recommendation on the fact that among the best performing schools, many are small schools. Let's simulate a dataset for 100 schools. First, let's simulate the number of students in each school.
+
+```{r, eval=FALSE}
+set.seed(1986)
+n <- round(2^rnorm(1000, 8, 1))
+```
+
+Now let's assign a _true_ quality for each school completely independent from size. This is the parameter we want to estimate. 
+
+
+```{r, eval=FALSE}
+mu <- round(80 + 2*rt(1000, 5))
+range(mu)
+schools <- data.frame(id = paste("PS",1:100), 
+                      size = n, 
+                      quality = mu,
+                      rank = rank(-mu))
+```
+
+We can see that the top 10 schools are: 
+
+```{r, eval=FALSE}
+schools %>% top_n(10, quality) %>% arrange(desc(quality))
+```
+
+Now let's have the students in the school take a test. There is random variability in test taking so we will simulate the test scores as normally distributed with the average determined by the school quality and standard deviations of 30 percentage points:
+
+```{r, eval=FALSE}
+scores <- sapply(1:nrow(schools), function(i){
+  scores <- rnorm(schools$size[i], schools$quality[i], 30)
+  scores
+})
+schools <- schools %>% mutate(score = sapply(avg_score, mean))
+```
+
+
+1. What are the top schools based on the average score? Show just the ID, size and the average score.
+
+
+2. Compare the median school size to the median school size of the top 10 schools based on the score.
+
+
+3. So according to this test, it appears small schools are better than large schools. Five out of the top 10 schools have 100 or fewer students. But how can this be? We constructed the simulation so that quality and size are independent. Repeat the exercise for the worst 10 schools.
+
+
+4. The same is true for the worst schools! They are small as well. Plot the average score versus school size to see what's going on. Highlight the top 10 schools based on the _true_ quality. Use the log scale transform for the size.
+
+
+5. We can see that the standard error of the score has larger variability when the school is smaller. This is a basic statistical reality we learned in the probability and inference chapters! In fact, note that 4 of the top 10 schools are in the top 10 schools based on the exam score.
+
+    Let's use regularization to pick the best schools. Remember regularization _shrinks_ deviations from the average towards 0. So to apply regularization here, we first need to define the overall average for all schools:
+
+    ```{r, eval=FALSE}
+    overall <- mean(sapply(scores, mean))
+    ```
+    
+    and then define, for each school, how it deviates from that average. Write code that estimates the score above the average for each school but dividing by $n + \alpha$ instead of $n$, with $n$ the schools size and $\alpha$ a regularization parameters. Try $\alpha = 3$
+
+    6. Notice that this improves things a bit. The number of small schools that are not highly ranked is now 4.  Is there a better $\lambda$? Find the $\lambda$ that minimizes the RMSE = $1/100 \sum_{i=1}^{100} (\mbox{quality} - \mbox{estimate})^2$
+
+
+7. Rank the schools based on the average obtained with the best $\alpha$. Note that no small school is incorrectly included.
+
+
+8.  A common mistake to make when using regularization is shrinking values towards 0 that are not centered around 0. For example, if we don't subtract the overall average before shrinking, we actually obtain a very similar result. Confirm this by re-running the code from exercise 6 but without removing the overall mean. 
 
 # Matrix factorization
 
@@ -778,5 +905,219 @@ to nerd favorites:
 pcs %>% select(name, PC2) %>% arrange(desc(PC2)) %>% slice(1:10)
 ```
 
-Fitting a model that incorporates these estimates is complicated. For those interested in implementing an approach that incorporates these ideas, we recommend trying the `recommenderlab` package. The details are beyond the scope of this book.
+Fitting a model that incorporates these estimates is complicated. For those interested in implementing an approach that incorporates these ideas, we recommend trying the __recommenderlab__ package. The details are beyond the scope of this book.
 
+
+## Exercises {-}
+
+In this exercise set, we will be covering a topic useful for understanding matrix factorization: the singular value decomposition (SVD). SVD is a mathematical result that is widely used in machine learning, both in practice and to understand the mathematical properties of some algorithms. This is a rather advanced topic and to complete this exercise set you will have to be familiar with linear algebra concepts such as matrix multiplication, orthogonal matrices, and diagonal matrices.
+
+The SVD tells us that we can _decompose_ an $N\times p$ matrix $Y$ with $p < N$ as 
+
+$$ Y = U D V^{\top} $$
+
+With $U$ and $V$ _orthogonal_ of dimensions $N\times p$ and $p\times p$ respectively and $D$ a $p \times p$ _diagonal_ matrix with the values of the diagonal decreasing: 
+
+$$d_{1,1} \geq d_{2,2} \geq \dots d_{p,p}$$. 
+
+In this exercise, we will see one of the ways that this decomposition can be useful. To do this, we will construct a dataset that represents grade scores for 100 students in 24 different subjects. The overall average has been removed so this data represents the percentage point each student received above or below the average test score. So a 0 represents an average grade (C), a 25 is a high grade (A+), and a -25 represents a low grade (F). You can simulate the data like this:
+
+
+```{r, eval=FALSE}
+set.seed(1987)
+n <- 100
+k <- 8
+Sigma <- 64  * matrix(c(1, .75, .5, .75, 1, .5, .5, .5, 1), 3, 3) 
+m <- MASS::mvrnorm(n, rep(0, 3), Sigma)
+m <- m[order(rowMeans(m), decreasing = TRUE),]
+y <- m %x% matrix(rep(1, k), nrow = 1) + matrix(rnorm(matrix(n*k*3)), n, k*3)
+colnames(y) <- c(paste(rep("Math",k), 1:k, sep="_"),
+                 paste(rep("Science",k), 1:k, sep="_"),
+                 paste(rep("Arts",k), 1:k, sep="_"))
+``` 
+
+Our goal is to describe the student performances as succinctly as possible. For example, we want to know if these test results are all just a random independent numbers. Are all students just about as good? Does being good in one subject  imply you will be good in another? How does the SVD help with all this? We will go step by step to show that with just three relatively small pairs of vectors we can explain much of the variability in this $100 \times 24$ dataset. 
+
+You can visualize the 24 test scores for the 100 students by plotting an image:
+
+```{r, eval=FALSE}
+my_image <- function(x, zlim = range(x), ...){
+  colors = rev(RColorBrewer::brewer.pal(9, "RdBu"))
+  cols <- 1:ncol(x)
+  rows <- 1:nrow(x)
+  image(cols, rows, t(x[rev(rows),,drop=FALSE]), xaxt = "n", yaxt = "n",
+        xlab="", ylab="",  col = colors, zlim = zlim, ...)
+  abline(h=rows + 0.5, v = cols + 0.5)
+  axis(side = 1, cols, colnames(x), las = 2)
+}
+
+my_image(y)
+```
+
+1. How would you describe the data based on this figure?
+
+    A. The test scores are all independent of each other.
+    B. The students that test well are at the top of the image and there seems to be three groupings by subject.
+    C. The students that are good at math are not good at science.
+    D. The students that are good at math are not good at humanities.
+    
+2. You can examine the correlation between the test scores directly like this:
+
+    ```{r, eval=FALSE}
+    my_image(cor(y), zlim = c(-1,1))
+    range(cor(y))
+    axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+    ```
+
+    Which of the following best describes what you see?
+
+    A. The test scores are independent.
+    B. Math and Science are highly correlated but the humanities are not.
+    C. There is high correlation between tests in the same subject but no correlation across subjects.
+    D. There is a correlation among all tests, but higher if the tests are in science and math and even higher within each subject.
+    
+
+3. Remember that orthogonality means that $U^{\top}U$ and  $V^{\top}V$ are equal to the identity matrix. This implies that we can also rewrite the decomposition as
+
+    $$ Y V = U D \mbox{ or } U^{\top}Y = D V^{\top}$$ 
+
+    We can think of $YV$ and $U^{\top}V$ as two transformation of Y that preserve the total variability of $Y$ since $U$ and $V$ are orthogonal. 
+
+    Use the function `svd` to compute the SVD of `y`. This function will return $U$, $V$ and the diagonal entries of $D$. 
+
+    ```{r, eval=FALSE}
+    s <- svd(y)
+    names(s)
+    ```
+    
+    You can check that the SVD works by typing:
+
+    ```{r, eval=FALSE}
+    y_svd <- s$u %*% diag(s$d) %*% t(s$v)
+    max(abs(y - y_svd))
+    ```
+
+    Compute the sum of squares of the columns of $Y$ and store them in `ss_y`. Then the sum of squares of columns of the transformed $YV$ and store them in $ss_yv$. Confirm that `sum(ss_y)` is equal to `sum(ss_yv)`
+
+ 
+4. We see that the total sum of squares is preserved. This is because $V$ is orthogonal. Now to start understanding how $YV$ is useful 
+plot `ss_y` against the column number and then do the same for $ss_yv$. What do you observe?
+
+5. We see that the variability of the columns of $YV$ is decreasing. Furthermore, we see that, relative to the first three, the variability of the columns beyond the third is almost 0. Now notice that we didn't have to compute `ss_yv` because we already have the answer. How? Remember that $YV = UD$ and because $U$ is orthogonal, we know that the sum of squares of the columns of $UD$ are the diagonal entries of $D$ squared. Confirm this by plotting the square root of $ss_yv$ versus the diagonal entries of $D$
+
+ 
+6. So from the above we know that the sum of squares of the columns of $Y$ (the total sum of squares) add up to the sum of `s$d^2` and that the transformation $YV$ gives us columns with sums of squares equal to `s$d^2`. Now compute what percent of the total variability is explained by just the first three columns of $YV$.
+
+    
+7. We see that almost 99% of the variability is explained by the first three columns of $YV  = UD$. So we get the sense that we should be able to explain much of the variability and structure we found while exploring the data with a few columns. Before we continue, let's show a useful computational trick to avoid creating the matrix `diag(s$d)`. To motivate this, we note that if we write $U$ out in its columns $[U_1, U_2, \dots, U_p]$ then $UD$ is equal to 
+
+    $$UD = [U_1 d_{1,1}, U_2 d_{2,2}, \dots, U_p d_{p,p}]$$
+
+    Use the `sweep` function to compute $UD$ without constructing `diag(s$d)` nor matrix multiplication.
+
+    
+
+8. We know that $U_1 d_{1,1}$, the first column of $UD$, has the most variability of all the columns of $UD$. Earlier we saw an image of $Y$ 
+
+    ```{r, eval=FALSE}
+    my_image(y)
+    ```
+
+    in which we can see that the student to student variability is quite large and that it appears that students that are good in one subject are good in all. This implies that the average (across all subjects) for each student should explain a lot of the variability. Compute the average score for each student and plot it against $U_1 d_{1,1}$ and describe what you find.
+
+ 
+
+9. We note that the signs in SVD are arbitrary because: 
+
+    $$ U D V^{\top} = (-U) D (-V)^{\top} $$
+
+
+    With this in mind we see that the first column of $UD$ is almost identical to the average score for each student except for the sign.
+
+    This implies that multiplying $Y$ by the first column of $V$ must be performing a similar operation to taking the average. Make an image plot of $V$ and describe the first column relative to others and how this relates to taking an average.
+
+ 
+10. We already saw that we can rewrite $UD$ as
+
+    $$U_1 d_{1,1} + U_2 d_{2,2} + \dots + U_p d_{p,p}$$
+
+    with $U_j$ the j-th column of $U$. This implies that we can rewrite the entire SVD as:
+
+    $$Y = U_1 d_{1,1} V_1 ^{\top} + U_2 d_{2,2} V_2 ^{\top} + \dots + U_p d_{p,p} V_p ^{\top}$$
+
+    with $V_j$ the jth column of $V$. Plot $U_1$, then plot $V_1^{\top}$ using the same range for the y-axis limits, then make an image of $U_1 d_{1,1} V_1 ^{\top}$ and compare it to the image of $Y$. Hint: use the `my_image` function defined above. Use the `drop=FALSE` argument to assure the subsets of matrices are matrices.
+
+  
+
+11. We see that with just a vector of length 100, a scalar, and a vector of length 24, we actually come close to reconstructing the a $100 \times 24$ matrix. This is our first matrix factorization:
+
+    $$ Y \approx d_{1,1} U_1 V_1^{\top}$$
+
+    We know it explains:
+
+    ```{r,eval=FALSE}
+    s$d[1]^2/sum(s$d^2) * 100
+    ```
+
+    percent of the total variability.  Our approximation only explains the observation that good students tend to be good in all subjects. But another aspect of the original data that our approximation does not explain was the higher similarity we observed within subjects. We can see this by computing the difference between our approximation and original data and then computing the correlations. You can see this by running this code:
+
+    ```{r, eval=FALSE}
+    resid <- y - with(s,(u[, 1, drop=FALSE]*d[1]) %*% t(v[, 1, drop=FALSE]))
+    my_image(cor(resid), zlim = c(-1,1))
+    axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+    ```
+    
+    Now that we have removed the overall student effect, the correlation plot reveals that we have not yet explained the within subject correlation nor the fact that math and science are closer to each other than to the arts. So let's explore the second column of the SVD. Repeat the previous exercise but for the second column: Plot $U_2$, then plot $V_2^{\top}$ using the same range for the y-axis limits, then make an image of $U_2 d_{2,2} V_2 ^{\top}$ and compare it to the image of `resid`.
+
+  
+12. The second column clearly relates to a student's difference in ability in math/science versus the arts. We can see this most clearly from the plot of `s$v[,2]`. Adding the matrix we obtain with these two columns will help with our approximation:
+
+
+    $$ Y \approx d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} $$
+
+    We know it will explain 
+
+        ```{r,eval=FALSE}
+        sum(s$d[1:2]^2)/sum(s$d^2) * 100
+        ```
+
+    percent of the total variability. We can compute new residuals like this:
+    
+    ```{r,eval=FALSE}
+    resid <- y - with(s,sweep(u[, 1:2], 2, d[1:2], FUN="*") %*% t(v[, 1:2]))
+    my_image(cor(resid), zlim = c(-1,1))
+    axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+    ```
+    
+    and see that the structure that is left is driven by the differences between math and science. Confirm this by plotting  $U_3$, then plot $V_3^{\top}$ using the same range for the y-axis limits, then make an image of $U_3 d_{3,3} V_3 ^{\top}$ and compare it to the image of `resid`.
+
+
+  
+13. The third column clearly relates to a student's difference in ability in math and science. We can see this most clearly from the plot of `s$v[,3]`. Adding the matrix we obtain with these two columns will help with our approximation:
+
+
+    $$ Y \approx d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$$
+
+    We know it will explain:
+
+    ```{r,eval=FALSE}
+    sum(s$d[1:3]^2)/sum(s$d^2) * 100
+    ```
+    
+    percent of the total variability. We can compute new residuals like this:
+
+    ```{r,eval=FALSE}
+    resid <- y - with(s,sweep(u[, 1:3], 2, d[1:3], FUN="*") %*% t(v[, 1:3]))
+    my_image(cor(resid), zlim = c(-1,1))
+    axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+    ```
+
+    We no longer see structure in the residuals: they seem to be independent of each other. This implies that we can describe the data with the following model:
+
+    $$ Y =  d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top} + \varepsilon$$
+
+    with $\varepsilon$ a matrix of independent identically distributed errors. This model is useful because we summarize of $100 \times 24$ observations with $3 \times (100+24+1) = 375$ numbers. Furthermore, the three components of the model have useful interpretations: 1 - the overall ability of a student, 2 - the difference in ability between the math/sciences and arts and 3 - the remaining differences between the three subjects. The sizes $d_{1,1}, d_{2,2}$ and $d_{3,3}$ tells us the variability explained by each component. Finally, note that the components $d_{j,j} U_j V_j^{\top}$ are equivalent to the jth principal component. Finish the exercise by plotting an image of  $Y$, an image of $d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$ and an image of the residuals, all with the same `zlim`.
+
+  
+
+14. Advanced. The `movielens` dataset included` in the __dslabs__ package is a small subset of a larger dataset with millions of ratings. You can find the entire latest dataset here [https://grouplens.org/datasets/movielens/20m/](https://grouplens.org/datasets/movielens/20m/). Create your own recommendation system using all the tools we have shown you.

@@ -174,7 +174,7 @@ $$
 
 This is then applied recursively to the new regions $R_1$ and $R_2$. Once we are done partitioning the predictor space into regions, in each region a prediction is made using the observations in that region. 
 
-Let's take a look at what this algorithm does on the 2008 presidential election poll data. We will use the `rpart` function in the rpart package.
+Let's take a look at what this algorithm does on the 2008 presidential election poll data. We will use the `rpart` function in the __rpart__ package.
 
 ```{r}
 fit <- rpart(margin ~ ., data = polls_2008)
@@ -471,7 +471,7 @@ Here is what the conditional probabilities look like:
 plot_cond_prob(predict(train_rf, mnist_27$true_p, type = "prob")[,2])
 ```
 
-We can train the parameters of the Random Forest. Below, we use the caret package to optimize over the minimum node size:
+We can train the parameters of the Random Forest. Below, we use the __caret__ package to optimize over the minimum node size:
 
 ```{r, cache=TRUE}
 fit <- train(y ~ .,
@@ -490,4 +490,76 @@ We can control the "smoothness" of the Random Forest estimate in several ways. O
 
 The second Random Forests feature is to use a random selection of features to split when deciding on partitions. Specifically, when building each tree $T_j$, at each recursive partition only consider a randomly selected subset of predictors to check for best split. A different random choice of predictors is made for each tree. This reduces correlation between trees in forest, thereby improving prediction accuracy. The argument for this tuning parameter in  `randomForrest` is `mtry`.
 
-A disadvantage of Random Forests is that we lose interpretability. However, we can use the fact that a bootstrap sample was used to construct trees to measure _variable importance_ from the Random Forest. This measure counts how often a predictor is used in the individual trees. You can learn more about _variable importance_ in an advanced [machine learning book](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). We give an example on how we use variable importance in the next section.
+A disadvantage of Random Forests is that we lose interpretability. However, we can use the fact that a bootstrap sample was used to construct trees to measure _variable importance_ from the Random Forest. This measure counts how often a predictor is used in the individual trees. You can learn more about _variable importance_ in an advanced [machine learning book](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). The __caret__ package includes the function `varImp` that extracts variable importnance from any model in which the calculation is implemented. We give an example on how we use variable importance in the next section.
+
+
+## Exercises {-}
+
+1. Create a simple dataset where the outcomes grows 0.75 units on average for every increase in a predictor. 
+
+    ```{r, eval=FALSE}
+    n <- 1000
+    sigma <- 0.25
+    x <- rnorm(n, 0, 1)
+    y <- 0.75 * x + rnorm(n, 0, sigma)
+    dat <- data.frame(x = x, y = y)
+    ```
+
+    Use `rpart` to fit a regression tree and save the result to `fit`.
+
+
+2. Plot the final tree so that you can see where the partitions occurred.
+
+
+3. Make a scatter plot of `y` versus `x` along with the predicted values based on the fit.
+
+
+4. Now run Random Forests instead of a regression tree using `randomForest` from the __randomForest__ package, and remake the scatterplot with the prediction line.
+
+
+5. Use the function `plot` to see if the Random Forest has converged or if we need more trees.
+
+
+6. It seems that the default values for the Random Forest result in an estimate that is too flexible (unsmooth). Re-run the Random Forest but this time with `nodesize` set at 50 and `maxnodes` set at 25. Remake the plot.
+
+7. We see that this yields smoother results. Let's use the train function to help us pick these values. From the [caret description](https://topepo.github.io/caret/available-models.html) of methods we see that we can't tune the `maxnodes` parameter or the `nodesize` argument with `randomForests`. So we will use the __Rborist__ package and tune the `minNode` argument. Use the `train` function to try values `minNode <- seq(5, 250, 25)`. See which value minimizes the estimated RMSE.
+
+
+8. Make a scatterplot along with the prediction from the best fitted model.
+
+
+9. Use the `rpart` function to fit a classification tree to the `tissue_gene_expression` dataset. Use the `train` function to estimate the accuracy. Try out `cp` values of `seq(0, 0.05, 0.01)`. Plot the accuracies to report the results of the best model.
+
+
+10. Study the confusion matrix for the best fitting classification tree. What do you observe happening for placenta?
+
+
+11. Notice that placentas are called endometriums more often than placenta. Note also that the number of placentas is just six, and that, by default, `rpart` requires 20 observations before splitting a node. So it is difficult to have a node in which placentas are the majority. Rerun the above analysis but this time permit `rpart` to split any node by using the argument `control = rpart.control(minsplit = 0)`. Does the accuracy increase? Look at the confusion matrix again.
+
+
+
+12. Plot the tree from the best fitting model.
+
+
+13. We can see that with just six genes, we are able to predict the tissue type. Now let's see if we can do even better with a Random Forest. Use the `train` function and the `rf` method to train a Random Forest. Try out values of `mtry` ranging from, at least, `seq(50, 200, 25)`. What `mtry` value maximizes accuracy? To permit small `nodesize` to grow as we did with the classification trees, use the following argument: `nodesize = 1`.  This will take several seconds to run. If you want to test it out, try using smaller values with `ntree`. Set the seed to 1990.
+
+
+14. Use the function `varImp` on the output of `train` and save it to an object called `imp`. 
+
+
+15. The `rpart` model we ran above produced a tree that used just six predictors. Extracting the predictor names is not straightforward, but can be done. If the output of the call to train was `fit_rpart`, we can extract the names like this:
+
+    ```{r, eval=FALSE}
+    tree_terms <- as.character(unique(fit_rpart$finalModel$frame$var[!(fit_rpart$finalModel$frame$var == "<leaf>")]))
+    tree_terms
+    ```
+
+    What is the variable importance in the Random Forest call for these predictors? Where do they rank?
+
+
+16. Advanced: Extract the top 50 predictors based on importance, take a subset of `x` with just these predictors and apply the function `heatmap` to see how these genes behave across the tissues. We will introduce the `heatmap` function in the Cluster Chapter.
+
+
+17. In this chapter, we illustrated a couple of machine learning algorithms on a subset of the MNIST dataset. Try fitting a model to the entire dataset.
+
+
