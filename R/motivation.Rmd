@@ -1,6 +1,5 @@
 # (PART) R Basics  {-}
 
-# Introduction {-}
 
 In this book we will be using the
 [R software environment](https://cran.r-project.org/) for all our
@@ -34,12 +33,13 @@ But then you remember that the US is a large and diverse country with 50 very di
 library(tidyverse)
 library(dslabs)
 
+fifty_states <- map_data("state")
 data(murders) 
 murders %>% mutate(murder_rate = total/population*10^5,
                   state = tolower(state), 
                   colors= factor(ceiling(pmin(murder_rate, 9)))) %>%
   ggplot(aes(map_id = state)) + 
-  geom_map(aes(fill = colors), color = "black", map = map_data("state")) + 
+  geom_map(aes(fill = colors), color = "black", map = fifty_states) + 
   expand_limits(x = fifty_states$long, y = fifty_states$lat) +
   coord_map() +
   scale_x_continuous(breaks = NULL) + 
@@ -48,9 +48,6 @@ murders %>% mutate(murder_rate = total/population*10^5,
   theme(panel.background = element_blank()) + 
   scale_fill_brewer(guide=FALSE) +
   theme_minimal()
-
-## to avoid clash with purrr
-detach("package:maps", unload=TRUE)
 ```
 
 

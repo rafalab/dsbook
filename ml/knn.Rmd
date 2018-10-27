@@ -78,7 +78,7 @@ plot_cond_prob <- function(p_hat=NULL){
 ```
 
 
-```{r knn-fit, echo=FALSE, message=FALSE, warning=FALSE}
+```{r knn-fit, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
 p1 <- plot_cond_prob() + ggtitle("True conditional probability")
 
 p2 <- plot_cond_prob(predict(knn_fit, mnist_27$true_p)[,2]) +
@@ -120,11 +120,12 @@ confusionMatrix(data=y_hat_knn_1, reference=mnist_27$test$y)$overall["Accuracy"]
 ```
 
 We can see the over-fitting problem in this figure. 
-```{r knn-1-overfit, echo=FALSE}
+```{r knn-1-overfit, echo=FALSE, out.width="100%"}
 p1 <- mnist_27$true_p %>% 
   mutate(knn = predict(knn_fit_1, newdata = .)[,2]) %>%
   ggplot() +
-  geom_point(data = mnist_27$train, aes(x_1, x_2, color= y), pch=21) +
+  geom_point(data = mnist_27$train, aes(x_1, x_2, color= y),
+             pch=21, show.legend = FALSE) +
   scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
   stat_contour(aes(x_1, x_2, z = knn), breaks=c(0.5), color="black") +
   ggtitle("Train set")
@@ -156,7 +157,7 @@ confusionMatrix(data=y_hat_knn_401, reference=mnist_27$test$y)$overall["Accuracy
 ```
 
 This turns out to be similar to logistic regression:
-```{r mnist-27-glm-est, echo=FALSE}
+```{r mnist-27-glm-est, echo=FALSE, out.width="100%"}
 p1 <- plot_cond_prob(predict(fit_glm, mnist_27$true_p)) +
   ggtitle("Logistic regression")
 
@@ -188,11 +189,12 @@ accuracy <- map_df(ks, function(k){
   fit <- knn3(y ~ ., data = mnist_27$train, k = k)
   
   y_hat <- predict(fit, mnist_27$train, type = "class")
-
-  train_error <- confusionMatrix(data = y_hat, reference = mnist_27$train$y)$overall["Accuracy"]
+  cm_train <- confusionMatrix(data = y_hat, reference = mnist_27$train$y)
+  train_error <- cm_train$overall["Accuracy"]
   
   y_hat <- predict(fit, mnist_27$test, type = "class")
-  test_error <- confusionMatrix(data = y_hat, reference = mnist_27$test$y)$overall["Accuracy"]
+  cm_test <- confusionMatrix(data = y_hat, reference = mnist_27$test$y)
+  test_error <- cm_test$overall["Accuracy"]
   
   list(train = train_error, test = test_error)
 })
@@ -214,7 +216,7 @@ First, note that the accuracy versus $k$ plot is quite jagged. We do not expect 
 Despite the noise present in the plot above, we still see a general pattern. Low values of $k$ give low test set accuracy but high train set accuracy, which is evidence of over-training. Large values of $k$ result in low accuracy, which is evidence of over-smoothing. 
 The maximum is achieved somewhere between 25 and 41 with a maximum accuracy of 0.85. In fact, the resulting estimate with $k=41$ looks quite similar to the true conditional probability:
 
-```{r knn-41}
+```{r knn-41, out.width="100%"}
 p1 <- plot_cond_prob() + ggtitle("True conditional probability")
 
 knn_fit <- knn3(y ~ ., data = mnist_27$train, k = 41)

@@ -240,7 +240,7 @@ It also breaks down the acceptance rates by major: the size of the colored bars 
 
 In this plot, we can see that if we condition or stratify by major, and then look at differences, we control for the confounder and this effect goes away:
 
-```{r admission-by-major, fig.cap="Admission percentage by major for each gender."}
+```{r admission-by-major}
 admissions %>% 
   ggplot(aes(major, admitted, col = gender, size = applicants)) +
   geom_point()
@@ -255,7 +255,7 @@ admissions %>%  group_by(gender) %>% summarize(average = mean(admitted))
 ```
 
 
-# Simpson's Paradox 
+## Simpson's Paradox 
 
 The case we have just covered is an example of Simpson's Paradox. It is called a paradox because we see the sign of the correlation  flip when comparing the entire publication and specific strata. As an illustrative example, suppose you have three variables $X$, $Y$ and $Z$. Here is a scatterplot of $Y$ versus $X$:
 
@@ -304,7 +304,7 @@ Who is right here? The original paper or the response? Here, you will examine th
 
 1. The main evidence for the conclusion of the original paper comes down to a comparison of the percentages. Table S1 in the paper includes the information we need:
 
-    ```{r,echo=FALSE}
+    ```{r,eval=FALSE}
     library(dslabs)
     data("research_funding_rates")
     research_funding_rates
@@ -324,14 +324,7 @@ Who is right here? The original paper or the response? Here, you will examine th
 
 5. To check if this is a case of Simpson's paradox, plot the success rates versus disciplines, which have been ordered by overall success, with colors to denote the genders and size to denote the number of applications.
 
-    __Answer__
-    ```{r, eval=FALSE}
-    dat %>% 
-      ggplot(aes(discipline, success, size = applications, color = gender)) + 
-      theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-      geom_point()
-    ```
-    
+  
 6. We definitely do not see the same level of confounding as in the UC Berkeley example. It is hard to say there is a confounder here. However, we do see that, based on the observed rates, some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But, unlike the UC Berkeley example, women are not more likely to apply for the harder subjects. So perhaps some of the selection committees are biased and others are not? 
 
     But, before we conclude this, we must check if these differences are any different than what we get by chance. Are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. Perform a Chi Square test for each discipline. Hint: define a function that receives the total of a two-by-two table and returns a data frame with the p-value. Use the 0.5 correction. Then use the do function. 

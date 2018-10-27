@@ -2,7 +2,7 @@
 
 Confidence intervals are a very useful concept widely employed by data scientists. A version of these that are commonly seen come from the `ggplot` geometry `geom_smooth`. Here is an example using a temperature dataset available in R:
 
-```{r first-confidence-intervals-example, message=FALSE}
+```{r first-confidence-intervals-example, message=FALSE, echo=FALSE}
 data("nhtemp")
 data.frame(year = as.numeric(time(nhtemp)), temperature=as.numeric(nhtemp)) %>%
   ggplot(aes(year, temperature)) + 
@@ -224,12 +224,12 @@ polls <- polls_us_election_2016 %>% filter(enddate >= "2016-10-31" & state == "U
 
 1. For the first poll, you can obtain the samples size and estimated Clinton percentage with:
 
-```{r}
-N <- polls$samplesize[1]
-X_hat <- polls$rawpoll_clinton[1]/100
-```
+    ```{r, eval=FALSE}
+    N <- polls$samplesize[1]
+    X_hat <- polls$rawpoll_clinton[1]/100
+    ```
 
-Assume there are only two candidates and construct a 95% confidence interval for the election night proportion $p$. 
+    Assume there are only two candidates and construct a 95% confidence interval for the election night proportion $p$. 
 
 
 2. Now use `dplyr` to add a confidence interval as two columns, call them `lower` and `upper`, to the object `poll`. Then use `select` to show the `pollster`, `enddate`, `X_hat`,`lower`, `upper` variables. Hint: define temporary columns `X_hat` and `se_hat`. 
@@ -245,12 +245,12 @@ Assume there are only two candidates and construct a 95% confidence interval for
 
 6. A much smaller proportion of the polls than expected produce confidence intervals containing $p$. If you look closely at the table, you will see that most polls that fail to include $p$ are underestimating. The reason for this is undecided voters, individuals polled that do not yet know who they will vote for or do not want to say. Because, historically, undecideds divide evenly between the two main candidates on election day, it is more informative to estimate the spread or the difference between the proportion of two candidates $d$, which in this election was $0.482 - 0.461 = 0.021$. Assume that there are only two parties and that $d = 2p - 1$, define:
 
-```{r, message=FALSE, comment=FALSE}
-polls <- polls_us_election_2016 %>% filter(enddate >= "2016-10-31" & state == "U.S.")  %>%
-  mutate(d_hat = rawpoll_clinton/100 - rawpoll_trump/100)
-```
+    ```{r, message=FALSE, comment=FALSE}
+    polls <- polls_us_election_2016 %>% filter(enddate >= "2016-10-31" & state == "U.S.")  %>%
+      mutate(d_hat = rawpoll_clinton/100 - rawpoll_trump/100)
+    ```
 
-and re-do exercise 1, but for the difference.
+    and re-do exercise 1, but for the difference.
 
 
 7. Now repeat exercise 3, but for the difference.

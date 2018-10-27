@@ -145,7 +145,9 @@ In this case, we have two predictors so we assume each one is bivariate normal. 
 ```{r}
 params <- mnist_27$train %>% 
   group_by(y) %>% 
-  summarize(avg_1 = mean(x_1), avg_2 = mean(x_2), sd_1= sd(x_1), sd_2 = sd(x_2), r = cor(x_1,x_2))
+  summarize(avg_1 = mean(x_1), avg_2 = mean(x_2), 
+            sd_1= sd(x_1), sd_2 = sd(x_2), 
+            r = cor(x_1,x_2))
 params
 ```
 
@@ -282,7 +284,7 @@ $$
 
 which is the negative of a distance squared scaled by the standard deviation. For higher dimensions, the same is true except the scaling is more complex and involves correlations.
 
-# Case study: more than three classes
+## Case study: more than three classes
 
 We will briefly give a slightly more complex example: one with 3 classes instead of 2. We first create a dataset similar to the 2 or 7 dataset, except now we have 1s, 2s and 7s.
 
@@ -296,12 +298,18 @@ x <- mnist$train$images[index_127,]
 index_train <- createDataPartition(y, p=0.8, list = FALSE)
 
 ## get the quandrants
-row_column <- expand.grid(row=1:28, col=1:28) #temporary object to help figure out the quandrants
+#temporary object to help figure out the quandrants
+row_column <- expand.grid(row=1:28, col=1:28) 
 upper_left_ind <- which(row_column$col <= 14 & row_column$row <= 14)
 lower_right_ind <- which(row_column$col > 14 & row_column$row > 14)
-x <- x > 200 #binarize the values. Above 200 is ink, below is no ink
-x <- cbind(rowSums(x[ ,upper_left_ind])/rowSums(x), #proportion of pixels in upper right quandrant
-           rowSums(x[ ,lower_right_ind])/rowSums(x)) #proportion of pixes in lower rigth quandrant
+
+#binarize the values. Above 200 is ink, below is no ink
+x <- x > 200 
+
+#cbind proportion of pixels in upper right quandrant and
+##proportion of pixes in lower rigth quandrant
+x <- cbind(rowSums(x[ ,upper_left_ind])/rowSums(x), 
+           rowSums(x[ ,lower_right_ind])/rowSums(x)) 
 
 train_set <- data.frame(y = factor(y[index_train]),
                         x_1 = x[index_train,1],

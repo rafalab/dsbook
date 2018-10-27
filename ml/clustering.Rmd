@@ -54,8 +54,8 @@ h <- hclust(d)
 
 We can see the resulting groups using a _dendrogram_. 
 
-```{r dendrogram,fig.width=10.5,fig.height=5.25}
-plot(h)
+```{r dendrogram, out.width="100%", fig.height=5.25}
+plot(h, cex = 0.75)
 ```
 
 To interpret this graph we do the following. To find the distance between any two movies find the location they split. This location is the distance between the groups. So the distance between the Star Wars movies is 8 or less, while the distance between Raiders of the Lost of Arc and Silence of the Lambs is about 17. To generate actual groups we can do one of two things: 1) decide on a minimum distance needed for observations to be in the same group or 2) decide on the number of groups you want and then find the minimum distance that achieves this. The function `cutree`:
@@ -74,8 +74,8 @@ Note that we can also explore the data to see if there are clusters of movie rat
 h_2 <- dist(t(x)) %>% hclust()
 ```
 
-```{r dendrogram-2, fig.width=10.5, fig.height=5.25}
-plot(h_2)
+```{r dendrogram-2, , out.width="100%", fig.height=4}
+plot(h_2, cex = 0.25)
 ```
 
 
@@ -112,14 +112,14 @@ split(names(groups), groups)
 
 A powerful visualization tool for discovering clusters or patterns in your data is the heatmap. The idea is simple: plot an image of your data matrix with both the columns and rows ordered according to the results of clustering algorithm. Here is an example using the two hierarchical clustering results we have computed:
 
-```{r heatmap, fig.width=10.5, fig.height=7}
+```{r heatmap, out.width="100%", fig.height=7}
 image(x[h$order, h_2$order], 
       col = RColorBrewer::brewer.pal(11, "Spectral"))
 ```
 
 There is also `heatmap` function that you can use on the original matrix
 
-```{r heatmap-2, fig.width=10.5, fig.height=7}
+```{r heatmap-2, out.width="100%", fig.height=7}
 heatmap(x, col = RColorBrewer::brewer.pal(11, "Spectral"))
 ```
 
@@ -128,7 +128,7 @@ heatmap(x, col = RColorBrewer::brewer.pal(11, "Spectral"))
 If the information about clusters in included in just a few features, including all the features can add enough noise that detecting clusters 
 becomes challenging. One simple approach to try to remove feature with no information is to only include those with high variance. In the movie example, a user with low variance in their ratings is not really informative: all the movies seem about the same to them. Here is an example of how we can include only the features with high variance.
 
-```{r heatmap-3, fig.width=10.5, fig.height=5.2}
+```{r heatmap-3, out.width="100%", fig.height=7}
 library(matrixStats)
 sds <- rowSds(x, na.rm = TRUE)
 o <- order(sds, decreasing = TRUE)[1:50]

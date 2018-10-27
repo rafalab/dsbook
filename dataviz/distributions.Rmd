@@ -5,7 +5,68 @@ You may have noticed that numerical data is often summarized with the _average_ 
 Our first data visualization building block is learning to summarize lists of factors or numeric vectors. The most basic statistical summary of a list of objects or numbers is its distribution. Once a vector has been summarized as distribution, there are several data visualization techniques to effectively relay this information.
 
 
-## Case study: student heights
+## Variable types
+
+We will be working with two types of variables: categorical and numeric. Each can be divided into two other groups: categorical can be ordinal or not, whereas numerical variables can be discrete or continuous.
+
+When each entry in a vector comes from one of a small number of groups, we refer to the data as _categorical data_. Two simple examples are sex (male or female) and regions (Northeast, South, North Central, West). Some categorical data can be ordered, for example spiciness (mild, medium, hot), even if they are not numbers per se. In statistics textbooks, they sometimes refer to these as _ordinal_ data. 
+
+Example of numerical data are population sizes, murder rates, and heights. Some numerical data can be treated as ordered categorical. We can further divide numerical data into continuous and discrete. Continuous variables are those that can take any value, such as heights, if measured with enough precision. For example, a pair of twins may be 68.12 and 68.11 inches respectively. Counts, such as population sizes, are discrete because they have to be round numbers.
+
+Keep in mind that discrete numeric data can be considered ordinal. Although this is technically true, we usually reserve the term ordinal data for variables belonging to a small number of different groups, with each group having many members. In contrast, when we have many groups with few cases in each group, we typically refer to them as discrete numerical variables. So, for example, the number of packs of cigarettes a person smokes a day, rounded to the closest pack, would be considered ordinal, while the actual number of cigarettes would be considered a numerical variable. But, indeed, there are examples that can be considered both numerical and ordinal when it comes to visualizing data.
+
+## Exercises {-}
+
+1. Define variables containing the heights of males and females like this:
+
+    ```{r, eval=FALSE}
+    library(dslabs)
+    data(heights)
+    male <- heights$height[heights$sex=="Male"]
+    female <- heights$height[heights$sex=="Female"]
+    ```
+
+    How many measurements do we have for each?
+
+
+2. Suppose we can't make a plot and want to compare the distributions side by side. We can't just list all the numbers. Instead, we will look at the percentiles. Create a five row table showing `female_percentiles` and `male_percentiles` with the 10th, 30th, 50th, ..., 90th percentiles for each sex. Then create a data frame with these two as columns.
+
+    
+3. Study the following boxplots showing population sizes by country:
+
+    ```{r boxplot-exercise, echo=FALSE, message=FALSE}
+    library(tidyverse)
+    library(dslabs)
+    ds_theme_set()
+    data(gapminder)
+    tab <- gapminder %>% filter(year == 2010) %>% group_by(continent) %>% select(continent, population)  
+    tab %>% ggplot(aes(x=continent, y=population/10^6)) + 
+      geom_boxplot() + 
+      scale_y_continuous(trans = "log10", breaks = c(1,10,100,1000)) + ylab("Population in millions")
+    ```
+    
+    Which continent has the country with the biggest population size?
+    
+4. What continent has the largest median population size?
+    
+    
+5. What is median population size for Africa to the nearest million? 
+    
+    
+6. What proportion of countries in Europe have populations below 14 million?
+    
+    A. 0.99
+    
+    B. 0.75
+    
+    C. 0.50
+    
+    D. 0.25
+    
+7. If we use a log transformation, which continent shown above has the largest interquartile range?
+    
+
+## Case study: Student heights
 
 Here we introduce a new motivating problem. It is an artificial one, but it will help us illustrate the concepts needed to understand distributions. 
 
@@ -37,7 +98,7 @@ prop.table(table(heights$sex))
 
 This two category _frequency table_ is the simplest form of a distribution. We don't really need to visualize it since one number describes everything we need to know: `r round(mean(heights$sex=="Female")*100)`% are females and the rest are males. When there are more categories, then a simple barplot describes the distribution. Here is an example with the US state regions:
 
-```{r state-region-distribution, fig.cap="Distribution of regions acorss the 50 states and D.C.", echo=FALSE}
+```{r state-region-distribution, echo=FALSE}
 murders %>% group_by(region) %>%
   summarize(n = n()) %>%
   mutate(Proportion = n/sum(n), 
@@ -59,7 +120,7 @@ $$ F(a) = \mbox{Pr}(x \leq a) $$
 
 Here is a plot of $F$ for the height data:
 
-```{r ecdf,fig.cap="Empirical cummulative distribution function for male  height.", echo=FALSE}
+```{r ecdf, echo=FALSE}
 ds_theme_set()
 heights %>% filter(sex=="Male") %>% ggplot(aes(height)) + 
   stat_ecdf() +
@@ -79,7 +140,7 @@ Although the CDF concept is widely discussed in statistics textbooks, the plot i
 
 The simplest way to make a histograms is to divide the span of our data into non-overlapping bins of the same size. Then, for each bin, we count the number of values that fall in that interval. The histogram plots these counts as bars with the base of the bar defined by the intervals. Here is the histogram for the height data splitting the range of values into one inch intervals: $[49.5, 50.5], [51.5,52.5],(53.5,54.5],...,(82.5,83.5]$
   
-```{r height-histogram, fig.cap="Histogram of male heights.", echo=FALSE}
+```{r height-histogram,  echo=FALSE}
 heights %>% 
   filter(sex=="Male") %>% 
   ggplot(aes(height)) + 
@@ -96,7 +157,7 @@ So what information do we lose?  Note that all values in each interval are treat
 
 Smooth density plots are aesthetically more appealing than histograms. Here is what a smooth density plot looks like for our heights data:
 
-```{r example-of-smoothed-density, fig.cap="Smooth density of male heights.", echo=FALSE}
+```{r example-of-smoothed-density,  echo=FALSE}
 heights %>% 
   filter(sex=="Male") %>% 
   ggplot(aes(height)) + 
@@ -162,7 +223,7 @@ Remember that _smooth_ is a relative term. We can actually control the _smoothne
 through an option in the function that computes the smooth density. Here are two examples using different degrees of smoothness on the same histogram:
 
 
-```{r densities-different-smoothness}
+```{r densities-different-smoothness, out.width = "100%"}
 p1 <- heights %>% 
   filter(sex=="Male")%>% ggplot(aes(height)) +
   geom_histogram(aes(y=..density..), binwidth = 1) + 
@@ -222,18 +283,18 @@ With the right argument, `ggplot` automatically shades the intersecting region w
 
 1. In the murders dataset, the region is a categorical variable and the following is its distribution:
 
-```{r barplot-exercise, echo=FALSE}
-library(dslabs)
-ds_theme_set()
-data(murders)
-murders %>% group_by(region) %>%
-  summarize(n = n()) %>%
-  mutate(Proportion = n/sum(n), 
-         region = reorder(region, Proportion)) %>%
-  ggplot(aes(x=region, y=Proportion, fill=region)) + 
-  geom_bar(stat = "identity", show.legend = FALSE) + 
-  xlab("")
-```
+    ```{r barplot-exercise, echo=FALSE}
+    library(dslabs)
+    ds_theme_set()
+    data(murders)
+    murders %>% group_by(region) %>%
+      summarize(n = n()) %>%
+      mutate(Proportion = n/sum(n), 
+             region = reorder(region, Proportion)) %>%
+      ggplot(aes(x=region, y=Proportion, fill=region)) + 
+      geom_bar(stat = "identity", show.legend = FALSE) + 
+      xlab("")
+    ```
 
     To the closet 5%, what proportion of the states are in the North Central region?
 
@@ -242,8 +303,11 @@ murders %>% group_by(region) %>%
 2. Which of the following is true:
 
     A. The graph above is a histogram.
+
     B. The graph above shows only four numbers with a bar plot.
+
     C. Categories are not numbers so it does not make sense to graph the distribution.
+
     D. The colors, not the height of the bars, describe the distribution.
   
 
@@ -251,50 +315,60 @@ murders %>% group_by(region) %>%
 
 
     ```{r ecdf-exercise, echo=FALSE}
-heights %>% filter(sex=="Male") %>% ggplot(aes(height)) + 
-  stat_ecdf() +
-  ylab("F(a)") + xlab("a")
-```
+    heights %>% filter(sex=="Male") %>% ggplot(aes(height)) + 
+      stat_ecdf() +
+      ylab("F(a)") + xlab("a")
+    ```
 
     Based on the plot, what percentage of males are shorter than 75 inches?
-
+    
     A. 100%
+    
     B. 95%
+    
     C. 80%
+    
     D. 72 inches
    
 
-
 4. To the closest inch, what height `m` has the property that 1/2 of the male students are taller than `m` and 1/2 are shorter?
-
+    
     A. 61 inches
+    
     B. 64 inches
+    
     C. 69 inches
+    
     D. 74 inches
   
-
 5. Here is an eCDF of the murder rates across states:
 
     ```{r ecdf-exercise-2, echo=FALSE}
-murders %>% mutate(murder_rate = total/population * 10^5) %>%
-  ggplot(aes(murder_rate)) + 
-  stat_ecdf() +
-  ylab("F(a)") + xlab("a")
-```
-
+    murders %>% mutate(murder_rate = total/population * 10^5) %>%
+      ggplot(aes(murder_rate)) + 
+      stat_ecdf() +
+      ylab("F(a)") + xlab("a")
+    ```
+    
     Knowing that there are 51 states (counting DC) and based on this plot, how many states have murder rates larger than 10 per 100,000 people?
 
     A. 1
+    
     B. 5
+    
     C. 10
+    
     D. 50
   
 
 6. Based on the eCDF above, which of the following statements are true:
 
     A. About half the states have murder rates above 7 per 100,000 and the other half below.
+    
     B. Most states have murder rates below 2 per 100,000.
+    
     C. All the states have murder rates above 2 per 100,000.
+    
     D. With the exception of 4 states, the murder rates are below 5 per 100,000.
   
   
@@ -302,17 +376,20 @@ murders %>% mutate(murder_rate = total/population * 10^5) %>%
 7. Below is a histogram of male heights in our `heights` dataset: 
 
     ```{r height-histogram-exercise, echo=FALSE}
-heights %>% 
-  filter(sex=="Male") %>% 
-  ggplot(aes(height)) + 
-  geom_histogram(binwidth = 1, color = "black")
-```
+    heights %>% 
+      filter(sex=="Male") %>% 
+      ggplot(aes(height)) + 
+      geom_histogram(binwidth = 1, color = "black")
+    ```
 
     Based on this plot, how many males are between 63.5 and 65.5?
 
     A. 10
+    
     B. 24
+    
     C. 34
+    
     D. 100
 
 
@@ -320,37 +397,52 @@ heights %>%
 8. About what **percentage** are shorter than 60 inches?
   
     A. 1%
+    
     B. 10%
+    
     C. 25%
+    
     D. 50%
 
 
 9. Based on the density plot below, about what proportion of US states have populations larger than 10 million?
 
     ```{r density-exercise, echo=FALSE}
-murders %>% ggplot(aes(x=population/10^6)) + geom_density(fill = "grey") + scale_x_log10() + xlab("Population in millions")
-```
-
+    murders %>% ggplot(aes(x=population/10^6)) + 
+      geom_density(fill = "grey") + 
+      scale_x_log10() +
+      xlab("Population in millions")
+    ```
+    
     A. 0.02
+    
     B. 0.15
+    
     C. 0.50
+    
     D. 0.55
 
 10. Below are three density plots. Is it possible that they are from the same dataset? 
 
     ```{r density-exercise-2, echo=FALSE, warning=FALSE, message=FALSE}
-library(gridExtra)
-p1 <- murders %>% ggplot(aes(x=population/10^6)) + geom_density(fill = "grey", bw = 5) + xlab("Population in millions") + ggtitle("1")
-p2 <- murders %>% ggplot(aes(x=population/10^6)) + geom_density(fill = "grey", bw = .05) + scale_x_log10() + xlab("Population in millions") + ggtitle("2")
-p3 <- murders %>% ggplot(aes(x=population/10^6)) + geom_density(fill = "grey", bw = 1) + scale_x_log10() + xlab("Population in millions") + ggtitle("3")
-grid.arrange(p1,p2,p3,ncol=2)
-```
+    library(gridExtra)
+    p1 <- murders %>% ggplot(aes(x=population/10^6)) + 
+      geom_density(fill = "grey", bw = 5) + xlab("Population in millions") + ggtitle("1")
+    p2 <- murders %>% ggplot(aes(x=population/10^6)) + 
+      geom_density(fill = "grey", bw = .05) + scale_x_log10() + xlab("Population in millions") + ggtitle("2")
+    p3 <- murders %>% ggplot(aes(x=population/10^6)) + 
+      geom_density(fill = "grey", bw = 1) + scale_x_log10() + xlab("Population in millions") + ggtitle("3")
+    grid.arrange(p1,p2,p3,ncol=2)
+    ```
 
     Which of the following statements is true:
 
     A. It is impossible that they are from the same dataset.
+    
     B. They are from the same dataset, but different due to code errors.
+    
     C. They are the same dataset, but the first and second undersmooth and the third oversmooths.
+    
     D. They are the same dataset, but the first is not in the log scale, the second undersmooths and the third oversmooths.
   
 
@@ -413,7 +505,7 @@ heights %>% filter(sex=="Male") %>% ggplot(aes(height)) +
 
 It does appear to be quite a good approximation. We now will see how well this approximation works at predicting proportion of values within intervals.
 
-### Standardized units 
+## Standardized units 
 
 For data that is approximately normally distributed, it is convenient to think in terms of _standard units_.  The standard unit of a value tells us how many standard deviations away from the average it is. Specifically, for a value $x$, we define it as $z = (x-\mbox{average})/\mbox{SD}$. If you look back at the formula for the normal distribution, you see that what is being exponentiated is $- z^/2$. The maximum of  $\exp{-z^2/2}$ is when $z=0$, which explains why the maximum of the distribution is at the mean. It also explains the symmetry since $- z^/2$ is symmetric around 0.
 
@@ -433,7 +525,7 @@ mean(abs(z) < 2)
 The proportion is about 95%, which is what the normal distribution predicts! To further confirm that, in fact, the approximation is a good one, we can use quantile-quantile plots.
 
 
-### Quantile-quantile QQ plots
+## Quantile-quantile QQ plots
 
 A systematic way to assess how well the normal distribution fits the data is to check if the observed and predicted proportions match. In general, the approach of the QQ-plot is as follows:
 
@@ -487,57 +579,18 @@ For the normal distribution the _median_ and average are the same, but this is g
 
 Another special case that receives a name are the _quartiles_, which are obtained when setting $p=0.25,0.50$, and $0.75$. 
 
-## Case study continued: summarizing male heights with two numbers 
+## Case study: Student heights (continued)
 
 Using the histogram, density plots and qq-plots, we have become convinced that the male height data is well approximated with a normal distribution. In this case, we report back to ET a very succinct summary: male heights follow a normal distribution with an average of `r average` inches and a SD of `r SD` inches. With this information, ET will have a good idea of what to expect when he meets our male students.
 
 
-## Exercises {-}
-
-1. Load the height data set and create a vector `x` with just the male heights:
-
-```{r}
-library(dslabs)
-data(heights)
-x <- heights$height[heights$sex=="Male"]
-```
-
-What proportion of the data is between 69 and 72 inches (taller than 69, but shorter or equal to 72)? Hint: a logical operator and `mean`.
-
-
-2. Suppose all you know about the data is the average and the standard deviation. Use the normal approximation to estimate the proportion you just calculated. Hint: start by computing the average and standard deviation. Then use the `pnorm` function to predict the proportions.
-
-
-
-3. Notice that the approximation calculated in question two is very close to the exact calculation in the first question. Now perform the same task for more extreme values. Compare the exact calculation and the normal approximation for the interval (79,81]. How many times bigger is the actual proportion than the approximation?
-    
-
-
-4. Approximate the distribution of adult men in the world as normally distributed with an average of 69 inches and a standard deviation of 3 inches. Using this approximation, estimate the proportion of adult men that are 7 feet tall or taller, referred to as _seven footers_. Hint: use the `pnorm` function.
-
-5. There are about 1 billion men between the ages of 18 and 40 in the world. Use your answer to the previous question to estimate how many of these men (18-40 year olds) are seven feet tall or taller in the world?
-
-
-6. There are about 10 National Basketball Association (NBA) players that are 7 feet tall or higher. Using the answer to the previous two questions, what proportion of the world's 18 to 40 year old _seven footers_ are in the NBA?
-
-
-7. Repeat the calculations performed in the previous question for Lebron James' height: 6 feet 8 inches. There are about 150 players that are that tall.
-
-
-
-8. In answering the previous questions, we found that it is not at all rare for a seven footer to become an NBA player. What would be a fair critique of our calculations:
-    A. Practice and talent are what make a great basketball player, not height.
-    B. The normal approximation is not appropriate for heights.
-    C. As seen in question 3, the normal approximation tends to underestimate the extreme values. It's possible that there are more seven footers than we predicted.
-    D. As seen in question 3, the normal approximation tends to overestimate the extreme values. It's possible that there are less seven footers than we predicted.
-    
-
+     
 ## Boxplots
 
 To introduce boxplots we will go back to the US murder data. 
 Suppose we want to summarize the murder rate distribution. Using the data visualization technique we have learned, we can quickly see that the normal approximation does not apply here:
 
-```{r hist-qqplot-non-normal-data, fig.cap="Histogram and qqplot of US states murder rates.", fig.width=10, fig.height=3.708, out.width = "70%", echo=FALSE}
+```{r hist-qqplot-non-normal-data, out.width = "100%", echo=FALSE}
 data(murders)
 murders <- murders %>% mutate(rate = total/population*100000)
 library(gridExtra)
@@ -566,7 +619,7 @@ From just this simple plot, we know that the median is about 2.5, that the distr
 
 Boxplots are even more useful when we want to quickly compare two or more distributions. For example, here are the heights for men and women:
 
-```{r female-male-boxplots, fig.width=10, fig.height=3.708,  out.width = "70%"}
+```{r female-male-boxplots}
 heights %>% ggplot(aes(x=sex, y=height, fill=sex)) +
   geom_boxplot()
 ```
@@ -574,12 +627,12 @@ heights %>% ggplot(aes(x=sex, y=height, fill=sex)) +
 The plot immediately reveals that males are, on average, taller than females. The standard deviations appear to be similar. 
 
   
-## Case study continued: female student heights
- 
+## Case study: Student heights (continued)
+  
 We have to give ET a full summary of our heights, but we have not yet summarized female heights. We expect that they will follow a normal distribution, just like males. However, exploratory plots reveal that the approximation is not as useful:
  
 
-```{r histogram-qqplot-female-heights, echo=FALSE}
+```{r histogram-qqplot-female-heights, echo=FALSE, out.width="100%"}
 p1 <- heights %>% filter(sex=="Female") %>%
   ggplot(aes(height)) +
   geom_density(fill="#F8766D") 
@@ -599,3 +652,40 @@ heights %>% filter(sex=="Female") %>% top_n(5, desc(height)) %>% .$height
 ```
 
 Because these are reported heights, a possibility is that the student meant to enter 5'1", 5'2", 5'3" or 5'5". 
+
+
+
+## Exercises {-}
+
+1. Load the height data set and create a vector `x` with just the male heights:
+
+    ```{r, eval=FALSE}
+    library(dslabs)
+    data(heights)
+    x <- heights$height[heights$sex=="Male"]
+    ```
+
+    What proportion of the data is between 69 and 72 inches (taller than 69, but shorter or equal to 72)? Hint: use a logical operator and `mean`.
+
+2. Suppose all you know about the data is the average and the standard deviation. Use the normal approximation to estimate the proportion you just calculated. Hint: start by computing the average and standard deviation. Then use the `pnorm` function to predict the proportions.
+
+3. Notice that the approximation calculated in question two is very close to the exact calculation in the first question. Now perform the same task for more extreme values. Compare the exact calculation and the normal approximation for the interval (79,81]. How many times bigger is the actual proportion than the approximation?
+    
+4. Approximate the distribution of adult men in the world as normally distributed with an average of 69 inches and a standard deviation of 3 inches. Using this approximation, estimate the proportion of adult men that are 7 feet tall or taller, referred to as _seven footers_. Hint: use the `pnorm` function.
+
+5. There are about 1 billion men between the ages of 18 and 40 in the world. Use your answer to the previous question to estimate how many of these men (18-40 year olds) are seven feet tall or taller in the world?
+
+6. There are about 10 National Basketball Association (NBA) players that are 7 feet tall or higher. Using the answer to the previous two questions, what proportion of the world's 18 to 40 year old _seven footers_ are in the NBA?
+
+7. Repeat the calculations performed in the previous question for Lebron James' height: 6 feet 8 inches. There are about 150 players that are that tall.
+
+8. In answering the previous questions, we found that it is not at all rare for a seven footer to become an NBA player. What would be a fair critique of our calculations:
+
+    A. Practice and talent are what make a great basketball player, not height.
+
+    B. The normal approximation is not appropriate for heights.
+
+    C. As seen in question 3, the normal approximation tends to underestimate the extreme values. It's possible that there are more seven footers than we predicted.
+
+    D. As seen in question 3, the normal approximation tends to overestimate the extreme values. It's possible that there are less seven footers than we predicted.
+    

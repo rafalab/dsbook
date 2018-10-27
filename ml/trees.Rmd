@@ -21,7 +21,7 @@ text(x[c(15,35)], y[c(15,35)], c("[","]"))
 
 Now, for two predictors, if we decide to keep the neighborhood just as small, 10% for each dimension, we include only 1 point:
 
-```{r curse-of-dim-2, echo=FALSE, fig.width=10, fig.height=10}
+```{r curse-of-dim-2, echo=FALSE, fig.width=3.5, fig.height=3.5}
 tmp <- expand.grid(1:10,1:10)
 x <- tmp[,1]
 y <- tmp[,2]
@@ -35,7 +35,7 @@ points(x[25],y[25], cex = 0.5, pch=4)
 
 If we want to include 10% of the data, then we need to increase the size of each side of the square to $\sqrt{10} \approx .316$:
 
-```{r curse-of-dim-3, echo=FALSE, , echo=FALSE, fig.width=10, fig.height=10}
+```{r curse-of-dim-3, echo=FALSE, fig.width=3.5, fig.height=3.5}
 rafalib::mypar()
 plot(x,y, xlab="",ylab="", cex=0.25, yaxt="n", xaxt="n",type="n")
 polygon(c(x[25]-sqrt(10)/2, x[25]-sqrt(10)/2, x[25]+sqrt(10)/2, x[25]+sqrt(10)/2),
@@ -85,13 +85,15 @@ Let's very quickly try to predict the region using kNN:
 
 ```{r olive-knn}
 library(caret)
-fit <- train(region ~ .,  method = "knn", tuneGrid = data.frame(k = seq(1, 15, 2)), data = olive)
+fit <- train(region ~ .,  method = "knn", 
+             tuneGrid = data.frame(k = seq(1, 15, 2)), 
+             data = olive)
 ggplot(fit)
 ```
 
 We see that using just one neighbor, we can predict relatively well. However, a bit of data exploration reveals that we should be able to do even better. For example, if we look at the distribution of each predictor stratified by region:
 
-```{r olive-eda}
+```{r olive-eda, out.width="100%"}
 olive %>% gather(fatty_acid, percentage, -region) %>%
   ggplot(aes(region, percentage, fill = region)) +
   geom_boxplot() +
@@ -116,15 +118,15 @@ p + geom_vline(xintercept = 0.065, lty = 2) +
 
 Specifically, we define the following decision rule. If eicosenoic is larger than 0.065, predict Southern Italy. If not, then if linolenic is larger than $10.535$, predict Sardinia and if lower, predict Northern Italy. We can draw this decision tree like this:
 
-```{r olive-tree, echo=FALSE, warning=FALSE, message=FALSE}
+```{r olive-tree, echo=FALSE, warning=FALSE, message=FALSE, fig.height=4.5}
 library(caret)
 library(rpart)
 train_rpart <- train(region ~ .,
       method = "rpart",
       data = olive)
 
-plot(train_rpart$finalModel)
-text(train_rpart$finalModel, fancy  = TRUE)
+plot(train_rpart$finalModel, margin = 0.1)
+text(train_rpart$finalModel, cex = 0.75)
 ```
 
 Decision trees like this are often used in practice. For example, to decide if a person is at risk of having a heart attack, doctors use the following:
@@ -133,6 +135,7 @@ Decision trees like this are often used in practice. For example, to decide if a
 # source https://www.researchgate.net/profile/Douglas_Walton/publication/228297479/figure/fig1/AS:301828123185152@1448972840090/Decision-Tree-for-Heart-Attack-Victim-adapted-from-Gigerenzer-et-al-1999-4.png
 knitr::include_graphics("ml/img/Decision-Tree-for-Heart-Attack-Victim-adapted-from-Gigerenzer-et-al-1999-4.png")
 ```
+(Source: [Walton 2010 Informal Logic, Vol. 30, No. 2, pp. 159-184](https://papers.ssrn.com/sol3/Delivery.cfm/SSRN_ID1759289_code1486039.pdf?abstractid=1759289&mirid=1&type=2))
 
 The general idea of the methods we are describing is to define an algorithm that uses data to create these trees. 
 
@@ -182,9 +185,10 @@ fit <- rpart(margin ~ ., data = polls_2008)
 
 Here. there is only one predictor. So we do not have to decide which predictor $j$ to split by. We simply have to decide what value $s$ we use to split. We can visually see where the splits were made:
 
-```{r polls-2008-tree}
+
+```{r polls-2008-tree, fig.height=4.5, out.width="100%"}
 plot(fit, margin = 0.1)
-text(fit, cex = 0.5)
+text(fit, cex = 0.75)
 ```
 
 The first split is made on day 39.5. One of those regions is then split at day 86.5. The two resulting new partitions are split on days 49.5 and 117.5 respectively, and so on. We end up with 8 partitions. The final estimate $\hat{f}(x)$ looks like this:
@@ -241,10 +245,13 @@ ggplot(train_rpart)
 
 To see the resulting tree, we access the `finalModel` and plot it:
 
-```{r polls-2008-final-tree}
-plot(train_rpart$finalModel)
-text(train_rpart$finalModel)
+
+
+```{r polls-2008-final-tree, fig.height=4.5, out.width="100%"}
+plot(train_rpart$finalModel, margin = 0.1)
+text(train_rpart$finalModel, cex = 0.75)
 ```
+
 
 And because we only have one predictor, we can actually plot $\hat{f}(x)$:
 
@@ -344,9 +351,8 @@ For this, we use the _bootstrap_. To create $T_j, \, j=1,\ldots,B$ from training
 
 Here is the Random Forest estimate of the 2008 polls data:
 
-```{r polls-2008-rf}
+```{r polls-2008-rf, message=FALSE, warning=FALSE}
 library(randomForest)
-
 fit <- randomForest(margin~., data = polls_2008) 
 ```
 
@@ -368,7 +374,7 @@ polls_2008 %>%
 The averaging is what permits estimates that are not step functions.
 The following animation helps illustrate this procedure. In the animated figure you see each of $b=1,\dots,50$ bootstrap samples appear in order. For each one we see the tree that is fitted, and in blue we see the result of bagging the trees up to that point.
 
-```{r rf-animation, echo=FALSE}
+```{r rf-animation, echo=FALSE, out.width="100%"}
 library(rafalib)
 set.seed(1)
 ntrees <- 50
@@ -550,7 +556,11 @@ A disadvantage of Random Forests is that we lose interpretability. However, we c
 15. The `rpart` model we ran above produced a tree that used just six predictors. Extracting the predictor names is not straightforward, but can be done. If the output of the call to train was `fit_rpart`, we can extract the names like this:
 
     ```{r, eval=FALSE}
-    tree_terms <- as.character(unique(fit_rpart$finalModel$frame$var[!(fit_rpart$finalModel$frame$var == "<leaf>")]))
+    ind <- !(fit_rpart$finalModel$frame$var == "<leaf>")
+    tree_terms <- 
+      fit_rpart$finalModel$frame$var[ind] %>%
+      unique() %>%
+      as.character()
     tree_terms
     ```
 

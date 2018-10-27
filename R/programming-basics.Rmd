@@ -136,7 +136,45 @@ avg <- function(x, arithmetic = TRUE){
 
 We will learn more about how to create functions through experience as we face more complex tasks.
 
+## Namespaces
 
+Once you start becoming more of an R expert user, you will likely need to load several add-on packages for some of your analysis. Once you start doing this, it is likely that two packages use the same name for two different functions. And often these functions do completely different things. In fact, you have already encountered this becuase both __dplyr__ and the R-base  __stats__ package define a `filter` function.  There are five other examples in __dplyr__. We know this becasue when we first load __dplyr__ we see the following message:
+
+```
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+```
+
+So what does R do when I type `filter`? Does it use the __dplyr__ function or the __stats__ function? From our previous work we know it uses the __dplyr__ one. But what if we want to use the __stats__ version?
+
+These function live in different _namespaces_. R will follow a certain order when searching for a function in these _namespaces_. You can see the order by typing:
+
+```{r, eval=FALSE}
+search()
+```
+
+The first entry in this list is the global environment which includes all the objects you define. 
+
+So what if we want to use the __stats__ `filter` instead of the __dplyr__ filter but __dplyr__ appears first in the search list? You can force the use of a specific name space by using double colons like this`::`
+
+```{r, eval=FALSE}
+stats::filter
+```
+
+If we want to be absolutely sure we use the __dplyr__ `filter` we can use
+
+```{r, eval=FALSE}
+dplyr::filter
+```
+
+Also note that if we want to use a function in a package without loading the entire package, we can use the double colon as well.
+
+For more on this more advanced topic we recommend the (R packages) [http://r-pkgs.had.co.nz/namespace.html] book.
 
 ## For-loops
 
@@ -271,8 +309,11 @@ We will learn other advantages of `map` in later chapters.
 2. Which of the following expressions is always `FALSE` when at least one entry of a logical vector `x` is TRUE?
 
     A. `all(x)`
+    
     B. `any(x)`
+    
     C. `any(!x)`
+    
     D. `all(!x)`
 
 3. The function `nchar` tells you how many characters long a character vector is.

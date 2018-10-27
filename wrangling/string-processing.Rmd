@@ -10,7 +10,8 @@ One of the most common data wrangling challenges involves converting or extracti
 In the Web Scraping Section, we encountered an example related to creating the `murders` dataset we explored in the R chapter. After successfully extracting the raw data from a webpage into a table:
 
 ```{r}
-url <- "https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&direction=prev&oldid=810166167"
+url <- paste0("https://en.wikipedia.org/w/index.php?title=",
+              "Gun_violence_in_the_United_States_by_state&direction=prev&oldid=810166167")
 murders_raw <- read_html(url) %>%
   html_nodes("table") %>%
   html_table() %>%
@@ -143,8 +144,8 @@ All these functions take a character vector as first argument. Also, for each fu
 
 Finally, note that in this table we mention _groups_. These will be explained later.
 
-| Task | Description                                              | `stringr` | R-base |
-|------|----------------------------------------------------------|-----------|--------|
+| Task     | Description                               | `stringr`     | R-base |
+|----------|-------------------------------------------|---------------|--------|
 | Detect | Is the pattern in the string? | `str_detect` | `grepl` |
 | Detect | Returns the index of entries that contain the pattern. | `str_which` |  `grep` |
 | Detect | Returns the subset of strings that contain the pattern. | `str_subset` | `grep` with `value = TRUE` |
@@ -213,7 +214,7 @@ murders_new %>% head
 
 This case is relatively simple compared to the string processing challenges that we typically face in data science. The next example is a rather complex one.
 
-## Case study 2: Reported heights (Part 1)
+## Case study 2: Reported heights 
 
 The __dslabs__ package includes the raw data from which the heights dataset was obtained. You can load it like this:
 
@@ -812,7 +813,7 @@ str_to_lower(s)
 
 We are now be ready to define a procedure that converts all the problematic cases to inches.
 
-## Case study 2 (part 2)
+## Case study 2: Reported heights (continued)
 
 We now put all this together into a function that takes a string vector and tries to convert as many strings as possible to one format. We write a function that puts together what we have done above.
 
@@ -901,17 +902,15 @@ tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
 ```
 
 
-## Case study 2 (part 3) 
+## Case study 2: Reported heights (continued)
 
 We are now ready to put it all together and wrangle our reported heights data to try to recover as many heights as possible. The code is complex, but we will break it down into parts.
 
 We start by cleaning up the `height` column so that the heights are closer to a feet'inches format. We added an original heights column so we can compare before and after. 
 
-## Putting it all together (continued)
-
 Now we are ready to wrangle our reported heights dataset:
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
 
 smallest <- 50
@@ -923,10 +922,10 @@ new_heights <- reported_heights %>%
   mutate_at(c("height", "feet", "inches"), as.numeric) %>%
   mutate(guess = 12*feet + inches) %>%
   mutate(height = case_when(
-    !is.na(height) & between(height, smallest, tallest) ~ height, #inches 
-    !is.na(height) & between(height/2.54, smallest, tallest) ~ height/2.54, #centimeters
-    !is.na(height) & between(height*100/2.54, smallest, tallest) ~ height*100/2.54, #meters
-    !is.na(guess) & inches < 12 & between(guess, smallest, tallest) ~ guess, #feet'inches
+    !is.na(height) & between(height, smallest, tallest) ~ height,#inches 
+    !is.na(height) & between(height/2.54, smallest, tallest) ~ height/2.54,#centimeters
+    !is.na(height) & between(height*100/2.54, smallest, tallest) ~ height*100/2.54,#meters
+    !is.na(guess) & inches < 12 & between(guess, smallest, tallest) ~ guess,#feet'inches
     TRUE ~ as.numeric(NA))) %>%
   select(-guess)
 ```
@@ -1027,15 +1026,17 @@ x %>% as_data_frame() %>%
   mutate_all(parse_guess)
 ```
 
-## Case study 3: extracting tables from a PDF
+## Case study 3: Extracting tables from a PDF
 
 One of the datasets provided in dslabs shows scientific funding rates by gender in the Netherlands:
 
 ```{r}
 library(dslabs)
 data("research_funding_rates")
-research_funding_rates 
+research_funding_rates %>% 
+  select("discipline", "success_rates_men", "success_rates_women")
 ```
+
 
 The data comes from a [paper](http://www.pnas.org/content/112/40/12349.abstract) published in the prestigious journal PNAS. However, the data is not provided in a spreadsheet, it is in a table in a PDF document:
 
@@ -1050,7 +1051,8 @@ We could extract the number by hand, but this could lead to human error. Instead
 ```{r, eval=FALSE}
 library("pdftools")
 temp_file <- tempfile()
-url <- "http://www.pnas.org/content/suppl/2015/09/16/1510159112.DCSupplemental/pnas.201510159SI.pdf"
+url <- paste0("http://www.pnas.org/content/suppl/2015/09/16/",
+              "1510159112.DCSupplemental/pnas.201510159SI.pdf")
 download.file(url, temp_file)
 txt <- pdf_text(temp_file)
 file.remove(temp_file)
@@ -1068,12 +1070,7 @@ The steps above can actually be skipped  because we include this raw data in the
 data("raw_data_research_funding_rates")
 ```
 
-Examining this object:
-
-```{r}
-raw_data_research_funding_rates %>% head
-```
-
+Examining the object `raw_data_research_funding_rates` 
 we see that it is a long string and each line on the page, including the table rows, are separated by the symbol for newline: `\n`. We therefore can create a list with the lines of the text as elements as follows:
 
 ```{r}
@@ -1086,13 +1083,7 @@ Because we start off with just one element in the string, we end up with a list 
 tab <- tab[[1]]
 ```
 
-By examining this object:
-
-```{r}
-tab %>% head
-```
-
-we see that the information for the column names is the third and fourth entries:
+By examining `tab` we see that the information for the column names is the third and fourth entries:
 
 ```{r}
 the_names_1 <- tab[3]
@@ -1102,7 +1093,7 @@ the_names_2 <- tab[4]
 In this table, the column information is spread across two lines. 
 
 ```{r}
-the_names_1
+the_names_1 %>% str_trim() %>% cat()
 ```
 
 We want to create one vector with one name for each column. Using some of the functions we have just learned, we do this. Let's start with the first line shown above. We want to remove the leading space and anything following the comma. We use regex for the latter. Then we can obtain the elements by splitting strings separated by space.  We want to split only when there are 2 or more spaces to avoid splitting `success rate`. So we use the regex `\\s{2,}`
@@ -1118,7 +1109,7 @@ the_names_1
 
 Now we will look at the second line: 
 ```{r}
-the_names_2
+the_names_2  %>% str_replace_all("\\s+","  ")
 ```
 
 Here we want to trim the leading space and then split by space as we did for the first line:
@@ -1195,7 +1186,7 @@ We have four countries with names longer than 12 characters. These names appear 
 ```{r caribbean-with-nicknames}
 gapminder %>% filter(region=="Caribbean") %>%
   mutate(country = recode(country, 
-                          `Antigua and Barbuda`="Barbuda",
+                          `Antigua and Barbuda` = "Barbuda",
                           `Dominican Republic` = "DR",
                           `St. Vincent and the Grenadines` = "St. Vincent",
                           `Trinidad and Tobago` = "Trinidad")) %>%
@@ -1215,7 +1206,8 @@ There are other similar functions in other R packages, such as `recode_factor` a
 2. In the `extdata` directory of the __dslabs__ package, you will find a PDF file containing daily mortality data for Puerto Rico from Jan 1, 2015 to May 31, 2018. You can find the file like this:
 
     ```{r, eval=FALSE}
-    fn <- system.file("extdata", "RD-Mortality-Report_2015-18-180531.pdf", package="dslabs")
+    fn <- system.file("extdata", "RD-Mortality-Report_2015-18-180531.pdf",
+                      package="dslabs")
     ```
 
     Find and open the file or open it directly from RStudio. On a Mac, you can type:
@@ -1233,8 +1225,11 @@ There are other similar functions in other R packages, such as `recode_factor` a
     Which of the following best describes this file:
 
     A. It is a table. Extracting the data will be easy.
+    
     B. It is a report written in prose.  Extracting the data will be impossible.
+    
     C. It is a report combining graphs and tables. Extracting the data seems possible.
+    
     D. It shows graphs of the data. Extracting the data will be difficult.
 
     
@@ -1250,8 +1245,11 @@ Start by installing and loading the __pdftools__ package:
     Now read-in `fn` using the `pdf_text` function, store the results in an object called `txt`. Describe what you see in `txt`.
 
     A. A table with the mortality data.
+    
     B. A character string of length 12. Each entry represents the text in each page. The mortality data is in there somewhere.
+    
     C. A character string with one entry containing all the information in the PDF file.
+    
     D. An html document.
 
     
@@ -1259,8 +1257,11 @@ Start by installing and loading the __pdftools__ package:
 4. Extract the ninth page of the PDF file from the object `txt`, then use the `str_split` from the __stringr__ package so that you have each line in a different entry. Call this string vector `s`. Then look at the result and choose the one that best describes what you see.
 
     A. It is an empty string.
+   
     B. I can see the figure shown in page 1.
+   
     C. It is a tidy table.
+   
     D. I can see the table! But there is a bunch of other stuff we need to get rid of.
 
     

@@ -1,10 +1,11 @@
+library(maps)## load maps first to avoid map conflict with purrr
 library(MASS) ## load MASS and matrixStats first to avoid select and count conflict
 library(matrixStats) 
 library(tidyverse)
 library(dslabs)
 ds_theme_set()
 
-## Copied from Hadley Wickham and Garrett Grolemund and Hadley Wickham's r4ds
+## Copied from Hadley Wickham and Garrett Grolemund's r4ds
 options(digits = 3)
 
 knitr::opts_chunk$set(
@@ -15,8 +16,7 @@ knitr::opts_chunk$set(
   fig.align = 'center',
   fig.width = 6,
   fig.height = 3.708,  # width * 1 / phi
-  fig.show = "hold"
-)
+  fig.show = "hold")
 
 options(dplyr.print_min = 6, dplyr.print_max = 6)
 

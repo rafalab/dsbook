@@ -70,7 +70,7 @@ dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
 
 and then make a scatterplot for each strata:
 
-```{r runs-vs-bb-by-hr-strata}
+```{r runs-vs-bb-by-hr-strata, out.width="100%"}
 dat %>% 
   ggplot(aes(BB_per_game, R_per_game)) +  
   geom_point(alpha = 0.5) +
@@ -91,7 +91,7 @@ In fact, the values above are closer to the slope we obtained from singles `r si
 
 Although our understanding of the application tells us that HR cause BB but not the other way around, we can still check if stratifying by BB makes the effect of BB go down. To do this, we use the same code except that we swap HR and BBs to get this plot:
 
-```{r runs-vs-hr-by-bb-strata, echo=FALSE}
+```{r runs-vs-hr-by-bb-strata, out.width="100%",echo=FALSE}
 dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
   mutate(BB_strata = round(BB/G,1), 
          HR_per_game = HR/G,
@@ -127,7 +127,7 @@ hr_slope
 
 Regardless, it seems that if we stratify by HR, we have bivariate distributions for runs versus BB. Similarly, if we stratify by BB, we have approximate bivariate normal distributions for HR versus runs. 
 
-#  Multivariate regression
+##  Multivariate regression
 
 It is somewhat complex to be computing regression lines for each strata. We are essentially fitting models like this:
 
@@ -147,7 +147,7 @@ This model suggests that if the number of HR is fixed at $x_2$, we observe a lin
 
 In this analysis, referred to as _multivariate regression_, you will often hear people say that the BB slope $\beta_1$ is _adjusted_ for the HR effect. If the model is correct then confounding has been accounted for. But how do we estimate $\beta_1$ and $\beta_2$ from the data? For this, we learn about linear models and least squares estimates.
 
-# Linear Models
+# Linear Models and Least Squared Estimates
 
 Since Galton's original development, regression has become one of the most widely used tools in data science. One reason has to do with the fact that regression permits us to find relationships between two variables taking into account the effects of other variables that affect both, as we have just shown for BB, HR and runs in baseball. This has been particularly popular in fields where randomized experiments are hard to run, such as Economics and Epidemiology. 
 
@@ -184,7 +184,7 @@ $$
 
 $x_i$ to $x_i - \bar{x}$ in which case $\beta_0$ would be the height when $x_i = \bar{x}$, which is the height of the son of an average father.
 
-# Least Squares Estimates (LSE)
+## Least Squares Estimates (LSE)
 
 For linear models to be useful, we have to estimate the unknown $\beta$s. The standard approach in science is to find the values that minimize the distance of the fitted model to the data. The following is called the least squares (LS) equation and we will see it often in this chapter. For Galton's data, we would write:
 
@@ -205,7 +205,7 @@ rss <- function(beta0, beta1, data){
 
 So for any pair of values, we get an RSS. Here is a plot of the RSS as a function of $\beta_1$ when we keep the $\beta_0$ fixed at 25. 
 
-```{r rss-versus-estimate, fig.cap="Residual sum of squares obtained for several values of the parameters."}
+```{r rss-versus-estimate}
 beta1 = seq(0, 1, len=nrow(galton_heights))
 results <- data.frame(beta1 = beta1,
                       rss = sapply(beta1, rss, beta0 = 25))
@@ -1088,7 +1088,7 @@ falling_object <- rfalling_object()
 
 The assistants hand the data to Galileo and this is what he sees:
 
-```{r gravity, fig.cap="Simulated data for distance travelled versus time of falling object measured with error."}
+```{r gravity}
 falling_object %>% 
   ggplot(aes(time, observed_distance)) + 
   geom_point() +

@@ -1,7 +1,5 @@
 # (PART) Regression {-}
 
-# Introduction
-
 Up to this point, this book has focused mainly on _univariate_ variables. However, in data science applications, it is very common to be interested in the relationship between two or more variables. For instance, later in the chapter we will try to use a limited budget to build a baseball team by examining the relationship between player statistics and runs (points). Before delving into this more complex example, we introduce necessary concepts needed to understand regression using a simpler illustration. We actually use the dataset from which regression was born.
 
 The example is from Genetics. [Francis Galton](https://en.wikipedia.org/wiki/Francis_Galton) studied the variation and heredity of human traits. Among many other traits, Galton collected and studied height data from families to try to understand heredity. While doing this, he developed the concepts of correlation and regression, and a connection to pairs of data that follow a normal distribution. Of course, at the time this data was collected, our knowledge of genetics was quite limited compared to what we know today. A very specific question Galton tried to answer was: how well can we predict a child's height based on the parents' height? The technique he developed to answer this question, regression, can also be applied to our baseball question. For example, we will study if bases on ball predict runs. Regression can be applied in many other circumstances as well.
@@ -35,7 +33,7 @@ galton_heights %>%
 
 However, this summary fails to describe an important characteristic of the data: the trend that the taller the father, the taller the son. 
 
-```{r scatterplot, fig.cap="Heights of father and son pairs plotted against each other."}
+```{r scatterplot}
 galton_heights %>% ggplot(aes(father, son)) + 
   geom_point(alpha = 0.5)
 ```
@@ -71,7 +69,7 @@ galton_heights %>% summarize(r = cor(father, son))
 
 To see what data looks like for different values of $\rho$, here are six examples of pairs with correlations ranging from -0.9 to 0.99:
 
-```{r what-correlation-looks-like, echo=FALSE}
+```{r what-correlation-looks-like, echo=FALSE, out.width="100%"}
 n <- 250
 cors <- c(-0.9,-0.5,0,0.5,0.9,0.99)
 sim_data <- lapply(cors,function(r) MASS::mvrnorm(n,c(0,0), matrix(c(1,r,r,1),2,2)))
@@ -142,7 +140,7 @@ If you increase $N$, you will see the distribution converging to normal.
 
 Correlation is not always a good summary of the relationship between two variables. The following four artificial datasets, referred to as Anscombe's quartet, famously illustrate this point. All these pairs have a correlation of 0.82:
 
-```{r ascombe-quartet,echo=FALSE}
+```{r ascombe-quartet,echo=FALSE, out.width="100%"}
 anscombe %>% mutate(row = seq_len(n())) %>%
   gather(name, value, -row) %>% 
   separate(name, c("axis", "group"), sep=1) %>%
@@ -190,7 +188,7 @@ Note that a 72 inch father is taller than average. Specifically, (72 - `r mean(g
 
 If we want to make a prediction of any height, not just 72, we could apply the same approach to each strata. Stratification followed by boxplots lets us see the distribution of each group:
 
-```{r boxplot-1, fig.cap="Boxplot of son heights stratified by father heights."}
+```{r boxplot-1}
 galton_heights %>% mutate(father_strata = factor(round(father))) %>% 
   ggplot(aes(father_strata, son)) + 
   geom_boxplot() + 
@@ -199,7 +197,7 @@ galton_heights %>% mutate(father_strata = factor(round(father))) %>%
 
 Not surprisingly, the centers of the groups are increasing with height. 
 
-```{r boxplot-2, fig.cap="Boxplot of son heights stratified by father heights."}
+```{r boxplot-2}
 galton_heights %>% 
   mutate(father = round(father)) %>% 
   group_by(father) %>%
@@ -342,7 +340,7 @@ The main way we motivate the use of correlation involves what is called the _biv
 
 When a pair of random variables are approximated by the bivariate normal distribution, scatterplots look like ovals. They can be thin (high correlation) or circle-shaped (no correlation). 
 
-```{r bivariate-ovals, echo=FALSE}
+```{r bivariate-ovals, echo=FALSE, out.width="100%"}
 n <- 250
 cors <- c(-0.9,-0.5,0,0.5,0.9,0.99)
 sim_data <- lapply(cors,function(r) MASS::mvrnorm(n,c(0,0), matrix(c(1,r,r,1),2,2)))
@@ -360,7 +358,7 @@ $$ f_{Y \mid X=x} \mbox{ is the notation for conditional distribution and } \mbo
 
 If we think the height data is well approximated by the bivariate normal distribution, then we should see the normal approximation hold for each strata. Here we stratify the son heights by the standardized father heights and see that the assumption appears to hold:
 
-```{r qqnorm-of-strata, fig.cap="qqplots of son heights for four strata defined by father heights."}
+```{r qqnorm-of-strata, out.width="100%"}
 galton_heights %>%
   mutate(z_father = round((father - mean(father))/sd(father))) %>%
   filter(z_father %in% -2:2) %>%

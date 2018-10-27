@@ -46,6 +46,8 @@ tab <- movielens %>%
   filter(movieId%in%keep) %>% 
   filter(userId %in% c(13:20)) %>% 
   select(userId, title, rating) %>% 
+  mutate(title = str_remove(title, ", The"),
+         title = str_remove(title, ":.*")) %>%
   spread(title, rating)
 
 tab %>% knitr::kable()
@@ -53,7 +55,7 @@ tab %>% knitr::kable()
 
 You can think of the task of a recommendation system as filling in the `NA`s in the table above. To see how _sparse_ the matrix is, here is the matrix for a random sample of 100 movies and 100 users with yellow indicating a user/movie combination for which we have a rating.
 
-```{r sparsity-of-movie-recs, echo=FALSE}
+```{r sparsity-of-movie-recs, echo=FALSE, fig.width=4, fig.height=4}
 users <- sample(unique(movielens$userId), 100)
 rafalib::mypar()
 movielens %>% filter(userId %in% users) %>% 
@@ -303,8 +305,11 @@ rmse_results %>% knitr::kable()
 4. In the previous exercise, we see that the more a movie is rated, the higher the rating. Suppose you are doing a predictive analysis in which you need to fill in the missing ratings with some value. Which of the following strategies would you use?
 
     A. Fill in the missing values with average rating of all movies.
+    
     B. Fill in the missing values with 0.
+    
     C. Fill in the value with a lower value than the average since lack of rating is associated with lower ratings. Try out different values and evaluate prediction in a test set.
+    
     D. None of the above.
     
   
@@ -319,8 +324,11 @@ rmse_results %>% knitr::kable()
 
 
     A. $Y_{u,i} = \mu + b_i + b_u + d_{u,i} + \varepsilon_{u,i}$.
+    
     B. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
+    
     C. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta_i + \varepsilon_{u,i}$.
+    
     D. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
     
   
@@ -331,14 +339,19 @@ rmse_results %>% knitr::kable()
 
 
     A. $Y_{u,i} = \mu + b_i + b_u + d_{u,i} + \varepsilon_{u,i}$.
+    
     B. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
+    
     C. $Y_{u,i} = \mu + b_i + b_u + \sum{k=1}^K x_{u,i} \beta_k + \varepsilon_{u,i}$, with $x^k_{u,i} = 1$ if $g_{u,i}$ is genre $k$.
+    
     D. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
 
   
 
 
 # Regularization
+
+## Motivation
 
 Despite the large movie to movie variation our improvement in RMSE was only about 5%. Let's explore where we made mistakes in our first model (using only movies). Here are the 10 largest mistakes:
 
@@ -412,6 +425,8 @@ Regularization permits us to penalize large estimates that
 come from small sample sizes. It has commonalities with the 
 Bayesian approach that shrunk predictions. The general 
 idea is to add a penalty for large values of $b_i$ to the sum of squares equation that we minimize. So having many large $b_i$ makes it harder to minimize.
+
+## Penalized Least Squares
 
 One way to think about this is that if we were to fit an effect to every rating, we could, of course, make the sum of squares equation by simply making each $b$ match its respective rating $Y$. This would yield an unstable estimate that changes drastically with new instances of $Y$. Remember that $Y$ is a random variable. By penalizing the equation, we optimize to be bigger when the estimated $b$ are far from 0; we then shrink the estimate towards 0. This is similar to the Bayesian approach we saw earlier.
 
@@ -491,6 +506,8 @@ rmse_results %>% knitr::kable()
 ```
 
 This provides a very large improvement. 
+
+## Choosing the penalty terms
 
 Note that $\lambda$ is a tuning parameter. We can use cross-validation to choose it.
 
@@ -630,7 +647,7 @@ schools <- schools %>% mutate(score = sapply(avg_score, mean))
     
     and then define, for each school, how it deviates from that average. Write code that estimates the score above the average for each school but dividing by $n + \alpha$ instead of $n$, with $n$ the schools size and $\alpha$ a regularization parameters. Try $\alpha = 3$
 
-    6. Notice that this improves things a bit. The number of small schools that are not highly ranked is now 4.  Is there a better $\lambda$? Find the $\lambda$ that minimizes the RMSE = $1/100 \sum_{i=1}^{100} (\mbox{quality} - \mbox{estimate})^2$
+6. Notice that this improves things a bit. The number of small schools that are not highly ranked is now 4.  Is there a better $\lambda$? Find the $\lambda$ that minimizes the RMSE = $1/100 \sum_{i=1}^{100} (\mbox{quality} - \mbox{estimate})^2$
 
 
 7. Rank the schools based on the average obtained with the best $\alpha$. Note that no small school is incorrectly included.
@@ -654,12 +671,12 @@ $$
 r_{u,i} = y_{u,i} - \hat{b}_i - \hat{b}_u
 $$
 
-To see this, we will convert the data into a matrix so that each user gets a row and each movie gets a column so that $y_{u,i}$ is the entry in row $u$ and column $i$. For illustrative purposes, we will only consider a small subset of movies with many ratings and users that have rated many movies:
+To see this, we will convert the data into a matrix so that each user gets a row and each movie gets a column so that $y_{u,i}$ is the entry in row $u$ and column $i$. For illustrative purposes, we will only consider a small subset of movies with many ratings and users that have rated many movies. We also keep Scent of a Woman (`movieId == 3252`) becuase we use it for a specific example:
 
 ```{r}
 train_small <- movielens %>% 
   group_by(movieId) %>%
-  filter(n() >= 50 | movieId == 3252) %>% ungroup() %>% #3252 is Scent of a Woman used in example
+  filter(n() >= 50 | movieId == 3252) %>% ungroup() %>% 
   group_by(userId) %>%
   filter(n() >= 50) %>% ungroup()
 
@@ -675,19 +692,23 @@ We add row names and column names:
 rownames(y)<- y[,1]
 y <- y[,-1]
 
+movie_titles <- movielens %>% 
+  select(movieId, title) %>%
+  distinct()
+
 colnames(y) <- with(movie_titles, title[match(colnames(y), movieId)])
 ```
 
 and convert them to residuals by removing the column and row effects:
 
 ```{r}
-y <- sweep(y, 1, rowMeans(y, na.rm=TRUE))
 y <- sweep(y, 2, colMeans(y, na.rm=TRUE))
+y <- sweep(y, 1, rowMeans(y, na.rm=TRUE))
 ```
 
 If the model above explains all the signals, and the $\varepsilon$ are just noise, then the residuals for different movies should be independent from each other. But they are not. Here is an example:
 
-```{r godfathers-cor}
+```{r godfathers-cor, warning=FALSE, message=FALSE}
 m_1 <- "Godfather, The"
 m_2 <- "Godfather: Part II, The"
 qplot(y[ ,m_1], y[,m_2], xlab = m_1, ylab = m_2)
@@ -695,7 +716,7 @@ qplot(y[ ,m_1], y[,m_2], xlab = m_1, ylab = m_2)
 
 This plot says that users that liked The Godfather more than what the model expects them to, based on the movie and user effects, also liked The Godfather II more than expected. A similar relationship is seen when comparing The Godfather and Goodfellas:
 
-```{r godfather-goodfellas-cor}
+```{r godfather-goodfellas-cor, warning=FALSE, message=FALSE}
 m_1 <- "Godfather, The"
 m_3 <- "Goodfellas"
 qplot(y[ ,m_1], y[,m_3], xlab = m_1, ylab = m_3)
@@ -703,7 +724,7 @@ qplot(y[ ,m_1], y[,m_3], xlab = m_1, ylab = m_3)
 
 Although not as strong, there is still correlation. We see correlations between other movies as well:
 
-```{r got-mail-sleepless-in-sea-cor}
+```{r got-mail-sleepless-in-sea-cor, warning=FALSE, message=FALSE}
 m_4 <- "You've Got Mail" 
 m_5 <- "Sleepless in Seattle" 
 qplot(y[ ,m_4], y[,m_5], xlab = m_4, ylab = m_5)
@@ -712,8 +733,9 @@ qplot(y[ ,m_4], y[,m_5], xlab = m_4, ylab = m_5)
 We can see a pattern:
 
 ```{r}
-cor(y[, c(m_1, m_2, m_3, m_4, m_5)], use="pairwise.complete") %>% 
-  knitr::kable()
+x <- y[, c(m_1, m_2, m_3, m_4, m_5)]
+colnames(x)[1:2] <- c("Godfather", "Godfather 2")
+cor(x, use="pairwise.complete") %>% knitr::kable()
 ```
 
 There seems to be people that like romantic comedies more than expected, while others that like gangster movies more than expected.
@@ -722,102 +744,106 @@ These results tell us that there is structure in the data. But how can we model 
 
 ## Factors
 
-Here is an illustration of how we can use some structure to predict the $r_{u,i}$. Suppose our residuals look like this:
+Here is an illustration, using a simulation, of how we can use some structure to predict the $r_{u,i}$. Suppose our residuals `r` look like this:
 
-```{r, echo=FALSE}
+```{r}
+q <- matrix(c(1 , 1, 1, -1, -1), ncol=1)
+rownames(q) <- c("Godfather", "Godfather 2", m_3, m_4, m_5)
+p <- matrix(rep(c(2,0,-2), c(3,5,4)), ncol=1)
+rownames(p) <- 1:nrow(p)
+
 set.seed(1)
-options(digits = 2)
-Q <- matrix(c(1 , 1, 1, -1, -1), ncol=1)
-rownames(Q) <- c(m_1, m_2, m_3, m_4, m_5)
-P <- matrix(rep(c(2,0,-2), c(3,5,4)), ncol=1)
-rownames(P) <- 1:nrow(P)
-
-X <- jitter(P%*%t(Q))
-X %>% knitr::kable(align = "c")
+r <- jitter(p %*% t(q))
+round(r, 1)
 ```
 
 There seems to be pattern here. In fact, we can see very strong correlation patterns:
 
 ```{r}
-cor(X)
+cor(r) 
 ```
 
-The structure seems to be explained by these coefficients:
+We can create vectors `Q` and `P`, that can explain much of the structure we see. The `Q` would look like this:
 
 ```{r}
-t(Q) 
+t(q) 
 ```
 
-Note that here we can narrow down movies to two groups: gangster and romance. We can also reduce the users to three groups. 
+and it narrows down movies to two groups: gangster and romance. We can also reduce the users to three groups: 
 
 ```{r}
-P
+p
 ```
 
-Those that like gangster movies, but hate romance ones, the reverse, and those that don't care. The main point here is that we can reconstruct this vector of length 60 with a couple of vectors totaling 17 values:
+those that like gangster movies, but hate romance ones, the reverse, and those that don't care. The main point here is that we can reconstruct this vector of length 60 with a couple of vectors totaling 17 values. If these are the residuals for users $u=1,\dots,12$ for movies $i=1,\dots,5$ we can write the following mathematical formula for our residuals $r_{u,i}$.
 
 
 $$
 r_{u,i} \approx p_u q_i 
 $$
 
-And we should be able to explain much more of the variance:
+This implies that we can explain more variability by modifying our previous model for movie recommendations to:
 
 $$
 Y_{u,i} = \mu + b_i + b_u + p_u q_i + \varepsilon_{i,j}
 $$
 
-Now the structure in our movie data seems to be much more complicated than gangster movie versus romance. We may have other factors. For example, we may have:
+However, what we motivated the need for the $p_u q_i$ term with a simple simulation. 
+The structure in our movie data seems to be much more complicated than gangster movie versus romance. We may have other factors. For example, we may have:
 
 
-```{r, echo=FALSE}
+```{r}
 set.seed(1)
-options(digits = 2)
 m_6 <- "Scent of a Woman"
-Q <- cbind(c(1 , 1, 1, -1, -1, -1), 
+q <- cbind(c(1 , 1, 1, -1, -1, -1), 
            c(1 , 1, -1, -1, -1, 1))
-rownames(Q) <- c(m_1, m_2, m_3, m_4, m_5, m_6)
-P <- cbind(rep(c(2,0,-2), c(3,5,4)), 
+rownames(q) <- c("Godfather", "Godfather 2", m_3, m_4, m_5, m_6)
+p <- cbind(rep(c(2,0,-2), c(3,5,4)), 
           c(-1,1,1,0,0,1,1,1,0,-1,-1,-1))/2
-rownames(P) <- 1:nrow(X)
+rownames(p) <- 1:nrow(p)
 
-X <- jitter(P%*%t(Q), factor=1)
-X %>% knitr::kable(align = "c")
+r <- jitter(p %*% t(q), factor=1)
+round(r, 1)
 ```
 
-Now we see another factor: love, hates, or doesn't care about Al Pacino. The correlation is a bit more complicated now.
+Now we see another factor: love, hates, or doesn't care about Al Pacino. The correlation is a bit more complicated now
 
 ```{r}
-cor(X)
+cor(r)
 ```
 
-Now to explain the structure, we need two factors:
+Notice that the overall structure of the correlation obtained from the simulated data is not that far off the real correlation:
 
 ```{r}
-t(Q) 
+six_movies <- c(m_1, m_2, m_3, m_4, m_5, m_6)
+x <- y[,six_movies]
+colnames(x)[1:2] <- c("Godfather", "Godfather 2")
+cor(x, use="pairwise.complete")
 ```
 
-And two sets of coefficients:
+To explain this more complicated structure, we need two factors. For example something like this:
 
 ```{r}
-P
+t(q) 
 ```
 
-The model now has more parameters, but still less than the original data. So we should be able to fit this:
+one for ganster versus romance and another for Al Pacino versus no Al Pacino.
+We also need two sets of coefficients:
+
+```{r}
+p
+```
+
+to explain the $3\times 3$ types of users.
+
+The model with two factors has more parameters, but still less than the original data:
 
 $$
 Y_{u,i} = \mu + b_i + b_u + p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \varepsilon_{i,j}
 $$
 
-The winning algorithms for the Netflix challenge used regularization to penalize for large values of $p$ and $q$. Implementing this approach is beyond the scope of this book.
+Note that this is not a linear model. To fit this model we need to use an algorithm other those used by `lm` to find the parameters that minimize the least squares. Also, the winning algorithms for the Netflix challenge used regularization to penalize for large values of $p$ and $q$, rather than using least squares. Implementing this approach is beyond the scope of this book.
 
-Here are the actual correlations:
-
-```{r}
-six_movies <- c(m_1, m_2, m_3, m_4, m_5, m_6)
-tmp <- y[,six_movies]
-cor(tmp, use="pairwise.complete")
-```
 
 ## Connection to SVD and PCA
 
@@ -835,11 +861,10 @@ $$
 
 with the variability of each term decreasing and with the $p$s uncorrelated. The algorithm also computes this variability so that we can know how much of the matrices total variability is explained as we add new terms. This may permit us to see that, with just a few terms, we can explain most of the variability.
 
-Let's see an example with the movie data. To compute the decomposition, we will make the NAs 0:
+Let's see an example with the movie data. To compute the decomposition, we will make the residuals with NAs equal to 0:
 
 ```{r}
 y[is.na(y)] <- 0
-y <- sweep(y, 1, rowMeans(y))
 pca <- prcomp(y)
 ```
 
@@ -870,18 +895,19 @@ plot(var_explained)
 
 We also notice that the first two principal components are related to the structure in opinions about movies:
 
-```{r movies-pca}
+```{r movies-pca, out.width="100%", height = 5}
 library(ggrepel)
 
 pcs <- data.frame(pca$rotation, name = colnames(y))
 
+highlight <- filter(pcs, PC1 < -0.1 | PC1 > 0.1 | PC2 < -0.075 | PC2 > 0.1)
+
 pcs %>%  ggplot(aes(PC1, PC2)) + geom_point() + 
   geom_text_repel(aes(PC1, PC2, label=name),
-                  data = filter(pcs, 
-                                PC1 < -0.1 | PC1 > 0.1 | PC2 < -0.075 | PC2 > 0.1))
+                  data = highlight, size = 2)
 ```
 
-Just by looking at the top three in each direction, we see a meaningful pattern. The first PC shows the difference between critically acclaimed movies on one side:
+Just by looking at the top 10 in each direction, we see a meaningful pattern. The first PC shows the difference between critically acclaimed movies on one side:
 
 ```{r}
 pcs %>% select(name, PC1) %>% arrange(PC1) %>% slice(1:10)
@@ -1053,13 +1079,7 @@ plot `ss_y` against the column number and then do the same for $ss_yv$. What do 
 
     $$ Y \approx d_{1,1} U_1 V_1^{\top}$$
 
-    We know it explains:
-
-    ```{r,eval=FALSE}
-    s$d[1]^2/sum(s$d^2) * 100
-    ```
-
-    percent of the total variability.  Our approximation only explains the observation that good students tend to be good in all subjects. But another aspect of the original data that our approximation does not explain was the higher similarity we observed within subjects. We can see this by computing the difference between our approximation and original data and then computing the correlations. You can see this by running this code:
+    We know it explains `s$d[1]^2/sum(s$d^2) * 100` percent of the total variability.  Our approximation only explains the observation that good students tend to be good in all subjects. But another aspect of the original data that our approximation does not explain was the higher similarity we observed within subjects. We can see this by computing the difference between our approximation and original data and then computing the correlations. You can see this by running this code:
 
     ```{r, eval=FALSE}
     resid <- y - with(s,(u[, 1, drop=FALSE]*d[1]) %*% t(v[, 1, drop=FALSE]))

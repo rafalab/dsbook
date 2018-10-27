@@ -1,11 +1,5 @@
 # Combining tables
 
-```{r, message=FALSE, echo=FALSE}
-library(tidyverse)
-library(ggrepel)
-library(dslabs)
-ds_theme_set()
-```
 
 The information we need for a given analysis may not be just on one table. For example, when forecasting elections we used the function `left_join` to combine the information from two tables. Here we use a simpler example to illustrate the general challenge of combining tables.
 
@@ -33,16 +27,18 @@ The _join_ functions, described below, are designed to handle this challenge.
 
 ## Joins
 
-The _join_ functions in the __dplyr__ package make sure that the tables are combined so that matching rows are together. If you know SQL, you will see that the approach and syntax is very similar. The general idea is that one needs to identify one or more columns that will serve to match the two tables. Then a new table with the combined information is returned. Notice what happens if we join the two tables above by state using `left_join`:
+The _join_ functions in the __dplyr__ package make sure that the tables are combined so that matching rows are together. If you know SQL, you will see that the approach and syntax is very similar. The general idea is that one needs to identify one or more columns that will serve to match the two tables. Then a new table with the combined information is returned. Notice what happens if we join the two tables above by state using `left_join` (we will remove the `others` column so that the tables fit on the page):
 
 ```{r}
-tab <- left_join(murders, results_us_election_2016, by = "state")
+tab <- left_join(murders, results_us_election_2016, by = "state") %>%
+  select(-others)
 head(tab)
 ```
 
 The data has been successfully joined and we can now, for example, make a plot to explore the relationship:
 
-```{r ev-vs-population}
+```{r ev-vs-population, message=FALSE, warning=FALSE}
+library(ggrepel)
 tab %>% ggplot(aes(population/10^6, electoral_votes, label = abb)) +
   geom_point() +
   geom_text_repel() + 
@@ -134,6 +130,8 @@ The following diagram summarizes the above joins:
 knitr::include_graphics("wrangling/img/joins.png")
 ```
 
+(Source: RStudio)
+
 ## Binding
 
 Although we have yet to use it in this book, another common way in which datasets are combined is by _binding_ them. Unlike the join function, the binding functions do no try to match by a variable, but instead simply combine datasets. If the datasets don't match by the appropriate dimensions, one obtains an error.
@@ -155,7 +153,7 @@ Note that there is an R-base function `cbind` with the exact same functionality.
 ```{r}
 tab_1 <- tab[, 1:3]
 tab_2 <- tab[, 4:6]
-tab_3 <- tab[, 7:9]
+tab_3 <- tab[, 7:8]
 new_tab <- bind_cols(tab_1, tab_2, tab_3)
 head(new_tab)
 ```
@@ -190,12 +188,13 @@ or characters:
 intersect(c("a","b","c"), c("b","c","d"))
 ```
 
-But with __dplyr__ loaded, we can also do this for tables having the same column names:
+The function __dplyr__ also includes an `intersect` function that can be applied to tables that have the same column names. This function returns the rows in common between two tables. To make sure we use the __dplyr__ version of interesect rather than the base package version we can use `dplyr::intersect` like this:
+
 
 ```{r}
 tab_1 <- tab[1:5,]
 tab_2 <- tab[3:7,]
-intersect(tab_1, tab_2)
+dplyr::intersect(tab_1, tab_2)
 ```
 
 
@@ -208,12 +207,12 @@ union(1:10, 6:15)
 union(c("a","b","c"), c("b","c","d"))
 ```
 
-But with __dplyr__ loaded, we can also do this for tables having the same column names:
+The __dplyr__ package includes a version of union that combines all the rows of two tables with the same column names.
 
 ```{r}
 tab_1 <- tab[1:5,]
 tab_2 <- tab[3:7,]
-union(tab_1, tab_2)
+dplyr::union(tab_1, tab_2)
 ```
 
 
@@ -227,11 +226,12 @@ setdiff(1:10, 6:15)
 setdiff(6:15, 1:10)
 ```
 
-As in the function shown above, we can apply it to data frames:
+As for the function shown above, __dplyr__ has a version for data frames:
+
 ```{r}
 tab_1 <- tab[1:5,]
 tab_2 <- tab[3:7,]
-setdiff(tab_1, tab_2)
+dplyr::setdiff(tab_1, tab_2)
 ```
 
 ### `setequal`
@@ -248,10 +248,10 @@ but:
 setequal(1:5, 5:1)
 ```
 
-When applied to data frames that are not equal, regardless of order, it provides a useful message letting us know how the sets are different:
+When applied to data frames that are not equal, regardless of order, the __dplyr__ version  provides a useful message letting us know how the sets are different:
 
 ```{r}
-setequal(tab_1, tab_2)
+dplyr::setequal(tab_1, tab_2)
 ```
 
 ## Exercises {-}
