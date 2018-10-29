@@ -25,7 +25,7 @@
 <meta name="author" content="Rafael A. Irizarry">
 
 
-<meta name="date" content="2018-10-27">
+<meta name="date" content="2018-10-29">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -903,15 +903,6 @@ title=&quot;List of U.S. states and territories by population&quot;&gt;Populatio
 <h2><span class="header-section-number">37.2</span> The rvest package</h2>
 <p>The <strong>tidyverse</strong> provides a web harvesting package called <strong>rvest</strong>. The first step using this package is to import the webpage into R. The package makes this quite simple:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(rvest)
-<span class="co">#&gt; Loading required package: xml2</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Attaching package: &#39;rvest&#39;</span>
-<span class="co">#&gt; The following object is masked from &#39;package:purrr&#39;:</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt;     pluck</span>
-<span class="co">#&gt; The following object is masked from &#39;package:readr&#39;:</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt;     guess_encoding</span>
 h &lt;-<span class="st"> </span><span class="kw">read_html</span>(url)</code></pre></div>
 <p>Note that the entire Murders in the US Wikipedia webpage is now contained in <code>h</code>. The class of this object is:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(h)
@@ -928,7 +919,7 @@ h &lt;-<span class="st"> </span><span class="kw">read_html</span>(url)</code></p
 <p>Now, instead of the entire webpage, we just have the html code for the tables in the page:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tab
 <span class="co">#&gt; {xml_nodeset (4)}</span>
-<span class="co">#&gt; [1] &lt;table id=&quot;revision-info-current&quot; class=&quot;plainlinks fmbox fmbox-syst ...</span>
+<span class="co">#&gt; [1] &lt;table id=&quot;revision-info&quot; class=&quot;plainlinks fmbox fmbox-warning&quot; rol ...</span>
 <span class="co">#&gt; [2] &lt;table class=&quot;wikitable&quot;&gt;\n&lt;caption&gt;Legend\n&lt;/caption&gt;\n&lt;tbody&gt;&lt;tr&gt;\ ...</span>
 <span class="co">#&gt; [3] &lt;table class=&quot;wikitable sortable&quot;&gt;&lt;tbody&gt;\n&lt;tr&gt;\n&lt;th data-sort-type= ...</span>
 <span class="co">#&gt; [4] &lt;table class=&quot;nowraplinks hlist collapsible collapsed navbox-inner&quot;  ...</span></code></pre></div>
@@ -962,12 +953,7 @@ h &lt;-<span class="st"> </span><span class="kw">read_html</span>(url)</code></p
 <div id="json" class="section level2">
 <h2><span class="header-section-number">37.4</span> JSON</h2>
 <p>Sharing data on the internet has become more and more common. Unfortunately, providers use different formats which makes it harder for data scientists to wrangle data into R. Yet there are some standards that are also becoming more common. Currently, a format that is widely being adopted is the JavaScript Object Notation or JSON. Because this format is very general, it is nothing like a spreadsheet. This JSON files look more like the code you use to define a list. Here is an example of information stored in a JSON format:</p>
-<pre><code>#&gt; 
-#&gt; Attaching package: &#39;jsonlite&#39;
-#&gt; The following object is masked from &#39;package:purrr&#39;:
-#&gt; 
-#&gt;     flatten
-#&gt; [
+<pre><code>#&gt; [
 #&gt;   {
 #&gt;     &quot;name&quot;: &quot;Miguel&quot;,
 #&gt;     &quot;student_id&quot;: 1,
@@ -998,37 +984,37 @@ h &lt;-<span class="st"> </span><span class="kw">read_html</span>(url)</code></p
 citi_bike &lt;-<span class="st"> </span><span class="kw">fromJSON</span>(<span class="st">&quot;http://citibikenyc.com/stations/json&quot;</span>)</code></pre></div>
 <p>This downloads a list. The first argument tells you when you downloaded it:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">citi_bike<span class="op">$</span>executionTime
-<span class="co">#&gt; [1] &quot;2018-10-27 12:42:55 PM&quot;</span></code></pre></div>
+<span class="co">#&gt; [1] &quot;2018-10-29 04:08:32 PM&quot;</span></code></pre></div>
 <p>and the second is a data table:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(citi_bike<span class="op">$</span>stationBeanList)
 <span class="co">#&gt;    id                       stationName availableDocks totalDocks latitude</span>
-<span class="co">#&gt; 1 281 Grand Army Plaza &amp; Central Park S              1         57     40.8</span>
-<span class="co">#&gt; 2  72                  W 52 St &amp; 11 Ave             29         39     40.8</span>
-<span class="co">#&gt; 3  79          Franklin St &amp; W Broadway             31         33     40.7</span>
-<span class="co">#&gt; 4  82            St James Pl &amp; Pearl St             18         27     40.7</span>
-<span class="co">#&gt; 5  83     Atlantic Ave &amp; Fort Greene Pl              0          0     40.7</span>
-<span class="co">#&gt; 6 119          Park Ave &amp; St Edwards St              6         19     40.7</span>
-<span class="co">#&gt;   longitude    statusValue statusKey availableBikes</span>
-<span class="co">#&gt; 1       -74     In Service         1             51</span>
-<span class="co">#&gt; 2       -74     In Service         1              9</span>
-<span class="co">#&gt; 3       -74     In Service         1              0</span>
-<span class="co">#&gt; 4       -74     In Service         1              8</span>
-<span class="co">#&gt; 5       -74 Not In Service         3              0</span>
-<span class="co">#&gt; 6       -74     In Service         1             12</span>
+<span class="co">#&gt; 1 281 Grand Army Plaza &amp; Central Park S             32         57     40.8</span>
+<span class="co">#&gt; 2 301                 E 2 St &amp; Avenue B             36         37     40.7</span>
+<span class="co">#&gt; 3 304             Broadway &amp; Battery Pl              7         33     40.7</span>
+<span class="co">#&gt; 4 359                E 47 St &amp; Park Ave             34         53     40.8</span>
+<span class="co">#&gt; 5 377                  6 Ave &amp; Canal St             22         45     40.7</span>
+<span class="co">#&gt; 6 402                Broadway &amp; E 22 St             26         39     40.7</span>
+<span class="co">#&gt;   longitude statusValue statusKey availableBikes</span>
+<span class="co">#&gt; 1       -74  In Service         1             18</span>
+<span class="co">#&gt; 2       -74  In Service         1              1</span>
+<span class="co">#&gt; 3       -74  In Service         1             25</span>
+<span class="co">#&gt; 4       -74  In Service         1             17</span>
+<span class="co">#&gt; 5       -74  In Service         1             16</span>
+<span class="co">#&gt; 6       -74  In Service         1             12</span>
 <span class="co">#&gt;                          stAddress1 stAddress2 city postalCode location</span>
 <span class="co">#&gt; 1 Grand Army Plaza &amp; Central Park S                                    </span>
-<span class="co">#&gt; 2                  W 52 St &amp; 11 Ave                                    </span>
-<span class="co">#&gt; 3          Franklin St &amp; W Broadway                                    </span>
-<span class="co">#&gt; 4            St James Pl &amp; Pearl St                                    </span>
-<span class="co">#&gt; 5     Atlantic Ave &amp; Fort Greene Pl                                    </span>
-<span class="co">#&gt; 6          Park Ave &amp; St Edwards St                                    </span>
+<span class="co">#&gt; 2                 E 2 St &amp; Avenue B                                    </span>
+<span class="co">#&gt; 3             Broadway &amp; Battery Pl                                    </span>
+<span class="co">#&gt; 4                E 47 St &amp; Park Ave                                    </span>
+<span class="co">#&gt; 5                  6 Ave &amp; Canal St                                    </span>
+<span class="co">#&gt; 6                Broadway &amp; E 22 St                                    </span>
 <span class="co">#&gt;   altitude testStation  lastCommunicationTime landMark</span>
-<span class="co">#&gt; 1                FALSE 2018-10-27 12:42:44 PM         </span>
-<span class="co">#&gt; 2                FALSE 2018-10-27 12:42:07 PM         </span>
-<span class="co">#&gt; 3                FALSE 2018-10-27 12:42:51 PM         </span>
-<span class="co">#&gt; 4                FALSE 2018-10-27 12:41:22 PM         </span>
-<span class="co">#&gt; 5                FALSE 2018-10-09 09:05:09 AM         </span>
-<span class="co">#&gt; 6                FALSE 2018-10-27 12:41:25 PM</span></code></pre></div>
+<span class="co">#&gt; 1                FALSE 2018-10-29 04:08:29 PM         </span>
+<span class="co">#&gt; 2                FALSE 2018-10-29 04:08:11 PM         </span>
+<span class="co">#&gt; 3                FALSE 2018-10-29 04:06:29 PM         </span>
+<span class="co">#&gt; 4                FALSE 2018-10-29 04:08:05 PM         </span>
+<span class="co">#&gt; 5                FALSE 2018-10-29 04:07:59 PM         </span>
+<span class="co">#&gt; 6                FALSE 2018-10-29 04:06:29 PM</span></code></pre></div>
 <p>You can learn much more by examining tutorials and help files from the <strong>jsonlite</strong> package. This package is intended for relatively simple tasks such as converging data into tables. For more flexibility, we recommend <code>rjson</code>.</p>
 </div>
 <div id="exercises-30" class="section level2 unnumbered">
