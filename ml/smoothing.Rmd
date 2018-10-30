@@ -2,7 +2,7 @@
 
 Before continuing with machine learning algorithms, we introduce the important concept of _smoothing_. Smoothing is a very powerful technique used all across data analysis. Other names given to this technique are _curve fitting_ and _low pass filtering_. It is designed to detect trends in the presence of noisy data in cases in which the shape of the trend is unknown. The _smoothing_ name comes from the fact that to accomplish this feat, we assume that the trend is _smooth_, as in a smooth surface. In contrast, the noise, or deviation from the trend, is unpredictably wobbly:
 
-```{r signal-plus-noise-example, echo=FALSE}
+```{r signal-plus-noise-example, fig.height=6, echo=FALSE}
 set.seed(1)
 n <- 100
 x <- seq(-pi*4, pi*4, len = n)
@@ -232,10 +232,10 @@ There are several functions in R that implement bin smoothers. One example is `k
 A limitation of the bin smoother approach just described is that we need small windows for the approximately constant assumptions to hold. As a result, we end up with a small number of data points to average and obtain imprecise estimates $\hat{f}(x)$. Here we describe how _local weighted regression_ (loess) permits us to consider larger window sizes. To do this, we will use a mathematical result, referred to as Taylor's Theorem, which tells us that if you look closely enough at any smooth function $f(x)$, it will look like a line. To see why this makes sense, consider the curved edges gardeners make using straight edges:
 
 ```{r, echo=FALSE}
-## url: https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Savill_Garden_-_Windsor_Great_Park%2C_England_-_DSC06280.jpg/1920px-Savill_Garden_-_Windsor_Great_Park%2C_England_-_DSC06280.jpg
-knitr::include_graphics("ml/img/Savill_Garden_-_Windsor_Great_Park,_England_-_DSC06280.ppg")
+knitr::include_graphics("ml/img/garden.ppg")
 ```
 
+(Source: [Number 10](https://www.flickr.com/photos/number10gov/))
 
 So instead of assuming the function is approximately constant in a window, we assume the function is locally linear. We can consider larger window sizes with the linear assumption than with a constant. So instead of the one week window, we consider a larger one in which the trend is approximately linear. We start with a 3 week window and later consider and evaluate other options:
 
@@ -458,3 +458,71 @@ polls_2008 %>% ggplot(aes(day, margin)) +
   geom_smooth(color="red",  span = 0.15,
               method.args = list(degree=1))
 ```
+
+
+
+## Exercises {-}
+
+1. In the wrangling part of this book, we used the code below to obtain mortality counts for Puerto Rico for 2015-2018.
+
+    ```{r, eval=FALSE}
+    library(tidyverse)
+    library(purrr)
+    library(pdftools)
+    
+    fn <- system.file("extdata", "RD-Mortality-Report_2015-18-180531.pdf",
+                      package="dslabs")
+    dat <- map_df(str_split(pdf_text(fn), "\n"), function(s){
+      s <- str_trim(s)
+      header_index <- str_which(s, "2015")[1]
+      tmp <- str_split(s[header_index], "\\s+", simplify = TRUE)
+      month <- tmp[1]
+      header <- tmp[-1]
+      tail_index  <- str_which(s, "Total")
+      n <- str_count(s, "\\d+")
+      out <- c(1:header_index, which(n==1), which(n>=28), tail_index:length(s))
+      s[-out] %>%
+        str_remove_all("[^\\d\\s]") %>%
+        str_trim() %>%
+        str_split_fixed("\\s+", n = 6) %>%
+        .[,1:5] %>%
+        as_data_frame() %>% 
+        setNames(c("day", header)) %>%
+        mutate(month = month,
+               day = as.numeric(day)) %>%
+        gather(year, deaths, -c(day, month)) %>%
+        mutate(deaths = as.numeric(deaths))
+    }) %>%
+      mutate(month = recode(month, 
+                            "JAN" = 1, "FEB" = 2, "MAR" = 3, 
+                            "APR" = 4, "MAY" = 5, "JUN" = 6, 
+                            "JUL" = 7, "AGO" = 8, "SEP" = 9, "
+                            OCT" = 10, "NOV" = 11, "DEC" = 12)) %>%
+      mutate(date = make_date(year, month, day)) %>%
+      filter(date <= "2018-05-01")
+    
+    ```
+
+    Use the `loess` function to obtain a smooth estimate of the expected number of deaths as a function of date. Plot this resulting smooth function. Make the span about two months long.
+
+    
+2. Plot the smooth estimates against day of the year, all on the same plot but with different colors.
+
+    
+3. Suppose we want to predict 2s and 7s in our `mnist_27` dataset with just the second covariate. Can we do this? On first inspection it appears the data does not have much predictive power. In fact, if we fit a regular logistic regression, the coefficient for `x_2` is not significant!
+
+    ```{r, eval = FALSE}
+    library(broom)
+    mnist_27$train %>% glm(y ~ x_2, family = "binomial", data = .) %>% tidy()
+    ```
+
+    Plotting a scatterplot here is not useful since `y` is binary:
+
+    ```{r, eval = FALSE}
+    qplot(x_2, y, data = mnist_27$train)
+    ```
+
+    Fit a loess line to the data above and plot the results. Notice that there is predictive power, except the conditional probability is not linear.
+
+    
+    

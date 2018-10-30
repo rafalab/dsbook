@@ -40,7 +40,7 @@ Note in particular that the months are displayed.
 
 ## The lubridate package
 
-The tidyverse includes functionality for dealing with dates through the lubridate package. 
+The tidyverse includes functionality for dealing with dates through the __lubridate__ package. 
 
 ```{r}
 library(lubridate)
@@ -82,7 +82,7 @@ ymd(x)
 A further complication comes from the fact that dates often come in different formats in which the order of year, month, and day are different. The preferred format is to show year (with all four digits), month (two digits) and then day, or what is called the ISO 8601. Specifically we use YYYY-MM-DD so that if we order the string, it will be ordered by date. You can see the function `ymd` returns them in this format.
 
 What if you encounter dates such as "09/01/02"? This could be September 1, 2002 or January 2, 2009 or January 9, 2002. 
-In these cases, examining the entire vector of dates will help you determine what format it is by process of elimination. Once you know, you can use the many parses provided by lubridate.
+In these cases, examining the entire vector of dates will help you determine what format it is by process of elimination. Once you know, you can use the many parses provided by __lubridate__.
 
 For example, if the string is:
 
@@ -102,7 +102,7 @@ The `mdy` function assumes the first entry is the month, then the day, then the 
 mdy(x)
 ```
 
-Lubridate provides a function for every possibility:
+The _lubridate_ package provides a function for every possibility:
 ```{r}
 ydm(x)
 myd(x)
@@ -110,7 +110,7 @@ dmy(x)
 dym(x)
 ```
 
-Lubridate is also useful for dealing with times. In R, you can get the current time typing `Sys.time()`. Lubridate provides a slightly more advanced function, `now`, that permits you to define the time zone:
+The __lubridate__ package is also useful for dealing with times. In R, you can get the current time typing `Sys.time()`. The __lubridate__ package provides a slightly more advanced function, `now`, that permits you to define the time zone:
 
 ```{r}
 now()
@@ -119,7 +119,7 @@ now("GMT")
 
 You can see all the available times zones with `OlsonNames()` function.
 
-Lubridate also has functions to extract hours, minutes and seconds: 
+The __lubridate__ package also has functions to extract hours, minutes and seconds: 
 
 ```{r}
 now() %>% hour()
@@ -143,3 +143,64 @@ mdy_hms(x)
 
 This package has many other useful functions. Two particular ones not described above are  `make_date` and `round_date`. 
 
+
+## Exercises {-}
+
+
+In the previous exercise section, we wrangled data from a PDF file containing vital statistics from Puerto Rico. We did this for the month of September. Below we include code that does it for all 12 months.
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(purrr)
+library(pdftools)
+
+fn <- system.file("extdata", "RD-Mortality-Report_2015-18-180531.pdf", package="dslabs")
+tab <- map_df(str_split(pdf_text(fn), "\n"), function(s){
+  s <- str_trim(s)
+  header_index <- str_which(s, "2015")[1]
+  tmp <- str_split(s[header_index], "\\s+", simplify = TRUE)
+  month <- tmp[1]
+  header <- tmp[-1]
+  tail_index  <- str_which(s, "Total")
+  n <- str_count(s, "\\d+")
+  out <- c(1:header_index, which(n==1), which(n>=28), tail_index:length(s))
+  s[-out] %>%
+    str_remove_all("[^\\d\\s]") %>%
+    str_trim() %>%
+    str_split_fixed("\\s+", n = 6) %>%
+    .[,1:5] %>%
+    as_data_frame() %>% 
+    setNames(c("day", header)) %>%
+    mutate(month = month,
+           day = as.numeric(day)) %>%
+    gather(year, deaths, -c(day, month)) %>%
+    mutate(deaths = as.numeric(deaths))
+})
+```
+
+1. We want to make a plot of death counts versus date. A first step is to convert the month variable from characters to numbers. Note that the month abbreviations are in Spanglish. Use the `recode` function to convert months to numbers and redefine `tab`.
+
+     
+2. Create a new column `date` with the date for each observation. Hint: use the `make_date` function.
+
+    
+3. Plot deaths versus date.
+
+    
+4. Note that after May 31, 2018, the deaths are all 0. The data is probably not entered yet. We also see a drop off starting around May 1. Redefine `tab` to exclude observations taken on or after May 1, 2018. Then, remake the plot.
+
+    
+
+5. Remake the plot above but this time plot deaths against the day of the year, e.g. Jan 12, 2016 and Jan 12, 2017 are both day 12. Use color to denote the different years. Hint: use the __lubridate__ function `yday`.
+
+
+    
+6. Remake the plot above but, this time, use two different colors for before and after September 20, 2017.
+
+    
+7. Advanced: remake the plot above, but this time show the month in the x-axis. Hint: create a variable with the date for a given year. Then use the `scale_x_date` function to show just the months.
+
+8. Remake the deaths versus day but with weekly averages. Hint: use the function `round_date`.
+
+    
+9. Remake the plot but with monthly averages. Hint: use the function `round_date` again.

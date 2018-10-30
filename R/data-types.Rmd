@@ -13,7 +13,7 @@ To work efficiently in R, it is important to learn the different types of variab
 
 Up to now, the variables we have defined are just one number. This is not very useful for storing data. The most common way of storing a dataset in R is in a _data frame_. Conceptually, we can think of a data frame as a table with rows representing observations and the different variables reported for each observation defining the columns. Data frames are particularly useful for datasets because we can combine different data types into one object. 
 
-We stored the data for our motivating example in a data frame. You can access this dataset by loading the `dslabs` library and loading the `murders` dataset using the `data` function:
+We stored the data for our motivating example in a data frame. You can access this dataset by loading the __dslabs__ library and loading the `murders` dataset using the `data` function:
 
 ```{r}
 library(dslabs)
@@ -44,7 +44,7 @@ In this dataset, each state is considered an observation and five variables are 
 
 Before we go any further in answering our original question about different states, let's learn more about the components of this object.
 
-## The accessor
+## The accessor: `$`
 
 For our analysis we will need to access the different variables represented by columns included in this data frame. To do this, we use the accessor operator `$` in the following way:
 
@@ -160,6 +160,80 @@ record[["student_id"]]
 
 You should get used to the fact that in R, there are often several ways to do the same thing, such as accessing entries.
 
+## Matrices
+
+Matrices are another type of object that are common in R. Matrices are similar to data frames in that they are two dimensional: they have rows and columns. However, like numeric, character and logical vectors, entries in matrices have to be all the same type. For this reason data frames are much more useful for storing data, since we can have characters, factors and numbers in them. 
+
+Yet matrices have a major advantage over data frames: we can perform a matrix algebra operations, a powerful type of mathematical technique. We do not describe these operations in this book, but much of what happens in the background when you perform a data analysis involves matrices. For this reason, and others, some of the functions we will learn return matrices. We will describe them briefly here.
+
+One way matrices show up is if a function called with `sapply` returns two or more values. For example, suppose we write a function that for any number `x` returns `x`, `x^2` and `x^3`:
+
+```{r}
+cubic <- function(x) {
+  c(x, x^2, x^3)
+}
+cubic(2)
+```
+
+If we use `sapply` to compute these three numbers for each of the elements in a vector, R automatically _binds_ the results as columns in a matrix:
+
+
+```{r}
+n <- seq(1,5)
+mat <- sapply(n, cubic)
+mat
+```
+
+You can access specific entries in a matrix using `[`. If you want the second row, third column, you use:
+
+```{r}
+mat[2,3]
+```
+
+If you want the entire second row, you leave the column spot empty:
+
+```{r}
+mat[2, ]
+```
+
+Notice that this returns a vector, not a matrix.
+
+Similarly, if you want the entire third column, you leave the row spot empty:
+
+```{r}
+mat[ ,3]
+```
+
+This is also a vector, not a matrix.
+
+You can access more than one column or more than one row if you like. This will give you a new matrix.
+
+```{r}
+mat[ ,2:4]
+```
+
+You can subset both rows and columns:
+
+```{r}
+mat[1:2,2:4]
+```
+
+In some of our illustrations, we will convert matrices into data frames so that we can, for example, use them with __dplyr__. For this, we can use the function `as.data.frame`:
+
+```{r}
+as.data.frame(mat)
+```
+
+You can also use the `[` to access rows and columns of a data frame:
+
+```{r}
+data("murders")
+murders[25, 1]
+murders[2:3, ]
+```
+
+We will learn more about matrices in the Machine Learning part of the book.
+
 ## Exercises {-}
 
 1. Load the US murders dataset.
@@ -171,10 +245,13 @@ You should get used to the fact that in R, there are often several ways to do th
     
     Use the function `str` to examine the structure of the `murders` object. We can see that this object is a data frame with 51 rows and five columns. Which of the following best describes the variables represented in this data frame?
     
-    A) The 51 states.
-    B) The murder rates for all 50 states and DC.
-    C) The state name, the abbreviation of the state name, the state's region, and the state's population and total number of murders for 2010. 
-    D) `str` shows no relevant information.
+    A. The 51 states.
+    
+    B. The murder rates for all 50 states and DC.
+    
+    C. The state name, the abbreviation of the state name, the state's region, and the state's population and total number of murders for 2010. 
+    
+    D. `str` shows no relevant information.
 
 2. What are the column names used by the data frame for these five variables?
     

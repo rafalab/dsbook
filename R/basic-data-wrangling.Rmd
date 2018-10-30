@@ -5,10 +5,9 @@ library(dslabs)
 data(murders)
 ```
 
+Up to now we have been changing vectors by reordering them and subsetting them through indexing. However, once we start more advanced analyses, we will want to prepare data tables for data analysis. We refer to this task as data wrangling. For this purpose, we will introduce the __dplyr__ package which provides intuitive functionality for working with tables. In Chapter 6, we will cover the __dplyr__ package in much more depth. 
 
-Up to now we have been changing vectors by reordering them and subsetting them through indexing. However, once we start more advanced analyses, we will want to prepare data tables for data analysis. We refer to this task as data wrangling. For this purpose, we will introduce the `dplyr` package which provides intuitive functionality for working with tables. In Chapter 6, we will cover the `dplyr` package in much more depth. 
-
-Once you install `dplyr`, you can load it using:
+Once you install __dplyr__, you can load it using:
 
 ```{r message=FALSE}
 library(dplyr)
@@ -26,7 +25,7 @@ murders <- mutate(murders, rate = total / population * 100000)
 
 Notice that here we used `total` and `population` inside the function, which are objects that are **not** defined in our workspace. But why don't we get an error?
 
-This is one of the main features of dplyr. Functions in this package, such as `mutate`, know to look for variables in the data frame provided in the first argument. In the call to mutate above, `total` will have the values in `murders$total`. This approach makes the code much more readable. 
+This is one of __dplyr__'s the main features. Functions in this package, such as `mutate`, know to look for variables in the data frame provided in the first argument. In the call to mutate above, `total` will have the values in `murders$total`. This approach makes the code much more readable. 
 
 We can see that the new column is added:
 
@@ -58,7 +57,7 @@ In the call to `select`, the first argument `murders` is an object, but `state`,
 
 ## The pipe: `%>%`
 
-We wrote the code above because we wanted to show the three variables for states that have murder rates below 0.71. To do this, we defined the intermediate object `new_table`. In `dplyr` we can write code that looks more like a description of what we want to do: 
+We wrote the code above because we wanted to show the three variables for states that have murder rates below 0.71. To do this, we defined the intermediate object `new_table`. In __dplyr__ we can write code that looks more like a description of what we want to do: 
 
 $$ \mbox{original data }
 \rightarrow \mbox{ select }
@@ -91,7 +90,7 @@ Remember that the pipe sends values to the first argument, so we can define othe
 16 %>% sqrt() %>% log(base = 2)
 ```
 
-Therefore, when using the pipe with data frames and `dplyr`, we no longer need to specify the required first argument since the `dplyr` functions we have described all take the data as the first argument. In the code we wrote:
+Therefore, when using the pipe with data frames and __dplyr__, we no longer need to specify the required first argument since the __dplyr__ functions we have described all take the data as the first argument. In the code we wrote:
 
 ```{r, eval=FALSE}
 murders %>% select(state, region, rate) %>% filter(rate <= 0.71)
@@ -126,18 +125,18 @@ class(grades$names)
 
 ## Exercises {-}
 
-1. Load the `dplyr` package and the murders dataset.
+1. Load the __dplyr__ package and the murders dataset.
 
     ```{r, eval=FALSE}
-library(dplyr)
-library(dslabs)
-data(murders)
+    library(dplyr)
+    library(dslabs)
+    data(murders)
     ```
 
-    You can add columns using the `dplyr` function `mutate`. This function is aware of the column names and inside the function you can call them unquoted:
+You can add columns using the __dplyr__ function `mutate`. This function is aware of the column names, and inside the function you can call them unquoted:
 
     ```{r, eval=FALSE}
-murders <- mutate(murders, population_in_millions = population / 10^6)
+    murders <- mutate(murders, population_in_millions = population / 10^6)
     ```
 
     We can write `population` rather than `murders$population`. The function `mutate` knows we are grabbing columns from `murders`.
@@ -150,20 +149,21 @@ murders <- mutate(murders, population_in_millions = population / 10^6)
 
  
 
-3. With `dplyr`, we can use `select` to show only certain columns. For example, with this code we would only show the states and population sizes:
+3. With __dplyr__, we can use `select` to show only certain columns. For example, with this code we would only show the states and population sizes:
 
-    ```{r}
-select(murders, state, population) %>% head()
+    ```{r, eval=FALSE}
+    select(murders, state, population) %>% head()
     ```
 
     Use `select` to show the state names and abbreviations in `murders`. Do not define a new object, just show the results.
 
 
-4. The `dplyr` function `filter` is used to choose specific rows of the data frame to keep. Unlike `select` which is for columns, `filter` is for rows. For example, you can show just the New York row like this:
+4. The __dplyr__ function `filter` is used to choose specific rows of the data frame to keep. Unlike `select` which is for columns, `filter` is for rows. For example, you can show just the New York row like this:
 
-    ```{r}
-filter(murders, state == "New York")
+    ```{r, eval=FALSE}
+    filter(murders, state == "New York")
     ```
+    
     You can use other logical vectors to filter rows.
 
     Use `filter` to show the top 5 states with the highest murder rates. After we add murder rate and rank, do not change the murders dataset, just show the result. Remember that you can filter based on the `rank` column.
@@ -171,55 +171,51 @@ filter(murders, state == "New York")
  
 5. We can remove rows using the `!=` operator. For example, to remove Florida, we would do this:
 
-    ```{r}
-no_florida <- filter(murders, state != "Florida")
+    ```{r, eval=FALSE}
+    no_florida <- filter(murders, state != "Florida")
     ```
 
     Create a new data frame called `no_south` that removes states from the South region. How many states are in this category? You can use the function `nrow` for this.
 
 
-6. We can also use the `%in%` to filter with `dplyr`. You can therefore see the data from New York and Texas like this:
+6. We can also use the `%in%` to filter with __dplyr__. You can therefore see the data from New York and Texas like this:
 
-    ```{r}
-filter(murders, state %in% c("New York", "Texas"))
+    ```{r, eval=FALSE}
+    filter(murders, state %in% c("New York", "Texas"))
     ```
+    
     Create a new data frame called `murders_nw` with only the states from the Northeast and the West.  How many states are in this category? 
 
 
 7. Suppose you want to live in the Northeast or West **and** want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with `filter`:
 
-    ```{r}
-filter(murders, population < 5000000 & region == "Northeast")
+    ```{r, eval=FALSE}
+    filter(murders, population < 5000000 & region == "Northeast")
     ```
-  Add a murder rate column and a rank column as done before. Create a table, call it `my_states`, that satisfies both the conditions: it is in the Northeast or West and the murder rate is less than 1.  Use select to show only the state name, the rate and the rank.
 
-    ```{r}
-library(dplyr)
-library(dslabs)
-data(murders)
-    ```
+    Add a murder rate column and a rank column as done before. Create a table, call it `my_states`, that satisfies both the conditions: it is in the Northeast or West and the murder rate is less than 1.  Use select to show only the state name, the rate and the rank.
 
 
 8. The pipe `%>%` can be used to perform operations sequentially without having to define intermediate objects, after redefining murder to include rate and rank.
 
-    ```{r}
-library(dplyr)
-murders <- mutate(murders, rate =  total / population * 100000, rank = rank(-rate))
+    ```{r, eval=FALSE}
+    library(dplyr)
+    murders <- mutate(murders, rate =  total / population * 100000, rank = rank(-rate))
     ```
 
     In the solution to the previous exercise, we did the following:
-    ```{r}
-    # Created a table 
+    ```{r, eval=FALSE}
+    # Created a table:
     my_states <- filter(murders, region %in% c("Northeast", "West") & rate < 1)
 
-    # Used select to show only the state name, the murder rate and the rank
+    # Used select to show only the state name, the murder rate and the rank:
     select(my_states, state, rate, rank)
     ```
 
     The pipe `%>%` permits us to perform both operations sequentially without having to define an intermediate variable `my_states`. We therefore could have mutated and selected in the same line like this:
 
-    ```{r}
-mutate(murders, rate =  total / population * 100000, rank = rank(-rate)) %>%
+    ```{r, eval=FALSE}
+    mutate(murders, rate =  total / population * 100000, rank = rank(-rate)) %>%
       select(state, rate, rank)
     ```
 
@@ -236,8 +232,12 @@ Use just one line to create a new data frame, called `my_states`, that has a mur
     - A call to `filter` to keep only the states from the Northeast or West and that have a murder rate below 1.
     - A call to `select` that keeps only the columns with the state name, the murder rate and the rank. 
 
-    The line should look something like this `my_states <- murders %>%` mutate something `%>%` filter something `%>%` select something.
-
-
-
+    The line should look something like this:
+    
+    ```{r, eval=FALSE}
+    my_states <- murders %>%
+      mutate SOMETHING %>% 
+      filter SOMETHING %>% 
+      select SOMETHING
+    ```
 

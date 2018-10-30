@@ -247,7 +247,7 @@ It also breaks down the acceptance rates by major: the size of the colored bars 
 
 In this plot, we can see that if we condition or stratify by major and then look at differences, we control for the confounder and this effect goes away:
 
-```{r admission-by-major, fig.cap="Admission percentage by major for each gender."}
+```{r admission-by-major}
 admissions %>% 
   ggplot(aes(major, admitted, col = gender, size = applicants)) +
   geom_point()
@@ -264,7 +264,7 @@ admissions %>%
 ```
 
 
-# Simpson's Paradox 
+## Simpson's Paradox 
 
 The case we have just covered is an example of Simpson's Paradox. It is called a paradox because we see the sign of the correlation  flip when comparing the entire publication and specific strata. As an illustrative example, suppose you have three variables $X$, $Y$ and $Z$. Here is a scatterplot of $Y$ versus $X$:
 
@@ -298,115 +298,47 @@ dat %>% ggplot(aes(X, Y, color = Z)) +
 
 It is really $Z$ that is negatively correlated with $X$. If we stratify by $Z$, the $X$ and $Y$ are actually positively correlated as seen in the plot above.
 
-### Case study: research funding success in The Netherlands
-
-Let's examine a similar case to the UC Berkeley admissions example, but one which is much more subtle.
+## Exercises {-}
 
 A [2014 PNAS paper](http://www.pnas.org/content/112/40/12349.abstract) analyzed success rates from funding agencies in the Netherlands and concluded:
 
-> results reveal gender bias favoring male applicants over female applicants in the prioritization of their “quality of researcher” (but not "quality of proposal") evaluations and success rates, as well as in the language used in instructional and evaluation materials.
-
-The main evidence for this conclusion comes down to a comparison of the percentages. Table S1 in the paper includes the information we need:
-
-```{r,echo=FALSE}
-data("research_funding_rates")
-research_funding_rates
-```
-
-We can construct the two-by-two table used for the conclusion above:
-
-```{r}
-two_by_two <- research_funding_rates %>% 
-  select(-discipline) %>% 
-  summarize_all(funs(sum)) %>%
-  summarize(yes_men = awards_men, 
-            no_men = applications_men - awards_men, 
-            yes_women = awards_women, 
-            no_women = applications_women - awards_women) %>%
-  gather %>%
-  separate(key, c("awarded", "gender")) %>%
-  spread(gender, value)
-two_by_two
-```
-
-We can then compute the difference in percentage:
-
-```{r}
-two_by_two %>% 
-  mutate(men = round(men/sum(men)*100, 1), women = round(women/sum(women)*100, 1)) %>%
-  filter(awarded == "yes")
-```
-
-Notice that the success rate is lower for women with a p-value slightly higher than 0.05:
-
-```{r}
-two_by_two %>% select(-awarded) %>% chisq.test() %>% tidy
-```
-
-So there appears to be some evidence of an association. But can we infer causation here? Is gender bias causing this observed difference?
+> our results reveal gender bias favoring male applicants over female applicants in the prioritization of their “quality of researcher” (but not "quality of proposal") evaluations and success rates, as well as in the language used in instructional and evaluation materials.
 
 [A response](http://www.pnas.org/content/112/51/E7036.extract) was published a few months later titled _No evidence that gender contributes to personal research funding success in The Netherlands: A reaction to Van der Lee and Ellemers_  which concluded:
 
-> However, the overall gender effect borders on statistical significance, despite the large sample. Moreover, their conclusion could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines (i.e., with low application success rates for both men and women), then an analysis across all disciplines could incorrectly show "evidence" of gender inequality.
+> However, the overall gender effect borders on statistical significance, despite the large sample. Moreover, their conclusion could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines (i.e., with low application success rates for both men and women), then an analysis across all disciplines could incorrectly show "evidence" of gender inequality. 
+
+Who is right here? The original paper or the response? Here, you will examine the data and come to your own conclusion.
+
+1. The main evidence for the conclusion of the original paper comes down to a comparison of the percentages. Table S1 in the paper includes the information we need:
+
+    ```{r,eval=FALSE}
+    library(dslabs)
+    data("research_funding_rates")
+    research_funding_rates
+    ```
+
+    Construct the two-by-two table used for the conclusion about differences in awards by gender.
 
 
-In the UC Berkeley admissions example, the overall differences were explained by difference across disciplines. We use the same approach on the research funding data and look at comparisons by discipline:
+2. Compute the difference in percentage from the two by two table.
 
-```{r netherlands-data}
-dat <- research_funding_rates %>% 
-  rename(success_total = success_rates_total,
-         success_men = success_rates_men,
-         success_women = success_rates_women) %>%
-  gather(key, value, -discipline) %>%
-  separate(key, c("type", "gender")) %>%
-  spread(type, value) %>%
-  filter(gender != "total") %>%
-  mutate(discipline = reorder(discipline, applications, sum)) 
-dat %>% 
-  ggplot(aes(discipline, success, size = applications, color = gender)) + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  geom_point()
-```
 
-We do not see the same level of confounding as in the UC Berkeley example. We do see that some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But unlike the UC Berkeley examples, women are not more likely to apply for the harder subjects. 
+3. In the previous exercise, we noticed that the success rate is lower for women. But is it significant? Compute a p-value using a Chi Square test.
 
-So perhaps some of the selection committees are biased and others are not.
 
-However, are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. If we perform a Fisher test in each discipline, we see that most differences result in p-values larger than 0.05.
+4. We see that the p-value is about 0.05. So there appears to be some evidence of an association. But can we infer causation here? Is gender bias causing this observed difference? The response to the original paper claims that what we see here is similar to the UC Berkeley admissions example. Specifically they state that this `could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines, then an analysis across all disciplines could incorrectly show "evidence" of gender inequality.` To settle this dispute, create a dataset with number of applications, awards, and success rate for each gender. Reorder the disciplines by their overall success rate. Hint: use the `reorder` function to reorder the disciplines in a first step, then use gather, separate and spread to create the desired table.
 
-```{r}
-do_fisher_test <- function(m, x, n, y){
-  tab <- tibble(men = c(x, m-x), women = c(y, n-y))
-  tidy(fisher.test(tab)) %>% 
-    rename(odds = estimate) %>%
-    mutate(difference = y/n - x/m)
-}
-res <- research_funding_rates %>% 
-  group_by(discipline) %>%
-  do(do_fisher_test(.$applications_men, .$awards_men, 
-                    .$applications_women, .$awards_women)) %>%
-  ungroup() %>%
-  select(discipline, difference, p.value) %>%
-  arrange(difference)
-res 
-```
 
-For Earth/Life Sciences, there is a difference of 10% favoring men and this has a p-value of 0.04. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 might be considered an example of cherry-picking. 
+5. To check if this is a case of Simpson's paradox, plot the success rates versus disciplines, which have been ordered by overall success, with colors to denote the genders and size to denote the number of applications.
 
-Note also that the overall average of the difference is only -0.3%, which is much smaller than the standard error:
+  
+6. We definitely do not see the same level of confounding as in the UC Berkeley example. It is hard to say there is a confounder here. However, we do see that, based on the observed rates, some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But, unlike the UC Berkeley example, women are not more likely to apply for the harder subjects. So perhaps some of the selection committees are biased and others are not? 
 
-```{r}
-res %>% summarize(overall_avg = mean(difference), 
-                  se = sd(difference)/sqrt(n()))
-```
+    But, before we conclude this, we must check if these differences are any different than what we get by chance. Are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. Perform a Chi Square test for each discipline. Hint: define a function that receives the total of a two-by-two table and returns a data frame with the p-value. Use the 0.5 correction. Then use the do function. 
 
-Furthermore, the differences appear to follow a normal distribution:
+ 
+7. For the Medical Sciences, there appears to be a statistically significant difference. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 might be considered an example of cherry picking. 
+Repeat the exercise above, but instead of a p-value, compute a log odds ratio divided by their standard error. Then use qq-plot to see how much these log odds ratios deviate from the normal distribution we would expect: a standard normal distribution.
 
-```{r qqplot-success-rate-diff}
-res %>% ggplot(aes(sample = scale(difference))) + stat_qq() + geom_abline()
-```
-
-which suggests the there is a possibility that the observed differences are just due to chance. 
-
-Unlike the UC Berkeley case, there seems to be reasons for concern here at least for some disciplines. However, the statistical evidence is borderline and we probably want to recommend further investigation before concluding there is bias. 
-
+    

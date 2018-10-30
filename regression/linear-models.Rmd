@@ -70,7 +70,7 @@ dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
 
 and then make a scatterplot for each strata:
 
-```{r runs-vs-bb-by-hr-strata}
+```{r runs-vs-bb-by-hr-strata, out.width="100%"}
 dat %>% 
   ggplot(aes(BB_per_game, R_per_game)) +  
   geom_point(alpha = 0.5) +
@@ -91,7 +91,7 @@ In fact, the values above are closer to the slope we obtained from singles `r si
 
 Although our understanding of the application tells us that HR cause BB but not the other way around, we can still check if stratifying by BB makes the effect of BB go down. To do this, we use the same code except that we swap HR and BBs to get this plot:
 
-```{r runs-vs-hr-by-bb-strata, echo=FALSE}
+```{r runs-vs-hr-by-bb-strata, out.width="100%",echo=FALSE}
 dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
   mutate(BB_strata = round(BB/G,1), 
          HR_per_game = HR/G,
@@ -127,7 +127,7 @@ hr_slope
 
 Regardless, it seems that if we stratify by HR, we have bivariate distributions for runs versus BB. Similarly, if we stratify by BB, we have approximate bivariate normal distributions for HR versus runs. 
 
-#  Multivariate regression
+##  Multivariate regression
 
 It is somewhat complex to be computing regression lines for each strata. We are essentially fitting models like this:
 
@@ -147,7 +147,7 @@ This model suggests that if the number of HR is fixed at $x_2$, we observe a lin
 
 In this analysis, referred to as _multivariate regression_, you will often hear people say that the BB slope $\beta_1$ is _adjusted_ for the HR effect. If the model is correct then confounding has been accounted for. But how do we estimate $\beta_1$ and $\beta_2$ from the data? For this, we learn about linear models and least squares estimates.
 
-# Linear Models
+# Linear Models and Least Squared Estimates
 
 Since Galton's original development, regression has become one of the most widely used tools in data science. One reason has to do with the fact that regression permits us to find relationships between two variables taking into account the effects of other variables that affect both, as we have just shown for BB, HR and runs in baseball. This has been particularly popular in fields where randomized experiments are hard to run, such as Economics and Epidemiology. 
 
@@ -184,7 +184,7 @@ $$
 
 $x_i$ to $x_i - \bar{x}$ in which case $\beta_0$ would be the height when $x_i = \bar{x}$, which is the height of the son of an average father.
 
-# Least Squares Estimates (LSE)
+## Least Squares Estimates (LSE)
 
 For linear models to be useful, we have to estimate the unknown $\beta$s. The standard approach in science is to find the values that minimize the distance of the fitted model to the data. The following is called the least squares (LS) equation and we will see it often in this chapter. For Galton's data, we would write:
 
@@ -205,7 +205,7 @@ rss <- function(beta0, beta1, data){
 
 So for any pair of values, we get an RSS. Here is a plot of the RSS as a function of $\beta_1$ when we keep the $\beta_0$ fixed at 25. 
 
-```{r rss-versus-estimate, fig.cap="Residual sum of squares obtained for several values of the parameters."}
+```{r rss-versus-estimate}
 beta1 = seq(0, 1, len=nrow(galton_heights))
 results <- data.frame(beta1 = beta1,
                       rss = sapply(beta1, rss, beta0 = 25))
@@ -289,7 +289,7 @@ lse %>% summarize(se_0 = sd(beta_0), se_1 = sd(beta_1))
 
 The `summary` function also reports t-statistics (`t value`) and p-values (`Pr(>|t|)`). The t-statistic is not actually based on the central limit theorem but rather on the assumption that the $\varepsilon$s follow a normal distribution. Under this assumption, mathematical theory tells us that the LSE divided by their standard error, $\hat{\beta}_0 / \hat{\mbox{SE}}(\hat{\beta}_0 )$ and $\hat{\beta}_1 / \hat{\mbox{SE}}(\hat{\beta}_1 )$ follow a t-distribution with $N-p$ degrees of freedom and with $p$ the number of parameters in our model. In the case of height $p=2$, the two p-values are testing the null hypothesis that $\beta_0 = 0$ and $\beta_1=0$ respectively. 
 
-Remember that, as we described previously, for large enough $N$, the CLT works and the t-distribution becomes almost the same as the normal distribution. Also, notice that we can construct confidence intervals, but we will soon learn about broom, an add-on package that makes this easy.
+Remember that, as we described previously, for large enough $N$, the CLT works and the t-distribution becomes almost the same as the normal distribution. Also, notice that we can construct confidence intervals, but we will soon learn about __broom__, an add-on package that makes this easy.
 
 Although we do not show examples in this book, hypothesis testing with regression models is commonly used in Epidemiology and Economics to make statements such as "the effect of A on B was statistically significant after adjusting for X, Y and Z". However, several assumptions have to hold for these statements to be true. 
 
@@ -323,7 +323,7 @@ $$\hat{Y} = \hat{\beta}_0 + \hat{\beta}_1 x$$
 
 When we plot $\hat{Y}$ versus $x$, we see the regression line.
 
-Keep in mind that the prediction $\hat{Y}$ is also a random variable and mathematical theory tells us what the standard errors are. If we assume the errors are normal, or have a large enough sample size, we can use theory to construct confidence intervals as well. In fact, the ggplot2 layer `geom_smooth(method = "lm")` that we previously used, plots $\hat{Y}$ and surrounds it by confidence intervals:
+Keep in mind that the prediction $\hat{Y}$ is also a random variable and mathematical theory tells us what the standard errors are. If we assume the errors are normal, or have a large enough sample size, we can use theory to construct confidence intervals as well. In fact, the __ggplot2__ layer `geom_smooth(method = "lm")` that we previously used, plots $\hat{Y}$ and surrounds it by confidence intervals:
 
 ```{r father-son-regression}
 galton_heights %>% ggplot(aes(son, father)) +
@@ -345,6 +345,34 @@ Y_hat <- predict(fit, se.fit = TRUE)
 
 names(Y_hat)
 ```
+
+## Exercises {-}
+
+
+We have shown how BB and singles have similar predictive power for scoring runs. Another way to compare the usefulness of these baseball metrics is by assessing how stable they are across the years. Since we have to pick players based on their previous performances, we will prefer metrics that are more stable. In these exercises, we will compare the stability of singles and BBs. 
+
+1. Before we get started, we want to generate two tables. One for 2002 and another for the average of 1999-2001 seasons. We want to define per plate appearance statistics. Here is how we create the 2017 table. We keep only players with more than 100 plate appearances.
+
+    ```{r, eval=FALSE}
+    library(Lahman)
+    dat <- Batting %>% filter(yearID == 2002) %>%
+      mutate(pa = AB + BB, singles = (H - X2B - X3B - HR)/pa, bb = BB/pa) %>%
+      filter(pa >= 100) %>%
+      select(playerID, singles, bb)
+    ```
+
+    Now compute a similar table but with rates computed over 1999-2001. 
+
+2. Use the `inner_join` function to have the 2001 data and averages in the same table.
+
+
+3. Compute the correlation between 2002 and the previous seasons for singles and BB.
+
+
+4. Note that the correlation is higher for BB. To quickly get an idea of the uncertainty associated with this correlation estimate, we will fit a linear model and compute confidence intervals for the slope coefficient. However, first make scatterplots to confirm that fitting a linear model is appropriate.
+
+
+5. Now fit a linear model for each metric and use the `confint` function to compare the estimates.
 
 
 # Advanced tidyverse: tibbles and `do`
@@ -396,9 +424,9 @@ Notice that there are no columns with this information. But, if you look closely
 dat %>%  group_by(HR) %>% class()
 ```
 
-The `tbl`, pronounced tibble, is a special kind of data frame. We have seen them before because `tidyverse` functions such as `group_by` and `summarize` always return this type of data frame. The `group_by` function returns a special kind of `tbl`, the `grouped_df`. We will say more about these later.
+The `tbl`, pronounced tibble, is a special kind of data frame. We have seen them before because __tidyverse__ functions such as `group_by` and `summarize` always return this type of data frame. The `group_by` function returns a special kind of `tbl`, the `grouped_df`. We will say more about these later.
 
-The manipulation verbs, `select`, `filter`, `mutate`, and `arrange`, preserve the class of the input: if they receive a data frame, they return a data frame. If they receive a tibble they return a tibble. But tibbles are the default data frame in the tidyverse: if you use one of the tidyverse parsers, such as `read_csv` or `read_excel`, you will get a tibble.
+The manipulation verbs, `select`, `filter`, `mutate`, and `arrange`, preserve the class of the input: if they receive a data frame, they return a data frame. If they receive a tibble they return a tibble. But tibbles are the default data frame in the tidyverse: if you use one of the __tidyverse__ parsers, such as `read_csv` or `read_excel`, you will get a tibble.
 
 Tibbles are very similar to data frames. In fact, you can think of them as a modern version of data frames. Nonetheless there are three important differences which we describe in the next section.
 
@@ -546,13 +574,13 @@ dat %>%
   do(get_lse(.))
 ```
 
-If you think this is all a bit too complicated, you are not alone. To simplify things, we introduce the broom package which was designed to facilitate the use of model fitting functions, such as `lm`, with the tidyverse.
+If you think this is all a bit too complicated, you are not alone. To simplify things, we introduce the __broom__ package which was designed to facilitate the use of model fitting functions, such as `lm`, with the tidyverse.
 
 # The broom package
 
-Our original task was to provide an estimate and confidence interval for the slope estimates of each strata. The broom package will make this quite easy.
+Our original task was to provide an estimate and confidence interval for the slope estimates of each strata. The __broom__ package will make this quite easy.
 
-Broom has three main functions, all of which extract information from the object returned by `lm` and return it in a tidyverse friendly data frame. These functions are `tidy`, `glance` and `augment`. The `tidy` function returns estimates and related information as a data frame:
+The __broom__ package has three main functions, all of which extract information from the object returned by `lm` and return it in a tidyverse friendly data frame. These functions are `tidy`, `glance` and `augment`. The `tidy` function returns estimates and related information as a data frame:
 
 ```{r}
 library(broom)
@@ -584,7 +612,7 @@ dat %>%
   select(HR, estimate, conf.low, conf.high)
 ```
 
-A table like this can then be easily visualized with ggplot2:
+A table like this can then be easily visualized with __ggplot2__:
 
 ```{r do-tidy-example} 
 dat %>%  
@@ -597,9 +625,9 @@ dat %>%
   geom_point()
 ```
 
-Now we return to discussing our original task of determining if slopes changed. The plot we just made using `do` and `broom` shows that the confidence intervals overlap, which provides a nice visual confirmation that our assumption that the slope does not change is safe.
+Now we return to discussing our original task of determining if slopes changed. The plot we just made using `do` and __broom__ shows that the confidence intervals overlap, which provides a nice visual confirmation that our assumption that the slope does not change is safe.
 
-The other functions provided by `broom`, `glance` and `augment`, relate to model-specific and observation-specific outcomes respectively. Here, we can see the model fit summaries `glance` returns:
+The other functions provided by __broom__, `glance` and `augment` relate to model specific and observation specific outcomes respectively. Here, we can see the model fit summaries `glance` returns:
 
 ```{r}
 glance(fit)
@@ -610,7 +638,51 @@ You can learn more about these summaries in any regression text book.
 We will see an example of `augment` in the next section.
 
 
-# Putting it all together: building a better offensive metric for baseball 
+## Exercises {-}
+
+
+1. In a previous section, we computed the correlation between mothers and daughters, mothers and sons, fathers and daughters, and fathers and sons, and noticed that the highest correlation is between fathers and sons and the lowest is between mothers and sons. We can compute these correlations using:
+
+    ```{r, eval=FALSE}
+    data("GaltonFamilies")
+    set.seed(1)
+    galton_heights <- GaltonFamilies %>%
+      group_by(family, gender) %>%
+      sample_n(1) %>%
+      ungroup()
+    
+    cors <- galton_heights %>% 
+      gather(parent, parentHeight, father:mother) %>%
+      mutate(child = ifelse(gender == "female", "daughter", "son")) %>%
+      unite(pair, c("parent", "child")) %>% 
+      group_by(pair) %>%
+      summarize(cor = cor(parentHeight, childHeight))
+    ```
+
+    Are these differences statistically significant? To answer this, we will compute the slopes of the regression line along with their standard errors. Start by using `lm` and the __broom__ package to compute the slopes LSE and the standard errors.
+
+   
+2. Repeat the exercise above, but compute a confidence interval as well.
+
+   
+3. Plot the confidence intervals and notice that they overlap, which implies that the data is consistent with the inheritance of height being independent of sex.
+
+   
+4. Because we are selecting children at random, we can actually do something like a permutation test here. Repeat the computation of correlations 100 times taking a different sample each time. Hint: use similar code to what we used with simulations.
+
+5. Fit a linear regression model to obtain the effects of BB and HR on Runs (at the team level) in 1971. Use the `tidy` function in the __broom__ package to obtain the results in a data frame.
+
+    
+6. Now let's repeat the above for each year since 1961 and make a plot. Use `do` and the __broom__ package to fit this model for every year since 1961. 
+
+   
+7. Use the results of the previous exercise to plot the estimated effects of BB on runs.
+
+   
+8. __Advanced__. Write a function that takes R, HR and BB as arguments and fits two linear models: `R ~ BB` and `R~BB+HR`. Then use the `do` function to obtain the `BB` for both models for each year since 1961. Then plot these against each other as a function of time.
+
+
+# Case study: Money Ball continued
 
 In trying to answer how well BB predict runs, data exploration led us to a model:
 
@@ -848,39 +920,48 @@ players %>% mutate(BB = my_scale(BB),
   arrange(desc(R_hat))
 ```
 
+## Exercises {-}
 
-## On base plus slugging (OPS)
-
-Since the 1980s, sabermetricians have used a summary statistic different from batting average to evaluate players. They realized walks were important and that doubles, triples and HR, should be weighted much more than singles. As a result, they proposed the following metric:
+Since the 1980s, sabermetricians have used a summary statistic different from batting average to evaluate players. They realized walks were important and that doubles, triples and HR, should be weighed more than singles. As a result, they proposed the following metric:
 
 $$
 \frac{\mbox{BB}}{\mbox{PA}} + \frac{\mbox{Singles} + (2 \times \mbox{Doubles}) + (3 \times \mbox{Triples}) + (4 \times \mbox{HR})}{\mbox{AB}}
 $$
 
-They called this on-base-percentage plus slugging percentage (OPS). Although the sabermetricians probably did not use regression, this metric is impressively close to what one gets with regression:
+They called this on-base-percentage plus slugging percentage (OPS). Although the sabermetricians probably did not use regression, here we show how this metric is close to what one gets with regression.
 
-```{r OPS-versus-regression}
-Batting %>% 
-  filter(yearID %in% 1990:2001) %>% 
-  group_by(playerID, yearID) %>%
-  filter(BB + AB >= 300) %>%
-  mutate(PA = BB + AB, 
-         singles = (H-X2B-X3B-HR),
-         OPS = BB / PA + 
-           (singles + 2*X2B + 3*X3B + 4*HR)/AB,
-         G = PA/pa_per_game, 
-         BB = BB/G,
-         singles = singles/G,
-         doubles = X2B/G, 
-         triples = X3B/G,
-         HR = HR/G) %>%
-  ungroup() %>%
-  mutate(R_hat = predict(fit, newdata = .)) %>%
-  ungroup() %>%
-  ggplot(aes(OPS, R_hat)) + 
-  geom_point()
-```
+1. Compute the OPS for each team in the 2001 season. Then, plot Runs per game versus OPS.
 
+     
+2. For every year since 1961, compute the correlation between runs per game and OPS. Then, plot these correlations as a function of year.
+
+
+3. Note that we can rewrite OPS as a weighted average of BB, singles, doubles, triples and HR. We know that the weight for doubles, triples, and HR are 2, 3 and 4 times that of singles respectively. However, what about BB? What is the weight for BB relative to singles? Hint: the weight for BB relative to singles will be a function of AB and PA.
+
+   
+4. Note that the weight for BB, $\frac{\mbox{AB}}{\mbox{PA}}$, will change from team to team. To see how variable it is, compute and plot this quantity for each team for each year since 1961. Then, plot it again, but instead of computing it for every team, compute and plot the ratio for the entire year. Then, once you are convinced that there is not much of a time or team trend, report the overall average.
+
+
+5. We now know that the formula for OPS is proportional to $(0.91 \times \mbox{BB}) + \mbox{singles} + (2 \times \mbox{doubles}) + (3 \times \mbox{triples}) + (4 \times \mbox{HR})$. Let's see how these coefficients compare to those obtained with regression. Fit a regression model to the data after 1961, as done earlier by using per game statistics for each year for each team. After fitting this model, report the coefficients as weights relative to the coefficient for singles.
+
+
+6. We see that our linear regression model coefficients follow the same general trend as those used by OPS, but with slightly less weight for metrics other than singles. For each team in years after 1961, compute the OPS, the predicted runs with the regression model and compute the correlation between the two as well as the correlation with runs per game.
+
+
+7. We see that using the regression approach predicts runs slightly better than OPS, but not that much. However, note that we have been computing OPS and predicting runs for teams when these measures are used to evaluate players. Let's show that OPS is quite similar to what one obtains with regression at the player level. For the 1961 season and after, compute the OPS and the predicted runs from our model for each player and plot them. Use the PA per game correction we used in the previous chapter.
+
+
+8. What players have show the largest difference between their rank by predicted runs and OPS?
+
+    __Answer__
+    ```{r, eval=FALSE}
+    res %>% 
+      select(playerID, teamID, yearID, OPS, R_hat, 
+             BB, singles, doubles, triples, HR) %>%
+      mutate_if(is.numeric, function(x) rank(-x)) %>%
+      arrange(desc(abs(OPS-R_hat))) %>% 
+      View()
+    ```
 
 # Regression fallacy
 
@@ -1004,7 +1085,7 @@ Because the correlation is not perfect, regression tells us that, on average, ex
 
 Up to now, all our linear regression examples have been applied to two or more random variables. We assume the pairs are bivariate normal and use this to motivate a linear model. This approach covers most real life examples of linear regression. The other major application comes from measurement error models. In these applications, it is common to have a non-random covariate, such as time, and randomness is introduced from measurement error rather than sampling or natural variability.
 
-To understand these models, imagine you are Galileo in the 16th century trying to describe the velocity of a falling object. An assistant climbs the Tower of Pisa and drops a ball, while several other assistants record the position at different times. Let's simulate some data using the equations we know today and adding some measurement error. The `dslabs` function `rfalling_object` generates these simulations:
+To understand these models, imagine you are Galileo in the 16th century trying to describe the velocity of a falling object. An assistant climbs the Tower of Pisa and drops a ball, while several other assistants record the position at different times. Let's simulate some data using the equations we know today and adding some measurement error. The __dslabs__ function `rfalling_object` generates these simulations:
 
 ```{r}
 falling_object <- rfalling_object()
@@ -1012,7 +1093,7 @@ falling_object <- rfalling_object()
 
 The assistants hand the data to Galileo and this is what he sees:
 
-```{r gravity, fig.cap="Simulated data for distance travelled versus time of falling object measured with error."}
+```{r gravity}
 falling_object %>% 
   ggplot(aes(time, observed_distance)) + 
   geom_point() +
@@ -1043,7 +1124,7 @@ fit <- falling_object %>%
 tidy(fit)
 ```
 
-Let's check if the estimated parabola fits the data. The broom function `augment` lets us do this easily:
+Let's check if the estimated parabola fits the data. The __broom__ function `augment` lets us do this easily:
 
 ```{r falling-object-fit}
 augment(fit) %>% 

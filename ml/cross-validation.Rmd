@@ -33,14 +33,12 @@ The first one we describe is _K-fold cross validation_.
 Generally speaking, a machine learning challenge starts with a dataset (blue in the image below). We need to build an algorithm using this dataset that will eventually be used in completely independent datasets (yellow).
 
 ```{r, echo=FALSE,  out.width = "500px", out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"'}
-#```{r, echo=FALSE,  out.width = "8in"}
 knitr::include_graphics("ml/img/cv-1.png")
 ```
 
 But we don't get to see these independent datasets. 
 
 ```{r, echo=FALSE,  out.width = "500px", out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"'}
-#```{r, echo=FALSE,  out.width = "8in"}
 knitr::include_graphics("ml/img/cv-2.png")
 ```
 
@@ -49,7 +47,6 @@ So to imitate this situation, we carve out a piece of our dataset and pretend it
 We usually try to select a small piece of the dataset so that we have as much data as possible to train. However, we also want the test set to be large so that we obtain a stable estimate of the loss. Typical choices are to use 10%-20% of the data for testing. 
 
 ```{r, echo=FALSE,  out.width = "500px", out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"'}
-#```{r, echo=FALSE,  out.width = "8in"}
 knitr::include_graphics("ml/img/cv-3.png")
 ```
 
@@ -74,7 +71,6 @@ We will eventually end up with $K$ samples, but let's start by describing how to
 
 
 ```{r, echo=FALSE,  out.width = "500px", out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"'}
-#```{r, echo=FALSE,  out.width = "8in"}
 knitr::include_graphics("ml/img/cv-4.png")
 ```
 
@@ -88,7 +84,6 @@ Note that this is just one sample and will therefore return a noisy estimate of 
 
 
 ```{r, echo=FALSE,  out.width = "500px", out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"'}
-#```{r, echo=FALSE,  out.width = "8in"}
 knitr::include_graphics("ml/img/cv-5.png")
 ```
 
@@ -105,14 +100,12 @@ We have described how to use cross validation to optimize parameters. However, w
 
 
 ```{r, echo=FALSE,  out.width = "500px", out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"'}
-#```{r, echo=FALSE,  out.width = "8in"}
 knitr::include_graphics("ml/img/cv-6.png")
 ```
 
 We can do cross validation again:
 
 ```{r, echo=FALSE,  out.width = "500px", out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"'}
-#```{r, echo=FALSE,  out.width = "8in"}
 knitr::include_graphics("ml/img/cv-7.png")
 ```
 
@@ -122,7 +115,6 @@ Once we are satisfied with this model and want to make it available to others, w
 
 
 ```{r, echo=FALSE,  out.width = "500px", out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"'}
-#```{r, echo=FALSE,  out.width = "8in"}
 knitr::include_graphics("ml/img/cv-7.png")
 ```
 
@@ -131,10 +123,62 @@ Now how do we pick the cross validation $K$? Large values of $K$ are preferable 
 
 One way we can improve the variance of our final estimate is to take more samples. To do this, we would no longer require the training set to be partitioned into non-overlapping sets. Instead, we would just pick $K$ sets of some size at random.
 
-One popular version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages (not discussed here) and is generally referred to as the _Bootstrap_. In fact, this is the default approach in the `caret` package.  Below we include a explanation of how it works in general.
+One popular version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages (not discussed here) and is generally referred to as the _Bootstrap_. In fact, this is the default approach in the __caret__ package.  Below we include an explanation of how it works in general.
 
 
-# Bootstrap
+## Exercises {-}
+
+Generate a set of random predictors and outcomes like this:
+
+```{r, eval=FALSE}
+set.seed(1996)
+n <- 1000
+p <- 10000
+x <- matrix(rnorm(n*p), n, p)
+colnames(x) <- paste("x", 1:ncol(x), sep = "_")
+y <- rbinom(n, 1, 0.5) %>% factor()
+
+x_subset <- x[ ,sample(p, 100)]
+```
+
+1. Because `x` and `y` are completely independent, you should not be able to predict `y` using `x` with accuracy larger than 0.5. Confirm this by running cross-validation using logistic regression to fit the model. Because we have so many predictors, we selected a random sample `x_subset`. Use the subset when training the model. Hint: use the caret `train` function. The `results` component of the output of `train` shows you the accuracy. Ignore the warnings.
+
+
+2. Now, instead of a random selection of predictors, we are going to search for those that are most predictive of the outcome. We can do this by comparing the values for the $y=1$ group to those in the $y=0$ group, for each predictor, using a t-test. You can perform this step like this:
+
+    ```{r, eval=FALSE}
+    devtools::install_bioc("genefilter")
+    install.packages("genefilter")
+    library(genefilter)
+    tt <- colttests(x, y)
+    ```
+    
+    Create a vector of the p-values and call it `pvals`.
+
+
+3. Create an index `ind` with the column numbers of the predictors that were "statistically significantly" associated with `y`. Use a p-value cutoff of 0.01 to define "statistically significant". How many predictors survive this cutoff?
+
+
+4. Re-run the cross-validation but after redefining `x_subset` to be the subset of `x` defined by the columns showing "statistically significant" association with `y`. What is the accuracy now?
+
+
+5. Re-run the cross-validation again, but this time using kNN. Try out the following grid `k = seq(101, 301, 25)` of tuning parameters. Make a plot of the resulting accuracies.
+
+6. In exercise 3 and 4, we see that despite the fact that `x` and `y` are completely independent, we were able to predict `y` with accuracy higher than 70%. We must be doing something wrong then. What is it?
+
+    A. The function `train` estimates accuracy on the same data it uses to train the algorithm.
+    B. We are over-fitting the model by including 100 predictors.
+    C. We used the entire dataset to select the columns used in the model. This step needs to be included as part of the algorithm. The cross-validation was done    **after** this selection.
+    D. The high accuracy is just due to random variability.
+
+7. Advanced. Re-do the cross validation but this time include the selection step in the cross-validation. The accuracy should now be close to 50%.
+
+    
+8. Use the `train` function to predict tissue from gene expression in the `tissue_gene_expression` dataset. Use kNN. What `k` works best?
+ 
+
+
+## Bootstrap
 
 Suppose the income distribution of your population is as follows:
 
@@ -226,3 +270,51 @@ mean(M_stars) + 1.96*sd(M_stars)*c(-1,1)
 ```
 
 **Note that we can use ideas similar to those used in the Bootstrap in cross validaion: instead of dividing the data into equal partitions, we simply Boostrap many times.**
+
+
+
+
+
+## Exercises {-}
+
+1. The `createResample` function can be used to create bootstrap samples. So, for example, we can create 10 bootstrap samples for the `mnist_27` dataset like this:
+
+    ```{r, eval=FALSE}
+    set.seed(1995)
+    indexes <- createResample(mnist_27$train$y, 10)
+    ```
+    
+    How many times do `3`, `4` and `7` appear in the first re-sampled index?
+
+    
+2. We see that some numbers appear more than once and others appear no times. This has to be this way for each dataset to be independent. Repeat the exercise for all the re-sampled indexes.
+
+    
+3. Generate a random dataset like this:
+
+    ```{r, eval=FALSE}
+    y <- rnorm(100, 0, 1)
+    ```
+
+    Estimate the 75th quantiles, which we know is: 
+
+
+    ```{r, eval = FALSE}
+    qnorm(0.75)
+    ```
+
+    with the sample quantile:
+    ```{r, eval = FALSE}
+    quantile(y, 0.75)
+    ```
+
+    Run a Monte Carlo simulation to learn the expected value and standard error of this random variable.
+
+    
+4. In practice, we can't run a Monte Carlo simulation because we don't know if `rnorm` is being used to simulate the data. Use the bootstrap to estimate the standard error using just the initial sample `y`. Use 10 bootstrap samples.
+
+    
+
+5. Redo exercise 4, but with 10,000 bootstrap samples.
+
+    

@@ -172,13 +172,13 @@ grid <- matrix(x[3,], 28, 28)
 
 To confirm that in fact we have done this correctly, we can use the function `image` which shows an image of its third argument:
 
-```{r matrix-image}
+```{r matrix-image, fig.width = 4, fig.height = 4}
 image(1:28, 1:28, grid)
 ```
 
 The top of this plot is pixel 1, which is shown at the bottom so the image is flipped. To flip it back we can use:
 
-```{r flip-matrix-image}
+```{r flip-matrix-image, fig.width = 4, fig.height = 4}
 image(1:28, 1:28, grid[,28:1])
 ```
 
@@ -210,7 +210,7 @@ From this plot we see that, not surprisingly, 1s use less ink than the other dig
 
 We can compute the column sums and averages using the function `colSums` and `colMeans` respectively. 
 
-The package `matrixStats` adds functions that performs operations on each row or column very efficiently, including the functions `rowSds` and `colSds`.
+The __matrixStats__ package adds functions that performs operations on each row or column very efficiently, including the functions `rowSds` and `colSds`.
 
 ### `apply`
 
@@ -230,7 +230,7 @@ What you pay for in this flexibility is that these are not as fast as dedicated 
 
 ### Filtering columns based on summaries 
 
-We now turn to task 2: studying the variation of each pixel and removing columns associated with pixels that don't change much and thus do not inform the classification. Although a simplistic approach, we will quantify the variation of each pixel with its standard deviation across all entries. Since each column represents a pixel, we use the `colSds` function from the `matrixStats` package:
+We now turn to task 2: studying the variation of each pixel and removing columns associated with pixels that don't change much and thus do not inform the classification. Although a simplistic approach, we will quantify the variation of each pixel with its standard deviation across all entries. Since each column represents a pixel, we use the `colSds` function from the __matrixStats__ package:
 
 ```{r}
 library(matrixStats)
@@ -245,7 +245,7 @@ qplot(sds, bins = "30", color = I("black"))
 
 This makes sense since we don't write in some parts of the box. Here is the variance plotted by location:
 
-```{r pixel-variance}
+```{r pixel-variance, fig.width = 4, fig.height = 4}
 image(1:28, 1:28, matrix(sds, 28, 28)[, 28:1])
 ```
 
@@ -345,7 +345,7 @@ bin_X <- (x > 255/2)*1
 
 We can see that least the entry we looked at before does not change much:
 
-```{r binarized-image, echo=FALSE}
+```{r binarized-image, echo=FALSE, fig.width = 7, fig.height = 3.5}
 rafalib::mypar(1,2)
 rows <- 1:28
 columns <- 1:28
@@ -416,25 +416,49 @@ Finally, although we do not cover matrix algebra operations such as matrix multi
 1. Matrix multiplication is done with `%*%` so the cross product, for example, is:
 
     ```{r, eval=FALSE}
-t(x) %*% x
-```
+    t(x) %*% x
+    ```
 
 2. We can compute the cross product directly with the function with that name:
 
     ```{r, eval=FALSE}
-crossprod(x)
-```
+    crossprod(x)
+    ```
 
 3. To compute the inverse of a function, we use `solve`. Here it is applied to the cross product:
 
     ```{r, eval=FALSE}
-solve(crossprod(x))
-```
+    solve(crossprod(x))
+    ```
 
 4. The QR decomposition is readily available by using the `qr` function:
 
     ```{r, eval=FALSE}
-qr(x)
-```
+    qr(x)
+    ```
 
 
+## Exercises {-}
+
+1. Create a 100 by 10 matrix of randomly generated normal numbers. Put the result in `x`
+
+ 
+2. Apply the three R functions that give you the dimension of `x`, the number of rows of `x` and the number of columns of `x` respectively.
+
+
+    
+3. Add the scalar 1 to row 1, the scalar 2 to row 2, and so on, to the matrix `x`.
+
+    
+4. Add the scalar 1 to column 1, the scalar 2 to column 2, and son on, to the matrix `x`. Hint: use `sweep` with `FUN = "+"`.
+
+    
+5. Compute the average of each row of `x`.
+
+    
+6. Compute the average of each column of `x`.
+
+    
+7. For each digit in the MNIST training data, compute the proportion of pixels that are in a _grey area_, defined as values between 50 and 205. 
+Make boxplot by digit class. Hint: use logical operators and `rowMeans`
+   

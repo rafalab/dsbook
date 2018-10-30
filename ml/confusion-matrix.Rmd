@@ -1,6 +1,6 @@
 # The confusion matrix, prevalence, sensitivity and specificity
 
-We start by briefly introducing  the `caret` package, which has several useful functions for building and assessing machine learning methods. 
+We start by briefly introducing  the __caret__ package, which has several useful functions for building and assessing machine learning methods. 
 
 ```{r}
 library(caret)
@@ -30,7 +30,7 @@ We know that we will not be able to predict $Y$ very accurately based on $X$ bec
 
 Ultimately, a machine learning algorithm is evaluated on how it performs in the real world with completely new datasets. However, when developing an algorithm, we usually have a dataset for which we know the outcomes, as we do with the heights: we know the sex of every student in our dataset. Therefore, to mimic the ultimate evaluation process, we typically split the data into two and act as if we don't know the outcome for one of these. We stop pretending we don't know the outcome to evaluate the algorithm, but only *after* we are done constructing it. We refer to the group for which we know the outcome and use it to develop the algorithm as the _training_ set, and the group for which we pretend we don't know the outcome as the _test_ set. 
 
-A standard way of generating the training and test sets is by randomly splitting the data. The caret package includes the function `createDataPartition` that helps us generates indexes for randomly splitting the data into training and test sets: 
+A standard way of generating the training and test sets is by randomly splitting the data. The __caret__ package includes the function `createDataPartition` that helps us generates indexes for randomly splitting the data into training and test sets: 
 
 
 ```{r}
@@ -60,7 +60,7 @@ y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE)
 
 Note that we are completely ignoring the predictor and simply guessing the sex. 
 
-In machine learning applications, it is useful to use factors to represent the categorical outcomes because R functions developed for machine learning, such as those in the caret package, require or recommend that categorical outcomes be coded as factors. So convert `y_hat` to factors using the `factor` function:
+In machine learning applications, it is useful to use factors to represent the categorical outcomes because R functions developed for machine learning, such as those in the __caret__ package, require or recommend that categorical outcomes be coded as factors. So convert `y_hat` to factors using the `factor` function:
 
 ```{r}
 y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE) %>% 
@@ -100,7 +100,8 @@ Here we examine the accuracy of 10 different cutoffs and pick the one yielding t
 ```{r}
 cutoff <- seq(61, 70)
 accuracy <- map_dbl(cutoff, function(x){
-  y_hat <- ifelse(train_set$height > x, "Male", "Female") %>% factor(levels = levels(test_set$sex))
+  y_hat <- ifelse(train_set$height > x, "Male", "Female") %>% 
+    factor(levels = levels(test_set$sex))
   mean(y_hat == train_set$sex)
 })
 ```
@@ -197,13 +198,14 @@ Specificity is typically quantified as $TN/(TN+FP)$ or the proportion of negativ
 
 The multiple names can be confusing, so we include a table to help us remember the terms. The table includes a column that shows the definition if we think of the proportions as probabilities.
 
-| A measure of | Name 1 | Name 2 | Definition | Probability representation |
-|------|:--------------:|:------:|:----------:|:--------------------------:|
-Sensitivity | True positive rate (TPR) | Recall | $TP / (TP + FN)$ | $\mbox{Pr}(\hat{Y}=1 \mid Y=1)$ |
-Specificity | True negative rate (TNR) | 1 minus false positive rate (1-FPR) | $TN / (TN+FP)$ | $\mbox{Pr}(\hat{Y}=0 \mid Y=0)$ |
-Specificity | Positive Predictive value (PPV) | Precision | $TP / (TP+FP)$ | $\mbox{Pr}(Y=1 \mid \hat{Y}=1)$|
 
-The caret function `confusionMatrix` computes all these metrics for us once we define what a positive is. The function expects factors as input and the first level is considered the "positive" outcome or $Y=1$. In our example, `Female` is the first level because it comes before `Male` alphabetically:
+| Measure of | Name 1 | Name 2 | Definition | Probability representation |
+|---------|----------------------|-----------------------|--------|------------------|
+Sensitivity | True Positive Rate (TPR) | Recall | $\frac{\mbox{TP}}{\mbox{TP} + \mbox{FN}}$ | $\mbox{Pr}(\hat{Y}=1 \mid Y=1)$ |
+Specificity | True Negative Rate (TNR) | 1 - False Postive Rate (1-FPR) | $\frac{\mbox{TN}}{\mbox{TN}+\mbox{FP}}$ | $\mbox{Pr}(\hat{Y}=0 \mid Y=0)$ |
+Specificity | Positive Predictive Value (PPV) | Precision | $\frac{\mbox{TP}}{\mbox{TP}+\mbox{FP}}$ | $\mbox{Pr}(Y=1 \mid \hat{Y}=1)$|
+
+The __caret__ function `confusionMatrix` computes all these metrics for us once we define what a positive is. The function expects factors as input and the first level is considered the "positive" outcome or $Y=1$. In our example, `Female` is the first level because it comes before `Male` alphabetically:
 
 ```{r}
 confusionMatrix(data = y_hat, reference = test_set$sex)
@@ -238,7 +240,7 @@ $$
 $$
 
 
-The `F_meas` function in the caret package computes this summary with `beta` defaulting to 1.
+The `F_meas` function in the __caret__ package computes this summary with `beta` defaulting to 1.
 
 
 Let's rebuild our prediction algorithm, but this time maximizing the F-score instead of overall accuracy:
@@ -317,7 +319,8 @@ The ROC curve plots sensitivity (TPR) versus 1 - specificity or the false positi
 ```{r roc-1}
 probs <- seq(0, 1, length.out = 10)
 guessing <- map_df(probs, function(p){
-  y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, prob=c(p, 1-p)) %>% 
+  y_hat <- 
+    sample(c("Male", "Female"), length(test_index), replace = TRUE, prob=c(p, 1-p)) %>% 
     factor(levels = c("Female", "Male"))
   list(method = "Guessing",
        FPR = 1 - specificity(y_hat, test_set$sex),
@@ -373,16 +376,19 @@ map_df(cutoffs, function(x){
 ROC curves have one weakness and it is that neither of the measures plotted depend on prevalence. In cases in which prevalence matters, we may instead make a precision-recall plot. The idea is similar, but we instead plot precision against recall:
 
 
-```{r precision-recall-1}
+```{r precision-recall-1, warning=FALSE, message=FALSE}
 guessing <- map_df(probs, function(p){
-  y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, prob=c(p, 1-p)) %>% factor(levels = c("Female", "Male"))
+  y_hat <- sample(c("Male", "Female"), length(test_index), 
+                  replace = TRUE, prob=c(p, 1-p)) %>% 
+    factor(levels = c("Female", "Male"))
   list(method = "Guess",
     recall = sensitivity(y_hat, test_set$sex),
     precision = precision(y_hat, test_set$sex))
 })
 
 height_cutoff <- map_df(cutoffs, function(x){
-  y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% factor(levels = c("Female", "Male"))
+  y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
+    factor(levels = c("Female", "Male"))
   list(method = "Height cutoff",
        recall = sensitivity(y_hat, test_set$sex),
     precision = precision(y_hat, test_set$sex))
@@ -398,16 +404,19 @@ From this plot we immediately see that the precision of guessing is not high. Th
 If we change positives to mean Male instead of Female, the ROC curve remains the same, but the precision recall plot changes:
 
 
-```{r precision-recall-2}
+```{r precision-recall-2, warning=FALSE, message=FALSE}
 guessing <- map_df(probs, function(p){
-  y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, prob=c(p, 1-p)) %>% factor(levels = c("Male", "Female"))
+  y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, 
+                  prob=c(p, 1-p)) %>% 
+    factor(levels = c("Male", "Female"))
   list(method = "Guess",
     recall = sensitivity(y_hat, relevel(test_set$sex, "Male", "Female")),
     precision = precision(y_hat, relevel(test_set$sex, "Male", "Female")))
 })
 
 height_cutoff <- map_df(cutoffs, function(x){
-  y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% factor(levels = c("Male", "Female"))
+  y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
+    factor(levels = c("Male", "Female"))
   list(method = "Height cutoff",
        recall = sensitivity(y_hat, relevel(test_set$sex, "Male", "Female")),
     precision = precision(y_hat, relevel(test_set$sex, "Male", "Female")))
@@ -417,3 +426,44 @@ bind_rows(guessing, height_cutoff) %>%
   geom_line() +
   geom_point()
 ```
+
+
+## Exercises {-}
+
+
+The `reported_height` and `height` datasets were collected from three classes taught in the Departments of Computer Science and Biostatistics, as well as remotely through the Extension School. The Biostatistics class was taught in 2016 along with an online version offered by the Extension School. On 2016-01-25 at 8:15 AM, during one of the lectures, the instructors asked students to fill in the sex and height questionnaire that populated the `reported_height` dataset. The online students filled the survey during the next few days, after the lecture was posted online. We can use this insight to define a variable, call it `type`, to denote the type of student:  `inclass` or `online`:
+
+```{r, eval=FALSE}
+data("reported_heights")
+library(lubridate)
+dat <- mutate(reported_heights, date_time = ymd_hms(time_stamp)) %>%
+  filter(date_time >= make_date(2016, 01, 25) & 
+           date_time < make_date(2016, 02, 1)) %>%
+  mutate(type = ifelse(day(date_time) == 25 & 
+                         hour(date_time) == 8 & between(minute(date_time), 15, 30),
+                       "inclass", "online")) %>%
+  select(sex, type)
+
+y <- factor(dat$sex, c("Female", "Male"))
+x <- dat$type
+```
+
+
+1. Show summary statistics that indicate that the `type` is predictive of sex.
+
+     
+2. Instead of using height to predict sex, use the `type` variable.
+
+    
+3. Show the confusion matrix.
+    
+  
+4. Use the `confusionMatrix` function in the __caret__ package to report accuracy.
+
+
+5. Now use the `sensitivity` and `specificity` functions to report specificity and sensitivity.
+
+  
+6. What is the prevalence (% of females) in the `dat` dataset defined above?
+
+  

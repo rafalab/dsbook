@@ -15,7 +15,7 @@ Now, how do we distinguish an outlier from measurements that were too big or too
 
 Suppose a colleague is charged with collecting demography data for a group of males. The data is stored in the object:
 
-```{r boxplot_showing_outlier, fig.cap="Normally distributed data with one point that is very large due to a mistake.", echo=FALSE}
+```{r boxplot_showing_outlier,  echo=FALSE}
 library(dslabs)
 data(outlier_example)
 str(outlier_example)
@@ -115,10 +115,15 @@ which is about `r round(mad(outlier_example)*12)` inches.
 
 ## Exercises {-}
 
+We are going to use the __HistData__. If it is not installed you can install it like this:
+
+```{r, eval=FALSE}
+install.packages("HistData")
+```
+
 Load the height data set and create a vector `x` with just the male heights used in Galton's data on the heights of parents and their children from his historic research on heredity.
 
-```{r}
-##You can install data like this: install.packages("HistData")
+```{r, eval=FALSE}
 library(HistData)
 data(Galton)
 x <- Galton$child
@@ -133,9 +138,9 @@ x <- Galton$child
 3. Now suppose Galton made a mistake when entering the first value and forgot to use the decimal point. You can imitate this error by typing:
 
     ```{r}
-x_with_error <- x
-x_with_error[1] <- x_with_error[1]*10
-```
+    x_with_error <- x
+    x_with_error[1] <- x_with_error[1]*10
+    ```
 
     How many inches does the average grow after this mistake?
     
@@ -146,30 +151,35 @@ x_with_error[1] <- x_with_error[1]*10
 6. How many inches does the MAD grow after this mistake?
 
 7. How could you use exploratory data analysis to detect that an error was made?
-  - A. Since it is only one value out of many, we will not be able to detect this.
-  - B. We would see an obvious shift in the distribution.
-  - C. A boxplot, histogram, or qq-plot would reveal a clear outlier.
-  - D. A scatter plot would show high levels of measurement error.
+  
+    A. Since it is only one value out of many, we will not be able to detect this.
+    
+    B. We would see an obvious shift in the distribution.
+    
+    C. A boxplot, histogram, or qq-plot would reveal a clear outlier.
+    
+    D. A scatter plot would show high levels of measurement error.
 
 
 8. How much can the average accidentally grow with mistakes like this? Write a function called `error_avg` that takes a value `k` and returns the average of the vector `x` after the first entry changed to `k`. Show the results for `k=10000` and `k=-10000`.
 
+## Case study: Self-reported student heights 
 
-## Case study: self-reported heights
+The heights we have been looking at are not the original hieghts reported by students. The original reported heights are also included in the __dslabs__ package and can be loaded like this:
 
 ```{r}
-data(reported_heights)
-str(reported_heights)
+data("reported_heights")
+head(reported_heights)
 ```
 
 Height is a character vector so we create a new column with the numeric version:
 
-```{r, warning=FALSE}
+```{r}
 reported_heights <- reported_heights %>%
   mutate(original_heights = height, height = as.numeric(height))
 ```
 
-We get a warning about NAs. This is because some of the self reported heights were not numbers.
+Note that we get a warning about NAs. This is because some of the self reported heights were not numbers.
 We can see why we get these: 
 
 ```{r, warning=FALSE}
@@ -217,17 +227,17 @@ We can review all the nonsensical answers by looking at the data considered to b
 ```{r}
 max_height <- quantile(reported_heights$height, .75) + 3*IQR(reported_heights$height)
 min_height <- quantile(reported_heights$height, .25) - 3*IQR(reported_heights$height)
-c(min_height, max_height )
+c(min_height, max_height)
 ```
 
 
 ```{r}
-outliers <- reported_heights %>% 
+reported_heights %>% 
   filter(!between(height, min_height, max_height)) %>% 
-  arrange(height)
-outliers$height
+  select(original_heights) %>%
+  head(n=10)
 ```
 
-Examining these heights, we see two common mistakes: entries in centimeters, which turn out to be too large, and entries of the form `x.y` with `x` and `y` representing feet and inches respectively. Some of the even smaller values, such as 1.6, could be entries in meters.
+Examining these heights carefully, we see two common mistakes: entries in centimeters, which turn out to be too large, and entries of the form `x.y` with `x` and `y` representing feet and inches respectively. Some of the even smaller values, such as 1.6, could be entries in meters.
 
 In the data wrangling chapter, we will learn techniques for correcting these values and converting them into inches. Here we were able to detect this problem using careful data exploration to uncover issues with the data: the first step in the great majority of data science projects.

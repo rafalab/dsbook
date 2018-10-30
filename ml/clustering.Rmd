@@ -5,6 +5,7 @@ In this chapter we focus on a type of machine learning refereed to as _supervise
 In the two examples we have shown here clustering would not be very useful. In the first example, if we are simply given the heights we will not be able to discover two groups, males and females, because the intersection is large. In the second example, we can see from plotting the predictors that discovering the two digits, two and seven, will be challenging:
 
 ```{r mnist-27-unsupervised}
+data("mnist_27")
 mnist_27$train %>% qplot(x_1, x_2, data = .)
 ```
 
@@ -29,7 +30,8 @@ x <- movielens %>%
   ungroup() %>% 
   select(title, userId, rating) %>%
   spread(userId, rating)
-row_names <- str_trunc(x$title, 20)
+
+row_names <- str_remove(x$title, ": Episode") %>% str_trunc(20)
 x <- x[,-1] %>% as.matrix()
 x <- sweep(x, 2, colMeans(x, na.rm = TRUE))
 x <- sweep(x, 1, rowMeans(x, na.rm = TRUE))
@@ -52,8 +54,8 @@ h <- hclust(d)
 
 We can see the resulting groups using a _dendrogram_. 
 
-```{r dendrogram,fig.width=10.5,fig.height=5.25}
-plot(h)
+```{r dendrogram, out.width="100%", fig.height=5.25}
+plot(h, cex = 0.75)
 ```
 
 To interpret this graph we do the following. To find the distance between any two movies find the location they split. This location is the distance between the groups. So the distance between the Star Wars movies is 8 or less, while the distance between Raiders of the Lost of Arc and Silence of the Lambs is about 17. To generate actual groups we can do one of two things: 1) decide on a minimum distance needed for observations to be in the same group or 2) decide on the number of groups you want and then find the minimum distance that achieves this. The function `cutree`:
@@ -72,8 +74,8 @@ Note that we can also explore the data to see if there are clusters of movie rat
 h_2 <- dist(t(x)) %>% hclust()
 ```
 
-```{r dendrogram-2,fig.width=10.5,fig.height=5.25}
-plot(h_2)
+```{r dendrogram-2, , out.width="100%", fig.height=4}
+plot(h_2, cex = 0.25)
 ```
 
 
@@ -82,11 +84,12 @@ plot(h_2)
 To use the k-means clustering algorithm we have to pre-define $k$, the number of clusters we want to define. The k-means algorithm is iterative.
 The first step is to define $k$ centers. Then each observation is assigned to the cluster with the closest center to that observation. In a second step the centers are redefined using the observation in each cluster: the column means are used to define a _centroid_. We repeat these two steps until the centers converge.
 
-Before using k-means, we will fill in the NA with 0s.
+The `kemans` function included in R-base does not handle NAs. For illustrative purposes we will fill out the NAs with 0s. In general, the choice of how to fill in missing data, or if one should do it at all, should be made with care.
 
 ```{r}
-x[is.na(x)] <- 0
-k <- kmeans(x, centers = 10)
+x_0 <- x
+x_0[is.na(x_0)] <- 0
+k <- kmeans(x_0, centers = 10)
 ```
 
 The cluster assignments are in the `cluster` component:
@@ -99,12 +102,50 @@ split(names(groups), groups)
 Note that because the first center is chosen at random, the final clusters are random. We impose some stability by repeating the entire several times and averaging the results.
 
 ```{r}
-k <- kmeans(x, centers = 10, nstart = 25)
+k <- kmeans(x_0, centers = 10, nstart = 25)
 groups <- k$cluster
 split(names(groups), groups)
 ```
 
 
+## Heatmaps
+
+A powerful visualization tool for discovering clusters or patterns in your data is the heatmap. The idea is simple: plot an image of your data matrix with both the columns and rows ordered according to the results of clustering algorithm. Here is an example using the two hierarchical clustering results we have computed:
+
+```{r heatmap, out.width="100%", fig.height=7}
+image(x[h$order, h_2$order], 
+      col = RColorBrewer::brewer.pal(11, "Spectral"))
+```
+
+There is also `heatmap` function that you can use on the original matrix
+
+```{r heatmap-2, out.width="100%", fig.height=7}
+heatmap(x, col = RColorBrewer::brewer.pal(11, "Spectral"))
+```
+
+## Filtering features
+
+If the information about clusters in included in just a few features, including all the features can add enough noise that detecting clusters 
+becomes challenging. One simple approach to try to remove feature with no information is to only include those with high variance. In the movie example, a user with low variance in their ratings is not really informative: all the movies seem about the same to them. Here is an example of how we can include only the features with high variance.
+
+```{r heatmap-3, out.width="100%", fig.height=7}
+library(matrixStats)
+sds <- rowSds(x, na.rm = TRUE)
+o <- order(sds, decreasing = TRUE)[1:50]
+heatmap(x[,o], col = RColorBrewer::brewer.pal(11, "Spectral"))
+```
 
 
+## Exercises {-}
+
+1. Load the `tissue_gene_expression` dataset. Remove the row means and compute the distance between each observation. Store the result in `d`.
+
+
+2. Make a hierarchical clustering plot and add the tissue types as labels.
+
+
+3. Run a k-means clustering on the data with $K=7$. Make a table comparing the identified clusters to the actual tissue types. Run the algorithm several times to see how the answer changes.
+
+
+4. Select the 50 most variable genes. Make sure the observations show up in the columns, that the predictor are centered, and add a color bar to show the different tissue types. Hint: use the `ColSideColors` argument to assign colors. Also, use `col = RColorBrewer::brewer.pal(11, "RdBu")` for a better use of colors.
 

@@ -231,7 +231,9 @@ expand.grid(pants = c("blue", "black"), shirt = c("white", "grey", "plaid"))
 So here is how we generate a deck of cards:
 ```{r}
 suits <- c("Diamonds", "Clubs", "Hearts", "Spades")
-numbers <- c("Ace", "Deuce", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King")
+numbers <- c("Ace", "Deuce", "Three", "Four", "Five", 
+             "Six", "Seven", "Eight", "Nine", "Ten", 
+             "Jack", "Queen", "King")
 deck <- expand.grid(number=numbers, suit=suits)
 deck <- paste(deck$number, deck$suit)
 ```
@@ -247,7 +249,7 @@ which is 1/13.
 
 Now, how about the conditional probability of the second card being a King given that the first was a King? Earlier, we deduced that if one King is already out of the deck and there are 51 left, then this probability is 3/51. Let's confirm by listing out all possible outcomes. 
 
-To do this, we can use the `permutations` function from the `gtools` package. For any list of size `n`, this function computes all the different combinations we can get when we select `r` items. So here are all the ways we can choose two numbers from a list consisting of `1,2,3`:
+To do this, we can use the `permutations` function from the __gtools__ package. For any list of size `n`, this function computes all the different combinations we can get when we select `r` items. So here are all the ways we can choose two numbers from a list consisting of `1,2,3`:
 
 ```{r}
 library(gtools)
@@ -506,10 +508,14 @@ $$
 
 This rule is intuitive: think of a Venn diagram. If we simply add the probabilities, we count the intersection twice.
 
-```{r venn-diagram-addition-rule, echo=FALSE}
+```{r venn-diagram-addition-rule, echo=FALSE, warning=FALSE, message=FALSE}
 library(VennDiagram)
 grid.newpage()
-draw.pairwise.venn(22, 20, 11, category = c("A", "B"), lty = rep("blank", 2), fill = c("light blue", "pink"), alpha = rep(0.5, 2),  cat.dist = rep(0.025, 2), cex=0)
+tmp <- draw.pairwise.venn(22, 20, 11, category = c("A", "B"), 
+                   lty = rep("blank", 2), 
+                   fill = c("light blue", "pink"), 
+                   alpha = rep(0.5, 2),  
+                   cat.dist = rep(0.025, 2), cex=0)
 ```
 
 In the case of a Natural 21, the intersection is empty since both hands can't happen simultaneously. The probability of an Ace followed by a face card is $1/13 \times 16/51$ and the probability of a face card followed by an Ace is $16/52 \times 4/51$. These two are actually the same, which makes sense due to symmetry. In any case, we get the same result using the addition rule:
@@ -579,8 +585,11 @@ The Monte Carlo estimate confirms the 2/3 calculation. This helps us gain some i
 5. Two events $A$ and $B$ are independent if $\mbox{Pr}(A \mbox{ and } B) = \mbox{Pr}(A) P(B)$. Under which situation are the draws independent?
 
     A. You don't replace the draw.
+
     B. You replace the draw.
+
     C. Neither
+
     D. Both
 
 6. Say you’ve drawn 5 balls from the box, with replacement, and all have been yellow. What is the probability that the next one is yellow? 
@@ -591,49 +600,39 @@ The Monte Carlo estimate confirms the 2/3 calculation. This helps us gain some i
 
 9. Create a Monte Carlo simulation to confirm your answer to the previous problem. Use `B <- 10000` simulations. Hint: Use the following code to generate the results of the first four games:
 
-    ```{r}
+    ```{r, eval=FALSE}
 celtic_wins <- sample(c(0,1), 4, replace = TRUE, prob = c(0.6, 0.4))
 ```
-    The Celtics must win one of these 4 games!
+    The Celtics must win one of these 4 games.
 
 10. Two teams, say the Cavs and the Warriors, are playing a seven game championship series. The first to win four games, therefore, wins the series. The teams are equally good so they each have a 50-50 chance of winning each game. If the Cavs lose the first game, what is the probability that they win the series?
 
 11. Confirm the results of the previous question with a Monte Carlo simulation.
 
-```{r}
-B <- 100000
-results <- replicate(B, {
-  cavs_wins <- sample(c(0,1), 6, replace = TRUE)
-  sum(cavs_wins)>=4 
-})
-mean(results)
-```
-
 12. Two teams, $A$ and $B$, are playing a seven game series. Team $A$ is better than team $B$ and has a $p>0.5$ chance of winning each game. Given a value $p$, the probability of winning the series for the underdog team $B$ can be computed with the following function based on a Monte Carlo simulation:
 
-    ```{r}
+    ```{r, eval=FALSE}
     prob_win <- function(p){
       B <- 10000
       result <- replicate(B, {
         b_win <- sample(c(1,0), 7, replace = TRUE, prob = c(1-p, p))
         sum(b_win)>=4
-        })
+      })
       mean(result)
     }
     ```
 
     Use the function `sapply` to compute the probability, call it `Pr`, of winning for `p <- seq(0.5, 0.95, 0.025)`. Then plot the result `plot(p, prob).
 
-13. Repeat the exercise above, but now keep the probability fixed at `p <- 0.75` and compute the probability for different series lengths: best of 1 game, 3 games, 5 games,... Specifically, `N <- seq(1, 25, 2)`. Hint: use this function now.
+13. Repeat the exercise above, but now keep the probability fixed at `p <- 0.75` and compute the probability for different series lengths: best of 1 game, 3 games, 5 games,... Specifically, `N <- seq(1, 25, 2)`. Hint: use this function:
 
-```{r, eval = FALSE}
-    ```{r}
+    ```{r, eval = FALSE}
     prob_win <- function(N, p=0.75){
       B <- 10000
       result <- replicate(B, {
         b_win <- sample(c(1,0), N, replace = TRUE, prob = c(1-p, p))
         sum(b_win)>=(N+1)/2
-        })
+      })
       mean(result)
     }
     ```

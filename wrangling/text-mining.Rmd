@@ -19,26 +19,28 @@ library(tidyr)
 library(scales)
 ```
 
-In general, we can extract data directly from twitter using the \emph{rtweet} package. However, in this case, a group has already compiled data for us and made it available at [http://www.trumptwitterarchive.com](http://www.trumptwitterarchive.com). We can get the data from their JSON API using a script like this:
+In general, we can extract data directly from twitter using the __rtweet__ package. However, in this case, a group has already compiled data for us and made it available at [http://www.trumptwitterarchive.com](http://www.trumptwitterarchive.com). We can get the data from their JSON API using a script like this:
 
 ```{r, eval=FALSE}
 url <- 'http://www.trumptwitterarchive.com/data/realdonaldtrump/%s.json'
 trump_tweets <- map(2009:2017, ~sprintf(url, .x)) %>%
   map_df(jsonlite::fromJSON, simplifyDataFrame = TRUE) %>%
   filter(!is_retweet & !str_detect(text, '^"')) %>%
-  mutate(created_at = parse_date_time(created_at, orders = "a b! d! H!:M!:S! z!* Y!", tz="EST")) 
+  mutate(created_at = parse_date_time(created_at, 
+                                      orders = "a b! d! H!:M!:S! z!* Y!",
+                                      tz="EST")) 
 ```
 
-For convenience, we include the result of the code above in the dslabs package:
+For convenience, we include the result of the code above in the __dslabs__ package:
 
 ```{r}
 library(dslabs)
 data("trump_tweets")
 ```
 
-This is the data frame with information about the tweets:
+You can see the data frame with information about the tweets by typing
 
-```{r}
+```{r, eval=FALSE}
 head(trump_tweets)
 ```
 
@@ -51,7 +53,7 @@ names(trump_tweets)
 The help file `?trump_tweets` provides details on what each variable represents. The tweets are represented by the `text` variable:
 
 ```{r}
-trump_tweets %>% select(text) %>% head
+trump_tweets$text[16413] %>% str_wrap() %>% cat
 ```
 
 and the source variable tells us which device was used to compose and upload each tweet:
@@ -102,12 +104,12 @@ campaign_tweets %>%
 
 We notice a big peak for the Android in the early hours of the morning, between 6 and 8 AM. There seems to be a clear difference in these patterns. We will therefore assume that two different entities are using these two devices. 
 
-We will now study how the tweets differ when we compare Android to iPhone. To do this, we introduce the _tidytext_ package.
+We will now study how the tweets differ when we compare Android to iPhone. To do this, we introduce the __tidytext__ package.
 
 
 ## Text as data
 
-The tidytext package helps us convert free form text into a tidy table. Having the data in this format greatly facilitates data visualization and the use of statistical techniques. 
+The __tidytext__ package helps us convert free form text into a tidy table. Having the data in this format greatly facilitates data visualization and the use of statistical techniques. 
 
 ```{r}
 library(tidytext)
@@ -116,8 +118,10 @@ library(tidytext)
 The main function needed to achieve this is `unnest_tokens`. A _token_ refers to the units that we are considering to be a data point. The most common _token_ will be words, but they can also be single characters, ngrams, sentences, lines or a pattern defined by a regex. The functions will take a vector of strings and extract the tokens so that each one gets a row in the new table. Here is a simple example:
 
 ```{r}
+poem <- c("Roses are red,", "Violets are blue,", 
+          "Sugar is sweet,", "And so are you.")
 example <- data_frame(line = c(1, 2, 3, 4),
-                      text = c("Roses are red,", "Violets are blue,", "Sugar is sweet,", "And so are you."))
+                      text = poem)
 example
 example %>% unnest_tokens(word, text)
 ```
@@ -126,7 +130,7 @@ Now let's look at an example from the tweets. We will look at tweet number 3008 
 
 ```{r}
 i <- 3008
-campaign_tweets$text[i]
+campaign_tweets$text[i] %>% str_wrap() %>% cat()
 campaign_tweets[i,] %>% 
   unnest_tokens(word, text) %>%
   select(word)
@@ -241,7 +245,7 @@ We already see somewhat of a pattern in the types of words that are being tweete
 
 In sentiment analysis, we assign a word to one or more "sentiments". Although this approach will miss context dependent sentiments, such as sarcasm, when performed on large numbers of words, summaries can provide insights.
 
-The first step in sentiment analysis is to assign a sentiment to each word. The tidytext package includes several maps or lexicons in the object `sentiments`:
+The first step in sentiment analysis is to assign a sentiment to each word. The __tidytext__ package includes several maps or lexicons in the object `sentiments`:
 
 ```{r}
 table(sentiments$lexicon)
@@ -317,8 +321,10 @@ To answer this question we can compute, for each sentiment, an odds ratio and a 
 ```{r}
 library(broom)
 log_or <- sentiment_counts %>%
-  mutate( log_or = log( (Android / (sum(Android) - Android)) / (iPhone / (sum(iPhone) - iPhone))),
-          se = sqrt( 1/Android + 1/(sum(Android) - Android) + 1/iPhone + 1/(sum(iPhone) - iPhone)),
+  mutate(log_or = log((Android / (sum(Android) - Android)) / 
+      (iPhone / (sum(iPhone) - iPhone))),
+          se = sqrt(1/Android + 1/(sum(Android) - Android) + 
+                      1/iPhone + 1/(sum(iPhone) - iPhone)),
           conf.low = log_or - qnorm(0.975)*se,
           conf.high = log_or + qnorm(0.975)*se) %>%
   arrange(desc(log_or))
@@ -350,7 +356,7 @@ android_iphone_or %>% inner_join(nrc) %>%
 
 and we can make a graph:
 
-```{r log-odds-by-word}
+```{r log-odds-by-word, out.width="100%"}
 android_iphone_or %>% inner_join(nrc, by = "word") %>%
   mutate(sentiment = factor(sentiment, levels = log_or$sentiment)) %>%
   mutate(log_or = log(or)) %>%
@@ -364,7 +370,51 @@ android_iphone_or %>% inner_join(nrc, by = "word") %>%
 
 
 This is just a simple example of the many analyses one can perform with tidytext.
-To learn more, we again recommend [this book](https://www.tidytextmining.com/).
+To learn more, we again recommend the [Tidy Text Mining](https://www.tidytextmining.com/) book.
 
 
+## Exercises {-}
 
+
+Project Gutenberg is a digital archive of public domain books. The R package __gutenbergr__ facilitates the importation of these texts into R.
+
+You can install and load it like this:
+```{r, eval=FALSE}
+install.packages("gutenbergr")
+library(gutenbergr)
+```
+
+You can see the books that are available like this:
+
+```{r, eval=FALSE}
+gutenberg_metadata
+```
+
+1. Use `str_detect` to find the ID of the novel _Pride and Prejudice_. 
+
+      
+2. We notice that there are several versions. The `gutenberg_works()` function filters this table to remove replicates and include only English language works. Read the help file and use this function to find the ID for _Pride and Prejudice_
+
+    
+
+3. Use the `gutenberg_download` function to download the text for Pride and Prejudice. Save it to an object called `book`.
+
+    
+4. Use the __tidytext__ package to create a tidy table with all the words in the text.
+
+   
+5. We will later make a plot of sentiment versus location in the book. For this, it will be useful to add a column with the word number to the table. 
+
+
+6. Remove the stop words and numbers from the `words` object. Hint: use the `anti_join`. 
+
+   
+7. Now use the `AFINN` lexicon to assign a sentiment value to each word.
+
+    
+8. Make a plot of sentiment score versus location in the book and add a smoother.
+
+   
+9. Assume there are 300 words per page. Convert the locations to pages and then compute the average sentiment in each page. Plot that average score by page. Add a smoother that appears to go through data.
+
+   

@@ -10,7 +10,8 @@ One of the most common data wrangling challenges involves converting or extracti
 In the Web Scraping Section, we encountered an example related to creating the `murders` dataset we explored in the R chapter. After successfully extracting the raw data from a webpage into a table:
 
 ```{r}
-url <- "https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&direction=prev&oldid=810166167"
+url <- paste0("https://en.wikipedia.org/w/index.php?title=",
+              "Gun_violence_in_the_United_States_by_state&direction=prev&oldid=810166167")
 murders_raw <- read_html(url) %>%
   html_nodes("table") %>%
   html_table() %>%
@@ -129,7 +130,7 @@ This is because of the commas `,`. The string processing we want to do here is r
 
 In general, string processing tasks can be divided into **detecting**, **locating**, **extracting** or **replacing** patterns in strings. In our example, we need to **locate** the `,` and **replace** them with the empty characters `""`. 
 
-Base R includes functions to perform all these tasks. However, they don't follow a unifying convention which makes it a bit hard to memorize and use. The stringr package basically repackages this functionality, but uses a more consistent approach of naming functions and ordering their arguments. For example, in `stringr`, all the string processing functions start with `str_`. This means that if you type `str_` and hit tab, R will auto-complete and show all the available functions. As a result, we don't necessarily have to memorize all the function names. Another advantage is that the string is always the first argument, which means we can more easily use the pipe. We therefore will be focusing on the stringr package. However, because the R-base equivalents are so widely used, below we include a table describing the `stringr` functions and include R-base equivalent when available.
+Base R includes functions to perform all these tasks. However, they don't follow a unifying convention which makes it a bit hard to memorize and use. The __stringr__ package basically repackages this functionality, but uses a more consistent approach of naming functions and ordering their arguments. For example, in __stringr__, all the string processing functions start with `str_`. This means that if you type `str_` and hit tab, R will auto-complete and show all the available functions. As a result, we don't necessarily have to memorize all the function names. Another advantage is that the string is always the first argument, which means we can more easily use the pipe. We therefore will be focusing on the __stringr__ package. However, because the R-base equivalents are so widely used, below we include a table describing the __stringr__ functions and include R-base equivalent when available.
 
 ### The `str_` functions
 
@@ -137,14 +138,14 @@ Base R includes functions to perform all these tasks. However, they don't follow
 library(stringr)
 ```
 
-The table below includes the functions available to you in the stringr package. We split them by task. We also include the R-base equivalent when available. 
+The table below includes the functions available to you in the __stringr__ package. We split them by task. We also include the R-base equivalent when available. 
 
 All these functions take a character vector as first argument. Also, for each function, operations are vectorized: the operation gets applied to each string in the vector. 
 
 Finally, note that in this table we mention _groups_. These will be explained later.
 
-| Task | Description                                              | `stringr` | R-base |
-|------|----------------------------------------------------------|-----------|--------|
+| Task     | Description                               | `stringr`     | R-base |
+|----------|-------------------------------------------|---------------|--------|
 | Detect | Is the pattern in the string? | `str_detect` | `grepl` |
 | Detect | Returns the index of entries that contain the pattern. | `str_which` |  `grep` |
 | Detect | Returns the subset of strings that contain the pattern. | `str_subset` | `grep` with `value = TRUE` |
@@ -213,9 +214,9 @@ murders_new %>% head
 
 This case is relatively simple compared to the string processing challenges that we typically face in data science. The next example is a rather complex one.
 
-## Case study 2: Reported heights (Part 1)
+## Case study 2: Reported heights 
 
-The dslabs package includes the raw data from which the heights dataset was obtained. You can load it like this:
+The __dslabs__ package includes the raw data from which the heights dataset was obtained. You can load it like this:
 
 ```{r}
 library(dslabs)
@@ -327,7 +328,7 @@ library(stringr)
 A regular expression (regex) is way to describe specific patterns of characters of text. They can be used to determine if a given string matches the pattern. A set of rules has been defined to do this efficiently and precisely and here we show some examples. We can learn more about these rules by reading a detailed tutorial such as [this one](https://www.regular-expressions.info/tutorial.html) or [this one](http://r4ds.had.co.nz/strings.html#matching-patterns-with-regular-expressions). This [cheat sheet](https://www.rstudio.com/wp-content/uploads/2016/09/RegExCheatsheet.pdf) is also very useful.
 
 
-The patterns supplied to the `stringr` functions can be a regex rather than a standard string. We will learn how this works through a series of examples.
+The patterns supplied to the __stringr__ functions can be a regex rather than a standard string. We will learn how this works through a series of examples.
 
 
 ### A string
@@ -482,6 +483,20 @@ str_detect(no, pattern)
 
 For now, we are permitting the inches to be 12 or larger. We will add a restriction later as the regex for this is a bit more complex than we are ready to show.
 
+### Not
+
+To specify patterns that we do **not** want to detect, we can use the `^` symbol but only __inside__ square brackets. For example, if we want to detect digits that are preceeded by anything except a letter we can do the following:
+
+```{r}
+pattern <- "[^a-zA-Z]\\d"
+yes <- c(".3", "+2", "-0","*4")
+no <- c("A3", "B2", "C0", "E4")
+str_detect(yes, pattern)
+str_detect(no, pattern)
+```
+
+Another way to generate a pattern that searches for _everything except_ is to use the upper case of the special character. For example `\\D` means anything other than a digit, `\\S` means anything except a space, and so on.
+
 ### Search and replace with regex
 
 Earlier we defined the object `problems` containing the strings that do not appear to be in inches.  We can see that only:
@@ -525,7 +540,7 @@ problems %>%
   sum
 ```
 
-However, we still have many cases to go. Note that in the code above, we leveraged the `stringr` consistency and used the pipe. 
+However, we still have many cases to go. Note that in the code above, we leveraged the __stringr__ consistency and used the pipe. 
 
 ### White space `\s`
 
@@ -706,7 +721,7 @@ index <- str_detect(converted, pattern)
 mean(index)
 ```
 
-Note how we leveraged the pipe, one of the advantages of using `stringr`. This last piece of code shows that we have matched well over half of the strings. Let's examine the remaining cases:
+Note how we leveraged the pipe, one of the advantages of using __stringr__. This last piece of code shows that we have matched well over half of the strings. Let's examine the remaining cases:
 
 ```{r}
 converted[!index]
@@ -798,7 +813,7 @@ str_to_lower(s)
 
 We are now be ready to define a procedure that converts all the problematic cases to inches.
 
-## Case study 2 (part 2)
+## Case study 2: Reported heights (continued)
 
 We now put all this together into a function that takes a string vector and tries to convert as many strings as possible to one format. We write a function that puts together what we have done above.
 
@@ -862,7 +877,7 @@ we have already learned to use the separate function:
 tab %>% separate(x, c("feet", "inches"), sep = "'")
 ```
 
-The `extract` function from the tidyr package lets us use regex groups to extract the desired values. Above we showed how to use `separate` to split the data as desired. Here is the equivalent code using `extract`:  
+The `extract` function from the __tidyr__ package lets us use regex groups to extract the desired values. Above we showed how to use `separate` to split the data as desired. Here is the equivalent code using `extract`:  
 ```{r}
 tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
 ```
@@ -887,17 +902,15 @@ tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
 ```
 
 
-## Case study 2 (part 3) 
+## Case study 2: Reported heights (continued)
 
 We are now ready to put it all together and wrangle our reported heights data to try to recover as many heights as possible. The code is complex, but we will break it down into parts.
 
 We start by cleaning up the `height` column so that the heights are closer to a feet'inches format. We added an original heights column so we can compare before and after. 
 
-## Putting it all together (continued)
-
 Now we are ready to wrangle our reported heights dataset:
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
 
 smallest <- 50
@@ -909,10 +922,10 @@ new_heights <- reported_heights %>%
   mutate_at(c("height", "feet", "inches"), as.numeric) %>%
   mutate(guess = 12*feet + inches) %>%
   mutate(height = case_when(
-    !is.na(height) & between(height, smallest, tallest) ~ height, #inches 
-    !is.na(height) & between(height/2.54, smallest, tallest) ~ height/2.54, #centimeters
-    !is.na(height) & between(height*100/2.54, smallest, tallest) ~ height*100/2.54, #meters
-    !is.na(guess) & inches < 12 & between(guess, smallest, tallest) ~ guess, #feet'inches
+    !is.na(height) & between(height, smallest, tallest) ~ height,#inches 
+    !is.na(height) & between(height/2.54, smallest, tallest) ~ height/2.54,#centimeters
+    !is.na(height) & between(height*100/2.54, smallest, tallest) ~ height*100/2.54,#meters
+    !is.na(guess) & inches < 12 & between(guess, smallest, tallest) ~ guess,#feet'inches
     TRUE ~ as.numeric(NA))) %>%
   select(-guess)
 ```
@@ -965,7 +978,7 @@ col_names <- x[[1]]
 x <- x[-1]
 ```
 
-To convert our list into a data frame, we can use a shortcut provided by the `map` functions in the purrr package. The map function applies the same function to each element in a list. So if we want to extract the first entry of each element in `x`, we can write:
+To convert our list into a data frame, we can use a shortcut provided by the `map` functions in the __purrr__ package. The map function applies the same function to each element in a list. So if we want to extract the first entry of each element in `x`, we can write:
 
 ```{r}
 library(purrr)
@@ -991,7 +1004,7 @@ dat <- data.frame(map_chr(x, 1),
 dat %>% head
 ```
 
-If you learn more about the purrr package, you will be able to write the code above more efficiently:
+If you learn more about the __purrr__ package, you will be able to write the code above more efficiently:
 
 ```{r}
 dat <- x %>%
@@ -1013,15 +1026,17 @@ x %>% as_data_frame() %>%
   mutate_all(parse_guess)
 ```
 
-## Case study 3: extracting tables from a PDF
+## Case study 3: Extracting tables from a PDF
 
 One of the datasets provided in dslabs shows scientific funding rates by gender in the Netherlands:
 
 ```{r}
 library(dslabs)
 data("research_funding_rates")
-research_funding_rates 
+research_funding_rates %>% 
+  select("discipline", "success_rates_men", "success_rates_women")
 ```
+
 
 The data comes from a [paper](http://www.pnas.org/content/112/40/12349.abstract) published in the prestigious journal PNAS. However, the data is not provided in a spreadsheet, it is in a table in a PDF document:
 
@@ -1029,12 +1044,15 @@ The data comes from a [paper](http://www.pnas.org/content/112/40/12349.abstract)
 knitr::include_graphics("wrangling/img/pnas-table-s1.png")
 ```
 
+(Source: [Romy van der Lee and Naomi Ellemers, PNAS 2015 112 (40) 12349-12353](http://www.pnas.org/content/112/40/12349))
+
 We could extract the number by hand, but this could lead to human error. Instead, we can try to wrangle the data using R. We start by downloading the pdf document, then importing into R:
 
 ```{r, eval=FALSE}
 library("pdftools")
 temp_file <- tempfile()
-url <- "http://www.pnas.org/content/suppl/2015/09/16/1510159112.DCSupplemental/pnas.201510159SI.pdf"
+url <- paste0("http://www.pnas.org/content/suppl/2015/09/16/",
+              "1510159112.DCSupplemental/pnas.201510159SI.pdf")
 download.file(url, temp_file)
 txt <- pdf_text(temp_file)
 file.remove(temp_file)
@@ -1046,18 +1064,13 @@ If we examine the object text, we notice that it is a character vector with an e
 raw_data_research_funding_rates <- txt[2]
 ```
 
-The steps above can actually be skipped  because we include this raw data in the dslabs package as well:
+The steps above can actually be skipped  because we include this raw data in the __dslabs__ package as well:
 
 ```{r}
 data("raw_data_research_funding_rates")
 ```
 
-Examining this object:
-
-```{r}
-raw_data_research_funding_rates %>% head
-```
-
+Examining the object `raw_data_research_funding_rates` 
 we see that it is a long string and each line on the page, including the table rows, are separated by the symbol for newline: `\n`. We therefore can create a list with the lines of the text as elements as follows:
 
 ```{r}
@@ -1070,13 +1083,7 @@ Because we start off with just one element in the string, we end up with a list 
 tab <- tab[[1]]
 ```
 
-By examining this object:
-
-```{r}
-tab %>% head
-```
-
-we see that the information for the column names is the third and fourth entries:
+By examining `tab` we see that the information for the column names is the third and fourth entries:
 
 ```{r}
 the_names_1 <- tab[3]
@@ -1086,7 +1093,7 @@ the_names_2 <- tab[4]
 In this table, the column information is spread across two lines. 
 
 ```{r}
-the_names_1
+the_names_1 %>% str_trim() %>% cat()
 ```
 
 We want to create one vector with one name for each column. Using some of the functions we have just learned, we do this. Let's start with the first line shown above. We want to remove the leading space and anything following the comma. We use regex for the latter. Then we can obtain the elements by splitting strings separated by space.  We want to split only when there are 2 or more spaces to avoid splitting `success rate`. So we use the regex `\\s{2,}`
@@ -1102,7 +1109,7 @@ the_names_1
 
 Now we will look at the second line: 
 ```{r}
-the_names_2
+the_names_2  %>% str_replace_all("\\s+","  ")
 ```
 
 Here we want to trim the leading space and then split by space as we did for the first line:
@@ -1179,7 +1186,7 @@ We have four countries with names longer than 12 characters. These names appear 
 ```{r caribbean-with-nicknames}
 gapminder %>% filter(region=="Caribbean") %>%
   mutate(country = recode(country, 
-                          `Antigua and Barbuda`="Barbuda",
+                          `Antigua and Barbuda` = "Barbuda",
                           `Dominican Republic` = "DR",
                           `St. Vincent and the Grenadines` = "St. Vincent",
                           `Trinidad and Tobago` = "Trinidad")) %>%
@@ -1187,5 +1194,125 @@ gapminder %>% filter(region=="Caribbean") %>%
   geom_line()
 ```
 
-There are other similar functions in other R packages, such as `recode_factor` and `fct_recoder` in the forcats tidyverse package. 
+There are other similar functions in other R packages, such as `recode_factor` and `fct_recoder` in the __forcats__ package. 
 
+
+## Exercises {-}
+
+
+
+1. Complete all lessons and exercises in the [https://regexone.com/](https://regexone.com/) online interactive tutorial.
+
+2. In the `extdata` directory of the __dslabs__ package, you will find a PDF file containing daily mortality data for Puerto Rico from Jan 1, 2015 to May 31, 2018. You can find the file like this:
+
+    ```{r, eval=FALSE}
+    fn <- system.file("extdata", "RD-Mortality-Report_2015-18-180531.pdf",
+                      package="dslabs")
+    ```
+
+    Find and open the file or open it directly from RStudio. On a Mac, you can type:
+
+    ```{r, eval = FALSE}
+    system2("open", args = fn)
+    ```
+
+    and on Windows, you can type:
+    
+    ```{r, eval = FALSE}
+    system("cmd.exe", input = paste("start", fn))
+    ```
+
+    Which of the following best describes this file:
+
+    A. It is a table. Extracting the data will be easy.
+    
+    B. It is a report written in prose.  Extracting the data will be impossible.
+    
+    C. It is a report combining graphs and tables. Extracting the data seems possible.
+    
+    D. It shows graphs of the data. Extracting the data will be difficult.
+
+    
+3. We are going to create a tidy dataset with each row representing one observation. The variables in this dataset will be year, month, day and deaths. 
+Start by installing and loading the __pdftools__ package:
+
+    
+    ```{r, eval= FALSE}
+    install.packages("pdftools")
+    library(pdftools)
+    ```
+    
+    Now read-in `fn` using the `pdf_text` function, store the results in an object called `txt`. Describe what you see in `txt`.
+
+    A. A table with the mortality data.
+    
+    B. A character string of length 12. Each entry represents the text in each page. The mortality data is in there somewhere.
+    
+    C. A character string with one entry containing all the information in the PDF file.
+    
+    D. An html document.
+
+    
+
+4. Extract the ninth page of the PDF file from the object `txt`, then use the `str_split` from the __stringr__ package so that you have each line in a different entry. Call this string vector `s`. Then look at the result and choose the one that best describes what you see.
+
+    A. It is an empty string.
+   
+    B. I can see the figure shown in page 1.
+   
+    C. It is a tidy table.
+   
+    D. I can see the table! But there is a bunch of other stuff we need to get rid of.
+
+    
+
+5. What kind of object is `s` and how many entries does it have?
+
+    
+6. We see that the output is a list with one component. Redefine `s` to be the first entry of the list. What kind of object is `s` and how many entries does it have?
+
+    
+7. When inspecting the string we obtained above, we see a common problem: white space before and after the other characters. Trimming is a common first step in string processing. These extra spaces will eventually make splitting the strings hard so we start by removing them. We learned about the command `str_trim` that removes spaces at the start or end of the strings. Use this function to trim `s`.
+
+    
+8. We want to extract the numbers from the strings stored in `s`. However, there a lot of non-numeric characters that will get in the way. We can remove these, but before doing this we want to preserve the string with the column header, which includes the month abbreviation. 
+Use the `str_which` function to find the rows with a header. Save these results to `header_index`. Hint: find the first string that matches the pattern `2015` using the `str_which` function.
+
+    
+9. Now we are going to define two objects: `month` will store the month and `header` will store the column names. Identify which row contains the header of the table. Save the content of the row into an object called `header`, then use `str_split` to help define the two objects we need. Hints: the separator here is one or more spaces. Also, consider using the `simplify` argument.
+    
+    
+10. Notice that towards the end of the page you see a _totals_ row followed by rows with other summary statistics. Create an object called `tail_index` with the index of the _totals_ entry.
+
+    
+11. Because our PDF page includes graphs with numbers, some of our rows have just one number (from the y-axis of the plot). Use the `str_count` function to create an object `n` with the number of numbers in each each row. Hint: you can write a regex for number like this `\\d+`.
+
+    
+12. We are now ready to remove entries from rows that we know we don't need. The entry `header_index` and everything before it should be removed. Entries for which `n` is 1 should also be removed, and the entry `tail_index` and everything that comes after it should be removed as well.
+
+    
+13. Now we are ready to remove all the non-numeric entries. Do this using regex and the `str_remove_all` function. Hint: in regex, using the `^` inside the `[]` means _not_, like the `!` means not in `!=`. To define the regex pattern to catch all non-numbers, you can type `[^\\d]`. But remember you also want to keep spaces.
+
+    
+
+14. To convert the strings into a table, use the `str_split_fixed` function. Convert `s` into a data matrix with just the day and death count data. Hints: note that the separator is one or more spaces. Make the argument `n` a value that limits the number of columns to the values in the 4 columns and the last column captures all the extra stuff. Then keep only the first four columns.
+
+    
+
+15. Now you are almost ready to finish. Add column names to the matrix, including one called `day`. Also, add a column with the month. Call the resulting object `dat`. Finally, make sure the day is an integer not a character. Hint: use only the first five columns.
+
+    
+
+16. Now finish it up by tidying `tab` with the gather function.
+
+    
+
+17. Make a plot of deaths versus day with color to denote year. Exclude 2018 since we have no data.
+
+    
+18. Now that we have wrangled this data step-by-step, put it all together in one R chunk, using the pipe as much as possible. Hint: first define the indexes, then write one line of code that does all the string processing.
+
+    
+19. Advanced: let's return to the MLB Payroll example from the web scraping section. Use what you have learned in the web scraping and string processing chapters to extract the payroll for the New York Yankees, Boston Red Sox, and Oakland A's and plot them as a function of time.
+
+    
