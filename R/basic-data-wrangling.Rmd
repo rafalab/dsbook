@@ -1,6 +1,6 @@
 # Basic data wrangling
 
-Up to now we have been changing vectors by reordering them and subsetting them through indexing. However, once we start more advanced analyses, we will want to prepare data tables for data analysis. We refer to this task as data wrangling. For this purpose, we will introduce the __dplyr__ package which provides intuitive functionality for working with tables. In Chapter 6, we will cover the __dplyr__ package in much more depth. 
+Up to now we have been changing vectors by reordering them and subsetting them through indexing. However, once we start more advanced analyses, we will want to prepare data tables for data analysis. We refer to this task as data wrangling. For this purpose, we will introduce the __dplyr__ package which provides intuitive functionality for working with tables. In the Data Wrangling Chapter, we will cover the __dplyr__ package in much more depth. 
 
 Once you install __dplyr__, you can load it using:
 
@@ -12,15 +12,17 @@ This package introduces functions that perform the most common operations in dat
 
 ## Adding a column with `mutate`
 
-We want all the necessary information for our analysis to be included in the data table. So the first task is to add the murder rates to our data frame.  The function mutate takes the data frame as a first argument and the name and values of the variable in the second using the convention `name = values`. So, to add murder rates, we use:
+We want all the necessary information for our analysis to be included in the data table. So the first task is to add the murder rates to our murders data frame.  The function mutate takes the data frame as a first argument and the name and values of the variable in the second using the convention `name = values`. So, to add murder rates, we use:
  
 ```{r,message=FALSE}
+library(dslabs)
+data("murders")
 murders <- mutate(murders, rate = total / population * 100000)
 ```
 
 Notice that here we used `total` and `population` inside the function, which are objects that are **not** defined in our workspace. But why don't we get an error?
 
-This is one of __dplyr__'s the main features. Functions in this package, such as `mutate`, know to look for variables in the data frame provided in the first argument. In the call to mutate above, `total` will have the values in `murders$total`. This approach makes the code much more readable. 
+This is one of __dplyr__'s main features. Functions in this package, such as `mutate`, know to look for variables in the data frame provided in the first argument. In the call to mutate above, `total` will have the values in `murders$total`. This approach makes the code much more readable. 
 
 We can see that the new column is added:
 
@@ -183,7 +185,7 @@ class(grades$names)
     Create a new data frame called `murders_nw` with only the states from the Northeast and the West.  How many states are in this category? 
 
 
-7. Suppose you want to live in the Northeast or West **and** want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with `filter`:
+7. Suppose you want to live in the Northeast or West **and** want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with `filter`. Here is an example in which we filter to keep only small states in the Northeast region.
 
     ```{r, eval=FALSE}
     filter(murders, population < 5000000 & region == "Northeast")
@@ -195,16 +197,13 @@ class(grades$names)
 8. The pipe `%>%` can be used to perform operations sequentially without having to define intermediate objects, after redefining murder to include rate and rank.
 
     ```{r, eval=FALSE}
-    library(dplyr)
     murders <- mutate(murders, rate =  total / population * 100000, rank = rank(-rate))
     ```
 
     In the solution to the previous exercise, we did the following:
     ```{r, eval=FALSE}
-    # Created a table:
     my_states <- filter(murders, region %in% c("Northeast", "West") & rate < 1)
 
-    # Used select to show only the state name, the murder rate and the rank:
     select(my_states, state, rate, rank)
     ```
 

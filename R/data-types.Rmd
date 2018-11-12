@@ -52,7 +52,7 @@ For our analysis we will need to access the different variables represented by c
 murders$population
 ```
 
-But how did we know to use population? Above, by applying the function `str` to the object `murders`, we revealed the names for each of the five variables stored in this table. We can quickly access the variable names using:
+But how did we know to use population? Previously, by applying the function `str` to the object `murders`, we revealed the names for each of the five variables stored in this table. We can quickly access the variable names using:
 
 ```{r}
 names(murders)
@@ -105,7 +105,7 @@ You can see the other _relational operators_ by typing:
 In future sections, you will see how useful relational operators can be.
 
 
-**Advanced**: Mathematically, the values in `pop` are integers and there is an integer class in R. However, by default, numbers are assigned class numeric even when they are round integers. For example, `class(1)` returns numeric. You can turn them into class integer with `as.integer(1)` or add by adding an `L` like this: `1L`. Note the class by typing: `class(1L)`
+**Advanced**: Mathematically, the values in `pop` are integers and there is an integer class in R. However, by default, numbers are assigned class numeric even when they are round integers. For example, `class(1)` returns numeric. You can turn them into class integer with the `as.integer()` function or by adding an `L` like this: `1L`. Note the class by typing: `class(1L)`
 
 
 ## Factors
@@ -125,7 +125,7 @@ levels(murders$region)
 
 In the background, R stores these _levels_ as integers and keeps a map to keep track of the labels. This is more memory efficient than storing all the characters. Yet factors are also a source of confusion since sometimes they behave like characters and sometimes they do not. As a result, confusing factors and characters are a common source of bugs. 
 
-In general, we recommend avoiding factors as much as possible, although they are sometimes necessary to fit models containing categorical data.
+In general, we recommend avoiding factors as much as possible, although they are sometimes necessary to fit models containing categorical data. We will see several example of these faction in the Regression and Machine Learning parts.
  
 ## Lists
 
@@ -164,30 +164,19 @@ You should get used to the fact that in R, there are often several ways to do th
 
 Matrices are another type of object that are common in R. Matrices are similar to data frames in that they are two dimensional: they have rows and columns. However, like numeric, character and logical vectors, entries in matrices have to be all the same type. For this reason data frames are much more useful for storing data, since we can have characters, factors and numbers in them. 
 
-Yet matrices have a major advantage over data frames: we can perform a matrix algebra operations, a powerful type of mathematical technique. We do not describe these operations in this book, but much of what happens in the background when you perform a data analysis involves matrices. For this reason, and others, some of the functions we will learn return matrices. We will describe them briefly here.
+Yet matrices have a major advantage over data frames: we can perform a matrix algebra operations, a powerful type of mathematical technique. We do not describe these operations in this book, but much of what happens in the background when you perform a data analysis involves matrices. We cover matrices in more detail in Chapter \@ref(matrices) but describe them briefly here since some of the functions we will learn return matrices. 
 
-One way matrices show up is if a function called with `sapply` returns two or more values. For example, suppose we write a function that for any number `x` returns `x`, `x^2` and `x^3`:
-
-```{r}
-cubic <- function(x) {
-  c(x, x^2, x^3)
-}
-cubic(2)
-```
-
-If we use `sapply` to compute these three numbers for each of the elements in a vector, R automatically _binds_ the results as columns in a matrix:
-
+We can define a matrix using the `matrix` function. We need to specify the number of rows and columns.
 
 ```{r}
-n <- seq(1,5)
-mat <- sapply(n, cubic)
+mat <- matrix(1:12, 4, 3)
 mat
 ```
 
 You can access specific entries in a matrix using `[`. If you want the second row, third column, you use:
 
 ```{r}
-mat[2,3]
+mat[2, 3]
 ```
 
 If you want the entire second row, you leave the column spot empty:
@@ -201,7 +190,7 @@ Notice that this returns a vector, not a matrix.
 Similarly, if you want the entire third column, you leave the row spot empty:
 
 ```{r}
-mat[ ,3]
+mat[, 3]
 ```
 
 This is also a vector, not a matrix.
@@ -209,16 +198,16 @@ This is also a vector, not a matrix.
 You can access more than one column or more than one row if you like. This will give you a new matrix.
 
 ```{r}
-mat[ ,2:4]
+mat[, 2:4]
 ```
 
 You can subset both rows and columns:
 
 ```{r}
-mat[1:2,2:4]
+mat[1:2, 2:4]
 ```
 
-In some of our illustrations, we will convert matrices into data frames so that we can, for example, use them with __dplyr__. For this, we can use the function `as.data.frame`:
+We can convert matrices into data frames using the function `as.data.frame`:
 
 ```{r}
 as.data.frame(mat)
@@ -232,7 +221,6 @@ murders[25, 1]
 murders[2:3, ]
 ```
 
-We will learn more about matrices in the Machine Learning part of the book.
 
 ## Exercises {-}
 
