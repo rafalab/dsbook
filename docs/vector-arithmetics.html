@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-<link rel="prev" href="confounding.html">
-<link rel="next" href="advanced-tidyverse-tibbles-and-do.html">
+<link rel="prev" href="sorting.html">
+<link rel="next" href="indexing.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -840,195 +840,85 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="linear-models-and-least-squared-estimates" class="section level1">
-<h1><span class="header-section-number">Chapter 46</span> Linear Models and Least Squared Estimates</h1>
-<p>Since Galton’s original development, regression has become one of the most widely used tools in data science. One reason has to do with the fact that regression permits us to find relationships between two variables taking into account the effects of other variables that affect both, as we have just shown for BB, HR and runs in baseball. This has been particularly popular in fields where randomized experiments are hard to run, such as Economics and Epidemiology.</p>
-<p>When we are not able to randomly assign each individual to a treatment or control group, confounding is particularly prevalent. For example, consider estimating the effect of eating fast foods on life expectancy using data collected from a random sample of people in a jurisdiction. Fast food consumers are more likely to be smokers, drinkers, and have lower incomes. Therefore, a naive regression model may lead to an overestimate of a negative health effect. So how do we do account for confounding in practice?</p>
-<p>We have described how if data is bivariate normal then the conditional expectations follow the regression line. The fact that the conditional expectation is a line is not an extra assumption but rather a derived result. However, in practice it is common to explicitly write down a model that describes the relationship between two or more variables using a <em>linear model</em>.</p>
-<p>We note that “linear” here does not refer to lines exclusively, but rather to the fact that the conditional expectation is a linear combinations of known quantities. In mathematics, when we multiply each variable by a constant and then add them together, we say we formed a linear combination of the variables. For example, <span class="math inline">\(3x - 4y + 5z\)</span> is a linear combination of <span class="math inline">\(x, y\)</span> and <span class="math inline">\(z\)</span>. We can also add a constant so <span class="math inline">\(2 + 3x - 4y + 5z\)</span> is also linear combination of <span class="math inline">\(x, y\)</span> and <span class="math inline">\(z\)</span>.</p>
-<p>So <span class="math inline">\(\beta_0 + \beta_1 x_1 + \beta_2 x_2\)</span>, is a linear combination of <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span>. The simplest linear model is a constant <span class="math inline">\(\beta_0\)</span>; the second simplest is a line <span class="math inline">\(\beta_0 + \beta_1 x\)</span>. If we were to specify a linear model for Galton’s data, we would denote the <span class="math inline">\(N\)</span> observed father heights with <span class="math inline">\(x_1, \dots, x_n\)</span>, then we model the <span class="math inline">\(N\)</span> son heights we are trying to predict with:</p>
-<p><span class="math display">\[ 
-Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i, \, i=1,\dots,N. 
-\]</span></p>
-<p>Here <span class="math inline">\(x_i\)</span> is the father’s height, which is fixed (not random) due to the conditioning, and <span class="math inline">\(Y_i\)</span> is the random son’s height that we want to predict. We further assume that <span class="math inline">\(\varepsilon_i\)</span> are independent from each other, have expected value 0 and the standard deviation, call it <span class="math inline">\(\sigma\)</span>, does not depend on <span class="math inline">\(i\)</span>.</p>
-<p>In the above model, we know the <span class="math inline">\(x_i\)</span>, but to have a useful model for prediction, we need <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>. We estimate these from the data. Once we do this, we can predict son’s heights for any father’s height <span class="math inline">\(x\)</span>. We show how to do this in the next section.</p>
-<p>Note that if we further assume that the <span class="math inline">\(\varepsilon\)</span> is normally distributed, then this model is exactly the same one we derived earlier by assuming bivariate normal data. A somewhat nuanced difference is that in the first approach we assumed the data was bivariate normal and that the linear model was derived, not assumed. In practice, linear models are just assumed without necessarily assuming normality: the distribution of the <span class="math inline">\(\varepsilon\)</span>s is not specified. Nevertheless, if your data is bivariate normal, the above linear model holds. If your data is not bivariate normal, then you will need to have other ways of justifying the model.</p>
-<div id="interpreting-linear-models" class="section level2">
-<h2><span class="header-section-number">46.1</span> Interpreting linear models</h2>
-<p>One reason linear models are popular is that they are interpretable. In the case of Galton’s data, we can interpret the data like this: due to inherited genes, the son’s height prediction grows by <span class="math inline">\(\beta_1\)</span> for each inch we increase the father’s height <span class="math inline">\(x\)</span>. Because not all sons with fathers of height <span class="math inline">\(x\)</span> are of equal height, we need the term <span class="math inline">\(\varepsilon\)</span>, which explains the remaining variability. This remaining variability includes the mother’s genetic effect, environmental factors, and other biological randomness.</p>
-<p>Given how we wrote the model above, the intercept <span class="math inline">\(\beta_0\)</span> is not very interpretable as it is the predicted height of a son with a father with no height. Due to regression to the mean, the prediction will usually be a bit larger than 0. To make the slope parameter more interpretable, we can rewrite the model slightly as:</p>
-<p><span class="math display">\[ 
-Y_i = \beta_0 + \beta_1 (x_i - \bar{x}) + \varepsilon_i, \, i=1,\dots,N 
-\]</span></p>
-<p><span class="math inline">\(x_i\)</span> to <span class="math inline">\(x_i - \bar{x}\)</span> in which case <span class="math inline">\(\beta_0\)</span> would be the height when <span class="math inline">\(x_i = \bar{x}\)</span>, which is the height of the son of an average father.</p>
+<div id="vector-arithmetics" class="section level1">
+<h1><span class="header-section-number">Chapter 8</span> Vector arithmetics</h1>
+<p>California had the most murders, but does this mean it is the most dangerous state? What if it just has many more people than any other state? We can quickly confirm that California indeed has the largest population:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(<span class="st">&quot;murders&quot;</span>)
+murders<span class="op">$</span>state[<span class="kw">which.max</span>(murders<span class="op">$</span>population)]
+<span class="co">#&gt; [1] &quot;California&quot;</span></code></pre></div>
+<p>with over 37 million inhabitants. It is therefore unfair to compare the totals if we are interested in learning how safe the state is. What we really should be computing is the murders per capita. The reports we describe in the motivating section used murders per 100,000 as the unit. To compute this quantity, the powerful vector arithmetic capabilities of R come in handy.</p>
+<div id="rescaling-a-vector" class="section level2">
+<h2><span class="header-section-number">8.1</span> Rescaling a vector</h2>
+<p>In R, arithmetic operations on vectors occur <em>element-wise</em>. For a quick example, suppose we have height in inches:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inches &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">69</span>, <span class="dv">62</span>, <span class="dv">66</span>, <span class="dv">70</span>, <span class="dv">70</span>, <span class="dv">73</span>, <span class="dv">67</span>, <span class="dv">73</span>, <span class="dv">67</span>, <span class="dv">70</span>)</code></pre></div>
+<p>and want to convert to centimeters. Notice what happens when we multiply <code>inches</code> by 2.54:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inches <span class="op">*</span><span class="st"> </span><span class="fl">2.54</span>
+<span class="co">#&gt;  [1] 175 157 168 178 178 185 170 185 170 178</span></code></pre></div>
+<p>In the line above, we multiplied each element by 2.54. Similarly, if for each entry we want to compute how many inches taller or shorter than 69 inches, the average height for males, we can subtract it from every entry like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inches <span class="op">-</span><span class="st"> </span><span class="dv">69</span>
+<span class="co">#&gt;  [1]  0 -7 -3  1  1  4 -2  4 -2  1</span></code></pre></div>
 </div>
-<div id="least-squares-estimates-lse" class="section level2">
-<h2><span class="header-section-number">46.2</span> Least Squares Estimates (LSE)</h2>
-<p>For linear models to be useful, we have to estimate the unknown <span class="math inline">\(\beta\)</span>s. The standard approach in science is to find the values that minimize the distance of the fitted model to the data. The following is called the least squares (LS) equation and we will see it often in this chapter. For Galton’s data, we would write:</p>
-<p><span class="math display">\[ 
-RSS = \sum_{i=1}^n \left\{  Y_i - \left(\beta_0 + \beta_1 x_i \right)\right\}^2 
-\]</span></p>
-<p>This quantity is called the residual sum of squares (RSS). Once we find the values that minimize the RSS, we will call the values the least squares estimates (LSE) and denote them with <span class="math inline">\(\hat{\beta}_0\)</span> and <span class="math inline">\(\hat{\beta}_1\)</span>.</p>
-<p>Let’s write a function that computes the RSS for any pair of values <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rss &lt;-<span class="st"> </span><span class="cf">function</span>(beta0, beta1, data){
-  resid &lt;-<span class="st"> </span>galton_heights<span class="op">$</span>son <span class="op">-</span><span class="st"> </span>(beta0<span class="op">+</span>beta1<span class="op">*</span>galton_heights<span class="op">$</span>father)
-  <span class="kw">return</span>(<span class="kw">sum</span>(resid<span class="op">^</span><span class="dv">2</span>))
-}</code></pre></div>
-<p>So for any pair of values, we get an RSS. Here is a plot of the RSS as a function of <span class="math inline">\(\beta_1\)</span> when we keep the <span class="math inline">\(\beta_0\)</span> fixed at 25.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">beta1 =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dt">len=</span><span class="kw">nrow</span>(galton_heights))
-results &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">beta1 =</span> beta1,
-                      <span class="dt">rss =</span> <span class="kw">sapply</span>(beta1, rss, <span class="dt">beta0 =</span> <span class="dv">25</span>))
-results <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(beta1, rss)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_line</span>() <span class="op">+</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(beta1, rss), <span class="dt">col=</span><span class="dv">2</span>)</code></pre></div>
-<p><img src="book_files/figure-html/rss-versus-estimate-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>We can see a clear minimum for <span class="math inline">\(\beta_1\)</span> at around 0.65. However, this minimum for <span class="math inline">\(\beta_1\)</span> is for when <span class="math inline">\(\beta_0 = 25\)</span>, a value we arbitrarily picked. We don’t know if (25, 0.65) is the pair that minimizes the equation across all possible pairs.</p>
-<p>Trial and error is not going to work in this case. Instead, we will use calculus: take the partial derivatives, set them to 0 and solve. Of course, if we have many parameters, these equations can get rather complex. But there are functions in R that do these calculations for us. We will learn these next. To learn the mathematics behind this, you can consult a book on linear models.</p>
-</div>
-<div id="the-lm-function" class="section level2">
-<h2><span class="header-section-number">46.3</span> The <code>lm</code> function</h2>
-<p>In R, we can obtain the least squares estimates using the the <code>lm</code> function. To fit the model:</p>
+<div id="two-vectors" class="section level2">
+<h2><span class="header-section-number">8.2</span> Two vectors</h2>
+<p>If we have two vectors of the same length, and we sum them in R, they will be added entry by entry as follows:</p>
 <p><span class="math display">\[
-Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i
+\begin{pmatrix}
+a\\
+b\\
+c\\
+d
+\end{pmatrix}
++
+\begin{pmatrix}
+e\\
+f\\
+g\\
+h
+\end{pmatrix}
+=
+\begin{pmatrix}
+a +e\\
+b + f\\
+c + g\\
+d + h
+\end{pmatrix}
 \]</span></p>
-<p>with <span class="math inline">\(Y_i\)</span> the son’s height and <span class="math inline">\(x_i\)</span> the father’s height, we write:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit &lt;-<span class="st"> </span><span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> galton_heights)</code></pre></div>
-<p>and obtain the least squares estimates.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Call:</span>
-<span class="co">#&gt; lm(formula = son ~ father, data = galton_heights)</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Coefficients:</span>
-<span class="co">#&gt; (Intercept)       father  </span>
-<span class="co">#&gt;      35.712        0.503</span></code></pre></div>
-<p>The most common way we use <code>lm</code> is by using the character <code>~</code> to let <code>lm</code> know which is the variable we are predicting (left of <code>~</code>) and which we are using to predict (right of <code>~</code>). The intercept is added automatically to the model that will be fit.</p>
-<p>The object <code>fit</code> includes more information about the fit. We can use the function <code>summary</code> to extract more of this information:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(fit)
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Call:</span>
-<span class="co">#&gt; lm(formula = son ~ father, data = galton_heights)</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Residuals:</span>
-<span class="co">#&gt;    Min     1Q Median     3Q    Max </span>
-<span class="co">#&gt; -5.902 -1.405  0.092  1.342  8.092 </span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Coefficients:</span>
-<span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span>
-<span class="co">#&gt; (Intercept)  35.7125     4.5174    7.91  2.8e-13 ***</span>
-<span class="co">#&gt; father        0.5028     0.0653    7.70  9.5e-13 ***</span>
-<span class="co">#&gt; ---</span>
-<span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Residual standard error: 2.22 on 177 degrees of freedom</span>
-<span class="co">#&gt; Multiple R-squared:  0.251,  Adjusted R-squared:  0.246 </span>
-<span class="co">#&gt; F-statistic: 59.2 on 1 and 177 DF,  p-value: 9.47e-13</span></code></pre></div>
-<p>To understand some of the columns included in this summary we need to remember that the LSE are random variables. Mathematical statistics gives us some ideas of the distribution of these random variables</p>
+<p>The same holds for other mathematical operations, such as <code>-</code>, <code>*</code> and <code>/</code>.</p>
+<p>This implies that to compute the murder rates we can simply type:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murder_rate &lt;-<span class="st"> </span>murders<span class="op">$</span>total <span class="op">/</span><span class="st"> </span>murders<span class="op">$</span>population <span class="op">*</span><span class="st"> </span><span class="dv">100000</span></code></pre></div>
+<p>Once we do this, we notice that California is no longer near the top of the list. In fact, we can use what we have learned to order the states by murder rate:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders<span class="op">$</span>state[<span class="kw">order</span>(murder_rate)]
+<span class="co">#&gt;  [1] &quot;Vermont&quot;              &quot;New Hampshire&quot;        &quot;Hawaii&quot;              </span>
+<span class="co">#&gt;  [4] &quot;North Dakota&quot;         &quot;Iowa&quot;                 &quot;Idaho&quot;               </span>
+<span class="co">#&gt;  [7] &quot;Utah&quot;                 &quot;Maine&quot;                &quot;Wyoming&quot;             </span>
+<span class="co">#&gt; [10] &quot;Oregon&quot;               &quot;South Dakota&quot;         &quot;Minnesota&quot;           </span>
+<span class="co">#&gt; [13] &quot;Montana&quot;              &quot;Colorado&quot;             &quot;Washington&quot;          </span>
+<span class="co">#&gt; [16] &quot;West Virginia&quot;        &quot;Rhode Island&quot;         &quot;Wisconsin&quot;           </span>
+<span class="co">#&gt; [19] &quot;Nebraska&quot;             &quot;Massachusetts&quot;        &quot;Indiana&quot;             </span>
+<span class="co">#&gt; [22] &quot;Kansas&quot;               &quot;New York&quot;             &quot;Kentucky&quot;            </span>
+<span class="co">#&gt; [25] &quot;Alaska&quot;               &quot;Ohio&quot;                 &quot;Connecticut&quot;         </span>
+<span class="co">#&gt; [28] &quot;New Jersey&quot;           &quot;Alabama&quot;              &quot;Illinois&quot;            </span>
+<span class="co">#&gt; [31] &quot;Oklahoma&quot;             &quot;North Carolina&quot;       &quot;Nevada&quot;              </span>
+<span class="co">#&gt; [34] &quot;Virginia&quot;             &quot;Arkansas&quot;             &quot;Texas&quot;               </span>
+<span class="co">#&gt; [37] &quot;New Mexico&quot;           &quot;California&quot;           &quot;Florida&quot;             </span>
+<span class="co">#&gt; [40] &quot;Tennessee&quot;            &quot;Pennsylvania&quot;         &quot;Arizona&quot;             </span>
+<span class="co">#&gt; [43] &quot;Georgia&quot;              &quot;Mississippi&quot;          &quot;Michigan&quot;            </span>
+<span class="co">#&gt; [46] &quot;Delaware&quot;             &quot;South Carolina&quot;       &quot;Maryland&quot;            </span>
+<span class="co">#&gt; [49] &quot;Missouri&quot;             &quot;Louisiana&quot;            &quot;District of Columbia&quot;</span></code></pre></div>
 </div>
-<div id="lse-are-random-variables" class="section level2">
-<h2><span class="header-section-number">46.4</span> LSE are random variables</h2>
-<p>The LSE is derived from the data <span class="math inline">\(y_1,\dots,y_N\)</span>, which are a realization of random variables <span class="math inline">\(Y_1, \dots, Y_N\)</span>. This implies that our estimates are random variables. To see this, we can run a Monte Carlo simulation in which we assume the son and father height data defines a population, take a random sample of size <span class="math inline">\(N=50\)</span> and compute the regression slope coefficient for each one:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">B &lt;-<span class="st"> </span><span class="dv">1000</span>
-N &lt;-<span class="st"> </span><span class="dv">50</span>
-lse &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
-  <span class="kw">sample_n</span>(galton_heights, N, <span class="dt">replace =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">   </span><span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> .) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">    </span>.<span class="op">$</span>coef 
-})
-
-lse &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">beta_0 =</span> lse[<span class="dv">1</span>,], <span class="dt">beta_1 =</span> lse[<span class="dv">2</span>,]) </code></pre></div>
-<p>We can see the variability of the estimates by plotting their distributions:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(gridExtra)
-p1 &lt;-<span class="st"> </span>lse <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(beta_<span class="dv">0</span>)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth =</span> <span class="dv">5</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>) 
-p2 &lt;-<span class="st"> </span>lse <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(beta_<span class="dv">1</span>)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth =</span> <span class="fl">0.1</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>) 
-<span class="kw">grid.arrange</span>(p1, p2, <span class="dt">ncol =</span> <span class="dv">2</span>)</code></pre></div>
-<p><img src="book_files/figure-html/lse-distributions-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>The reason these look normal is because the central limit theorem applies here as well: for large enough <span class="math inline">\(N\)</span>, the least squares estimates will be approximately normal with expected value <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> respectively. The standard errors are a bit complicated to compute, but mathematical theory does allow us to compute them and they are included in the summary provided by the <code>lm</code> function. Here it is for one of our simulated data sets:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw">sample_n</span>(galton_heights, N, <span class="dt">replace =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> .) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span>summary
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Call:</span>
-<span class="co">#&gt; lm(formula = son ~ father, data = .)</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Residuals:</span>
-<span class="co">#&gt;    Min     1Q Median     3Q    Max </span>
-<span class="co">#&gt; -5.098 -1.094 -0.125  1.353  4.115 </span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Coefficients:</span>
-<span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span>
-<span class="co">#&gt; (Intercept)   43.743      7.041    6.21  1.2e-07 ***</span>
-<span class="co">#&gt; father         0.393      0.102    3.86  0.00034 ***</span>
-<span class="co">#&gt; ---</span>
-<span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Residual standard error: 1.87 on 48 degrees of freedom</span>
-<span class="co">#&gt; Multiple R-squared:  0.237,  Adjusted R-squared:  0.221 </span>
-<span class="co">#&gt; F-statistic: 14.9 on 1 and 48 DF,  p-value: 0.000342</span></code></pre></div>
-<p>You can see that the standard errors estimates reported by the <code>summary</code> are close to the standard errors from the simulation:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lse <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">se_0 =</span> <span class="kw">sd</span>(beta_<span class="dv">0</span>), <span class="dt">se_1 =</span> <span class="kw">sd</span>(beta_<span class="dv">1</span>))
-<span class="co">#&gt;   se_0  se_1</span>
-<span class="co">#&gt; 1 8.92 0.129</span></code></pre></div>
-<p>The <code>summary</code> function also reports t-statistics (<code>t value</code>) and p-values (<code>Pr(&gt;|t|)</code>). The t-statistic is not actually based on the central limit theorem but rather on the assumption that the <span class="math inline">\(\varepsilon\)</span>s follow a normal distribution. Under this assumption, mathematical theory tells us that the LSE divided by their standard error, <span class="math inline">\(\hat{\beta}_0 / \hat{\mbox{SE}}(\hat{\beta}_0 )\)</span> and <span class="math inline">\(\hat{\beta}_1 / \hat{\mbox{SE}}(\hat{\beta}_1 )\)</span> follow a t-distribution with <span class="math inline">\(N-p\)</span> degrees of freedom and with <span class="math inline">\(p\)</span> the number of parameters in our model. In the case of height <span class="math inline">\(p=2\)</span>, the two p-values are testing the null hypothesis that <span class="math inline">\(\beta_0 = 0\)</span> and <span class="math inline">\(\beta_1=0\)</span> respectively.</p>
-<p>Remember that, as we described previously, for large enough <span class="math inline">\(N\)</span>, the CLT works and the t-distribution becomes almost the same as the normal distribution. Also, notice that we can construct confidence intervals, but we will soon learn about <strong>broom</strong>, an add-on package that makes this easy.</p>
-<p>Although we do not show examples in this book, hypothesis testing with regression models is commonly used in Epidemiology and Economics to make statements such as “the effect of A on B was statistically significant after adjusting for X, Y and Z”. However, several assumptions have to hold for these statements to be true.</p>
-</div>
-<div id="lse-are-correlated-advanced" class="section level2">
-<h2><span class="header-section-number">46.5</span> LSE are correlated (advanced)</h2>
-<p>Although interpretation is not straightforward, it is useful to know that the LSE can be strongly correlated.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lse <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarise</span>(<span class="kw">cor</span>(beta_<span class="dv">0</span>, beta_<span class="dv">1</span>))
-<span class="co">#&gt;   cor(beta_0, beta_1)</span>
-<span class="co">#&gt; 1              -0.999</span></code></pre></div>
-<p>However, the correlation depends on how the predictors are defined or transformed. Here we standardize father heights which changes <span class="math inline">\(x_i\)</span> to <span class="math inline">\(x_i - \bar{x}\)</span>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">B &lt;-<span class="st"> </span><span class="dv">1000</span>
-N &lt;-<span class="st"> </span><span class="dv">50</span>
-lse &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
-  <span class="kw">sample_n</span>(galton_heights, N, <span class="dt">replace =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">father =</span> father <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(father)) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> .) <span class="op">%&gt;%</span><span class="st"> </span>.<span class="op">$</span>coef 
-})
-<span class="kw">cor</span>(lse[<span class="dv">1</span>,], lse[<span class="dv">2</span>,]) 
-<span class="co">#&gt; [1] -0.187</span></code></pre></div>
-</div>
-<div id="predicted-values-are-random-variables" class="section level2">
-<h2><span class="header-section-number">46.6</span> Predicted values are random variables</h2>
-<p>Once we fit our model, we can obtain prediction of <span class="math inline">\(Y\)</span> by plugging in the estimates into the regression model. For example, if the father’s height is <span class="math inline">\(x\)</span>, then our prediction <span class="math inline">\(\hat{Y}\)</span> for the son’s height we will:</p>
-<p><span class="math display">\[\hat{Y} = \hat{\beta}_0 + \hat{\beta}_1 x\]</span></p>
-<p>When we plot <span class="math inline">\(\hat{Y}\)</span> versus <span class="math inline">\(x\)</span>, we see the regression line.</p>
-<p>Keep in mind that the prediction <span class="math inline">\(\hat{Y}\)</span> is also a random variable and mathematical theory tells us what the standard errors are. If we assume the errors are normal, or have a large enough sample size, we can use theory to construct confidence intervals as well. In fact, the <strong>ggplot2</strong> layer <code>geom_smooth(method = &quot;lm&quot;)</code> that we previously used, plots <span class="math inline">\(\hat{Y}\)</span> and surrounds it by confidence intervals:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">galton_heights <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(son, father)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>)</code></pre></div>
-<p><img src="book_files/figure-html/father-son-regression-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>The R function <code>predict</code> takes an <code>lm</code> object as input and returns the prediction. If requested, the standard errors and other information from which we can construct confidence intervals is provided:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">galton_heights <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Y_hat =</span> <span class="kw">predict</span>(<span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> .))) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(father, Y_hat)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_line</span>()
-
-fit &lt;-<span class="st"> </span>galton_heights <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> .) 
-
-Y_hat &lt;-<span class="st"> </span><span class="kw">predict</span>(fit, <span class="dt">se.fit =</span> <span class="ot">TRUE</span>)
-
-<span class="kw">names</span>(Y_hat)
-<span class="co">#&gt; [1] &quot;fit&quot;            &quot;se.fit&quot;         &quot;df&quot;             &quot;residual.scale&quot;</span></code></pre></div>
-<p><img src="book_files/figure-html/father-son-predictor-1.png" width="70%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="exercises-36" class="section level2 unnumbered">
+<div id="exercises-3" class="section level2 unnumbered">
 <h2>Exercises</h2>
-<p>We have shown how BB and singles have similar predictive power for scoring runs. Another way to compare the usefulness of these baseball metrics is by assessing how stable they are across the years. Since we have to pick players based on their previous performances, we will prefer metrics that are more stable. In these exercises, we will compare the stability of singles and BBs.</p>
 <ol style="list-style-type: decimal">
-<li><p>Before we get started, we want to generate two tables. One for 2002 and another for the average of 1999-2001 seasons. We want to define per plate appearance statistics. Here is how we create the 2017 table. We keep only players with more than 100 plate appearances.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(Lahman)
-dat &lt;-<span class="st"> </span>Batting <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(yearID <span class="op">==</span><span class="st"> </span><span class="dv">2002</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">pa =</span> AB <span class="op">+</span><span class="st"> </span>BB, <span class="dt">singles =</span> (H <span class="op">-</span><span class="st"> </span>X2B <span class="op">-</span><span class="st"> </span>X3B <span class="op">-</span><span class="st"> </span>HR)<span class="op">/</span>pa, <span class="dt">bb =</span> BB<span class="op">/</span>pa) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">filter</span>(pa <span class="op">&gt;=</span><span class="st"> </span><span class="dv">100</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">select</span>(playerID, singles, bb)</code></pre></div>
-<p>Now compute a similar table but with rates computed over 1999-2001.</p></li>
-<li><p>Use the <code>inner_join</code> function to have the 2001 data and averages in the same table.</p></li>
-<li><p>Compute the correlation between 2002 and the previous seasons for singles and BB.</p></li>
-<li><p>Note that the correlation is higher for BB. To quickly get an idea of the uncertainty associated with this correlation estimate, we will fit a linear model and compute confidence intervals for the slope coefficient. However, first make scatterplots to confirm that fitting a linear model is appropriate.</p></li>
-<li><p>Now fit a linear model for each metric and use the <code>confint</code> function to compare the estimates.</p></li>
+<li><p>Previously we created this data frame:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">temp &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">35</span>, <span class="dv">88</span>, <span class="dv">42</span>, <span class="dv">84</span>, <span class="dv">81</span>, <span class="dv">30</span>)
+city &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Beijing&quot;</span>, <span class="st">&quot;Lagos&quot;</span>, <span class="st">&quot;Paris&quot;</span>, <span class="st">&quot;Rio de Janeiro&quot;</span>, <span class="st">&quot;San Juan&quot;</span>, <span class="st">&quot;Toronto&quot;</span>)
+city_temps &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">name =</span> city, <span class="dt">temperature =</span> temp)</code></pre></div>
+<p>Remake the data frame using the code above, but add a line that converts the temperature from Fahrenheit to Celsius.</p></li>
+<li><p>What is the following sum <span class="math inline">\(1+1/2^2 + 1/3^2 + \dots 1/100^2\)</span>? Hint: thanks to Euler, we know it should be close to <span class="math inline">\(\pi^2/6\)</span>.</p></li>
+<li><p>Compute the per 100,000 murder rate for each state and store it in the object <code>murder_rate</code>. Then compute the average murder rate for the US using the function <code>mean</code>. What is the average?</p></li>
 </ol>
+
 </div>
 </div>
             </section>
@@ -1036,8 +926,8 @@ dat &lt;-<span class="st"> </span>Batting <span class="op">%&gt;%</span><span cl
           </div>
         </div>
       </div>
-<a href="confounding.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="advanced-tidyverse-tibbles-and-do.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="sorting.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="indexing.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -1067,7 +957,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/regression/linear-models.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/R/vector-arithmetics.Rmd",
 "text": "Edit"
 },
 "download": null,

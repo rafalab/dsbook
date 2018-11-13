@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-<link rel="prev" href="confounding.html">
-<link rel="next" href="advanced-tidyverse-tibbles-and-do.html">
+<link rel="prev" href="smoothing.html">
+<link rel="next" href="distance.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -840,195 +840,312 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="linear-models-and-least-squared-estimates" class="section level1">
-<h1><span class="header-section-number">Chapter 46</span> Linear Models and Least Squared Estimates</h1>
-<p>Since Galton’s original development, regression has become one of the most widely used tools in data science. One reason has to do with the fact that regression permits us to find relationships between two variables taking into account the effects of other variables that affect both, as we have just shown for BB, HR and runs in baseball. This has been particularly popular in fields where randomized experiments are hard to run, such as Economics and Epidemiology.</p>
-<p>When we are not able to randomly assign each individual to a treatment or control group, confounding is particularly prevalent. For example, consider estimating the effect of eating fast foods on life expectancy using data collected from a random sample of people in a jurisdiction. Fast food consumers are more likely to be smokers, drinkers, and have lower incomes. Therefore, a naive regression model may lead to an overestimate of a negative health effect. So how do we do account for confounding in practice?</p>
-<p>We have described how if data is bivariate normal then the conditional expectations follow the regression line. The fact that the conditional expectation is a line is not an extra assumption but rather a derived result. However, in practice it is common to explicitly write down a model that describes the relationship between two or more variables using a <em>linear model</em>.</p>
-<p>We note that “linear” here does not refer to lines exclusively, but rather to the fact that the conditional expectation is a linear combinations of known quantities. In mathematics, when we multiply each variable by a constant and then add them together, we say we formed a linear combination of the variables. For example, <span class="math inline">\(3x - 4y + 5z\)</span> is a linear combination of <span class="math inline">\(x, y\)</span> and <span class="math inline">\(z\)</span>. We can also add a constant so <span class="math inline">\(2 + 3x - 4y + 5z\)</span> is also linear combination of <span class="math inline">\(x, y\)</span> and <span class="math inline">\(z\)</span>.</p>
-<p>So <span class="math inline">\(\beta_0 + \beta_1 x_1 + \beta_2 x_2\)</span>, is a linear combination of <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span>. The simplest linear model is a constant <span class="math inline">\(\beta_0\)</span>; the second simplest is a line <span class="math inline">\(\beta_0 + \beta_1 x\)</span>. If we were to specify a linear model for Galton’s data, we would denote the <span class="math inline">\(N\)</span> observed father heights with <span class="math inline">\(x_1, \dots, x_n\)</span>, then we model the <span class="math inline">\(N\)</span> son heights we are trying to predict with:</p>
-<p><span class="math display">\[ 
-Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i, \, i=1,\dots,N. 
-\]</span></p>
-<p>Here <span class="math inline">\(x_i\)</span> is the father’s height, which is fixed (not random) due to the conditioning, and <span class="math inline">\(Y_i\)</span> is the random son’s height that we want to predict. We further assume that <span class="math inline">\(\varepsilon_i\)</span> are independent from each other, have expected value 0 and the standard deviation, call it <span class="math inline">\(\sigma\)</span>, does not depend on <span class="math inline">\(i\)</span>.</p>
-<p>In the above model, we know the <span class="math inline">\(x_i\)</span>, but to have a useful model for prediction, we need <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>. We estimate these from the data. Once we do this, we can predict son’s heights for any father’s height <span class="math inline">\(x\)</span>. We show how to do this in the next section.</p>
-<p>Note that if we further assume that the <span class="math inline">\(\varepsilon\)</span> is normally distributed, then this model is exactly the same one we derived earlier by assuming bivariate normal data. A somewhat nuanced difference is that in the first approach we assumed the data was bivariate normal and that the linear model was derived, not assumed. In practice, linear models are just assumed without necessarily assuming normality: the distribution of the <span class="math inline">\(\varepsilon\)</span>s is not specified. Nevertheless, if your data is bivariate normal, the above linear model holds. If your data is not bivariate normal, then you will need to have other ways of justifying the model.</p>
-<div id="interpreting-linear-models" class="section level2">
-<h2><span class="header-section-number">46.1</span> Interpreting linear models</h2>
-<p>One reason linear models are popular is that they are interpretable. In the case of Galton’s data, we can interpret the data like this: due to inherited genes, the son’s height prediction grows by <span class="math inline">\(\beta_1\)</span> for each inch we increase the father’s height <span class="math inline">\(x\)</span>. Because not all sons with fathers of height <span class="math inline">\(x\)</span> are of equal height, we need the term <span class="math inline">\(\varepsilon\)</span>, which explains the remaining variability. This remaining variability includes the mother’s genetic effect, environmental factors, and other biological randomness.</p>
-<p>Given how we wrote the model above, the intercept <span class="math inline">\(\beta_0\)</span> is not very interpretable as it is the predicted height of a son with a father with no height. Due to regression to the mean, the prediction will usually be a bit larger than 0. To make the slope parameter more interpretable, we can rewrite the model slightly as:</p>
-<p><span class="math display">\[ 
-Y_i = \beta_0 + \beta_1 (x_i - \bar{x}) + \varepsilon_i, \, i=1,\dots,N 
-\]</span></p>
-<p><span class="math inline">\(x_i\)</span> to <span class="math inline">\(x_i - \bar{x}\)</span> in which case <span class="math inline">\(\beta_0\)</span> would be the height when <span class="math inline">\(x_i = \bar{x}\)</span>, which is the height of the son of an average father.</p>
-</div>
-<div id="least-squares-estimates-lse" class="section level2">
-<h2><span class="header-section-number">46.2</span> Least Squares Estimates (LSE)</h2>
-<p>For linear models to be useful, we have to estimate the unknown <span class="math inline">\(\beta\)</span>s. The standard approach in science is to find the values that minimize the distance of the fitted model to the data. The following is called the least squares (LS) equation and we will see it often in this chapter. For Galton’s data, we would write:</p>
-<p><span class="math display">\[ 
-RSS = \sum_{i=1}^n \left\{  Y_i - \left(\beta_0 + \beta_1 x_i \right)\right\}^2 
-\]</span></p>
-<p>This quantity is called the residual sum of squares (RSS). Once we find the values that minimize the RSS, we will call the values the least squares estimates (LSE) and denote them with <span class="math inline">\(\hat{\beta}_0\)</span> and <span class="math inline">\(\hat{\beta}_1\)</span>.</p>
-<p>Let’s write a function that computes the RSS for any pair of values <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rss &lt;-<span class="st"> </span><span class="cf">function</span>(beta0, beta1, data){
-  resid &lt;-<span class="st"> </span>galton_heights<span class="op">$</span>son <span class="op">-</span><span class="st"> </span>(beta0<span class="op">+</span>beta1<span class="op">*</span>galton_heights<span class="op">$</span>father)
-  <span class="kw">return</span>(<span class="kw">sum</span>(resid<span class="op">^</span><span class="dv">2</span>))
-}</code></pre></div>
-<p>So for any pair of values, we get an RSS. Here is a plot of the RSS as a function of <span class="math inline">\(\beta_1\)</span> when we keep the <span class="math inline">\(\beta_0\)</span> fixed at 25.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">beta1 =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dt">len=</span><span class="kw">nrow</span>(galton_heights))
-results &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">beta1 =</span> beta1,
-                      <span class="dt">rss =</span> <span class="kw">sapply</span>(beta1, rss, <span class="dt">beta0 =</span> <span class="dv">25</span>))
-results <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(beta1, rss)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_line</span>() <span class="op">+</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(beta1, rss), <span class="dt">col=</span><span class="dv">2</span>)</code></pre></div>
-<p><img src="book_files/figure-html/rss-versus-estimate-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>We can see a clear minimum for <span class="math inline">\(\beta_1\)</span> at around 0.65. However, this minimum for <span class="math inline">\(\beta_1\)</span> is for when <span class="math inline">\(\beta_0 = 25\)</span>, a value we arbitrarily picked. We don’t know if (25, 0.65) is the pair that minimizes the equation across all possible pairs.</p>
-<p>Trial and error is not going to work in this case. Instead, we will use calculus: take the partial derivatives, set them to 0 and solve. Of course, if we have many parameters, these equations can get rather complex. But there are functions in R that do these calculations for us. We will learn these next. To learn the mathematics behind this, you can consult a book on linear models.</p>
-</div>
-<div id="the-lm-function" class="section level2">
-<h2><span class="header-section-number">46.3</span> The <code>lm</code> function</h2>
-<p>In R, we can obtain the least squares estimates using the the <code>lm</code> function. To fit the model:</p>
-<p><span class="math display">\[
-Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i
-\]</span></p>
-<p>with <span class="math inline">\(Y_i\)</span> the son’s height and <span class="math inline">\(x_i\)</span> the father’s height, we write:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit &lt;-<span class="st"> </span><span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> galton_heights)</code></pre></div>
-<p>and obtain the least squares estimates.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Call:</span>
-<span class="co">#&gt; lm(formula = son ~ father, data = galton_heights)</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Coefficients:</span>
-<span class="co">#&gt; (Intercept)       father  </span>
-<span class="co">#&gt;      35.712        0.503</span></code></pre></div>
-<p>The most common way we use <code>lm</code> is by using the character <code>~</code> to let <code>lm</code> know which is the variable we are predicting (left of <code>~</code>) and which we are using to predict (right of <code>~</code>). The intercept is added automatically to the model that will be fit.</p>
-<p>The object <code>fit</code> includes more information about the fit. We can use the function <code>summary</code> to extract more of this information:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(fit)
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Call:</span>
-<span class="co">#&gt; lm(formula = son ~ father, data = galton_heights)</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Residuals:</span>
-<span class="co">#&gt;    Min     1Q Median     3Q    Max </span>
-<span class="co">#&gt; -5.902 -1.405  0.092  1.342  8.092 </span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Coefficients:</span>
-<span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span>
-<span class="co">#&gt; (Intercept)  35.7125     4.5174    7.91  2.8e-13 ***</span>
-<span class="co">#&gt; father        0.5028     0.0653    7.70  9.5e-13 ***</span>
-<span class="co">#&gt; ---</span>
-<span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Residual standard error: 2.22 on 177 degrees of freedom</span>
-<span class="co">#&gt; Multiple R-squared:  0.251,  Adjusted R-squared:  0.246 </span>
-<span class="co">#&gt; F-statistic: 59.2 on 1 and 177 DF,  p-value: 9.47e-13</span></code></pre></div>
-<p>To understand some of the columns included in this summary we need to remember that the LSE are random variables. Mathematical statistics gives us some ideas of the distribution of these random variables</p>
-</div>
-<div id="lse-are-random-variables" class="section level2">
-<h2><span class="header-section-number">46.4</span> LSE are random variables</h2>
-<p>The LSE is derived from the data <span class="math inline">\(y_1,\dots,y_N\)</span>, which are a realization of random variables <span class="math inline">\(Y_1, \dots, Y_N\)</span>. This implies that our estimates are random variables. To see this, we can run a Monte Carlo simulation in which we assume the son and father height data defines a population, take a random sample of size <span class="math inline">\(N=50\)</span> and compute the regression slope coefficient for each one:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">B &lt;-<span class="st"> </span><span class="dv">1000</span>
-N &lt;-<span class="st"> </span><span class="dv">50</span>
-lse &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
-  <span class="kw">sample_n</span>(galton_heights, N, <span class="dt">replace =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">   </span><span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> .) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">    </span>.<span class="op">$</span>coef 
-})
-
-lse &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">beta_0 =</span> lse[<span class="dv">1</span>,], <span class="dt">beta_1 =</span> lse[<span class="dv">2</span>,]) </code></pre></div>
-<p>We can see the variability of the estimates by plotting their distributions:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(gridExtra)
-p1 &lt;-<span class="st"> </span>lse <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(beta_<span class="dv">0</span>)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth =</span> <span class="dv">5</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>) 
-p2 &lt;-<span class="st"> </span>lse <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(beta_<span class="dv">1</span>)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth =</span> <span class="fl">0.1</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>) 
-<span class="kw">grid.arrange</span>(p1, p2, <span class="dt">ncol =</span> <span class="dv">2</span>)</code></pre></div>
-<p><img src="book_files/figure-html/lse-distributions-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>The reason these look normal is because the central limit theorem applies here as well: for large enough <span class="math inline">\(N\)</span>, the least squares estimates will be approximately normal with expected value <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> respectively. The standard errors are a bit complicated to compute, but mathematical theory does allow us to compute them and they are included in the summary provided by the <code>lm</code> function. Here it is for one of our simulated data sets:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw">sample_n</span>(galton_heights, N, <span class="dt">replace =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> .) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span>summary
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Call:</span>
-<span class="co">#&gt; lm(formula = son ~ father, data = .)</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Residuals:</span>
-<span class="co">#&gt;    Min     1Q Median     3Q    Max </span>
-<span class="co">#&gt; -5.098 -1.094 -0.125  1.353  4.115 </span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Coefficients:</span>
-<span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span>
-<span class="co">#&gt; (Intercept)   43.743      7.041    6.21  1.2e-07 ***</span>
-<span class="co">#&gt; father         0.393      0.102    3.86  0.00034 ***</span>
-<span class="co">#&gt; ---</span>
-<span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Residual standard error: 1.87 on 48 degrees of freedom</span>
-<span class="co">#&gt; Multiple R-squared:  0.237,  Adjusted R-squared:  0.221 </span>
-<span class="co">#&gt; F-statistic: 14.9 on 1 and 48 DF,  p-value: 0.000342</span></code></pre></div>
-<p>You can see that the standard errors estimates reported by the <code>summary</code> are close to the standard errors from the simulation:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lse <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">se_0 =</span> <span class="kw">sd</span>(beta_<span class="dv">0</span>), <span class="dt">se_1 =</span> <span class="kw">sd</span>(beta_<span class="dv">1</span>))
-<span class="co">#&gt;   se_0  se_1</span>
-<span class="co">#&gt; 1 8.92 0.129</span></code></pre></div>
-<p>The <code>summary</code> function also reports t-statistics (<code>t value</code>) and p-values (<code>Pr(&gt;|t|)</code>). The t-statistic is not actually based on the central limit theorem but rather on the assumption that the <span class="math inline">\(\varepsilon\)</span>s follow a normal distribution. Under this assumption, mathematical theory tells us that the LSE divided by their standard error, <span class="math inline">\(\hat{\beta}_0 / \hat{\mbox{SE}}(\hat{\beta}_0 )\)</span> and <span class="math inline">\(\hat{\beta}_1 / \hat{\mbox{SE}}(\hat{\beta}_1 )\)</span> follow a t-distribution with <span class="math inline">\(N-p\)</span> degrees of freedom and with <span class="math inline">\(p\)</span> the number of parameters in our model. In the case of height <span class="math inline">\(p=2\)</span>, the two p-values are testing the null hypothesis that <span class="math inline">\(\beta_0 = 0\)</span> and <span class="math inline">\(\beta_1=0\)</span> respectively.</p>
-<p>Remember that, as we described previously, for large enough <span class="math inline">\(N\)</span>, the CLT works and the t-distribution becomes almost the same as the normal distribution. Also, notice that we can construct confidence intervals, but we will soon learn about <strong>broom</strong>, an add-on package that makes this easy.</p>
-<p>Although we do not show examples in this book, hypothesis testing with regression models is commonly used in Epidemiology and Economics to make statements such as “the effect of A on B was statistically significant after adjusting for X, Y and Z”. However, several assumptions have to hold for these statements to be true.</p>
-</div>
-<div id="lse-are-correlated-advanced" class="section level2">
-<h2><span class="header-section-number">46.5</span> LSE are correlated (advanced)</h2>
-<p>Although interpretation is not straightforward, it is useful to know that the LSE can be strongly correlated.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lse <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarise</span>(<span class="kw">cor</span>(beta_<span class="dv">0</span>, beta_<span class="dv">1</span>))
-<span class="co">#&gt;   cor(beta_0, beta_1)</span>
-<span class="co">#&gt; 1              -0.999</span></code></pre></div>
-<p>However, the correlation depends on how the predictors are defined or transformed. Here we standardize father heights which changes <span class="math inline">\(x_i\)</span> to <span class="math inline">\(x_i - \bar{x}\)</span>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">B &lt;-<span class="st"> </span><span class="dv">1000</span>
-N &lt;-<span class="st"> </span><span class="dv">50</span>
-lse &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
-  <span class="kw">sample_n</span>(galton_heights, N, <span class="dt">replace =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">father =</span> father <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(father)) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> .) <span class="op">%&gt;%</span><span class="st"> </span>.<span class="op">$</span>coef 
-})
-<span class="kw">cor</span>(lse[<span class="dv">1</span>,], lse[<span class="dv">2</span>,]) 
-<span class="co">#&gt; [1] -0.187</span></code></pre></div>
-</div>
-<div id="predicted-values-are-random-variables" class="section level2">
-<h2><span class="header-section-number">46.6</span> Predicted values are random variables</h2>
-<p>Once we fit our model, we can obtain prediction of <span class="math inline">\(Y\)</span> by plugging in the estimates into the regression model. For example, if the father’s height is <span class="math inline">\(x\)</span>, then our prediction <span class="math inline">\(\hat{Y}\)</span> for the son’s height we will:</p>
-<p><span class="math display">\[\hat{Y} = \hat{\beta}_0 + \hat{\beta}_1 x\]</span></p>
-<p>When we plot <span class="math inline">\(\hat{Y}\)</span> versus <span class="math inline">\(x\)</span>, we see the regression line.</p>
-<p>Keep in mind that the prediction <span class="math inline">\(\hat{Y}\)</span> is also a random variable and mathematical theory tells us what the standard errors are. If we assume the errors are normal, or have a large enough sample size, we can use theory to construct confidence intervals as well. In fact, the <strong>ggplot2</strong> layer <code>geom_smooth(method = &quot;lm&quot;)</code> that we previously used, plots <span class="math inline">\(\hat{Y}\)</span> and surrounds it by confidence intervals:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">galton_heights <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(son, father)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>)</code></pre></div>
-<p><img src="book_files/figure-html/father-son-regression-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>The R function <code>predict</code> takes an <code>lm</code> object as input and returns the prediction. If requested, the standard errors and other information from which we can construct confidence intervals is provided:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">galton_heights <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Y_hat =</span> <span class="kw">predict</span>(<span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> .))) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(father, Y_hat)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_line</span>()
-
-fit &lt;-<span class="st"> </span>galton_heights <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">lm</span>(son <span class="op">~</span><span class="st"> </span>father, <span class="dt">data =</span> .) 
-
-Y_hat &lt;-<span class="st"> </span><span class="kw">predict</span>(fit, <span class="dt">se.fit =</span> <span class="ot">TRUE</span>)
-
-<span class="kw">names</span>(Y_hat)
-<span class="co">#&gt; [1] &quot;fit&quot;            &quot;se.fit&quot;         &quot;df&quot;             &quot;residual.scale&quot;</span></code></pre></div>
-<p><img src="book_files/figure-html/father-son-predictor-1.png" width="70%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="exercises-36" class="section level2 unnumbered">
-<h2>Exercises</h2>
-<p>We have shown how BB and singles have similar predictive power for scoring runs. Another way to compare the usefulness of these baseball metrics is by assessing how stable they are across the years. Since we have to pick players based on their previous performances, we will prefer metrics that are more stable. In these exercises, we will compare the stability of singles and BBs.</p>
+<div id="matrix-algebra" class="section level1">
+<h1><span class="header-section-number">Chapter 59</span> Matrix algebra</h1>
+<p>In machine learning, situations in which all predictors are numeric, or can be converted to numerics in a meaningful way, are common. The digits data set is an example: every pixel records a number between 0 and 255. Let’s load the data:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">if</span>(<span class="op">!</span><span class="kw">exists</span>(<span class="st">&quot;mnist&quot;</span>)) mnist &lt;-<span class="st"> </span><span class="kw">read_mnist</span>()</code></pre></div>
+<p>In these cases, it is often convenient to save the predictors in a matrix and the outcome in a vector rather than using a data frame. You can see that the predictors are saved as a matrix:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(mnist<span class="op">$</span>train<span class="op">$</span>images)
+<span class="co">#&gt; [1] &quot;matrix&quot;</span></code></pre></div>
+<p>This matrix represents 60,000 digits so for the examples in this chapter, we will take a more manageable subset. We will take the first 1,000 predictors <code>x</code> and labels <code>y</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mnist<span class="op">$</span>train<span class="op">$</span>images[<span class="dv">1</span><span class="op">:</span><span class="dv">1000</span>,] 
+y &lt;-<span class="st"> </span>mnist<span class="op">$</span>train<span class="op">$</span>labels[<span class="dv">1</span><span class="op">:</span><span class="dv">1000</span>]</code></pre></div>
+<p>The main reason for using matrices is that certain mathematical operations needed to develop efficient code can be performed using techniques from a branch of mathematics called <em>linear algebra</em>. In fact, linear algebra and matrix notation are key elements of the language used in academic papers describing machine learning techniques. We will not cover linear algebra in detail here, but will demonstrate how to use matrices in R so that you can apply the linear algebra techniques already implemented in R base or other packages.</p>
+<p>To motivate the use of matrices, we will pose five questions/challenges:</p>
 <ol style="list-style-type: decimal">
-<li><p>Before we get started, we want to generate two tables. One for 2002 and another for the average of 1999-2001 seasons. We want to define per plate appearance statistics. Here is how we create the 2017 table. We keep only players with more than 100 plate appearances.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(Lahman)
-dat &lt;-<span class="st"> </span>Batting <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(yearID <span class="op">==</span><span class="st"> </span><span class="dv">2002</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">pa =</span> AB <span class="op">+</span><span class="st"> </span>BB, <span class="dt">singles =</span> (H <span class="op">-</span><span class="st"> </span>X2B <span class="op">-</span><span class="st"> </span>X3B <span class="op">-</span><span class="st"> </span>HR)<span class="op">/</span>pa, <span class="dt">bb =</span> BB<span class="op">/</span>pa) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">filter</span>(pa <span class="op">&gt;=</span><span class="st"> </span><span class="dv">100</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">select</span>(playerID, singles, bb)</code></pre></div>
-<p>Now compute a similar table but with rates computed over 1999-2001.</p></li>
-<li><p>Use the <code>inner_join</code> function to have the 2001 data and averages in the same table.</p></li>
-<li><p>Compute the correlation between 2002 and the previous seasons for singles and BB.</p></li>
-<li><p>Note that the correlation is higher for BB. To quickly get an idea of the uncertainty associated with this correlation estimate, we will fit a linear model and compute confidence intervals for the slope coefficient. However, first make scatterplots to confirm that fitting a linear model is appropriate.</p></li>
-<li><p>Now fit a linear model for each metric and use the <code>confint</code> function to compare the estimates.</p></li>
+<li>Do some digits require more ink than others? Study the distribution of the total pixel darkness and how it varies by digits.<br />
+</li>
+<li>Are some pixels uninformative? Study the variation of each pixel and remove predictors (columns) associated with pixels that don’t change much and thus can’t provide much information for classification.</li>
+<li>Can we remove smudges? First, look at the distribution of all pixel values. Use this to pick a cutoff to define unwritten space. Then, set anything below that cutoff to 0.</li>
+<li>Binarize the data. First, look at the distribution of all pixel values. Use this to pick a cutoff to distinguish between writing and no writing. Then, convert all entries into either 1 or 0 respectively.</li>
+<li>Scale each of the predictors in each entry to have the same average and standard deviation.</li>
 </ol>
+<p>To complete these, we will have to perform mathematical operations involving several variables. The tidyverse is not developed to perform these types of mathematical operations. For this task, it is convenient to use matrices.</p>
+<p>Before we do this, we will introduce matrix notation and basic R code to define and operate on matrices.</p>
+<div id="notation-2" class="section level2">
+<h2><span class="header-section-number">59.1</span> Notation</h2>
+<p>In matrix algebra, we have three main types of objects: scalars, vectors and matrices. Let’s start by defining and showing the notation for matrices</p>
+<p>A scalar is just one number. For example <span class="math inline">\(a = 1\)</span>. To denote scalars in matrix notation, we usually use a lower case letter and do not bold.</p>
+<p>Vectors are like the numeric vectors we define in R: they include several scalar entries. For example, the column containing the first pixel:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">length</span>(x[,<span class="dv">1</span>])
+<span class="co">#&gt; [1] 1000</span></code></pre></div>
+<p>entries. In matrix algebra, we use the following notation:</p>
+<p><span class="math display">\[ 
+\mathbf{X} = \begin{pmatrix}
+x_1\\\
+x_2\\\
+\vdots\\\
+x_N
+\end{pmatrix}
+\]</span></p>
+<p>Similarly, we can use math notation to represent different features mathematically, by adding an index:</p>
+<p><span class="math display">\[ 
+\mathbf{X}_1 = \begin{pmatrix}
+x_{1,1}\\
+\vdots\\
+x_{N,1}
+\end{pmatrix} \mbox{ and }
+\mathbf{X}_2 = \begin{pmatrix}
+x_{1,2}\\
+\vdots\\
+x_{N,2}
+\end{pmatrix}
+\]</span></p>
+<p>If we are writing out a column, such as <span class="math inline">\(\mathbf{X}_1\)</span>, in a sentence we often use the notation: <span class="math inline">\(\mathbf{X}_1 = ( x_{1,1}, \dots x_{N,1})^\top\)</span> with the <span class="math inline">\(^\top\)</span> the transpose operation that converts columns into rows and rows into columns.</p>
+<p>A matrix can be defined as a series of vectors of the same size joined together as columns:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">5</span>
+x_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="dv">6</span><span class="op">:</span><span class="dv">10</span>
+<span class="kw">cbind</span>(x_<span class="dv">1</span>, x_<span class="dv">2</span>)
+<span class="co">#&gt;      x_1 x_2</span>
+<span class="co">#&gt; [1,]   1   6</span>
+<span class="co">#&gt; [2,]   2   7</span>
+<span class="co">#&gt; [3,]   3   8</span>
+<span class="co">#&gt; [4,]   4   9</span>
+<span class="co">#&gt; [5,]   5  10</span></code></pre></div>
+<p>Mathematically, we represent them with bold upper case letters:</p>
+<p><span class="math display">\[ 
+\mathbf{X} = [ \mathbf{X}_1 \mathbf{X}_2 ] = \begin{pmatrix}
+x_{1,1}&amp;x_{1,2}\\
+\vdots\\
+x_{N,1}&amp;x_{N,2}
+\end{pmatrix}
+\]</span></p>
+<p>The <em>dimension</em> of a matrix is often an important characteristic needed to assure that certain operations can be performed. The <em>dimension</em> is a two number summary defined as the number of rows <span class="math inline">\(\times\)</span> the number of columns. In R, we can extract the dimension of a matrix with the function <code>dim</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(x)
+<span class="co">#&gt; [1] 1000  784</span></code></pre></div>
+<p>Vectors can be thought of as <span class="math inline">\(N\times 1\)</span> matrices. However, in R, a vector does not have dimensions:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(x_<span class="dv">1</span>)
+<span class="co">#&gt; NULL</span></code></pre></div>
+<p>Yet we explicitly convert a vector into a matrix using the function <code>as.matrix</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(<span class="kw">as.matrix</span>(x_<span class="dv">1</span>))
+<span class="co">#&gt; [1] 5 1</span></code></pre></div>
+<p>We can use this notation to denote an arbitrary number of predictors with the following <span class="math inline">\(N\times p\)</span> matrix, for example, with <span class="math inline">\(p=784\)</span>:</p>
+<p><span class="math display">\[
+\mathbf{X} = \begin{pmatrix}
+  x_{1,1}&amp;\dots &amp; x_{1,p} \\
+  x_{2,1}&amp;\dots &amp; x_{2,p} \\
+   &amp; \vdots &amp; \\
+  x_{N,1}&amp;\dots &amp; x_{N,p} 
+  \end{pmatrix}
+\]</span></p>
+<p>We stored this in x:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(x)
+<span class="co">#&gt; [1] 1000  784</span></code></pre></div>
+</div>
+<div id="matrix-operations" class="section level2">
+<h2><span class="header-section-number">59.2</span> Matrix operations</h2>
+<p>We will learn several useful operations related to matrix algebra. We use the three motivating examples listed above.</p>
+<div id="converting-a-vector-to-a-matrix" class="section level3">
+<h3><span class="header-section-number">59.2.1</span> Converting a vector to a matrix</h3>
+<p>It is often useful to convert a vector to a matrix. For example, because the variables are pixels on a grid, we can convert the rows of pixel intensities into a matrix representing this grid.</p>
+<p>We can convert a vector into a matrix with the <code>matrix</code> function and specifying the number of rows and columns that the resulting matrix should have. The matrix is filled in <strong>by column</strong>: the first column is filled first, then the second second and so on. This example helps illustrate:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my_vector &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">15</span>
+mat &lt;-<span class="st"> </span><span class="kw">matrix</span>(my_vector, <span class="dv">5</span>, <span class="dv">3</span>)
+mat
+<span class="co">#&gt;      [,1] [,2] [,3]</span>
+<span class="co">#&gt; [1,]    1    6   11</span>
+<span class="co">#&gt; [2,]    2    7   12</span>
+<span class="co">#&gt; [3,]    3    8   13</span>
+<span class="co">#&gt; [4,]    4    9   14</span>
+<span class="co">#&gt; [5,]    5   10   15</span></code></pre></div>
+<p>We can fill by row by using the <code>byrow</code> argument. So, for example, to <em>transpose</em> the matrix <code>mat</code>, we can use:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mat_t &lt;-<span class="st"> </span><span class="kw">matrix</span>(my_vector, <span class="dv">3</span>, <span class="dv">5</span>, <span class="dt">byrow =</span> <span class="ot">TRUE</span>)
+mat_t
+<span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span>
+<span class="co">#&gt; [1,]    1    2    3    4    5</span>
+<span class="co">#&gt; [2,]    6    7    8    9   10</span>
+<span class="co">#&gt; [3,]   11   12   13   14   15</span></code></pre></div>
+<p>When we turn the columns into rows, we refer to the operations as <em>transposing</em> the matrix. The function <code>t</code> can be used to directly transpose a matrix:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">identical</span>(<span class="kw">t</span>(mat), mat_t)
+<span class="co">#&gt; [1] TRUE</span></code></pre></div>
+<p>Remember that the <code>matrix</code> function recycles values in the vector <strong>without warning</strong> if the product of columns and rows does not match the length of the vector:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">matrix</span>(my_vector, <span class="dv">5</span>, <span class="dv">5</span>)
+<span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span>
+<span class="co">#&gt; [1,]    1    6   11    1    6</span>
+<span class="co">#&gt; [2,]    2    7   12    2    7</span>
+<span class="co">#&gt; [3,]    3    8   13    3    8</span>
+<span class="co">#&gt; [4,]    4    9   14    4    9</span>
+<span class="co">#&gt; [5,]    5   10   15    5   10</span></code></pre></div>
+<p>To put the pixel intensities of our, say, 3rd entry, which is a 4 into grid, we can use:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">grid &lt;-<span class="st"> </span><span class="kw">matrix</span>(x[<span class="dv">3</span>,], <span class="dv">28</span>, <span class="dv">28</span>)</code></pre></div>
+<p>To confirm that in fact we have done this correctly, we can use the function <code>image</code> which shows an image of its third argument:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">image</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">28</span>, <span class="dv">1</span><span class="op">:</span><span class="dv">28</span>, grid)</code></pre></div>
+<p><img src="book_files/figure-html/matrix-image-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>The top of this plot is pixel 1, which is shown at the bottom so the image is flipped. To flip it back we can use:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">image</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">28</span>, <span class="dv">1</span><span class="op">:</span><span class="dv">28</span>, grid[,<span class="dv">28</span><span class="op">:</span><span class="dv">1</span>])</code></pre></div>
+<p><img src="book_files/figure-html/flip-matrix-image-1.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="row-and-column-summaries" class="section level3">
+<h3><span class="header-section-number">59.2.2</span> Row and column summaries</h3>
+<p>For the first task, related to total pixel darkness, we want to sum the values of each row and then visualize how these values vary by digit.</p>
+<p>The function <code>rowSums</code> takes a matrix as input and computes the desired values:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sums &lt;-<span class="st"> </span><span class="kw">rowSums</span>(x)</code></pre></div>
+<p>We can also compute the averages with <code>rowMeans</code> if we want the values to remain between 0 and 255:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">avg &lt;-<span class="st"> </span><span class="kw">rowMeans</span>(x)</code></pre></div>
+<p>Once we have this, we can simply generate a boxplot:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data.frame</span>(<span class="dt">labels =</span> <span class="kw">as.factor</span>(y), <span class="dt">row_averages =</span> avg) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(labels, row_averages)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>()</code></pre></div>
+<p><img src="book_files/figure-html/boxplot-of-digit-averages-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>From this plot we see that, not surprisingly, 1s use less ink than the other digits.</p>
+<p>We can compute the column sums and averages using the function <code>colSums</code> and <code>colMeans</code> respectively.</p>
+<p>The <strong>matrixStats</strong> package adds functions that performs operations on each row or column very efficiently, including the functions <code>rowSds</code> and <code>colSds</code>.</p>
+</div>
+<div id="apply" class="section level3">
+<h3><span class="header-section-number">59.2.3</span> <code>apply</code></h3>
+<p>The functions just described are performing an operation similar to what <code>sapply</code> and the purrr function <code>map</code> do: apply the same function to a part of your object. In this case, the function is applied to either each row or each column. The <code>apply</code> function lets you apply any function, not just <code>sum</code> or <code>mean</code>, to a matrix. The first argument is the matrix, the second is the dimension, 1 for rows, 2 for columns, and the third is the function. So, for example, <code>rowMeans</code> can be written as:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">avgs &lt;-<span class="st"> </span><span class="kw">apply</span>(x, <span class="dv">1</span>, mean)</code></pre></div>
+<p>But notice that just like with <code>sapply</code> and <code>map</code>, we can perform any function. So if we wanted the standard deviation for each column, we could write:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sds &lt;-<span class="st"> </span><span class="kw">apply</span>(x, <span class="dv">2</span>, sd)</code></pre></div>
+<p>What you pay for in this flexibility is that these are not as fast as dedicated functions such as <code>rowMeans</code>.</p>
+</div>
+<div id="filtering-columns-based-on-summaries" class="section level3">
+<h3><span class="header-section-number">59.2.4</span> Filtering columns based on summaries</h3>
+<p>We now turn to task 2: studying the variation of each pixel and removing columns associated with pixels that don’t change much and thus do not inform the classification. Although a simplistic approach, we will quantify the variation of each pixel with its standard deviation across all entries. Since each column represents a pixel, we use the <code>colSds</code> function from the <strong>matrixStats</strong> package:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(matrixStats)
+sds &lt;-<span class="st"> </span><span class="kw">colSds</span>(x)</code></pre></div>
+<p>A quick look at the distribution of these values shows that some pixels have very low entry to entry variability:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">qplot</span>(sds, <span class="dt">bins =</span> <span class="st">&quot;30&quot;</span>, <span class="dt">color =</span> <span class="kw">I</span>(<span class="st">&quot;black&quot;</span>))</code></pre></div>
+<p><img src="book_files/figure-html/sds-histogram-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>This makes sense since we don’t write in some parts of the box. Here is the variance plotted by location:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">image</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">28</span>, <span class="dv">1</span><span class="op">:</span><span class="dv">28</span>, <span class="kw">matrix</span>(sds, <span class="dv">28</span>, <span class="dv">28</span>)[, <span class="dv">28</span><span class="op">:</span><span class="dv">1</span>])</code></pre></div>
+<p><img src="book_files/figure-html/pixel-variance-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>We see that there is little variation in the corners.</p>
+<p>So we could remove features that have no variation since these can’t help us predict.</p>
+<p>In the R chapter, we described the operations used to extract columns:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x[ ,<span class="kw">c</span>(<span class="dv">351</span>,<span class="dv">352</span>)]</code></pre></div>
+<p>and rows:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">3</span>),]</code></pre></div>
+<p>We can also use logical indexes to determine which columns or rows to keep. So if we wanted to remove uninformative predictors from our matrix, we could write this one line of code:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">new_x &lt;-<span class="st"> </span>x[ ,<span class="kw">colSds</span>(x) <span class="op">&gt;</span><span class="st"> </span><span class="dv">60</span>]
+<span class="kw">dim</span>(new_x)
+<span class="co">#&gt; [1] 1000  314</span></code></pre></div>
+<p>Only the columns for which the standard deviation is above 60 are kept, which removes over half the predictors.</p>
+<p>Here we add an important warning related to subsetting matrices: if you select one column or one row, the result is no longer a matrix but a vector.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(x[,<span class="dv">1</span>])
+<span class="co">#&gt; [1] &quot;integer&quot;</span>
+<span class="kw">dim</span>(x[<span class="dv">1</span>,])
+<span class="co">#&gt; NULL</span></code></pre></div>
+<p>However, we can preserve the matrix class by using the argument <code>drop</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(x[ , <span class="dv">1</span>, <span class="dt">drop=</span><span class="ot">FALSE</span>])
+<span class="co">#&gt; [1] &quot;matrix&quot;</span>
+<span class="kw">dim</span>(x[, <span class="dv">1</span>, <span class="dt">drop=</span><span class="ot">FALSE</span>])
+<span class="co">#&gt; [1] 1000    1</span></code></pre></div>
+</div>
+<div id="indexing-with-matrices" class="section level3">
+<h3><span class="header-section-number">59.2.5</span> Indexing with matrices</h3>
+<p>We can quickly make a histogram of all the values in our dataset. We saw how we can turn vectors into matrices. We can also undo this and turn matrices into vectors. The operation will happen by row:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mat &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">15</span>, <span class="dv">5</span>, <span class="dv">3</span>)
+mat
+<span class="co">#&gt;      [,1] [,2] [,3]</span>
+<span class="co">#&gt; [1,]    1    6   11</span>
+<span class="co">#&gt; [2,]    2    7   12</span>
+<span class="co">#&gt; [3,]    3    8   13</span>
+<span class="co">#&gt; [4,]    4    9   14</span>
+<span class="co">#&gt; [5,]    5   10   15</span>
+<span class="kw">as.vector</span>(mat)
+<span class="co">#&gt;  [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</span></code></pre></div>
+<p>To see a histogram of all our predictor data, we can use:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">qplot</span>(<span class="kw">as.vector</span>(x), <span class="dt">bins =</span> <span class="dv">30</span>, <span class="dt">color =</span> <span class="kw">I</span>(<span class="st">&quot;black&quot;</span>))</code></pre></div>
+<p><img src="book_files/figure-html/histogram-all-pixels-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>We notice a clear dichotomy which is explained as parts of the image with ink and parts without. If we think that values below, say, 25 are smudges, we can quickly make them zero using:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">new_x &lt;-<span class="st"> </span>x
+new_x[new_x <span class="op">&lt;</span><span class="st"> </span><span class="dv">50</span>] &lt;-<span class="st"> </span><span class="dv">0</span></code></pre></div>
+<p>To see what this does, we look at a smaller matrix:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mat &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">15</span>, <span class="dv">5</span>, <span class="dv">3</span>)
+mat[mat <span class="op">&lt;</span><span class="st"> </span><span class="dv">3</span>] &lt;-<span class="st"> </span><span class="dv">0</span>
+mat
+<span class="co">#&gt;      [,1] [,2] [,3]</span>
+<span class="co">#&gt; [1,]    0    6   11</span>
+<span class="co">#&gt; [2,]    0    7   12</span>
+<span class="co">#&gt; [3,]    3    8   13</span>
+<span class="co">#&gt; [4,]    4    9   14</span>
+<span class="co">#&gt; [5,]    5   10   15</span></code></pre></div>
+<p>We can also use logical operations with matrix logical:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mat &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">15</span>, <span class="dv">5</span>, <span class="dv">3</span>)
+mat[mat <span class="op">&gt;</span><span class="st"> </span><span class="dv">6</span> <span class="op">&amp;</span><span class="st"> </span>mat <span class="op">&lt;</span><span class="dv">12</span>] &lt;-<span class="st"> </span><span class="dv">0</span>
+mat
+<span class="co">#&gt;      [,1] [,2] [,3]</span>
+<span class="co">#&gt; [1,]    1    6    0</span>
+<span class="co">#&gt; [2,]    2    0   12</span>
+<span class="co">#&gt; [3,]    3    0   13</span>
+<span class="co">#&gt; [4,]    4    0   14</span>
+<span class="co">#&gt; [5,]    5    0   15</span></code></pre></div>
+</div>
+<div id="binarizing-the-data" class="section level3">
+<h3><span class="header-section-number">59.2.6</span> Binarizing the data</h3>
+<p>The histogram above seems to suggest that this data is mostly binary. A pixel either has ink or does not. Using what we have learned, we can binarize the data using just matrix operations:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">bin_x &lt;-<span class="st"> </span>x
+bin_x[bin_x <span class="op">&lt;</span><span class="st"> </span><span class="dv">255</span><span class="op">/</span><span class="dv">2</span>] &lt;-<span class="st"> </span><span class="dv">0</span> 
+bin_x[bin_x <span class="op">&gt;</span><span class="st"> </span><span class="dv">255</span><span class="op">/</span><span class="dv">2</span>] &lt;-<span class="st"> </span><span class="dv">1</span></code></pre></div>
+<p>We can also convert to a matrix of logicals and then coerce to numbers like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">bin_X &lt;-<span class="st"> </span>(x <span class="op">&gt;</span><span class="st"> </span><span class="dv">255</span><span class="op">/</span><span class="dv">2</span>)<span class="op">*</span><span class="dv">1</span></code></pre></div>
+<p>We can see that least the entry we looked at before does not change much:</p>
+<p><img src="book_files/figure-html/binarized-image-1.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="vectorization-for-matrices" class="section level3">
+<h3><span class="header-section-number">59.2.7</span> Vectorization for matrices</h3>
+<p>In R, if we subtract a vector from a matrix, the first element of the vector is subtracted from the first row, the second element from the second row, and so on. So using mathematical notation, we would write it as follows:</p>
+<p><span class="math display">\[
+ \begin{pmatrix}
+  X_{1,1}&amp;\dots &amp; X_{1,p} \\
+  X_{2,1}&amp;\dots &amp; X_{2,p} \\
+   &amp; \vdots &amp; \\
+  X_{N,1}&amp;\dots &amp; X_{N,p} 
+  \end{pmatrix}
+-
+\begin{pmatrix}
+a_1\\\
+a_2\\\
+\vdots\\\
+a_N
+\end{pmatrix}
+=
+\begin{pmatrix}
+  X_{1,1}-a_1&amp;\dots &amp; X_{1,p} -a_1\\
+  X_{2,1}-a_2&amp;\dots &amp; X_{2,p} -a_2\\
+   &amp; \vdots &amp; \\
+  X_{N,1}-a_n&amp;\dots &amp; X_{N,p} -a_n
+  \end{pmatrix}
+-
+\]</span></p>
+<p>The same holds true for other arithmetic operations. This implies that we can scale each row of a matrix like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(x <span class="op">-</span><span class="st"> </span><span class="kw">rowMeans</span>(x)) <span class="op">/</span><span class="st"> </span><span class="kw">rowSds</span>(x)</code></pre></div>
+<p>If you want to scale each column, be careful since this approach does not work for columns. To perform a similar operation, we convert the columns to rows using the transpose <code>t</code>, proceed as above, and then transpose back:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">t</span>(<span class="kw">t</span>(X) <span class="op">-</span><span class="st"> </span><span class="kw">colMeans</span>(X))</code></pre></div>
+<p>We can also use a function called <code>sweep</code> that works similarly to <code>apply</code>. It takes each entry of a vector and subtracts it from the corresponding row or column.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">X_mean_<span class="dv">0</span> &lt;-<span class="st"> </span><span class="kw">sweep</span>(x, <span class="dv">2</span>, <span class="kw">colMeas</span>(x))</code></pre></div>
+<p>The function <code>sweep</code> actually has another argument that lets you define the arithmetic operation. So to divide by the standard deviation, we do the following:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x_mean_<span class="dv">0</span> &lt;-<span class="st"> </span><span class="kw">sweep</span>(x, <span class="dv">2</span>, <span class="kw">colMeans</span>(x))
+x_standardized &lt;-<span class="st"> </span><span class="kw">sweep</span>(x_mean_<span class="dv">0</span>, <span class="dv">2</span>, <span class="kw">colSds</span>(x), <span class="dt">FUN =</span> <span class="st">&quot;/&quot;</span>)</code></pre></div>
+</div>
+</div>
+<div id="matrix-algebra-operations" class="section level2">
+<h2><span class="header-section-number">59.3</span> Matrix algebra operations</h2>
+<p>Finally, although we do not cover matrix algebra operations such as matrix multiplication, we share here the relevant commands for those that know the mathematics and want to learn the code:</p>
+<ol style="list-style-type: decimal">
+<li><p>Matrix multiplication is done with <code>%*%</code> so the cross product, for example, is:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">t</span>(x) <span class="op">%*%</span><span class="st"> </span>x</code></pre></div></li>
+<li><p>We can compute the cross product directly with the function with that name:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">crossprod</span>(x)</code></pre></div></li>
+<li><p>To compute the inverse of a function, we use <code>solve</code>. Here it is applied to the cross product:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">solve</span>(<span class="kw">crossprod</span>(x))</code></pre></div></li>
+<li><p>The QR decomposition is readily available by using the <code>qr</code> function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">qr</span>(x)</code></pre></div></li>
+</ol>
+</div>
+<div id="exercises-46" class="section level2 unnumbered">
+<h2>Exercises</h2>
+<ol style="list-style-type: decimal">
+<li><p>Create a 100 by 10 matrix of randomly generated normal numbers. Put the result in <code>x</code></p></li>
+<li><p>Apply the three R functions that give you the dimension of <code>x</code>, the number of rows of <code>x</code> and the number of columns of <code>x</code> respectively.</p></li>
+<li><p>Add the scalar 1 to row 1, the scalar 2 to row 2, and so on, to the matrix <code>x</code>.</p></li>
+<li><p>Add the scalar 1 to column 1, the scalar 2 to column 2, and son on, to the matrix <code>x</code>. Hint: use <code>sweep</code> with <code>FUN = &quot;+&quot;</code>.</p></li>
+<li><p>Compute the average of each row of <code>x</code>.</p></li>
+<li><p>Compute the average of each column of <code>x</code>.</p></li>
+<li><p>For each digit in the MNIST training data, compute the proportion of pixels that are in a <em>grey area</em>, defined as values between 50 and 205. Make boxplot by digit class. Hint: use logical operators and <code>rowMeans</code></p></li>
+</ol>
+
 </div>
 </div>
             </section>
@@ -1036,8 +1153,8 @@ dat &lt;-<span class="st"> </span>Batting <span class="op">%&gt;%</span><span cl
           </div>
         </div>
       </div>
-<a href="confounding.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="advanced-tidyverse-tibbles-and-do.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="smoothing.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="distance.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -1067,7 +1184,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/regression/linear-models.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/ml/matrix.Rmd",
 "text": "Edit"
 },
 "download": null,
