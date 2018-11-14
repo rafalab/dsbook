@@ -2,69 +2,19 @@
 
 You may have noticed that numerical data is often summarized with the _average_ value. For example, the quality of a high school is sometimes summarized with one number: the average score on a standardized test. Occasionally, a second number is reported: the _standard deviation_. So, for example, you might read a report stating that scores were 680 plus or minus 50 (the standard deviation). The report has summarized an entire vector of scores with with just two numbers. Is this appropriate? Is there any important piece of information that we are missing by only looking at this summary rather than the entire list? 
 
-Our first data visualization building block is learning to summarize lists of factors or numeric vectors. The most basic statistical summary of a list of objects or numbers is its distribution. Once a vector has been summarized as distribution, there are several data visualization techniques to effectively relay this information.
+Our first data visualization building block is learning to summarize lists of factors or numeric vectors. The most basic statistical summary of a list of objects or numbers is its distribution. Once a vector has been summarized as a distribution, there are several data visualization techniques to effectively relay this information.
 
 
 ## Variable types
 
 We will be working with two types of variables: categorical and numeric. Each can be divided into two other groups: categorical can be ordinal or not, whereas numerical variables can be discrete or continuous.
 
-When each entry in a vector comes from one of a small number of groups, we refer to the data as _categorical data_. Two simple examples are sex (male or female) and regions (Northeast, South, North Central, West). Some categorical data can be ordered, for example spiciness (mild, medium, hot), even if they are not numbers per se. In statistics textbooks, they sometimes refer to these as _ordinal_ data. 
+When each entry in a vector comes from one of a small number of groups, we refer to the data as _categorical data_. Two simple examples are sex (male or female) and regions (Northeast, South, North Central, West). Some categorical data can be ordered, for example spiciness (mild, medium, hot), even if they are not numbers per se. In statistics textbooks, they refer to these as _ordinal_ data. 
 
 Example of numerical data are population sizes, murder rates, and heights. Some numerical data can be treated as ordered categorical. We can further divide numerical data into continuous and discrete. Continuous variables are those that can take any value, such as heights, if measured with enough precision. For example, a pair of twins may be 68.12 and 68.11 inches respectively. Counts, such as population sizes, are discrete because they have to be round numbers.
 
-Keep in mind that discrete numeric data can be considered ordinal. Although this is technically true, we usually reserve the term ordinal data for variables belonging to a small number of different groups, with each group having many members. In contrast, when we have many groups with few cases in each group, we typically refer to them as discrete numerical variables. So, for example, the number of packs of cigarettes a person smokes a day, rounded to the closest pack, would be considered ordinal, while the actual number of cigarettes would be considered a numerical variable. But, indeed, there are examples that can be considered both numerical and ordinal when it comes to visualizing data.
+Keep in mind that all discrete numeric data can be considered ordinal. Although this is technically true, we usually reserve the term ordinal data for variables belonging to a small number of different groups, with each group having many members. In contrast, when we have many groups with few cases in each group, we typically refer to them as discrete numerical variables. So, for example, the number of packs of cigarettes a person smokes a day, rounded to the closest pack, would be considered ordinal, while the actual number of cigarettes would be considered a numerical variable. But, indeed, there are examples that can be considered both numerical and ordinal when it comes to visualizing data.
 
-## Exercises {-}
-
-1. Define variables containing the heights of males and females like this:
-
-    ```{r, eval=FALSE}
-    library(dslabs)
-    data(heights)
-    male <- heights$height[heights$sex=="Male"]
-    female <- heights$height[heights$sex=="Female"]
-    ```
-
-    How many measurements do we have for each?
-
-
-2. Suppose we can't make a plot and want to compare the distributions side by side. We can't just list all the numbers. Instead, we will look at the percentiles. Create a five row table showing `female_percentiles` and `male_percentiles` with the 10th, 30th, 50th, ..., 90th percentiles for each sex. Then create a data frame with these two as columns.
-
-    
-3. Study the following boxplots showing population sizes by country:
-
-    ```{r boxplot-exercise, echo=FALSE, message=FALSE}
-    library(tidyverse)
-    library(dslabs)
-    ds_theme_set()
-    data(gapminder)
-    tab <- gapminder %>% filter(year == 2010) %>% group_by(continent) %>% select(continent, population)  
-    tab %>% ggplot(aes(x=continent, y=population/10^6)) + 
-      geom_boxplot() + 
-      scale_y_continuous(trans = "log10", breaks = c(1,10,100,1000)) + ylab("Population in millions")
-    ```
-    
-    Which continent has the country with the biggest population size?
-    
-4. What continent has the largest median population size?
-    
-    
-5. What is median population size for Africa to the nearest million? 
-    
-    
-6. What proportion of countries in Europe have populations below 14 million?
-    
-    A. 0.99
-    
-    B. 0.75
-    
-    C. 0.50
-    
-    D. 0.25
-    
-7. If we use a log transformation, which continent shown above has the largest interquartile range?
-    
 
 ## Case study: Student heights
 
@@ -118,7 +68,7 @@ Statistics textbooks teach us that a more useful way to define a distribution fo
 
 $$ F(a) = \mbox{Pr}(x \leq a) $$
 
-Here is a plot of $F$ for the height data:
+Here is a plot of $F$ for the male height data:
 
 ```{r ecdf, echo=FALSE}
 ds_theme_set()
@@ -128,7 +78,7 @@ heights %>% filter(sex=="Male") %>% ggplot(aes(height)) +
 ```
 
 Similar to what the frequency table does for categorical data, the CDF
-defines the distribution for numerical data. From the plot, we can see that 34% of the values are below 65, since $F(66)=$ `r ecdf(heights$height[heights$sex=="Male"])(66)`, or that 90% of the values are below 72, since $F(72)=$ `r ecdf(heights$height[heights$sex=="Male"])(72)`, 
+defines the distribution for numerical data. From the plot, we can see that `r round(ecdf(heights$height[heights$sex=="Male"])(66)*100)`% of the values are below 65, since $F(66)=$ `r ecdf(heights$height[heights$sex=="Male"])(66)`, or that `r round(ecdf(heights$height[heights$sex=="Male"])(72)*100)`% of the values are below 72, since $F(72)=$ `r ecdf(heights$height[heights$sex=="Male"])(72)`, 
 etc.. In fact, we can report the proportion of values between any two heights, say $a$ and $b$, by computing $F(b) - F(a)$. This means that if we send this plot above to ET, he will have all the information needed to reconstruct the entire list. Paraphrasing the expression "a picture is worth a thousands word", in this case, a picture is as informative as `r sum(heights$sex=="Male")` numbers. 
 
 A final note: because CDFs can be defined mathematically, as opposed to using data as we do here, the word _empirical_ is added to distinguish and we use the term empirical CDF (ECDF) instead. 
@@ -278,7 +228,7 @@ heights %>%
 With the right argument, `ggplot` automatically shades the intersecting region with a different color.
 
 
-## Exercises {-}
+## Exercises 
 
 
 1. In the murders dataset, the region is a categorical variable and the following is its distribution:
@@ -655,9 +605,59 @@ Because these are reported heights, a possibility is that the student meant to e
 
 
 
-## Exercises {-}
+## Exercises 
 
-1. Load the height data set and create a vector `x` with just the male heights:
+1. Define variables containing the heights of males and females like this:
+
+    ```{r, eval=FALSE}
+    library(dslabs)
+    data(heights)
+    male <- heights$height[heights$sex=="Male"]
+    female <- heights$height[heights$sex=="Female"]
+    ```
+
+    How many measurements do we have for each?
+
+
+2. Suppose we can't make a plot and want to compare the distributions side by side. We can't just list all the numbers. Instead, we will look at the percentiles. Create a five row table showing `female_percentiles` and `male_percentiles` with the 10th, 30th, 50th, ..., 90th percentiles for each sex. Then create a data frame with these two as columns.
+
+    
+3. Study the following boxplots showing population sizes by country:
+
+    ```{r boxplot-exercise, echo=FALSE, message=FALSE}
+    library(tidyverse)
+    library(dslabs)
+    ds_theme_set()
+    data(gapminder)
+    tab <- gapminder %>% filter(year == 2010) %>% group_by(continent) %>% select(continent, population)  
+    tab %>% ggplot(aes(x=continent, y=population/10^6)) + 
+      geom_boxplot() + 
+      scale_y_continuous(trans = "log10", breaks = c(1,10,100,1000)) + ylab("Population in millions")
+    ```
+    
+    Which continent has the country with the biggest population size?
+    
+4. What continent has the largest median population size?
+    
+    
+5. What is median population size for Africa to the nearest million? 
+    
+    
+6. What proportion of countries in Europe have populations below 14 million?
+    
+    A. 0.99
+    
+    B. 0.75
+    
+    C. 0.50
+    
+    D. 0.25
+    
+7. If we use a log transformation, which continent shown above has the largest interquartile range?
+    
+
+
+8. Load the height data set and create a vector `x` with just the male heights:
 
     ```{r, eval=FALSE}
     library(dslabs)
@@ -667,15 +667,15 @@ Because these are reported heights, a possibility is that the student meant to e
 
     What proportion of the data is between 69 and 72 inches (taller than 69, but shorter or equal to 72)? Hint: use a logical operator and `mean`.
 
-2. Suppose all you know about the data is the average and the standard deviation. Use the normal approximation to estimate the proportion you just calculated. Hint: start by computing the average and standard deviation. Then use the `pnorm` function to predict the proportions.
+9. Suppose all you know about the data is the average and the standard deviation. Use the normal approximation to estimate the proportion you just calculated. Hint: start by computing the average and standard deviation. Then use the `pnorm` function to predict the proportions.
 
-3. Notice that the approximation calculated in question two is very close to the exact calculation in the first question. Now perform the same task for more extreme values. Compare the exact calculation and the normal approximation for the interval (79,81]. How many times bigger is the actual proportion than the approximation?
+10. Notice that the approximation calculated in question two is very close to the exact calculation in the first question. Now perform the same task for more extreme values. Compare the exact calculation and the normal approximation for the interval (79,81]. How many times bigger is the actual proportion than the approximation?
     
-4. Approximate the distribution of adult men in the world as normally distributed with an average of 69 inches and a standard deviation of 3 inches. Using this approximation, estimate the proportion of adult men that are 7 feet tall or taller, referred to as _seven footers_. Hint: use the `pnorm` function.
+11. Approximate the distribution of adult men in the world as normally distributed with an average of 69 inches and a standard deviation of 3 inches. Using this approximation, estimate the proportion of adult men that are 7 feet tall or taller, referred to as _seven footers_. Hint: use the `pnorm` function.
 
-5. There are about 1 billion men between the ages of 18 and 40 in the world. Use your answer to the previous question to estimate how many of these men (18-40 year olds) are seven feet tall or taller in the world?
+12. There are about 1 billion men between the ages of 18 and 40 in the world. Use your answer to the previous question to estimate how many of these men (18-40 year olds) are seven feet tall or taller in the world?
 
-6. There are about 10 National Basketball Association (NBA) players that are 7 feet tall or higher. Using the answer to the previous two questions, what proportion of the world's 18 to 40 year old _seven footers_ are in the NBA?
+13. There are about 10 National Basketball Association (NBA) players that are 7 feet tall or higher. Using the answer to the previous two questions, what proportion of the world's 18 to 40 year old _seven footers_ are in the NBA?
 
 7. Repeat the calculations performed in the previous question for Lebron James' height: 6 feet 8 inches. There are about 150 players that are that tall.
 
