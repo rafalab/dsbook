@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-<link rel="prev" href="regularization.html">
-<link rel="next" href="clustering.html">
+<link rel="prev" href="exercises-7.html">
+<link rel="next" href="distributions.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -839,495 +839,68 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="matrix-factorization" class="section level1">
-<h1><span class="header-section-number">Chapter 73</span> Matrix factorization</h1>
-<p>Matrix factorization is a widely used concept in machine learning. It is very much related to factor analysis, singular value decomposition (SVD) and principal component analysis (PCA). Here we describe the concept in the context of movie recommendation systems.</p>
-<p>We have described how the model:</p>
-<p><span class="math display">\[ 
-Y_{u,i} = \mu + b_i + b_u + \varepsilon_{u,i}
-\]</span></p>
-<p>accounts for movie to movie differences through the <span class="math inline">\(b_i\)</span> and user to user differences through the <span class="math inline">\(b_u\)</span>. But this model leaves out an important source of variation related to the fact that groups of movies have similar rating patterns and groups of users have similar rating patterns as well. We will discover these patterns by studying the residuals:</p>
-<p><span class="math display">\[
-r_{u,i} = y_{u,i} - \hat{b}_i - \hat{b}_u
-\]</span></p>
-<p>To see this, we will convert the data into a matrix so that each user gets a row and each movie gets a column so that <span class="math inline">\(y_{u,i}\)</span> is the entry in row <span class="math inline">\(u\)</span> and column <span class="math inline">\(i\)</span>. For illustrative purposes, we will only consider a small subset of movies with many ratings and users that have rated many movies. We also keep Scent of a Woman (<code>movieId == 3252</code>) becuase we use it for a specific example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">train_small &lt;-<span class="st"> </span>movielens <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">group_by</span>(movieId) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">filter</span>(<span class="kw">n</span>() <span class="op">&gt;=</span><span class="st"> </span><span class="dv">50</span> <span class="op">|</span><span class="st"> </span>movieId <span class="op">==</span><span class="st"> </span><span class="dv">3252</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">group_by</span>(userId) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">filter</span>(<span class="kw">n</span>() <span class="op">&gt;=</span><span class="st"> </span><span class="dv">50</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>()
+<div id="introduction-to-data-visualization" class="section level1">
+<h1><span class="header-section-number">Chapter 15</span> Introduction to data visualization</h1>
+<p>Looking at the numbers and character strings that define a dataset is rarely useful. To convince yourself, print and stare at the US murders data table:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dslabs)
+<span class="kw">data</span>(murders)
+<span class="kw">head</span>(murders)
+<span class="co">#&gt;        state abb region population total</span>
+<span class="co">#&gt; 1    Alabama  AL  South    4779736   135</span>
+<span class="co">#&gt; 2     Alaska  AK   West     710231    19</span>
+<span class="co">#&gt; 3    Arizona  AZ   West    6392017   232</span>
+<span class="co">#&gt; 4   Arkansas  AR  South    2915918    93</span>
+<span class="co">#&gt; 5 California  CA   West   37253956  1257</span>
+<span class="co">#&gt; 6   Colorado  CO   West    5029196    65</span></code></pre></div>
+<p>What do you learn from staring at this table? How quickly can you determine which states have the largest populations? Which states have the smallest? How large is a typical state? Is there a relationship between population size and total murders? How do murder rates vary across regions of the country? For most human brains, it is quite difficult to extract this information just by looking at the numbers. In contrast, the answer to all these questions are readily available from examining this plot:</p>
+<p><img src="book_files/figure-html/ggplot-example-plot-0-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>We are reminded of the saying “a picture is worth a thousand words”. Data visualization provides a powerful way to communicate a data-driven finding. In some cases, the visualization is so convincing that no follow-up analysis is required.</p>
+<p>The growing availability of informative datasets and software tools has led to increased reliance on data visualizations across many industries, academia, and government. A salient example is news organizations, which are increasingly embracing <em>data journalism</em> and including effective <em>infographics</em> as part of their reporting.</p>
+<p>A particularly effective example is a Wall Street Journal <a href="http://graphics.wsj.com/infectious-diseases-and-vaccines/?mc_cid=711ddeb86e">article</a> showing data related to the impact of vaccines on battling infectious diseases. One of the graphs shows measles cases by US state through the years with a vertical line demonstrating when the vaccine was introduced.</p>
+<p><img src="dataviz/img/wsj-vaccines.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>(Source: <a href="http://graphics.wsj.com/infectious-diseases-and-vaccines/">Wall Street Journal</a>)</p>
+<p>Another striking example comes from the New York Times and shows data on scores from the NYC Regents Exams. These scores are collected for several reasons, including to determine if a student graduates from high school. In New York City you need a 65 to pass. The distribution of the test scores forces us to notice something somewhat problematic:</p>
+<p><img src="dataviz/img/nythist.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>(Source: New York Times)</p>
+<p>The most common test score is the minimum passing grade, with very few scores just below the threshold. This unexpected result is consistent with students close to passing having their scores bumped up.</p>
+<p>This is an example of how data visualization can lead to discoveries which would otherwise be missed if we simply subjected the data to a battery of data analysis tools or procedures. Data visualization is the strongest tool of what we call exploratory data analysis (EDA). <a href="https://en.wikipedia.org/wiki/John_Tukey">John W. Tukey</a>, considered the father of EDA, once said,</p>
+<blockquote>
+<blockquote>
+<p>“The greatest value of a picture is when it forces us to notice what we never expected to see.”</p>
+</blockquote>
+</blockquote>
+<p>Many widely used data analysis tools were initiated by discoveries made via EDA. EDA is perhaps the most important part of data analysis, yet it is one that is often overlooked.</p>
+<p>Data visualization is also now pervasive in philanthropic and educational organizations. In the talks <a href="https://www.ted.com/talks/hans_rosling_reveals_new_insights_on_poverty?language=en">New Insights on Poverty</a> and <a href="https://www.ted.com/talks/hans_rosling_shows_the_best_stats_you_ve_ever_seen">The Best Stats You’ve Ever Seen</a>, Hans Rosling forces us to to notice the unexpected with a series of plots related to world health and economics. In his videos, he uses animated graphs to show us how the world is changing and how old narratives are no longer true.</p>
+<p><img src="book_files/figure-html/gampnider-example-plot-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>It is also important to note that mistakes, biases, systematic errors and other unexpected problems often lead to data that should be handled with care. Failure to discover these problems can give rise to flawed analyses and false discoveries. As an example, consider that measurement devices sometimes fail and that most data analysis procedures are not designed to detect these. Yet these data analysis procedures will still give you an answer. The fact that it can be difficult or impossible to notice an error just from the reported results makes data visualization particularly important. We refer to this particular task as <em>exploratory data analysis</em> (EDA).</p>
+<p>In this chapter, we will learn the basics of data visualization and exploratory data analysis by using three motivating examples. We will use the <strong>ggplot2</strong> package to code. To learn the very basics, we will start with a somewhat artificial example: heights reported by students. Then we will cover the two examples mentioned above 1) world health and economics and 2) infectious disease trends in the United States.</p>
+<p>Of course, there is much more to data visualization than what we cover here. The following are references for those who wish to learn more:</p>
+<ul>
+<li>ER Tufte (1983) The visual display of quantitative information. Graphics Press.</li>
+<li>ER Tufte (1990) Envisioning information. Graphics Press.</li>
+<li>ER Tufte (1997) Visual explanations. Graphics Press.</li>
+<li>WS Cleveland (1993) Visualizing data. Hobart Press.</li>
+<li>WS Cleveland (1994) The elements of graphing data. CRC Press.</li>
+<li>A Gelman, C Pasarica, R Dodhia (2002) Let’s practice what we preach: Turning tables into graphs. The American Statistician 56:121-130.</li>
+<li>NB Robbins (2004) Creating more effective graphs. Wiley.</li>
+<li><a href="http://bang.clearscience.info/?p=546">Nature Methods columns</a></li>
+<li>A Cairo (2013) The Functional Art: An Introduction to Information Graphics and Visualization. New Riders.</li>
+<li>N Yau (2013) Data Points: Visualization That Means Something. Wiley.</li>
+</ul>
+<p>We also do not cover interactive graphics, a topic that is too advanced for this book. Some useful resources for those interested in learning more can be found below:</p>
+<ul>
+<li><a href="https://shiny.rstudio.com/" class="uri">https://shiny.rstudio.com/</a></li>
+<li><a href="https://d3js.org/" class="uri">https://d3js.org/</a></li>
+</ul>
 
-y &lt;-<span class="st"> </span>train_small <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">select</span>(userId, movieId, rating) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">spread</span>(movieId, rating) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">as.matrix</span>()</code></pre></div>
-<p>We add row names and column names:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rownames</span>(y)&lt;-<span class="st"> </span>y[,<span class="dv">1</span>]
-y &lt;-<span class="st"> </span>y[,<span class="op">-</span><span class="dv">1</span>]
-
-movie_titles &lt;-<span class="st"> </span>movielens <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">select</span>(movieId, title) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">distinct</span>()
-
-<span class="kw">colnames</span>(y) &lt;-<span class="st"> </span><span class="kw">with</span>(movie_titles, title[<span class="kw">match</span>(<span class="kw">colnames</span>(y), movieId)])</code></pre></div>
-<p>and convert them to residuals by removing the column and row effects:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">y &lt;-<span class="st"> </span><span class="kw">sweep</span>(y, <span class="dv">2</span>, <span class="kw">colMeans</span>(y, <span class="dt">na.rm=</span><span class="ot">TRUE</span>))
-y &lt;-<span class="st"> </span><span class="kw">sweep</span>(y, <span class="dv">1</span>, <span class="kw">rowMeans</span>(y, <span class="dt">na.rm=</span><span class="ot">TRUE</span>))</code></pre></div>
-<p>If the model above explains all the signals, and the <span class="math inline">\(\varepsilon\)</span> are just noise, then the residuals for different movies should be independent from each other. But they are not. Here is an example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">m_<span class="dv">1</span> &lt;-<span class="st"> &quot;Godfather, The&quot;</span>
-m_<span class="dv">2</span> &lt;-<span class="st"> &quot;Godfather: Part II, The&quot;</span>
-<span class="kw">qplot</span>(y[ ,m_<span class="dv">1</span>], y[,m_<span class="dv">2</span>], <span class="dt">xlab =</span> m_<span class="dv">1</span>, <span class="dt">ylab =</span> m_<span class="dv">2</span>)</code></pre></div>
-<p><img src="book_files/figure-html/godfathers-cor-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>This plot says that users that liked The Godfather more than what the model expects them to, based on the movie and user effects, also liked The Godfather II more than expected. A similar relationship is seen when comparing The Godfather and Goodfellas:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">m_<span class="dv">1</span> &lt;-<span class="st"> &quot;Godfather, The&quot;</span>
-m_<span class="dv">3</span> &lt;-<span class="st"> &quot;Goodfellas&quot;</span>
-<span class="kw">qplot</span>(y[ ,m_<span class="dv">1</span>], y[,m_<span class="dv">3</span>], <span class="dt">xlab =</span> m_<span class="dv">1</span>, <span class="dt">ylab =</span> m_<span class="dv">3</span>)</code></pre></div>
-<p><img src="book_files/figure-html/godfather-goodfellas-cor-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>Although not as strong, there is still correlation. We see correlations between other movies as well:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">m_<span class="dv">4</span> &lt;-<span class="st"> &quot;You&#39;ve Got Mail&quot;</span> 
-m_<span class="dv">5</span> &lt;-<span class="st"> &quot;Sleepless in Seattle&quot;</span> 
-<span class="kw">qplot</span>(y[ ,m_<span class="dv">4</span>], y[,m_<span class="dv">5</span>], <span class="dt">xlab =</span> m_<span class="dv">4</span>, <span class="dt">ylab =</span> m_<span class="dv">5</span>)</code></pre></div>
-<p><img src="book_files/figure-html/got-mail-sleepless-in-sea-cor-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>We can see a pattern:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>y[, <span class="kw">c</span>(m_<span class="dv">1</span>, m_<span class="dv">2</span>, m_<span class="dv">3</span>, m_<span class="dv">4</span>, m_<span class="dv">5</span>)]
-<span class="kw">colnames</span>(x)[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Godfather&quot;</span>, <span class="st">&quot;Godfather 2&quot;</span>)
-<span class="kw">cor</span>(x, <span class="dt">use=</span><span class="st">&quot;pairwise.complete&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>knitr<span class="op">::</span><span class="kw">kable</span>()</code></pre></div>
-<table>
-<thead>
-<tr class="header">
-<th></th>
-<th align="right">Godfather</th>
-<th align="right">Godfather 2</th>
-<th align="right">Goodfellas</th>
-<th align="right">You’ve Got Mail</th>
-<th align="right">Sleepless in Seattle</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Godfather</td>
-<td align="right">1.000</td>
-<td align="right">0.829</td>
-<td align="right">0.444</td>
-<td align="right">-0.440</td>
-<td align="right">-0.378</td>
-</tr>
-<tr class="even">
-<td>Godfather 2</td>
-<td align="right">0.829</td>
-<td align="right">1.000</td>
-<td align="right">0.521</td>
-<td align="right">-0.331</td>
-<td align="right">-0.358</td>
-</tr>
-<tr class="odd">
-<td>Goodfellas</td>
-<td align="right">0.444</td>
-<td align="right">0.521</td>
-<td align="right">1.000</td>
-<td align="right">-0.481</td>
-<td align="right">-0.402</td>
-</tr>
-<tr class="even">
-<td>You’ve Got Mail</td>
-<td align="right">-0.440</td>
-<td align="right">-0.331</td>
-<td align="right">-0.481</td>
-<td align="right">1.000</td>
-<td align="right">0.533</td>
-</tr>
-<tr class="odd">
-<td>Sleepless in Seattle</td>
-<td align="right">-0.378</td>
-<td align="right">-0.358</td>
-<td align="right">-0.402</td>
-<td align="right">0.533</td>
-<td align="right">1.000</td>
-</tr>
-</tbody>
-</table>
-<p>There seems to be people that like romantic comedies more than expected, while others that like gangster movies more than expected.</p>
-<p>These results tell us that there is structure in the data. But how can we model this?</p>
-<div id="factors-1" class="section level2">
-<h2><span class="header-section-number">73.1</span> Factors</h2>
-<p>Here is an illustration, using a simulation, of how we can use some structure to predict the <span class="math inline">\(r_{u,i}\)</span>. Suppose our residuals <code>r</code> look like this:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">q &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">1</span> , <span class="dv">1</span>, <span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>), <span class="dt">ncol=</span><span class="dv">1</span>)
-<span class="kw">rownames</span>(q) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Godfather&quot;</span>, <span class="st">&quot;Godfather 2&quot;</span>, m_<span class="dv">3</span>, m_<span class="dv">4</span>, m_<span class="dv">5</span>)
-p &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rep</span>(<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">0</span>,<span class="op">-</span><span class="dv">2</span>), <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">4</span>)), <span class="dt">ncol=</span><span class="dv">1</span>)
-<span class="kw">rownames</span>(p) &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(p)
-
-<span class="kw">set.seed</span>(<span class="dv">1</span>)
-r &lt;-<span class="st"> </span><span class="kw">jitter</span>(p <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(q))
-<span class="kw">round</span>(r, <span class="dv">1</span>)
-<span class="co">#&gt;    Godfather Godfather 2 Goodfellas You&#39;ve Got Mail Sleepless in Seattle</span>
-<span class="co">#&gt; 1        1.8         2.1        1.8            -1.8                 -1.8</span>
-<span class="co">#&gt; 2        1.9         1.9        1.9            -2.3                 -1.8</span>
-<span class="co">#&gt; 3        2.1         2.2        1.6            -1.8                 -2.0</span>
-<span class="co">#&gt; 4        0.3         0.0       -0.1            -0.1                  0.3</span>
-<span class="co">#&gt; 5       -0.2         0.2        0.3             0.3                  0.0</span>
-<span class="co">#&gt; 6        0.3         0.4       -0.1             0.1                 -0.2</span>
-<span class="co">#&gt; 7        0.4        -0.1        0.0             0.2                 -0.3</span>
-<span class="co">#&gt; 8        0.1         0.2        0.1             0.0                 -0.3</span>
-<span class="co">#&gt; 9       -1.9        -1.7       -2.0             2.0                  1.9</span>
-<span class="co">#&gt; 10      -2.4        -2.2       -2.3             2.2                  2.0</span>
-<span class="co">#&gt; 11      -2.2        -1.9       -1.7             1.6                  2.1</span>
-<span class="co">#&gt; 12      -2.3        -2.3       -1.9             2.0                  1.9</span></code></pre></div>
-<p>There seems to be pattern here. In fact, we can see very strong correlation patterns:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cor</span>(r) 
-<span class="co">#&gt;                      Godfather Godfather 2 Goodfellas You&#39;ve Got Mail</span>
-<span class="co">#&gt; Godfather                1.000       0.987      0.979          -0.979</span>
-<span class="co">#&gt; Godfather 2              0.987       1.000      0.986          -0.981</span>
-<span class="co">#&gt; Goodfellas               0.979       0.986      1.000          -0.989</span>
-<span class="co">#&gt; You&#39;ve Got Mail         -0.979      -0.981     -0.989           1.000</span>
-<span class="co">#&gt; Sleepless in Seattle    -0.989      -0.988     -0.986           0.976</span>
-<span class="co">#&gt;                      Sleepless in Seattle</span>
-<span class="co">#&gt; Godfather                          -0.989</span>
-<span class="co">#&gt; Godfather 2                        -0.988</span>
-<span class="co">#&gt; Goodfellas                         -0.986</span>
-<span class="co">#&gt; You&#39;ve Got Mail                     0.976</span>
-<span class="co">#&gt; Sleepless in Seattle                1.000</span></code></pre></div>
-<p>We can create vectors <code>Q</code> and <code>P</code>, that can explain much of the structure we see. The <code>Q</code> would look like this:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">t</span>(q) 
-<span class="co">#&gt;      Godfather Godfather 2 Goodfellas You&#39;ve Got Mail Sleepless in Seattle</span>
-<span class="co">#&gt; [1,]         1           1          1              -1                   -1</span></code></pre></div>
-<p>and it narrows down movies to two groups: gangster and romance. We can also reduce the users to three groups:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p
-<span class="co">#&gt;    [,1]</span>
-<span class="co">#&gt; 1     2</span>
-<span class="co">#&gt; 2     2</span>
-<span class="co">#&gt; 3     2</span>
-<span class="co">#&gt; 4     0</span>
-<span class="co">#&gt; 5     0</span>
-<span class="co">#&gt; 6     0</span>
-<span class="co">#&gt; 7     0</span>
-<span class="co">#&gt; 8     0</span>
-<span class="co">#&gt; 9    -2</span>
-<span class="co">#&gt; 10   -2</span>
-<span class="co">#&gt; 11   -2</span>
-<span class="co">#&gt; 12   -2</span></code></pre></div>
-<p>those that like gangster movies, but hate romance ones, the reverse, and those that don’t care. The main point here is that we can reconstruct this vector of length 60 with a couple of vectors totaling 17 values. If these are the residuals for users <span class="math inline">\(u=1,\dots,12\)</span> for movies <span class="math inline">\(i=1,\dots,5\)</span> we can write the following mathematical formula for our residuals <span class="math inline">\(r_{u,i}\)</span>.</p>
-<p><span class="math display">\[
-r_{u,i} \approx p_u q_i 
-\]</span></p>
-<p>This implies that we can explain more variability by modifying our previous model for movie recommendations to:</p>
-<p><span class="math display">\[
-Y_{u,i} = \mu + b_i + b_u + p_u q_i + \varepsilon_{i,j}
-\]</span></p>
-<p>However, what we motivated the need for the <span class="math inline">\(p_u q_i\)</span> term with a simple simulation. The structure in our movie data seems to be much more complicated than gangster movie versus romance. We may have other factors. For example, we may have:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">1</span>)
-m_<span class="dv">6</span> &lt;-<span class="st"> &quot;Scent of a Woman&quot;</span>
-q &lt;-<span class="st"> </span><span class="kw">cbind</span>(<span class="kw">c</span>(<span class="dv">1</span> , <span class="dv">1</span>, <span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>), 
-           <span class="kw">c</span>(<span class="dv">1</span> , <span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>))
-<span class="kw">rownames</span>(q) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Godfather&quot;</span>, <span class="st">&quot;Godfather 2&quot;</span>, m_<span class="dv">3</span>, m_<span class="dv">4</span>, m_<span class="dv">5</span>, m_<span class="dv">6</span>)
-p &lt;-<span class="st"> </span><span class="kw">cbind</span>(<span class="kw">rep</span>(<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">0</span>,<span class="op">-</span><span class="dv">2</span>), <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">4</span>)), 
-          <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="op">-</span><span class="dv">1</span>,<span class="op">-</span><span class="dv">1</span>,<span class="op">-</span><span class="dv">1</span>))<span class="op">/</span><span class="dv">2</span>
-<span class="kw">rownames</span>(p) &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(p)
-
-r &lt;-<span class="st"> </span><span class="kw">jitter</span>(p <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(q), <span class="dt">factor=</span><span class="dv">1</span>)
-<span class="kw">round</span>(r, <span class="dv">1</span>)
-<span class="co">#&gt;    Godfather Godfather 2 Goodfellas You&#39;ve Got Mail Sleepless in Seattle</span>
-<span class="co">#&gt; 1        0.5         0.5        1.5            -0.4                 -0.5</span>
-<span class="co">#&gt; 2        1.5         1.5        0.5            -1.6                 -1.5</span>
-<span class="co">#&gt; 3        1.5         1.6        0.4            -1.5                 -1.5</span>
-<span class="co">#&gt; 4        0.1         0.0        0.0             0.0                  0.1</span>
-<span class="co">#&gt; 5       -0.1         0.0        0.1             0.1                  0.0</span>
-<span class="co">#&gt; 6        0.6         0.6       -0.5            -0.5                 -0.6</span>
-<span class="co">#&gt; 7        0.6         0.5       -0.5            -0.4                 -0.6</span>
-<span class="co">#&gt; 8        0.5         0.6       -0.5            -0.5                 -0.6</span>
-<span class="co">#&gt; 9       -1.0        -0.9       -1.0             1.0                  1.0</span>
-<span class="co">#&gt; 10      -1.6        -1.6       -0.6             1.6                  1.5</span>
-<span class="co">#&gt; 11      -1.6        -1.5       -0.4             1.4                  1.5</span>
-<span class="co">#&gt; 12      -1.6        -1.6       -0.5             1.5                  1.5</span>
-<span class="co">#&gt;    Scent of a Woman</span>
-<span class="co">#&gt; 1              -1.4</span>
-<span class="co">#&gt; 2              -0.5</span>
-<span class="co">#&gt; 3              -0.5</span>
-<span class="co">#&gt; 4               0.0</span>
-<span class="co">#&gt; 5               0.0</span>
-<span class="co">#&gt; 6               0.5</span>
-<span class="co">#&gt; 7               0.5</span>
-<span class="co">#&gt; 8               0.6</span>
-<span class="co">#&gt; 9               0.9</span>
-<span class="co">#&gt; 10              0.6</span>
-<span class="co">#&gt; 11              0.5</span>
-<span class="co">#&gt; 12              0.6</span></code></pre></div>
-<p>Now we see another factor: love, hates, or doesn’t care about Al Pacino. The correlation is a bit more complicated now</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cor</span>(r)
-<span class="co">#&gt;                      Godfather Godfather 2 Goodfellas You&#39;ve Got Mail</span>
-<span class="co">#&gt; Godfather                1.000       0.998      0.527          -0.997</span>
-<span class="co">#&gt; Godfather 2              0.998       1.000      0.546          -0.998</span>
-<span class="co">#&gt; Goodfellas               0.527       0.546      1.000          -0.553</span>
-<span class="co">#&gt; You&#39;ve Got Mail         -0.997      -0.998     -0.553           1.000</span>
-<span class="co">#&gt; Sleepless in Seattle    -0.999      -0.998     -0.528           0.997</span>
-<span class="co">#&gt; Scent of a Woman        -0.575      -0.593     -0.994           0.599</span>
-<span class="co">#&gt;                      Sleepless in Seattle Scent of a Woman</span>
-<span class="co">#&gt; Godfather                          -0.999           -0.575</span>
-<span class="co">#&gt; Godfather 2                        -0.998           -0.593</span>
-<span class="co">#&gt; Goodfellas                         -0.528           -0.994</span>
-<span class="co">#&gt; You&#39;ve Got Mail                     0.997            0.599</span>
-<span class="co">#&gt; Sleepless in Seattle                1.000            0.572</span>
-<span class="co">#&gt; Scent of a Woman                    0.572            1.000</span></code></pre></div>
-<p>Notice that the overall structure of the correlation obtained from the simulated data is not that far off the real correlation:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">six_movies &lt;-<span class="st"> </span><span class="kw">c</span>(m_<span class="dv">1</span>, m_<span class="dv">2</span>, m_<span class="dv">3</span>, m_<span class="dv">4</span>, m_<span class="dv">5</span>, m_<span class="dv">6</span>)
-x &lt;-<span class="st"> </span>y[,six_movies]
-<span class="kw">colnames</span>(x)[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Godfather&quot;</span>, <span class="st">&quot;Godfather 2&quot;</span>)
-<span class="kw">cor</span>(x, <span class="dt">use=</span><span class="st">&quot;pairwise.complete&quot;</span>)
-<span class="co">#&gt;                      Godfather Godfather 2 Goodfellas You&#39;ve Got Mail</span>
-<span class="co">#&gt; Godfather               1.0000       0.829      0.444          -0.440</span>
-<span class="co">#&gt; Godfather 2             0.8285       1.000      0.521          -0.331</span>
-<span class="co">#&gt; Goodfellas              0.4441       0.521      1.000          -0.481</span>
-<span class="co">#&gt; You&#39;ve Got Mail        -0.4397      -0.331     -0.481           1.000</span>
-<span class="co">#&gt; Sleepless in Seattle   -0.3781      -0.358     -0.402           0.533</span>
-<span class="co">#&gt; Scent of a Woman        0.0589       0.119     -0.123          -0.170</span>
-<span class="co">#&gt;                      Sleepless in Seattle Scent of a Woman</span>
-<span class="co">#&gt; Godfather                          -0.378           0.0589</span>
-<span class="co">#&gt; Godfather 2                        -0.358           0.1186</span>
-<span class="co">#&gt; Goodfellas                         -0.402          -0.1230</span>
-<span class="co">#&gt; You&#39;ve Got Mail                     0.533          -0.1699</span>
-<span class="co">#&gt; Sleepless in Seattle                1.000          -0.1822</span>
-<span class="co">#&gt; Scent of a Woman                   -0.182           1.0000</span></code></pre></div>
-<p>To explain this more complicated structure, we need two factors. For example something like this:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">t</span>(q) 
-<span class="co">#&gt;      Godfather Godfather 2 Goodfellas You&#39;ve Got Mail Sleepless in Seattle</span>
-<span class="co">#&gt; [1,]         1           1          1              -1                   -1</span>
-<span class="co">#&gt; [2,]         1           1         -1              -1                   -1</span>
-<span class="co">#&gt;      Scent of a Woman</span>
-<span class="co">#&gt; [1,]               -1</span>
-<span class="co">#&gt; [2,]                1</span></code></pre></div>
-<p>one for ganster versus romance and another for Al Pacino versus no Al Pacino. We also need two sets of coefficients:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p
-<span class="co">#&gt;    [,1] [,2]</span>
-<span class="co">#&gt; 1     1 -0.5</span>
-<span class="co">#&gt; 2     1  0.5</span>
-<span class="co">#&gt; 3     1  0.5</span>
-<span class="co">#&gt; 4     0  0.0</span>
-<span class="co">#&gt; 5     0  0.0</span>
-<span class="co">#&gt; 6     0  0.5</span>
-<span class="co">#&gt; 7     0  0.5</span>
-<span class="co">#&gt; 8     0  0.5</span>
-<span class="co">#&gt; 9    -1  0.0</span>
-<span class="co">#&gt; 10   -1 -0.5</span>
-<span class="co">#&gt; 11   -1 -0.5</span>
-<span class="co">#&gt; 12   -1 -0.5</span></code></pre></div>
-<p>to explain the <span class="math inline">\(3\times 3\)</span> types of users.</p>
-<p>The model with two factors has more parameters, but still less than the original data:</p>
-<p><span class="math display">\[
-Y_{u,i} = \mu + b_i + b_u + p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \varepsilon_{i,j}
-\]</span></p>
-<p>Note that this is not a linear model. To fit this model we need to use an algorithm other those used by <code>lm</code> to find the parameters that minimize the least squares. Also, the winning algorithms for the Netflix challenge used regularization to penalize for large values of <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span>, rather than using least squares. Implementing this approach is beyond the scope of this book.</p>
-</div>
-<div id="connection-to-svd-and-pca" class="section level2">
-<h2><span class="header-section-number">73.2</span> Connection to SVD and PCA</h2>
-<p>The decomposition:</p>
-<p><span class="math display">\[
-r_{u,i} \approx p_{u,1} q_{1,i} + p_{u,2} q_{2,i}
-\]</span></p>
-<p>is very much related to SVD and PCA. SVD and PCA are complicated concepts, but one way to understand them is that SVD is an algorithm that finds the vectors <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span> that permit us to rewrite the matrix <span class="math inline">\(\mbox{r}\)</span> with <span class="math inline">\(m\)</span> rows and <span class="math inline">\(n\)</span> columns as:</p>
-<p><span class="math display">\[
-r_{u,i} = p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \dots + p_{u,m} q_{m,i} 
-\]</span></p>
-<p>with the variability of each term decreasing and with the <span class="math inline">\(p\)</span>s uncorrelated. The algorithm also computes this variability so that we can know how much of the matrices total variability is explained as we add new terms. This may permit us to see that, with just a few terms, we can explain most of the variability.</p>
-<p>Let’s see an example with the movie data. To compute the decomposition, we will make the residuals with NAs equal to 0:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">y[<span class="kw">is.na</span>(y)] &lt;-<span class="st"> </span><span class="dv">0</span>
-pca &lt;-<span class="st"> </span><span class="kw">prcomp</span>(y)</code></pre></div>
-<p>The <span class="math inline">\(q\)</span> vectors are called the principal components and they are stored in this matrix:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(pca<span class="op">$</span>rotation)
-<span class="co">#&gt; [1] 454 292</span></code></pre></div>
-<p>While the <span class="math inline">\(p\)</span>, or the user effects, are here:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(pca<span class="op">$</span>x)
-<span class="co">#&gt; [1] 292 292</span></code></pre></div>
-<p>We can see the variability of each of the vectors:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(pca<span class="op">$</span>sdev)</code></pre></div>
-<p><img src="book_files/figure-html/pca-sds-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>and see that just the first few already explain a large percent:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">var_explained &lt;-<span class="st"> </span><span class="kw">cumsum</span>(pca<span class="op">$</span>sdev<span class="op">^</span><span class="dv">2</span><span class="op">/</span><span class="kw">sum</span>(pca<span class="op">$</span>sdev<span class="op">^</span><span class="dv">2</span>))
-<span class="kw">plot</span>(var_explained)</code></pre></div>
-<p><img src="book_files/figure-html/var-expained-pca-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>We also notice that the first two principal components are related to the structure in opinions about movies:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggrepel)
-
-pcs &lt;-<span class="st"> </span><span class="kw">data.frame</span>(pca<span class="op">$</span>rotation, <span class="dt">name =</span> <span class="kw">colnames</span>(y))
-
-highlight &lt;-<span class="st"> </span><span class="kw">filter</span>(pcs, PC1 <span class="op">&lt;</span><span class="st"> </span><span class="op">-</span><span class="fl">0.1</span> <span class="op">|</span><span class="st"> </span>PC1 <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">|</span><span class="st"> </span>PC2 <span class="op">&lt;</span><span class="st"> </span><span class="op">-</span><span class="fl">0.075</span> <span class="op">|</span><span class="st"> </span>PC2 <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span>)
-
-pcs <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(PC1, PC2)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">geom_text_repel</span>(<span class="kw">aes</span>(PC1, PC2, <span class="dt">label=</span>name),
-                  <span class="dt">data =</span> highlight, <span class="dt">size =</span> <span class="dv">2</span>)</code></pre></div>
-<p><img src="book_files/figure-html/movies-pca-1.png" width="100%" style="display: block; margin: auto;" /></p>
-<p>Just by looking at the top 10 in each direction, we see a meaningful pattern. The first PC shows the difference between critically acclaimed movies on one side:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pcs <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(name, PC1) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">arrange</span>(PC1) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">slice</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>)
-<span class="co">#&gt;                         name    PC1</span>
-<span class="co">#&gt; 1               Pulp Fiction -0.161</span>
-<span class="co">#&gt; 2       Seven (a.k.a. Se7en) -0.152</span>
-<span class="co">#&gt; 3                      Fargo -0.139</span>
-<span class="co">#&gt; 4      2001: A Space Odyssey -0.139</span>
-<span class="co">#&gt; 5  Silence of the Lambs, The -0.134</span>
-<span class="co">#&gt; 6        Clockwork Orange, A -0.128</span>
-<span class="co">#&gt; 7                Taxi Driver -0.127</span>
-<span class="co">#&gt; 8       Being John Malkovich -0.119</span>
-<span class="co">#&gt; 9      Royal Tenenbaums, The -0.106</span>
-<span class="co">#&gt; 10              Shining, The -0.106</span></code></pre></div>
-<p>and Hollywood blockbusters on the other:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pcs <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(name, PC1) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">arrange</span>(<span class="kw">desc</span>(PC1)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">slice</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>)
-<span class="co">#&gt;                                                                                       name</span>
-<span class="co">#&gt; 1                                                            Independence Day (a.k.a. ID4)</span>
-<span class="co">#&gt; 2                                                                                    Shrek</span>
-<span class="co">#&gt; 3                                                                               Spider-Man</span>
-<span class="co">#&gt; 4                                                                                  Titanic</span>
-<span class="co">#&gt; 5                                                                                  Twister</span>
-<span class="co">#&gt; 6                                                                               Armageddon</span>
-<span class="co">#&gt; 7  Harry Potter and the Sorcerer&#39;s Stone (a.k.a. Harry Potter and the Philosopher&#39;s Stone)</span>
-<span class="co">#&gt; 8                                                                             Forrest Gump</span>
-<span class="co">#&gt; 9                                           Lord of the Rings: The Return of the King, The</span>
-<span class="co">#&gt; 10                                                                      Enemy of the State</span>
-<span class="co">#&gt;       PC1</span>
-<span class="co">#&gt; 1  0.1523</span>
-<span class="co">#&gt; 2  0.1304</span>
-<span class="co">#&gt; 3  0.1131</span>
-<span class="co">#&gt; 4  0.1118</span>
-<span class="co">#&gt; 5  0.1110</span>
-<span class="co">#&gt; 6  0.1077</span>
-<span class="co">#&gt; 7  0.1026</span>
-<span class="co">#&gt; 8  0.0987</span>
-<span class="co">#&gt; 9  0.0942</span>
-<span class="co">#&gt; 10 0.0932</span></code></pre></div>
-<p>While the second PC seems to go from artsy, independent films:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pcs <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(name, PC2) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">arrange</span>(PC2) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">slice</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>)
-<span class="co">#&gt;                                             name     PC2</span>
-<span class="co">#&gt; 1                      Shawshank Redemption, The -0.0919</span>
-<span class="co">#&gt; 2                               Truman Show, The -0.0916</span>
-<span class="co">#&gt; 3                           Little Miss Sunshine -0.0901</span>
-<span class="co">#&gt; 4                            Slumdog Millionaire -0.0882</span>
-<span class="co">#&gt; 5  Amelie (Fabuleux destin d&#39;Amélie Poulain, Le) -0.0848</span>
-<span class="co">#&gt; 6                              Kill Bill: Vol. 1 -0.0831</span>
-<span class="co">#&gt; 7                                American Beauty -0.0806</span>
-<span class="co">#&gt; 8                   City of God (Cidade de Deus) -0.0760</span>
-<span class="co">#&gt; 9                                  Mars Attacks! -0.0747</span>
-<span class="co">#&gt; 10                             Beautiful Mind, A -0.0743</span></code></pre></div>
-<p>to nerd favorites:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pcs <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(name, PC2) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">arrange</span>(<span class="kw">desc</span>(PC2)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">slice</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>)
-<span class="co">#&gt;                                                  name    PC2</span>
-<span class="co">#&gt; 1              Lord of the Rings: The Two Towers, The 0.3291</span>
-<span class="co">#&gt; 2  Lord of the Rings: The Fellowship of the Ring, The 0.3216</span>
-<span class="co">#&gt; 3      Lord of the Rings: The Return of the King, The 0.2178</span>
-<span class="co">#&gt; 4                                         Matrix, The 0.2156</span>
-<span class="co">#&gt; 5                  Star Wars: Episode IV - A New Hope 0.2019</span>
-<span class="co">#&gt; 6          Star Wars: Episode VI - Return of the Jedi 0.1804</span>
-<span class="co">#&gt; 7      Star Wars: Episode V - The Empire Strikes Back 0.1581</span>
-<span class="co">#&gt; 8                                        Spider-Man 2 0.1086</span>
-<span class="co">#&gt; 9                                    Dark Knight, The 0.1021</span>
-<span class="co">#&gt; 10                                              Speed 0.0983</span></code></pre></div>
-<p>Fitting a model that incorporates these estimates is complicated. For those interested in implementing an approach that incorporates these ideas, we recommend trying the <strong>recommenderlab</strong> package. The details are beyond the scope of this book.</p>
-</div>
-<div id="exercises-56" class="section level2 unnumbered">
-<h2>Exercises</h2>
-<p>In this exercise set, we will be covering a topic useful for understanding matrix factorization: the singular value decomposition (SVD). SVD is a mathematical result that is widely used in machine learning, both in practice and to understand the mathematical properties of some algorithms. This is a rather advanced topic and to complete this exercise set you will have to be familiar with linear algebra concepts such as matrix multiplication, orthogonal matrices, and diagonal matrices.</p>
-<p>The SVD tells us that we can <em>decompose</em> an <span class="math inline">\(N\times p\)</span> matrix <span class="math inline">\(Y\)</span> with <span class="math inline">\(p &lt; N\)</span> as</p>
-<p><span class="math display">\[ Y = U D V^{\top} \]</span></p>
-<p>With <span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span> <em>orthogonal</em> of dimensions <span class="math inline">\(N\times p\)</span> and <span class="math inline">\(p\times p\)</span> respectively and <span class="math inline">\(D\)</span> a <span class="math inline">\(p \times p\)</span> <em>diagonal</em> matrix with the values of the diagonal decreasing:</p>
-<p><span class="math display">\[d_{1,1} \geq d_{2,2} \geq \dots d_{p,p}\]</span>.</p>
-<p>In this exercise, we will see one of the ways that this decomposition can be useful. To do this, we will construct a dataset that represents grade scores for 100 students in 24 different subjects. The overall average has been removed so this data represents the percentage point each student received above or below the average test score. So a 0 represents an average grade (C), a 25 is a high grade (A+), and a -25 represents a low grade (F). You can simulate the data like this:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">1987</span>)
-n &lt;-<span class="st"> </span><span class="dv">100</span>
-k &lt;-<span class="st"> </span><span class="dv">8</span>
-Sigma &lt;-<span class="st"> </span><span class="dv">64</span>  <span class="op">*</span><span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">1</span>, .<span class="dv">75</span>, .<span class="dv">5</span>, .<span class="dv">75</span>, <span class="dv">1</span>, .<span class="dv">5</span>, .<span class="dv">5</span>, .<span class="dv">5</span>, <span class="dv">1</span>), <span class="dv">3</span>, <span class="dv">3</span>) 
-m &lt;-<span class="st"> </span>MASS<span class="op">::</span><span class="kw">mvrnorm</span>(n, <span class="kw">rep</span>(<span class="dv">0</span>, <span class="dv">3</span>), Sigma)
-m &lt;-<span class="st"> </span>m[<span class="kw">order</span>(<span class="kw">rowMeans</span>(m), <span class="dt">decreasing =</span> <span class="ot">TRUE</span>),]
-y &lt;-<span class="st"> </span>m <span class="op">%x%</span><span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rep</span>(<span class="dv">1</span>, k), <span class="dt">nrow =</span> <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rnorm</span>(<span class="kw">matrix</span>(n<span class="op">*</span>k<span class="op">*</span><span class="dv">3</span>)), n, k<span class="op">*</span><span class="dv">3</span>)
-<span class="kw">colnames</span>(y) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">paste</span>(<span class="kw">rep</span>(<span class="st">&quot;Math&quot;</span>,k), <span class="dv">1</span><span class="op">:</span>k, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),
-                 <span class="kw">paste</span>(<span class="kw">rep</span>(<span class="st">&quot;Science&quot;</span>,k), <span class="dv">1</span><span class="op">:</span>k, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>),
-                 <span class="kw">paste</span>(<span class="kw">rep</span>(<span class="st">&quot;Arts&quot;</span>,k), <span class="dv">1</span><span class="op">:</span>k, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>))</code></pre></div>
-<p>Our goal is to describe the student performances as succinctly as possible. For example, we want to know if these test results are all just a random independent numbers. Are all students just about as good? Does being good in one subject imply you will be good in another? How does the SVD help with all this? We will go step by step to show that with just three relatively small pairs of vectors we can explain much of the variability in this <span class="math inline">\(100 \times 24\)</span> dataset.</p>
-<p>You can visualize the 24 test scores for the 100 students by plotting an image:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my_image &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">zlim =</span> <span class="kw">range</span>(x), ...){
-  colors =<span class="st"> </span><span class="kw">rev</span>(RColorBrewer<span class="op">::</span><span class="kw">brewer.pal</span>(<span class="dv">9</span>, <span class="st">&quot;RdBu&quot;</span>))
-  cols &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(x)
-  rows &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(x)
-  <span class="kw">image</span>(cols, rows, <span class="kw">t</span>(x[<span class="kw">rev</span>(rows),,<span class="dt">drop=</span><span class="ot">FALSE</span>]), <span class="dt">xaxt =</span> <span class="st">&quot;n&quot;</span>, <span class="dt">yaxt =</span> <span class="st">&quot;n&quot;</span>,
-        <span class="dt">xlab=</span><span class="st">&quot;&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;&quot;</span>,  <span class="dt">col =</span> colors, <span class="dt">zlim =</span> zlim, ...)
-  <span class="kw">abline</span>(<span class="dt">h=</span>rows <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span>, <span class="dt">v =</span> cols <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span>)
-  <span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">1</span>, cols, <span class="kw">colnames</span>(x), <span class="dt">las =</span> <span class="dv">2</span>)
-}
-
-<span class="kw">my_image</span>(y)</code></pre></div>
-<ol style="list-style-type: decimal">
-<li><p>How would you describe the data based on this figure?</p>
-<p>A. The test scores are all independent of each other. B. The students that test well are at the top of the image and there seems to be three groupings by subject. C. The students that are good at math are not good at science. D. The students that are good at math are not good at humanities.</p></li>
-<li><p>You can examine the correlation between the test scores directly like this:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">my_image</span>(<span class="kw">cor</span>(y), <span class="dt">zlim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>))
-<span class="kw">range</span>(<span class="kw">cor</span>(y))
-<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(y), <span class="kw">rev</span>(<span class="kw">colnames</span>(y)), <span class="dt">las =</span> <span class="dv">2</span>)</code></pre></div>
-<p>Which of the following best describes what you see?</p>
-<p>A. The test scores are independent. B. Math and Science are highly correlated but the humanities are not. C. There is high correlation between tests in the same subject but no correlation across subjects. D. There is a correlation among all tests, but higher if the tests are in science and math and even higher within each subject.</p></li>
-<li><p>Remember that orthogonality means that <span class="math inline">\(U^{\top}U\)</span> and <span class="math inline">\(V^{\top}V\)</span> are equal to the identity matrix. This implies that we can also rewrite the decomposition as</p>
-<p><span class="math display">\[ Y V = U D \mbox{ or } U^{\top}Y = D V^{\top}\]</span></p>
-<p>We can think of <span class="math inline">\(YV\)</span> and <span class="math inline">\(U^{\top}V\)</span> as two transformation of Y that preserve the total variability of <span class="math inline">\(Y\)</span> since <span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span> are orthogonal.</p>
-<p>Use the function <code>svd</code> to compute the SVD of <code>y</code>. This function will return <span class="math inline">\(U\)</span>, <span class="math inline">\(V\)</span> and the diagonal entries of <span class="math inline">\(D\)</span>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s &lt;-<span class="st"> </span><span class="kw">svd</span>(y)
-<span class="kw">names</span>(s)</code></pre></div>
-<p>You can check that the SVD works by typing:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">y_svd &lt;-<span class="st"> </span>s<span class="op">$</span>u <span class="op">%*%</span><span class="st"> </span><span class="kw">diag</span>(s<span class="op">$</span>d) <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(s<span class="op">$</span>v)
-<span class="kw">max</span>(<span class="kw">abs</span>(y <span class="op">-</span><span class="st"> </span>y_svd))</code></pre></div>
-<p>Compute the sum of squares of the columns of <span class="math inline">\(Y\)</span> and store them in <code>ss_y</code>. Then the sum of squares of columns of the transformed <span class="math inline">\(YV\)</span> and store them in <span class="math inline">\(ss_yv\)</span>. Confirm that <code>sum(ss_y)</code> is equal to <code>sum(ss_yv)</code></p></li>
-<li><p>We see that the total sum of squares is preserved. This is because <span class="math inline">\(V\)</span> is orthogonal. Now to start understanding how <span class="math inline">\(YV\)</span> is useful plot <code>ss_y</code> against the column number and then do the same for <span class="math inline">\(ss_yv\)</span>. What do you observe?</p></li>
-<li><p>We see that the variability of the columns of <span class="math inline">\(YV\)</span> is decreasing. Furthermore, we see that, relative to the first three, the variability of the columns beyond the third is almost 0. Now notice that we didn’t have to compute <code>ss_yv</code> because we already have the answer. How? Remember that <span class="math inline">\(YV = UD\)</span> and because <span class="math inline">\(U\)</span> is orthogonal, we know that the sum of squares of the columns of <span class="math inline">\(UD\)</span> are the diagonal entries of <span class="math inline">\(D\)</span> squared. Confirm this by plotting the square root of <span class="math inline">\(ss_yv\)</span> versus the diagonal entries of <span class="math inline">\(D\)</span></p></li>
-<li><p>So from the above we know that the sum of squares of the columns of <span class="math inline">\(Y\)</span> (the total sum of squares) add up to the sum of <code>s$d^2</code> and that the transformation <span class="math inline">\(YV\)</span> gives us columns with sums of squares equal to <code>s$d^2</code>. Now compute what percent of the total variability is explained by just the first three columns of <span class="math inline">\(YV\)</span>.</p></li>
-<li><p>We see that almost 99% of the variability is explained by the first three columns of <span class="math inline">\(YV = UD\)</span>. So we get the sense that we should be able to explain much of the variability and structure we found while exploring the data with a few columns. Before we continue, let’s show a useful computational trick to avoid creating the matrix <code>diag(s$d)</code>. To motivate this, we note that if we write <span class="math inline">\(U\)</span> out in its columns <span class="math inline">\([U_1, U_2, \dots, U_p]\)</span> then <span class="math inline">\(UD\)</span> is equal to</p>
-<p><span class="math display">\[UD = [U_1 d_{1,1}, U_2 d_{2,2}, \dots, U_p d_{p,p}]\]</span></p>
-<p>Use the <code>sweep</code> function to compute <span class="math inline">\(UD\)</span> without constructing <code>diag(s$d)</code> nor matrix multiplication.</p></li>
-<li><p>We know that <span class="math inline">\(U_1 d_{1,1}\)</span>, the first column of <span class="math inline">\(UD\)</span>, has the most variability of all the columns of <span class="math inline">\(UD\)</span>. Earlier we saw an image of <span class="math inline">\(Y\)</span></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">my_image</span>(y)</code></pre></div>
-<p>in which we can see that the student to student variability is quite large and that it appears that students that are good in one subject are good in all. This implies that the average (across all subjects) for each student should explain a lot of the variability. Compute the average score for each student and plot it against <span class="math inline">\(U_1 d_{1,1}\)</span> and describe what you find.</p></li>
-<li><p>We note that the signs in SVD are arbitrary because:</p>
-<p><span class="math display">\[ U D V^{\top} = (-U) D (-V)^{\top} \]</span></p>
-<p>With this in mind we see that the first column of <span class="math inline">\(UD\)</span> is almost identical to the average score for each student except for the sign.</p>
-<p>This implies that multiplying <span class="math inline">\(Y\)</span> by the first column of <span class="math inline">\(V\)</span> must be performing a similar operation to taking the average. Make an image plot of <span class="math inline">\(V\)</span> and describe the first column relative to others and how this relates to taking an average.</p></li>
-<li><p>We already saw that we can rewrite <span class="math inline">\(UD\)</span> as</p>
-<p><span class="math display">\[U_1 d_{1,1} + U_2 d_{2,2} + \dots + U_p d_{p,p}\]</span></p>
-<p>with <span class="math inline">\(U_j\)</span> the j-th column of <span class="math inline">\(U\)</span>. This implies that we can rewrite the entire SVD as:</p>
-<p><span class="math display">\[Y = U_1 d_{1,1} V_1 ^{\top} + U_2 d_{2,2} V_2 ^{\top} + \dots + U_p d_{p,p} V_p ^{\top}\]</span></p>
-<p>with <span class="math inline">\(V_j\)</span> the jth column of <span class="math inline">\(V\)</span>. Plot <span class="math inline">\(U_1\)</span>, then plot <span class="math inline">\(V_1^{\top}\)</span> using the same range for the y-axis limits, then make an image of <span class="math inline">\(U_1 d_{1,1} V_1 ^{\top}\)</span> and compare it to the image of <span class="math inline">\(Y\)</span>. Hint: use the <code>my_image</code> function defined above. Use the <code>drop=FALSE</code> argument to assure the subsets of matrices are matrices.</p></li>
-<li><p>We see that with just a vector of length 100, a scalar, and a vector of length 24, we actually come close to reconstructing the a <span class="math inline">\(100 \times 24\)</span> matrix. This is our first matrix factorization:</p>
-<p><span class="math display">\[ Y \approx d_{1,1} U_1 V_1^{\top}\]</span></p>
-<p>We know it explains <code>s$d[1]^2/sum(s$d^2) * 100</code> percent of the total variability. Our approximation only explains the observation that good students tend to be good in all subjects. But another aspect of the original data that our approximation does not explain was the higher similarity we observed within subjects. We can see this by computing the difference between our approximation and original data and then computing the correlations. You can see this by running this code:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">resid &lt;-<span class="st"> </span>y <span class="op">-</span><span class="st"> </span><span class="kw">with</span>(s,(u[, <span class="dv">1</span>, <span class="dt">drop=</span><span class="ot">FALSE</span>]<span class="op">*</span>d[<span class="dv">1</span>]) <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(v[, <span class="dv">1</span>, <span class="dt">drop=</span><span class="ot">FALSE</span>]))
-<span class="kw">my_image</span>(<span class="kw">cor</span>(resid), <span class="dt">zlim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>))
-<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(y), <span class="kw">rev</span>(<span class="kw">colnames</span>(y)), <span class="dt">las =</span> <span class="dv">2</span>)</code></pre></div>
-<p>Now that we have removed the overall student effect, the correlation plot reveals that we have not yet explained the within subject correlation nor the fact that math and science are closer to each other than to the arts. So let’s explore the second column of the SVD. Repeat the previous exercise but for the second column: Plot <span class="math inline">\(U_2\)</span>, then plot <span class="math inline">\(V_2^{\top}\)</span> using the same range for the y-axis limits, then make an image of <span class="math inline">\(U_2 d_{2,2} V_2 ^{\top}\)</span> and compare it to the image of <code>resid</code>.</p></li>
-<li><p>The second column clearly relates to a student’s difference in ability in math/science versus the arts. We can see this most clearly from the plot of <code>s$v[,2]</code>. Adding the matrix we obtain with these two columns will help with our approximation:</p>
-<p><span class="math display">\[ Y \approx d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} \]</span></p>
-<p>We know it will explain</p>
-<pre><code>```r
-sum(s$d[1:2]^2)/sum(s$d^2) * 100
-```</code></pre>
-<p>percent of the total variability. We can compute new residuals like this:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">resid &lt;-<span class="st"> </span>y <span class="op">-</span><span class="st"> </span><span class="kw">with</span>(s,<span class="kw">sweep</span>(u[, <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>], <span class="dv">2</span>, d[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>], <span class="dt">FUN=</span><span class="st">&quot;*&quot;</span>) <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(v[, <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>]))
-<span class="kw">my_image</span>(<span class="kw">cor</span>(resid), <span class="dt">zlim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>))
-<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(y), <span class="kw">rev</span>(<span class="kw">colnames</span>(y)), <span class="dt">las =</span> <span class="dv">2</span>)</code></pre></div>
-<p>and see that the structure that is left is driven by the differences between math and science. Confirm this by plotting <span class="math inline">\(U_3\)</span>, then plot <span class="math inline">\(V_3^{\top}\)</span> using the same range for the y-axis limits, then make an image of <span class="math inline">\(U_3 d_{3,3} V_3 ^{\top}\)</span> and compare it to the image of <code>resid</code>.</p></li>
-<li><p>The third column clearly relates to a student’s difference in ability in math and science. We can see this most clearly from the plot of <code>s$v[,3]</code>. Adding the matrix we obtain with these two columns will help with our approximation:</p>
-<p><span class="math display">\[ Y \approx d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}\]</span></p>
-<p>We know it will explain:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(s<span class="op">$</span>d[<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>]<span class="op">^</span><span class="dv">2</span>)<span class="op">/</span><span class="kw">sum</span>(s<span class="op">$</span>d<span class="op">^</span><span class="dv">2</span>) <span class="op">*</span><span class="st"> </span><span class="dv">100</span></code></pre></div>
-<p>percent of the total variability. We can compute new residuals like this:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">resid &lt;-<span class="st"> </span>y <span class="op">-</span><span class="st"> </span><span class="kw">with</span>(s,<span class="kw">sweep</span>(u[, <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>], <span class="dv">2</span>, d[<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>], <span class="dt">FUN=</span><span class="st">&quot;*&quot;</span>) <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(v[, <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>]))
-<span class="kw">my_image</span>(<span class="kw">cor</span>(resid), <span class="dt">zlim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>))
-<span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(y), <span class="kw">rev</span>(<span class="kw">colnames</span>(y)), <span class="dt">las =</span> <span class="dv">2</span>)</code></pre></div>
-<p>We no longer see structure in the residuals: they seem to be independent of each other. This implies that we can describe the data with the following model:</p>
-<p><span class="math display">\[ Y =  d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top} + \varepsilon\]</span></p>
-<p>with <span class="math inline">\(\varepsilon\)</span> a matrix of independent identically distributed errors. This model is useful because we summarize of <span class="math inline">\(100 \times 24\)</span> observations with <span class="math inline">\(3 \times (100+24+1) = 375\)</span> numbers. Furthermore, the three components of the model have useful interpretations: 1 - the overall ability of a student, 2 - the difference in ability between the math/sciences and arts and 3 - the remaining differences between the three subjects. The sizes <span class="math inline">\(d_{1,1}, d_{2,2}\)</span> and <span class="math inline">\(d_{3,3}\)</span> tells us the variability explained by each component. Finally, note that the components <span class="math inline">\(d_{j,j} U_j V_j^{\top}\)</span> are equivalent to the jth principal component. Finish the exercise by plotting an image of <span class="math inline">\(Y\)</span>, an image of <span class="math inline">\(d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}\)</span> and an image of the residuals, all with the same <code>zlim</code>.</p></li>
-<li><p>Advanced. The <code>movielens</code> dataset included` in the <strong>dslabs</strong> package is a small subset of a larger dataset with millions of ratings. You can find the entire latest dataset here <a href="https://grouplens.org/datasets/movielens/20m/" class="uri">https://grouplens.org/datasets/movielens/20m/</a>. Create your own recommendation system using all the tools we have shown you.</p></li>
-</ol>
-
-</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-<a href="regularization.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="clustering.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="exercises-7.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="distributions.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -1357,7 +930,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/ml/recommendation-systems.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/dataviz/intro-dataviz.Rmd",
 "text": "Edit"
 },
 "download": null,
