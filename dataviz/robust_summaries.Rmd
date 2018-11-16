@@ -44,18 +44,19 @@ boxplot(outlier_example)
 
 When we have an outlier like this, the average can become very large. Mathematically, we can make the average as large as we want by simply changing one number: with `r length(outlier_example)` data points, we can increase the average by any amount $\Delta$ by adding $\Delta \times$ `r length(outlier_example)` to a single number. The median, defined as the value for which half the values are smaller and the other half are bigger, is robust to such outliers. No matter how large we make the largest point, the median remains the same. 
 
-With this data the median is: 
+With these data the median is: 
 
 ```{r}
 median(outlier_example)
 ```
+
 which is about `r floor(median(outlier_example))` feet and `r round(12*(median(outlier_example) - floor(median(outlier_example))))` inches. 
 
-The median is what boxplots display as a horizontal line.
+Boxplots display the median as a horizontal line.
 
-## The inter quartile range (IQR)
+## The interquartile range (IQR)
 
-The box in boxplots are defined by the first and third quartile. These are meant to provide an idea of the variability in the data: 50% of the data is within this range. The difference between the 3rd and 1st quartile (or 75th and 25th percentiles) is referred to as the inter quartile range (IQR). As is the case with the median, this quantity will be robust to outliers as large values do not affect it. We can do some math to see that for normal data the IQR / 1.349 approximates the standard deviation of the data had an outlier not been present. We can see that this works well in our example since we get a standard deviation estimate of: 
+The box in boxplots are defined by the first and third quartile. These are meant to provide an idea of the variability in the data: 50% of the data is within this range. The difference between the 3rd and 1st quartile (or 75th and 25th percentiles) is referred to as the interquartile range (IQR). As is the case with the median, this quantity will be robust to outliers as large values do not affect it. We can do some math to see that for normal data the IQR / 1.349 approximates the standard deviation of the data had an outlier not been present. We can see that this works well in our example since we get a standard deviation estimate of: 
 
 ```{r}
 IQR(outlier_example) / 1.349
@@ -86,7 +87,7 @@ Keep in mind that this is not such an extreme event: if we have 1000 data points
 
 If we want an outlier to be rarer, we can increase the 1.5 to a larger number. Tukey also used 3 and called these _far out_ outliers. With a normal distribution, `r r <- c(q1 - 3*iqr , q3 + 3*iqr); round(pnorm(r[2]) - pnorm(r[1]),6)*100`% of the data falls in this interval. This translates into about 1 in a million chance of being outside the range. In the `geom_boxplot` function, this can be controlled by the `outlier.size` argument, which defaults to 1.5.
 
-The 180 feet measurement is well beyond the range of the height data:
+The 180 feet measurement is well beyond the expected range of the height data:
 
 ```{r}
 max_height <- quantile(outlier_example, 0.75) + 3*IQR(outlier_example)
@@ -111,11 +112,9 @@ mad(outlier_example)
 
 which is about `r round(mad(outlier_example)*12)` inches.
 
-
-
 ## Exercises {-}
 
-We are going to use the __HistData__. If it is not installed you can install it like this:
+We are going to use the __HistData__ package. If it is not installed, you can install and load it like this:
 
 ```{r, eval=FALSE}
 install.packages("HistData")
@@ -240,4 +239,4 @@ reported_heights %>%
 
 Examining these heights carefully, we see two common mistakes: entries in centimeters, which turn out to be too large, and entries of the form `x.y` with `x` and `y` representing feet and inches respectively. Some of the even smaller values, such as 1.6, could be entries in meters.
 
-In the data wrangling chapter, we will learn techniques for correcting these values and converting them into inches. Here we were able to detect this problem using careful data exploration to uncover issues with the data: the first step in the great majority of data science projects.
+In the data wrangling chapter, we will learn techniques for correcting these values and converting them into inches. Here we were able to detect this problem using careful data exploration to uncover issues with the data, the first step in the great majority of data science projects.
