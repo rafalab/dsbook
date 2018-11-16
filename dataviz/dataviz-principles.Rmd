@@ -41,7 +41,7 @@ p1
 ```
 
 
-Here we are representing quantities with both areas and angles since both the angle and area of each pie slice is proportional to the quantity it represents. This turns out to be a sub-optimal choice since, as demonstrated by perception studies, humans are not good at precisely quantifying angles and are even worse when only area is the only available visual cue. The donut chart is an example of a plot that uses only area:
+Here we are representing quantities with both areas and angles since both the angle and area of each pie slice is proportional to the quantity it represents. This turns out to be a sub-optimal choice since, as demonstrated by perception studies, humans are not good at precisely quantifying angles and are even worse when area is the only available visual cue. The donut chart is an example of a plot that uses only area:
 
 ```{r donutchart, echo=FALSE}
 browsers %>% ggplot(aes(x = 2, y = Percentage, fill = Browser)) +
@@ -60,7 +60,7 @@ To see how hard it is to quantify angles and area, note that the rankings and al
 > Pie charts are a very bad way of displaying information. The eye is good at judging linear measures and bad at judging relative areas. A bar chart or dot chart is a preferable way of displaying this type of data.
 
 
-In this case, simply showing the numbers is not only clearer, but would also save on printing costs if printing a paper copy.
+In this case, simply showing the numbers is clearer and would also save on printing costs if printing a paper copy.
 
 ```{r, echo=FALSE}
 browsers %>% spread(Year, Percentage) %>% knitr::kable()
@@ -178,7 +178,7 @@ gdp_data %>%
   coord_flip() + ylab("") + xlab("")
 ```
 
-Not surprisingly, __ggplot2__ defaults to using area rather than radius. Of course, in this case, we really should not be using area at all since we can use position and length:
+Not surprisingly, __ggplot2__ defaults to using area rather than radius. Of course, in this case we really should not use area at all since we can use position and length:
 
 ```{r barplot-better-than-area, echo=FALSE}
 gdp_data %>% 
@@ -213,7 +213,7 @@ p2 <- murders %>% mutate(murder_rate = total / population * 100000) %>%
 grid.arrange(p1, p2, ncol = 2)
 ```
 
-The `reorder` function lets us reorder groups as well. Earlier we saw an example related to income distributions across regions. Here are the two versions plotted against each other:
+The `reorder` function lets us reorder groups as well. Earlier, we saw an example related to income distributions across regions. Here are the two versions plotted against each other:
 
 ```{r reorder-boxplot-example, out.width="100%", echo=FALSE}
 past_year <- 1970
@@ -243,7 +243,7 @@ The first orders the regions alphabetically, while the second orders them by the
 
 We have focused on displaying single quantities across categories. We now shift our attention to displaying data, with a focus on comparing groups. 
 
-To motivate our first principle, 'show the data', we go back to our artificial example of describing heights to ET, an extraterrestrial. This time let's assume ET is interested in the difference in heights between males and females. A commonly seen plot used for comparisons between groups, popularized by software such as Microsoft Excel, shows the average and standard errors (standard errors are defined in a later chapter, but do not confuse them with the standard deviation of the data). The plot looks like this:
+To motivate our first principle 'show the data', we go back to our artificial example of describing heights to ET, an extraterrestrial. This time let's assume ET is interested in the difference in heights between males and females. A commonly seen plot used for comparisons between groups, popularized by software such as Microsoft Excel, shows the average and standard errors (standard errors are defined in a later chapter, but do not confuse them with the standard deviation of the data). The plot looks like this:
 
 ```{r show-data-1, echo=FALSE}
 data("heights")
@@ -258,7 +258,7 @@ p1 <- heights %>%
 p1
 ```
 
-The average of each group is represented by the top of each bar and the antennae extend out from the average to the average plus two standard errors.  If all ET receives is this plot, he will have little information on what to expect if he meets a group of human males and females. The bars go to 0, does this mean there are tiny humans measuring less than one foot? Are all males taller than the tallest females? Is there a range of heights? ET can't answer these questions since we have provided almost no information on the height distribution.
+The average of each group is represented by the top of each bar, and the antennae extend out from the average to the average plus two standard errors.  If all ET receives is this plot, he will have little information on what to expect if he meets a group of human males and females. The bars go to 0: does this mean there are tiny humans measuring less than one foot? Are all males taller than the tallest females? Is there a range of heights? ET can't answer these questions since we have provided almost no information on the height distribution.
 
 This brings us to our first principle: show the data. This simple __ggplot2__ code already generates a more informative plot than the barplot by simply showing all the data points:
 
@@ -278,7 +278,7 @@ heights %>%
   geom_jitter(width = 0.1, alpha = 0.2) 
 ```
 
-Now we start getting a sense that, on average, males are taller than females. We also note dark horizontal bands of points, demonstrating that many report values that are rounded to the nearest integer.
+Now we start getting a sense that, on average, males are taller than females. We also note dark horizontal bands of points, demonstrating that many report values are rounded to the nearest integer.
 
 ## Ease comparisons: use common axes
 
@@ -454,7 +454,7 @@ In every single instance in which we have examined the relationship between two 
 
 One exception where another type of plot may be more informative is when you are comparing variables of the same type, but at different time points and for a relatively small number of comparisons. For example, comparing life expectancy between 2010 and 2015. In this case, we might recommend a _slope chart_. 
 
-There is no geometry for slope charts in __ggplot2__, but we can construct one using `geom_lines`. We need to do some tinkering to add labels. Below is an example comparing 2010 to 2015 for large western countries:
+There is no geometry for slope charts in __ggplot2__, but we can construct one using `geom_line`. We need to do some tinkering to add labels. Below is an example comparing 2010 to 2015 for large western countries:
 
 ```{r slope-plot}
 west <- c("Western Europe","Northern Europe","Southern Europe",
@@ -923,7 +923,7 @@ Now can we show data for all states in one plot? We have three variables to show
 
 In our example, we want to use a sequential palette since there is no meaningful center, just low and high rates.
 
-We use the geometry `geom_tile` to tile the region with colors representing disease rates. We use a square root transformation to avoid having the really high counts dominate the plot. Notice that missing values are shown in grey. Once a disease was pretty much eradicated, some states stopped reporting cases all together.
+We use the geometry `geom_tile` to tile the region with colors representing disease rates. We use a square root transformation to avoid having the really high counts dominate the plot. Notice that missing values are shown in grey. Once a disease was pretty much eradicated, some states stopped reporting cases altogether.
 
 ```{r vaccines-plot}
 dat %>% ggplot(aes(year, state,  fill = rate)) +
@@ -937,7 +937,7 @@ dat %>% ggplot(aes(year, state,  fill = rate)) +
   xlab("")
 ```
 
-This plot makes a very striking argument for the contribution of vaccines. However, one limitation of this plot is that it uses color to represent quantity which we earlier explained makes it harder to know exactly how high it is going. Position and lengths are better cues. If we are willing to lose state information, we can make a version of the plot that shows the values with position. We can also show the average for the US, which we compute like this:
+This plot makes a very striking argument for the contribution of vaccines. However, one limitation of this plot is that it uses color to represent quantity, which we earlier explained makes it harder to know exactly how high values are going. Position and lengths are better cues. If we are willing to lose state information, we can make a version of the plot that shows the values with position. We can also show the average for the US, which we compute like this:
 
 ```{r}
 avg <- us_contagious_diseases %>%
