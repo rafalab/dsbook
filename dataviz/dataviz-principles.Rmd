@@ -6,9 +6,15 @@ The principles are mostly based on research related to how humans detect pattern
 
 We will be using these libraries:
 
-
 ```{r, warning=FALSE, message=FALSE}
+library(scales)
+library(ggthemes)
 library(gridExtra)
+library(ggrepel)
+library(RColorBrewer)
+library(scatterplot3d)
+library(dslabs)
+library(tidyverse)
 ```
 
 
@@ -29,7 +35,6 @@ To illustrate how some of these strategies compare, let's suppose we want to rep
 
 
 ```{r piechart,  echo=FALSE}
-library(ggthemes)
 p1 <- browsers %>% ggplot(aes(x = "", y = Percentage, fill = Browser)) +
   geom_bar(width = 1, stat = "identity", col = "black")  + coord_polar(theta = "y") +
   theme_excel() + xlab("") + ylab("") +
@@ -82,7 +87,6 @@ Notice how much easier it is to see the differences in the barplot. In fact, we 
 If for some reason you need to make a pie chart, label each pie slice with its respective percentage so viewers do not have to infer them from the angles or area:
 
 ```{r excel-barplot, warning = FALSE, message=FALSE, echo=FALSE}
-library(scales)
 browsers <- filter(browsers, Year == 2015)
 at <- with(browsers, 100 - cumsum(c(0,Percentage[-length(Percentage)])) - 0.5*Percentage)  
 label <- percent(browsers$Percentage/100)
@@ -482,7 +486,6 @@ An advantage of the slope chart is that it permits us to quickly get an idea of 
 
 
 ```{r scatter-plot-instead-of-slope, echo=FALSE}
-library(ggrepel)
 west <- c("Western Europe","Northern Europe","Southern Europe",
           "Northern America","Australia and New Zealand")
 
@@ -508,7 +511,6 @@ In the scatterplot, we have followed the principle _use common axes_ since we ar
 Since we are primarily interested in the difference, it makes sense to dedicate one of our axes to it. The Bland-Altman plot, also know as the Tukey mean-difference plot and the MA-plot, shows the difference versus the average:
 
 ```{r, bland-altman}
-library(ggrepel)
 dat %>% 
    mutate(year = paste0("life_expectancy_", year)) %>%
    select(country, year, life_expectancy) %>% spread(year, life_expectancy) %>% 
@@ -577,14 +579,12 @@ For continuous variables, we can use color, intensity or size. We now show an ex
 When selecting colors to quantify a numeric variable, we choose between two options: sequential and diverging. Sequential colors are suited for data that goes from high to low.  High values are clearly distinguished from low values. Here are some examples offered by the package `RColorBrewer`
 
 ```{r r-color-brewer-seq, fig.height=4.5}
-library(RColorBrewer)
 display.brewer.all(type="seq")
 ```
 
 Diverging colors are used to represent values that diverge from a center. We put equal emphasis on both ends of the data range: higher than the center and lower than the center. An example of when we would use a divergent pattern would be if we were to show height in standard deviations away from the average. Here are some examples of divergent patterns:
 
 ```{r r-color-brewer-div}
-library(RColorBrewer)
 display.brewer.all(type="div")
 ```
 
