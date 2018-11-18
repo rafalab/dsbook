@@ -14,7 +14,7 @@ A more tangible way to think about the probability of an event is as the proport
 
 We use the notation $\mbox{Pr}(A)$ to denote the probability of event $A$ happening. We use the very general term _event_ to refer to things that can happen when something occurs by chance. In our previous example, the event was "picking a red bead". In a political poll in which we call 100 likely voters at random, an example of an event is "calling 48 Democrats and 52 Republicans".
 
-In data science applications, we will often deal with continuous variables. These events will often be things like "is this person taller than 6 feet". In this case, we write events in a more mathematical form: $X \geq 6$. We will see more of these examples later. Here, we focus on categorical data.
+In data science applications, we will often deal with continuous variables. These events will often be things like "is this person taller than 6 feet". In this case, we write events in a more mathematical form: $X \geq 6$. We will see more of these examples later. Here we focus on categorical data.
 
 
 ## Monte Carlo simulations
@@ -70,7 +70,7 @@ Before we continue, we will briefly explain the following important line of code
 set.seed(1) 
 ```
 
-Throughout this book, we use random number generators. This implies that many of the results presented can actually change by chance, which then suggests that a frozen version of the book may show a different result than what you obtain when you try to code as shown in the book. This is actually fine since the results are random and change from time to time. However, if you want to to ensure that results are exactly the same every time you run them, you can set R's random number generation seed to a specific number. Above we set it to 1. 
+Throughout this book, we use random number generators. This implies that many of the results presented can actually change by chance, which then suggests that a frozen version of the book may show a different result than what you obtain when you try to code as shown in the book. This is actually fine since the results are random and change from time to time. However, if you want to to ensure that results are exactly the same every time you run them, you can set R's random number generation seed to a specific number. Above we set it to 1. You can learn more about the `set.seed` function here:
 
 ```{r,eval=FALSE}
 ?set.seed
@@ -124,7 +124,7 @@ $$
 
 We say two events are independent if the outcome of one does not affect the other. The classic example are coin tosses. Every time we toss a fair coin, the probability of seeing heads is 1/2 regardless of what previous tosses have revealed. The same is true when we pick beads from an urn with replacement. In the example above, the probability of red is 0.40 regardless of previous draws. 
 
-Many examples of events that are not independent come from card games. When we deal the first card, the probability of getting a King is 1/13 since there are thirteen possibilities: Ace, Deuce, Three, $\dots$, Ten, Jack, Queen, King, and Ace. Now if we deal a King for the first card, and don't replace it into the deck, the probabilities of a second card being a King is less because there are only three Kings left: the probability is 3 out of 51. These events are therefore **not independent**. The first outcome affected the next one.
+Many examples of events that are not independent come from card games. When we deal the first card, the probability of getting a King is 1/13 since there are thirteen possibilities: Ace, Deuce, Three, $\dots$, Ten, Jack, Queen, King, and Ace. If we deal a King for the first card, and don't replace it into the deck, the probability of a second card being a King is less because there are only three Kings left: the probability is 3 out of 51. These events are therefore **not independent**. The first outcome affected the next one.
 
 To see an extreme case of non-independent events, consider our example of drawing five beads at random **without** replacement:
 
@@ -142,7 +142,7 @@ If you have to guess the color of the first bead, you will predict blue since bl
 x[2:5]
 ```
 
-would you still guess blue? Of course not. Now you know that the probability of red is 1. The events are not independent so the probabilities changes.
+would you still guess blue? Of course not. Now you know that the probability of red is 1. The events are not independent so the probabilities change.
 
 ## Conditional probabilities
 
@@ -208,7 +208,7 @@ In our very first example we imagined an urn with five beads. As a reminder, to 
 
 For more complicated cases, the computations are not as straightforward. For instance, what is the probability that if I draw five cards without replacement, I get all cards of the same suit, what is known as a "flush" in Poker? In a Discrete Probability course you learn theory on how to make these computations. Here we focus on how to use R code to compute the answers.
 
-First let's construct a deck of cards. For this, we will use the `expand.grid` and `paste` functions. We use `paste` to create strings by joining smaller strings. To do this, we take the number and suit of a card and create the card name like this:
+First, let's construct a deck of cards. For this, we will use the `expand.grid` and `paste` functions. We use `paste` to create strings by joining smaller strings. To do this, we take the number and suit of a card and create the card name like this:
 
 ```{r}
 number <- "Three"
@@ -316,7 +316,7 @@ permutations(3,2)
 combinations(3,2)
 ```
 
-In the second line, the outcome does not include (2,1) because the (1,2) already was enumerated. The same applies to (3,1) and (3,2).
+In the second line, the outcome does not include (2,1) because (1,2) already was enumerated. The same applies to (3,1) and (3,2).
 
 So to compute the probability of a _Natural 21_ in Blackjack, we can do this:
 
@@ -409,7 +409,7 @@ any(duplicated(bdays))
 
 In this case, we see that it did happen. At least two people had the same birthday.
 
-To estimate the probability, we repeat this experiment by sampling 50 birthdays, over and over:
+To estimate the probability, we repeat this experiment by sampling sets of 50 birthdays over and over:
 
 ```{r birthday-problem}
 same_birthday <- function(n){
@@ -422,9 +422,9 @@ results <- replicate(B, same_birthday(50))
 mean(results)
 ```
 
-Where you expecting the probability to be this high?
+Were you expecting the probability to be this high?
 
-People tend to underestimate these probabilities. To get an intuition as to why it is so high, think about what happens when the group is close to 365. At this stage, we run out of days and the probability is one. 
+People tend to underestimate these probabilities. To get an intuition as to why it is so high, think about what happens when the group size is close to 365. At this stage, we run out of days and the probability is one. 
 
 Say we want to use this knowledge to bet with friends about two people having the same birthday in a group of people. When are the chances larger than 50%? Larger than 75%? 
 
@@ -481,7 +481,7 @@ This plot shows that the Monte Carlo simulation provided a very good estimate of
 
 ## How many Monte Carlo experiments are enough
 
-In the examples above, we used $B=$10,000 Monte Carlo experiments. It turns out that this provided very accurate estimates. But in more complex calculations, 10,000 may not nearly enough. Also, for some calculations, 10,000 experiments might not be computationally feasible. In practice, we won't know what the answer is so we won't know if our Monte Carlo estimate is accurate. We know that the larger $B$, the better the approximation. But how big do we need it to be? This is actually a challenging question and answering it often requires advanced theoretical statistics training. 
+In the examples above, we used $B=10,000$ Monte Carlo experiments. It turns out that this provided very accurate estimates. But in more complex calculations, 10,000 may not nearly enough. Also, for some calculations, 10,000 experiments might not be computationally feasible. In practice, we won't know what the answer is so we won't know if our Monte Carlo estimate is accurate. We know that the larger $B$, the better the approximation. But how big do we need it to be? This is actually a challenging question and answering it often requires advanced theoretical statistics training. 
 
 One practical approach we will describe here is to check for the stability of the estimate. The following is an example with the birthday problem for a group of 22 people. 
 
@@ -526,7 +526,7 @@ In the case of a Natural 21, the intersection is empty since both hands can't ha
 
 ## Monty Hall problem
 
-In the 1970s, there was a game show called "Let's Make a Deal" and Monty Hall was the host. At some point in the game, contestants were asked to pick one of three doors. Behind one door there was a prize. The other doors had a goat behind them to show the contestant they had lost. If the contestant did not pick the prize door on his or her first try, Monty Hall would open one of the two remaining doors and show the contestant there was no prize. Then he would ask "Do you want to switch doors?" What would you do?
+In the 1970s, there was a game show called "Let's Make a Deal" and Monty Hall was the host. At some point in the game, contestants were asked to pick one of three doors. Behind one door there was a prize. The other doors had a goat behind them to show the contestant they had lost. If the contestant did not pick the prize door on his or her first try, Monty Hall would open one of the two remaining doors and show the contestant there was no prize. Then he would ask, "Do you want to switch doors?" What would you do?
 
 We can use probability to show that if you stick with the original door choice, your chances of winning a prize remain 1 in 3. However, if you switch to the other door, your chances of winning double to 2 in 3! This seems counterintuitive. Many people incorrectly think both chances are 1 in 2 since you are choosing between 2 options. You can watch a detailed explanation [here](https://www.khanacademy.org/math/precalculus/prob-comb/dependent-events-precalc/v/monty-hall-problem) or read one [here](https://en.wikipedia.org/wiki/Monty_Hall_problem). Below we use a Monte Carlo simulation to see which strategy is better. Note that this code is written longer than it should be for pedagogical purposes. 
 
@@ -622,7 +622,7 @@ celtic_wins <- sample(c(0,1), 4, replace = TRUE, prob = c(0.6, 0.4))
     }
     ```
 
-    Use the function `sapply` to compute the probability, call it `Pr`, of winning for `p <- seq(0.5, 0.95, 0.025)`. Then plot the result `plot(p, prob).
+    Use the function `sapply` to compute the probability, call it `Pr`, of winning for `p <- seq(0.5, 0.95, 0.025)`. Then plot the result `plot(p, prob)`.
 
 13. Repeat the exercise above, but now keep the probability fixed at `p <- 0.75` and compute the probability for different series lengths: best of 1 game, 3 games, 5 games,... Specifically, `N <- seq(1, 25, 2)`. Hint: use this function:
 
