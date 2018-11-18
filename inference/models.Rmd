@@ -64,7 +64,14 @@ d_hat <- polls %>%
   .$avg
 ```
 
-Once we have an estimate of $d$, we can construct an estimate for the proportion voting for Obama, which we can then use to estimate the standard error. Once we do this, we see that our margin of error is `r p_hat <- (1+d_hat)/2; moe <- 2*1.96*sqrt(p_hat*(1-p_hat)/sum(polls$sample_size)); moe`. 
+Once we have an estimate of $d$, we can construct an estimate for the proportion voting for Obama, which we can then use to estimate the standard error. Once we do this, we see that our margin of error is:
+
+```{r}
+p_hat <- (1+d_hat)/2
+moe <- 2*1.96*sqrt(p_hat*(1-p_hat)/sum(polls$sample_size))
+
+moe
+```
 
 Thus, we can predict that the spread will be `r round(d_hat*100,1)` plus or minus `r round(moe*100 ,1)`, which not only includes the actual result, but is quite far from including 0. Once we combine the 12 polls, we become quite certain that Obama will win the popular vote.
 
@@ -190,13 +197,13 @@ is between 0.018 and 0.033, which agrees with the within poll variation we see. 
 
 In the following section, rather than use the urn model theory, we are instead going to develop a data-driven model. 
 
-
-## Data driven model
+## Data-driven model
 
 For each pollster, let's collect their last reported result before the election:
 
 ```{r}
-one_poll_per_pollster <- polls %>% group_by(pollster) %>% 
+one_poll_per_pollster <- polls %>%
+  group_by(pollster) %>% 
   filter(enddate == max(enddate)) %>%
   ungroup()
 ```
@@ -233,7 +240,7 @@ The `sd` function in R computes the sample standard deviation:
 sd(one_poll_per_pollster$spread)
 ```
 
-We are now ready to form a new confidence interval based on our new data driven model:
+We are now ready to form a new confidence interval based on our new data-driven model:
 
 ```{r}
 results <- one_poll_per_pollster %>% 
@@ -284,8 +291,8 @@ Let's revisit the heights dataset. Suppose we consider the males in our course t
 5. Now that we have an estimate of $\sigma$, let's call our estimate $s$. Construct a 95% confidence interval for $\mu$.
 
 
+6. Run a Monte Carlo simulation in which you compute 10,000 confidence intervals as you have just done. What proportion of these intervals include $\mu$? Set the seed to 1.
 
-6. Now run a Monte Carlo simulation in which you compute 10,000 confidence intervals as you have just done. What proportion of these intervals include $\mu$? Set the seed to 1.
 
 7. In this section, we talked about pollster bias. We used visualization to motivate the presence of such bias. Here we will give it a more rigorous treatment. We will consider two pollsters that conducted daily polls. We will look at national polls for the month before the election. 
 

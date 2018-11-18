@@ -100,20 +100,15 @@ fisher.test(tab, alternative="greater")
 
 ## Chi-square Test
 
-Notice that, in a way, our funding rates example is similar to the Lady Tasting Tea. However, in the Lady Tasting Tea example, the number of blue and red beads is experimentally fixed and the number of answers given for each category is also fixed. This is because Fisher made sure there were four before tea and four after tea and the lady knew this, so the answers would also have to be four and four. If this is the case, the sum of the rows and the sum of the columns are fixed. This defines constraints on the possible ways we can fill the two
-by two table and also permits us to use the hypergeometric
-distribution. In general, this is not the case. Nonetheless, there is
-another approach, the Chi-squared test, which is described below. 
-
-
-Imagine we have `r sum(totals)` applicants, some are men and some are women and some get funded, whereas other don't. We saw that the success rates for men and woman were:
+Notice that, in a way, our funding rates example is similar to the Lady Tasting Tea. However, in the Lady Tasting Tea example, the number of blue and red beads is experimentally fixed and the number of answers given for each category is also fixed. This is because Fisher made sure there were four before tea and four after tea and the lady knew this, so the answers would also have to be four and four. If this is the case, the sum of the rows and the sum of the columns are fixed. This defines constraints on the possible ways we can fill the two by two table and also permits us to use the hypergeometric distribution. In general, this is not the case. There is another approach, the Chi-squared test, which is described below. 
+Imagine we have `r sum(totals)` applicants. Some are men and some are women, and some get funded whereas other don't. We saw that the success rates for men and women were:
 
 ```{r}
 totals %>% summarize(percent_men = yes_men/(yes_men+no_men),
                      percent_women = yes_women/(yes_women+no_women))
 ```
 
-respectively. Would we see this again if we randomly assign funding at the rate:
+respectively. Would we see the same results if we randomly assign funding at the rate:
 
 ```{r}
 funding_rate <- totals %>%
@@ -144,14 +139,15 @@ data.frame(awarded = c("no", "yes"),
 
 ```
 
-We can see that more men than expected and less women than expected received funding. However, under the null hypothesis these observations are random variables. The Chi-square test tells us how likely it is to see
-a deviation this large or larger. This test uses an asymptotic result, similar to the CLT, related to the sums of independent binary outcomes. 
-The R function `chisq.test` takes a two by two table and returns the results from the test:
+We can see that more men than expected and less women than expected received funding. However, under the null hypothesis these observations are random variables. The Chi-square test tells us how likely it is to see a deviation this large or larger. This test uses an asymptotic result, similar to the CLT, related to the sums of independent binary outcomes. 
+
+The R function `chisq.test` takes a two-by-two table and returns the results from the test:
 
 ```{r}
 chisq_test <- two_by_two %>% 
   select(-awarded) %>%
   chisq.test()
+
 chisq_test
 ```
 
@@ -192,7 +188,7 @@ The odds ratio is the ratio for these two odds: how many times larger are the od
 odds_men / odds_women
 ```
 
-We often see two by two tables written out as 
+We often see two-by-two tables written out as 
 
 ```{r, echo=FALSE}
 mat <- cbind(c(" a "," c "), c(" b "," d "))
@@ -201,8 +197,7 @@ rownames(mat) <- c("Awarded", "Not Awarded")
 mat %>% knitr::kable()
 ```
 
-In this case, the odds ratio is $\frac{a/c}{b/d}$
-which is equivalent to $(ad) / (bc)$
+In this case, the odds ratio is $\frac{a/c}{b/d}$, which is equivalent to $(ad) / (bc)$
 
 ## Large samples, small p-values
 
@@ -213,7 +208,7 @@ and report impressively small p-values.  Yet when one looks closely at
 the results, we realize odds ratios are quite modest: barely bigger
 than 1. In this case the difference may not be *practically significant* or *scientifically significant*.
 
-Note that the relationship between odds ratio and p-value is not one-to-one. It depends on the sample size. So a very small p-value does not necessarily mean very large odds ratio.
+Note that the relationship between odds ratio and p-value is not one-to-one. It depends on the sample size. So a very small p-value does not necessarily mean a very large odds ratio.
 
 Notice what happens to the p-value if we multiply our two-by-two table by 10:
 
@@ -224,7 +219,7 @@ two_by_two %>%
   chisq.test() 
 ```
 
-Yet the odds ratio is unchanged.
+The p-value is smaller, yet the odds ratio is unchanged.
 
 ## Confidence intervals for the odds ratio
 
@@ -232,7 +227,7 @@ Computing confidence intervals for the odds ratio is not mathematically straight
 ratio, but a ratio of ratios. Therefore, there is no simple way of
 using, for example, the CLT. 
   
-However, statistical theory tells us that when all four entries of the two by two table are large enough, then the log of the odds ratio is approximately normal with standard error 
+However, statistical theory tells us that when all four entries of the two-by-two table are large enough, then the log of the odds ratio is approximately normal with standard error 
 
 $$
 \sqrt{1/a + 1/b + 1/c + 1/d} 

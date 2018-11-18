@@ -18,7 +18,7 @@ knitr::include_graphics("inference/img/rcp-polls.png")
 
 Although in the United States the popular vote does not determine the result of the presidential election, we will use it as an illustrative and simple example of how well polls work. Forecasting the election is a more complex process since it involves combining results from 50 states and DC.
 
-Let's make some observations about the table above. First, note that different polls, all taken days before the election, report a different _spread_:  the estimated difference between support for the two candidates. Notice also that the reported spreads hover around what ended up being the actual result: Clinton won the popular vote by 2.1%. We also see a column titled **MoE** which stands for _margin of error_. 
+Let's make some observations about the table above. First, note that different polls, all taken days before the election, report a different _spread_:  the estimated difference between support for the two candidates. Notice also that the reported spreads hover around what ended up being the actual result: Clinton won the popular vote by 2.1%. We also see a column titled **MoE**, which stands for _margin of error_. 
 
 In this section, we will show how the probability concepts we learned in the previous chapter can be applied to develop the statistical approaches that make polls an effective tool. We will learn the statistical concepts necessary to define _estimates_ and _margins of errors_, and show how we can use these to forecast final results relatively well and also provide an estimate of the precision of our forecast. Once we learn this, we will be able to understand two concepts that are ubiquitous in data science: _confidence intervals_ and _p-values_. Finally, to understand probabilistic statements about the probability of a candidate winning, we will have to learn about Bayesian modelling. In the final sections, we put it all together to recreate the simplified version of the FiveThirtyEight model and apply it to the 2016 election. 
 
@@ -38,14 +38,12 @@ Before making a prediction, you can take a sample (with replacement) from the ur
 
 The __dslabs__ package includes a function that shows a random draw from this urn:
 
-```{r, echo=FALSE}
-set.seed(1)
-```
-
 ```{r first-simulated-poll, comment=FALSE, warning=FALSE}
 library(tidyverse)
 library(dslabs)
+set.seed(1)
 ds_theme_set()
+
 take_poll(25)
 ```
 
@@ -61,7 +59,7 @@ In statistical textbooks, the beads in the urn are called the _population_. The 
 
 Can we do this with the 25 observations above? It is certainly informative. For example, given that we see 13 red and 12 blue beads, it is unlikely that $p$ > .9 or $p$ < .1. But are we ready to predict with certainty that there are more red beads than blue?  
 
-We want to construct an estimate of $p$ using only the information we observe. An estimate can be thought of as a summary of the observed data that we think is informative about the parameter of interest. It seems intuitive to think that the proportion of blue beads in the sample $0.48$ must be at least related to the actual proportion $p$. But do we simply predict $p$ to be 0.48? First, remember that the sample proportion is a random variable. If we run the command `take_poll(25)` four times:
+We want to construct an estimate of $p$ using only the information we observe. An estimate can be thought of as a summary of the observed data that we think is informative about the parameter of interest. It seems intuitive to think that the proportion of blue beads in the sample $0.48$ must be related to the actual proportion $p$. But do we simply predict $p$ to be 0.48? First, remember that the sample proportion is a random variable. If we run the command `take_poll(25)` four times:
 
 ```{r four-simulated-polls, echo=FALSE}
 par(mfrow=c(2,2), mar = c(3, 1, 3, 0), mgp = c(1.5, 0.5, 0)) 
@@ -76,7 +74,7 @@ Note that in the four random samples shown above, the sample proportions range f
 
 Conducting an opinion poll is being modeled as taking a random sample from an urn. We are proposing the use of the proportion of blue beads in our sample as an _estimate_ of the parameter $p$. Once we have this estimate, we can can easily report an estimate for the spread $2p-1$, but for simplicity we will illustrate the concepts for estimating $p$. We will use our knowledge of probability to defend our use of the sample proportion and quantify how close we think it is from the population proportion $p$.
 
-We start by defining the random variable $X=1$ if we pick a blue bead at random and $0$ if it is red. This implies that the population is a list of 0s and 1s. If we sample $N$ beads, then the average of the draws $X_1, \dots, X_N$ is equivalent to the proportion of blue beads in our sample. This is because adding the $X$s is equivalent to counting the blue beads and dividing this count by the total $N$ is equivalent to computing a proportion. We use the symbol $\bar{X}$ to represent this average. In general, in statistics textbooks a bar on top of a symbol means the average.
+We start by defining the random variable $X=1$ if we pick a blue bead at random and $X=0$ if it is red. This implies that the population is a list of 0s and 1s. If we sample $N$ beads, then the average of the draws $X_1, \dots, X_N$ is equivalent to the proportion of blue beads in our sample. This is because adding the $X$s is equivalent to counting the blue beads and dividing this count by the total $N$ is equivalent to computing a proportion. We use the symbol $\bar{X}$ to represent this average. In general, in statistics textbooks a bar on top of a symbol means the average.
 
 The theory we just learned about the sum of draws becomes useful because if we know the distribution of the sum $N \bar{X}$, we know the distribution of the average $\bar{X}$ because $N$ is a non-random constant. 
 
@@ -86,9 +84,9 @@ Here we encounter an important difference with what we did in the Probability ch
 
 ## Parameters
 
-Just like we use variables to define unknowns in systems of equations, in statistical inference we define _parameters_ to define unknown parts of our models. In the urn model which we are using to mimic an opinion poll, we do not know the proportion of blue beads in the urn. We define the parameters $p$ to represent this quantity. $p$ is the average of the urn because if we take the average of the 1s (blue) and 0s (red), we get the proportion of blue beads. Since our main goal is figuring out what is $p$, we are going to _estimate this parameter_. 
+Just like we use variables to define unknowns in systems of equations, in statistical inference we define _parameters_ to define unknown parts of our models. In the urn model which we are using to mimic an opinion poll, we do not know the proportion of blue beads in the urn. We define the parameter $p$ to represent this quantity. $p$ is the average of the urn because if we take the average of the 1s (blue) and 0s (red), we get the proportion of blue beads. Since our main goal is figuring out what is $p$, we are going to _estimate this parameter_. 
 
-The ideas presented here on how we estimate parameters and provide insights into how good these estimates are, extrapolate to many data science tasks. For example, we may want to determine the difference in health improvement between patients receiving treatment and a control group. We may ask what are the health effects of smoking on a population? What are the differences in racial groups of fatal shootings by police? What is the rate of change in life expectancy in the US during the last 10 years? All these questions can be framed as a task of estimating a parameter from a sample.
+The ideas presented here on how we estimate parameters and provide insights into how good these estimates are extrapolate to many data science tasks. For example, we may want to determine the difference in health improvement between patients receiving treatment and a control group. We may ask, what are the health effects of smoking on a population? What are the differences in racial groups of fatal shootings by police? What is the rate of change in life expectancy in the US during the last 10 years? All these questions can be framed as a task of estimating a parameter from a sample.
 
 ## Polling versus forecasting
 
@@ -119,7 +117,10 @@ One problem is that we do not know $p$, so we can't compute the standard error. 
 ```{r standard-error-versus-sample-size, echo=FALSE, message=FALSE, warning=FALSE}
 p <- 0.51
 N <- 10^seq(1,5, len=100)
-data.frame(N=N, SE = sqrt(p*(1-p)/N)) %>% ggplot(aes(N, SE)) + geom_line() + scale_x_continuous(breaks = c(10,100,1000,10000), trans = "log10")
+data.frame(N=N, SE = sqrt(p*(1-p)/N)) %>%
+  ggplot(aes(N, SE)) +
+  geom_line() +
+  scale_x_continuous(breaks = c(10,100,1000,10000), trans = "log10")
 ```
 
 From the plot we see that we would need a poll of over 10,000 people to get the standard error that low. We rarely see polls of this size due in part to costs. From the Real Clear Politics table, we learn that the sample sizes in opinion polls range from 500-3,500 people. For a sample size of 1,000 and $p=0.51$, the standard error is:

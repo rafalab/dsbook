@@ -4,6 +4,7 @@
 library(tidyverse)
 library(dslabs)
 ds_theme_set()
+
 polls <- polls_us_election_2016 %>% 
   filter(state == "U.S." & enddate >= "2016-10-31" &
            (grade %in% c("A+","A","A-","B+") | is.na(grade))) %>% 
@@ -16,7 +17,7 @@ one_poll_per_pollster <- polls %>% group_by(pollster) %>%
 
 Above we made use of the CLT with a sample size of 15. Because we are estimating a second parameters $\sigma$, further variability is introduced into our confidence interval which result in intervals that are too small. For very large sample sizes this extra variability is negligible, but, in general, for values smaller than 30 we need to be cautions about using CLT. 
 
-However, if the data in the urn is known to follow a normal distribution, then we actually have mathematical theory that tell us how much bigger we need to make the intervals to account for the estimation of $\sigma$. Using this theory, we can construct confidence intervals for any $N$. But again only if **the data in the urn is known to follow a normal distribution**. So for the 0,1 data of our previous urn model, this theory definitely does not apply.
+However, if the data in the urn is known to follow a normal distribution, then we actually have mathematical theory that tell us how much bigger we need to make the intervals to account for the estimation of $\sigma$. Using this theory, we can construct confidence intervals for any $N$. Again, this is only appropriate if **the data in the urn is known to follow a normal distribution**. So for the 0,1 data of our previous urn model, this theory definitely does not apply.
 
 The statistic on which confidence intervals for $d$ are based is
 
@@ -53,13 +54,13 @@ one_poll_per_pollster %>%
   mutate(start = avg - moe, end = avg + moe) 
 ```
 
-A bit larger than the one using normal is 
+The resulting interval: 
 
 ```{r}
 qt(0.975, 14)
 ```
 
-is bigger than
+is bigger than the interval generated using the normal distribution:
 
 ```{r}
 qnorm(0.975)

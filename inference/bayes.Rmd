@@ -17,7 +17,7 @@ with $+$ meaning a positive test and $D$ representing if you actually have the d
 Suppose we select a random person and they test positive, what is the probability that they have the disease?  We write this as $\mbox{Prob}(D=1 \mid +)?$ The cystic fibrosis rate is 1 in 3,900 which implies that  $\mbox{Prob}(D=1)=0.00025$. To answer this question, we will use Bayes Theorem, which in general tells us that:
 
 $$
-\mbox{Pr}(A \mid B)  =  \frac{\mbox{Pr}(B \mid A)\mbox{Pr}(A)}{\mbox{Pr}(B)} 
+\mbox{Pr}(A \mid B)  =  \frac{\mbox{Pr}(B \mid A) \cdot \mbox{Pr}(A)}{\mbox{Pr}(B)} 
 $$
 
 This equation applied to our problem becomes:
@@ -25,11 +25,11 @@ This equation applied to our problem becomes:
 $$
 \begin{aligned}
 \mbox{Pr}(D=1 \mid +) & =  \frac{ P(+ \mid D=1) \cdot P(D=1)} {\mbox{Pr}(+)} \\
-& =  \frac{\mbox{Pr}(+ \mid D=1)\cdot P(D=1)} {\mbox{Pr}(+ \mid D=1) \cdot P(D=1) + \mbox{Pr}(+ \mid D=0) \mbox{Pr}( D=0)} 
+& =  \frac{\mbox{Pr}(+ \mid D=1)\cdot P(D=1)} {\mbox{Pr}(+ \mid D=1) \cdot P(D=1) +\mbox{Pr}(+ \mid D=0) \cdot \mbox{Pr}( D=0)} 
 \end{aligned}
 $$
 
-Plugging in the numbers we get:
+Plugging in the numbers, we get:
 
 $$
 \frac{0.99 \cdot 0.00025}{0.99 \cdot 0.00025 + 0.01 \cdot (.99975)}  =  0.02 
@@ -72,18 +72,15 @@ test[outcome=="Healthy"]  <- sample(c("-","+"), N_H, replace=TRUE,
                                     prob = c(accuracy, 1 - accuracy))
 ```
 
-Because there are so many more controls than cases, even with a low false positive rate, we get more controls than cases in the group that tested positive (code not shown):
-
+Because there are so many more controls than cases, even with a low false positive rate we get more controls than cases in the group that tested positive (code not shown):
 
 ```{r}
 table(outcome, test)
 ```
 
-From this table, we see that the proportion of positive tests that have the disease is `r sum(test=="+" & outcome=="Disease")` out of `r sum(test=="+")`. We can run this over and over again to see that, in fact, the probability converges to about 0.022
-
+From this table, we see that the proportion of positive tests that have the disease is `r sum(test=="+" & outcome=="Disease")` out of `r sum(test=="+")`. We can run this over and over again to see that, in fact, the probability converges to about 0.022.
 
 ## Bayes in practice
-
 
 José Iglesias is a professional baseball player. In April 2013, when he was starting his career, he was performing rather well:
 
@@ -91,7 +88,7 @@ José Iglesias is a professional baseball player. In April 2013, when he was sta
 |-------|---------|---|-----|
 | April | 20      | 9 | .450|
 
-The batting average (`AVG`) statistic is one way of measuring success. Roughly speaking, it tells us the success rate when batting. An `AVG` of .450 means José has been successful 45% of the times he has batted (`At Bats`) which is rather high, historically speaking. Keep in mind, for example, that no one has finished a season with an `AVG` of .400 or more since Ted Williams did it in 1941! To illustrate the way hierarchical models are powerful, we will try to predict José's batting average at the end of the season. Note that in a typical season, players have about 500 at bats.
+The batting average (`AVG`) statistic is one way of measuring success. Roughly speaking, it tells us the success rate when batting. An `AVG` of .450 means José has been successful 45% of the times he has batted (`At Bats`), which is rather high, historically speaking. Keep in mind, for example, that no one has finished a season with an `AVG` of .400 or more since Ted Williams did it in 1941! To illustrate the way hierarchical models are powerful, we will try to predict José's batting average at the end of the season. Note that in a typical season, players have about 500 at bats.
 
 With the techniques we have learned up to now, referred to as _frequentist techniques_, the best we can do is provide a confidence interval. We can think of outcomes from hitting as a binomial with a success rate of $p$. So if the success rate is indeed .450, the standard error of just 20 at bats is:
 
@@ -99,7 +96,7 @@ $$
 \sqrt{\frac{.450 (1-.450)}{20}}=.111
 $$
 
-This means that our confidence interval is .450-.222 to .450+.222 or .228 to .672.
+This means that our confidence interval is .450-.222 to .450+.222, or .228 to .672.
 
 This prediction has two problems. First, it is very large, so not very useful. Second, it is centered at .450, which implies that our best guess is that this new player will break Ted Williams' record. 
 
@@ -209,13 +206,13 @@ Although both intervals included the final batting average, the Bayesian credibl
     D. Numbers don't lie.
     
     
-2. Let's assume that there is in fact a genetic component to SIDS and the the probability of $\mbox{Pr}(\mbox{second case of SIDS} \mid \mbox{first case of SIDS}) = 1/100$, is much higher than 1 in 8,500. What is the probability of both of her sons dying of SIDS?
+2. Let's assume that there is in fact a genetic component to SIDS and the the probability of $\mbox{Pr}(\mbox{second case of SIDS} \mid \mbox{first case of SIDS}) = 1/100$ is much higher than 1 in 8,500. What is the probability of both of her sons dying of SIDS?
 
 
+3. Many press reports stated that the expert claimed the probability of Sally Clark being innocent as 1 in 73 million. Perhaps the jury and judge also interpreted the testimony this way. This probability can be written like as the probability of _a mother is a son-murdering psychopath_ given that _two of her children are found dead with no evidence of physical harm_. According to Bayes' rule, what is this?
 
-3. Many press reports stated that the expert claimed the probability of Sally Clark being innocent as 1 in 73 million. Perhaps the jury and judge also interpreted the testimony this way. This probability can be written like as the probability of _a mother is a son-murdering psychopath_ given that _two of her children are found dead with no evidence of physical harm__. According to Bayes' rule, what is this?
 
-4. Assume that the chance of a son-murdering psychopath finding a way to kill her children, without leaving evidence of physical harm, is:
+4. Assume that the chance of a son-murdering psychopath finding a way to kill her children without leaving evidence of physical harm is:
 
     $$
     \mbox{Pr}(A \mid B) = 0.50
@@ -245,7 +242,7 @@ Although both intervals included the final batting average, the Bayesian credibl
       mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
     ```
 
-    Take the average of these `r nrow(polls)`. The CLT tells us this average is approximately normal. Calculate an average and provide an estimate of the standard error. Save your results in an object called `results`.
+    Take the average of these `nrow(polls)`. The CLT tells us this average is approximately normal. Calculate an average and provide an estimate of the standard error. Save your results in an object called `results`.
 
 7. Now assume a Bayesian model that sets the prior distribution for Florida's election night spread $d$ to be Normal with expected value $\mu$ and standard deviation $\tau$. What are the interpretations of $\mu$ and $\tau$?
     
