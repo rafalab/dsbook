@@ -17,6 +17,8 @@ We will use the following libraries:
 library(lubridate)
 library(tidyr)
 library(scales)
+library(broom)
+library(dslabs)
 ```
 
 In general, we can extract data directly from twitter using the __rtweet__ package. However, in this case, a group has already compiled data for us and made it available at [http://www.trumptwitterarchive.com](http://www.trumptwitterarchive.com). We can get the data from their JSON API using a script like this:
@@ -34,7 +36,6 @@ trump_tweets <- map(2009:2017, ~sprintf(url, .x)) %>%
 For convenience, we include the result of the code above in the __dslabs__ package:
 
 ```{r}
-library(dslabs)
 data("trump_tweets")
 ```
 
@@ -319,7 +320,6 @@ So we do see some differences and the order is interesting: the largest three se
 To answer this question we can compute, for each sentiment, an odds ratio and a confidence interval. We will add the two values we need to form a two-by-two table and the odd ratio:
 
 ```{r}
-library(broom)
 log_or <- sentiment_counts %>%
   mutate(log_or = log((Android / (sum(Android) - Android)) / 
       (iPhone / (sum(iPhone) - iPhone))),
