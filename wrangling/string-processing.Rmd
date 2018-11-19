@@ -58,7 +58,7 @@ Make sure you choose the correct single quote since using the back quote will gi
 s <- `Hello`
 ```
 
-Now, what happens if our string includes double quotes? For example, if we want to write 10 inches like this `10"`? 
+What happens if our string includes double quotes? For example, if we want to write 10 inches like this `10"`? 
 You can't use:
 
 ```{r, eval=FALSE}
@@ -83,7 +83,7 @@ s <- "5'"
 cat(s)
 ```
 
-So we've learned how to write 5 feet and 10 inches separately, but what if we want to write them together to represent _5 feet and 10 inches_ like this `5'10"`? In this case, neither the single nor double quotes will work. This:
+We've learned how to write 5 feet and 10 inches separately, but what if we want to write them together to represent _5 feet and 10 inches_ like this `5'10"`? In this case, neither the single nor double quotes will work. This:
 
 ```{r, eval=FALSE}
 s <- '5'10"'
@@ -752,7 +752,7 @@ str_replace(s, "^([4-7])$", "\\1'0")
 
 The pattern says it has to start (`^`) followed by a digit between 4 and 7 and end there (`$`). The parenthesis defines the group that we pass as `\\1` to generate the replacement regex string. 
 
-We can adapt this code slightly to handle the case 2 as well, which covers the entry `5'`. Note `5'` is left untouched. This is because the extra `'` makes the pattern not match since we have to end with a 5 or 6. We want to permit the 5 or 6 to be followed by 0 or 1 feet sign. So we can simply add `'{0,1}` after the `'` to do this. However, we can use the none or once special character `?`. As we saw above, this is different from `*` which is none or more. We now see that the fourth case is also converted:
+We can adapt this code slightly to handle the case 2 as well, which covers the entry `5'`. Note `5'` is left untouched. This is because the extra `'` makes the pattern not match since we have to end with a 5 or 6. We want to permit the 5 or 6 to be followed by 0 or 1 feet sign. We can simply add `'{0,1}` after the `'` to do this. However, we can use the none or once special character `?`. As we saw above, this is different from `*` which is none or more. We now see that the fourth case is also converted:
 
 ```{r}
 str_replace(s, "^([56])'?$", "\\1'0")
@@ -763,7 +763,7 @@ Here we only permit 5 and 6, but not 4 and 7. This is because 5 and 6 feet tall 
 We can use quantifiers to deal with **case 3**. These entries are not matched because the inches include decimals and our pattern does not permit this. We need to allow the second group to include decimals not just digits. This means we must permit zero or one period `.` then zero or more digits. So we will be using both `?` and `*`.
 Also remember that, for this particular case, the period needs to be escaped since it is a special character (it means any character except line break). Here is a simple example of how we can use `*`. 
 
-So we can adapt our pattern, currently `^[4-7]\\s*'\\s*\\d{1,2}$` to permit a decimal at the end:
+We can adapt our pattern, currently `^[4-7]\\s*'\\s*\\d{1,2}$` to permit a decimal at the end:
 
 ```{r}
 pattern <- "^[4-7]\\s*'\\s*(\\d+\\.?\\d*)$"
@@ -882,7 +882,7 @@ The `extract` function from the __tidyr__ package lets us use regex groups to ex
 tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
 ```
 
-So why do we even need the new function `extract`? We have seen how small changes can throw off exact pattern matching. Groups in regex give us more flexibility. For example, if we define:
+Why do we even need the new function `extract`? We have seen how small changes can throw off exact pattern matching. Groups in regex give us more flexibility. For example, if we define:
 
 ```{r}
 s <- c("5'10", "6'1\"","5'8inches")
