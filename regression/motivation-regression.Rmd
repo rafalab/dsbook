@@ -37,11 +37,11 @@ In this chapter, to simplify the exercise, we will focus on scoring runs and ign
 
 To see how regression will help us find undervalued players, we actually don't need to understand all the details about the game of baseball, which has over 100 rules. Here, we distill the sport to the basic knowledge one needs to know how to effectively attack the data science problem. 
 
-The goal of a baseball game is to score more runs (points) than the other team. Each team has 9 batters that have an opportunity to hit a ball with a bat in a predetermined order. After the 9th batter has had their turn, the first batter bats again, then the second, and so on. Each time a batter has an opportunity to bat, we call it a plate appearance (PA). At each PA, the other team's _pitcher_ throws the ball and the batter tries to hit it. The PA ends with an binary outcome: the batter either makes an _out_ (failure) and returns to the bench or the batter doesn't (success) and can run around the bases, and potentially score a run (tag all 4 bases). Each team gets nine tries, referred to as _innings_, to score runs and each inning ends after three outs (three failures).
+The goal of a baseball game is to score more runs (points) than the other team. Each team has 9 _batters_ that have an opportunity to hit a ball with a bat in a predetermined order. After the 9th batter has had their turn, the first batter bats again, then the second, and so on. Each time a batter has an opportunity to bat, we call it a _plate appearance (PA)_. At each PA, the other team's _pitcher_ throws the ball and the batter tries to hit it. The PA ends with an binary outcome: the batter either makes an _out_ (failure) and returns to the bench or the batter doesn't (success) and can run around the bases, and potentially score a run (tag all 4 bases). Each team gets nine tries, referred to as _innings_, to score runs, and each inning ends after three outs (three failures).
 
 Here is a video showing a [success](https://www.youtube.com/watch?v=HL-XjMCPfio) and here one showing a [failure](https://www.youtube.com/watch?v=NeloljCx-1g). In these videos, we see how luck is involved in the process. When at bat, the batter wants to hit the ball hard. If the batter hits it hard enough, it is a HR, the best possible outcome as the batter gets at least one automatic run. But sometimes, due to chance, the batter hits the ball very hard and a defender catches it, resulting in an out. In contrast, sometimes the batter hits the ball softly, but it lands just in the right place. The fact that there is chance involved hints at why probability models will be involved.
 
-Now there are several ways to succeed. Understanding this distinction will be important for our analysis. When the batter hits the ball, the batter wants to pass as many _bases_ as possible. There are four bases with the fourth one called _home plate_. Home plate is where batters start by trying to hit, so the bases form a cycle.
+There are several ways to succeed. Understanding this distinction will be important for our analysis. When the batter hits the ball, the batter wants to pass as many _bases_ as possible. There are four bases with the fourth one called _home plate_. Home plate is where batters start by trying to hit, so the bases form a cycle.
 
 ```{r, echo = FALSE}
 ## source: http://quarterlyspeedbump.com/wp-content/uploads/2012/03/Baseball_Diamond1.jpeg
@@ -88,7 +88,8 @@ Let's start with an obvious one: HRs. Do teams that hit more home runs score mor
 ```{r runs-vs-hrs, message=FALSE, warning=FALSE}
 library(Lahman)
 
-Teams %>% filter(yearID %in% 1961:2001 ) %>%
+Teams %>%
+  filter(yearID %in% 1961:2001 ) %>%
   mutate(HR_per_game = HR/G, R_per_game = R/G) %>%
   ggplot(aes(HR_per_game, R_per_game)) + 
   geom_point(alpha = 0.5)
@@ -97,7 +98,8 @@ Teams %>% filter(yearID %in% 1961:2001 ) %>%
 The plot shows a strong association: teams with more HRs tend to score more runs. Now let's examine the relationship between stolen bases and runs:
 
 ```{r runs-vs-sb}
-Teams %>% filter(yearID %in% 1961:2001 ) %>%
+Teams %>%
+  filter(yearID %in% 1961:2001 ) %>%
   mutate(SB_per_game = SB/G, R_per_game = R/G) %>%
   ggplot(aes(SB_per_game, R_per_game)) + 
   geom_point(alpha = 0.5)
@@ -106,7 +108,8 @@ Teams %>% filter(yearID %in% 1961:2001 ) %>%
 Here the relationship is not as clear. Finally, let's examine the relationship between BB and runs:
 
 ```{r runs-vs-bb}
-Teams %>% filter(yearID %in% 1961:2001 ) %>%
+Teams %>%
+  filter(yearID %in% 1961:2001 ) %>%
   mutate(BB_per_game = BB/G, R_per_game = R/G) %>%
   ggplot(aes(BB_per_game, R_per_game)) + 
   geom_point(alpha = 0.5)
@@ -117,7 +120,8 @@ Here again we see a clear association. But does this mean that increasing a team
 In fact, it looks like BB and HRs are also associated:
 
 ```{r bb-vs-hrs}
-Teams %>% filter(yearID %in% 1961:2001 ) %>%
+Teams %>%
+  filter(yearID %in% 1961:2001 ) %>%
   mutate(HR_per_game = HR/G, BB_per_game = BB/G) %>%
   ggplot(aes(HR_per_game, BB_per_game)) + 
   geom_point(alpha = 0.5)
@@ -144,7 +148,8 @@ p
 We can see that the histograms of each strata confirm that the conditional distributions are normal:
 
 ```{r hr-by-runs-hists, out.width="100%"}
-Teams %>% filter(yearID %in% 1961:2001) %>%
+Teams %>%
+  filter(yearID %in% 1961:2001) %>%
   mutate(z_HR = round((HR - mean(HR))/sd(HR)), 
          R_per_game = R/G) %>%
   filter(z_HR %in% -2:3) %>%
@@ -156,7 +161,8 @@ Teams %>% filter(yearID %in% 1961:2001) %>%
 The qq-plots confirm that the normal approximation holds:
 
 ```{r hr-by-runs-qq, out.width="100%"}
-Teams %>% filter(yearID %in% 1961:2001 ) %>%
+Teams %>%
+  filter(yearID %in% 1961:2001 ) %>%
   mutate(z_HR = round((HR - mean(HR))/sd(HR)), 
          R_per_game = R/G) %>%
   filter(z_HR %in% -2:3) %>%
@@ -182,8 +188,9 @@ summary_stats
 and use the formulas given above to create the regression lines:
 
 ```{r hr-versus-runs-regression}
-reg_line <- summary_stats %>% summarize(slope = r*s_R/s_HR,
-                            intercept = avg_R - slope*avg_HR)
+reg_line <- summary_stats %>%
+  summarize(slope = r*s_R/s_HR,
+            intercept = avg_R - slope*avg_HR)
 
 p + geom_abline(intercept = reg_line$intercept, slope = reg_line$slope)
 ```
@@ -194,6 +201,6 @@ Soon we will learn R functions, such as `lm`, that make fitting regression lines
 p + geom_smooth(method = "lm")
 ```
 
-In the example above, the slope is `r reg_line$slope`. So this tells us that teams that hit 1 more HR per game than the average team, score `r reg_line$slope` more runs per game than the average team. Given that the most common final score is a difference of a run, this can certainly lead to a large increase in wins. Not surprisingly, HR hitters are very expensive. Because we are working on a budget, we will need to find some other way to increase wins. So in the next section we move our attention to BB.
+In the example above, the slope is `r reg_line$slope`. This tells us that teams that hit 1 more HR per game than the average team, score `r reg_line$slope` more runs per game than the average team. Given that the most common final score is a difference of a run, this can certainly lead to a large increase in wins. Not surprisingly, HR hitters are very expensive. Because we are working on a budget, we will need to find some other way to increase wins. So in the next section we move our attention to BB.
 
 

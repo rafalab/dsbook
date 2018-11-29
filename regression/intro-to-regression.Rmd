@@ -34,7 +34,8 @@ galton_heights %>%
 However, this summary fails to describe an important characteristic of the data: the trend that the taller the father, the taller the son. 
 
 ```{r scatterplot}
-galton_heights %>% ggplot(aes(father, son)) + 
+galton_heights %>%
+  ggplot(aes(father, son)) + 
   geom_point(alpha = 0.5)
 ```
 
@@ -61,7 +62,7 @@ $$
 $$
 A similar derivation, but with $x$ and its exact opposite, proves the correlation has to be bigger or equal to -1.
 
-So, for example, the correlation between a variable and itself is 1 and the correlation between a variable and its negative is -1.  For other pairs, the correlation is in between -1 and 1. The correlation between father and son's heights is about 0.5:
+For example, the correlation between a variable and itself is 1, and the correlation between a variable and its negative is -1.  For other pairs, the correlation is in between -1 and 1. The correlation between father and son's heights is about 0.5:
 
 ```{r}
 galton_heights %>% summarize(r = cor(father, son))
@@ -141,7 +142,8 @@ If you increase $N$, you will see the distribution converging to normal.
 Correlation is not always a good summary of the relationship between two variables. The following four artificial datasets, referred to as Anscombe's quartet, famously illustrate this point. All these pairs have a correlation of 0.82:
 
 ```{r ascombe-quartet,echo=FALSE, out.width="100%"}
-anscombe %>% mutate(row = seq_len(n())) %>%
+anscombe %>%
+  mutate(row = seq_len(n())) %>%
   gather(name, value, -row) %>% 
   separate(name, c("axis", "group"), sep=1) %>%
   spread(axis, value) %>% select(-row) %>%
@@ -183,13 +185,14 @@ conditional_avg
 ```
 
 
-Note that a 72 inch father is taller than average. Specifically, (72 - `r mean(galton_heights$father)`/`sd(galton_heights$father)` =
+Note that a 72 inch father is taller than average. Specifically, that is (72 -  `mean(galton_heights$father)`/`sd(galton_heights$father)` =
 `r (72 -mean(galton_heights$father))/sd(galton_heights$father)` standard deviations taller than the average father. Our prediction `r conditional_avg` is also taller than average, but only `r (conditional_avg - mean(galton_heights$son)) /sd(galton_heights$son)` standard deviations larger than the average son. The sons of 72 inch fathers have _regressed_ some to the average height. We notice that the reduction in how much taller is about 0.5, which happens to be the correlation. As we will see in a later section, this is not a coincidence.
 
 If we want to make a prediction of any height, not just 72, we could apply the same approach to each strata. Stratification followed by boxplots lets us see the distribution of each group:
 
 ```{r boxplot-1}
-galton_heights %>% mutate(father_strata = factor(round(father))) %>% 
+galton_heights %>%
+  mutate(father_strata = factor(round(father))) %>% 
   ggplot(aes(father_strata, son)) + 
   geom_boxplot() + 
   geom_point()
@@ -350,11 +353,13 @@ colnames(sim_data) <- c("r","x","y")
 as.data.frame(sim_data) %>% ggplot(aes(x,y)) +facet_wrap(~r) + geom_point() +geom_vline(xintercept = 0,lty=2) + geom_hline(yintercept = 0,lty=2) 
 ```
 
-A more technical way to define the bivariate normal distribution is the following: if $X$ is a normally distributed random variable, $Y$ is also a normally distributed random variable, and for any stratum of $X$, say $X=x$, $Y$ is approximately normal in that stratum, then the pair is approximately bivariate normal. 
+A more technical way to define the bivariate normal distribution is the following: if $X$ and $Y$ are each normally distributed random variables, and for any stratum of $X$ ($X=x$), $Y$ is approximately normal in that stratum, then the pair $(X,Y)$ is approximately bivariate normal. 
 
 When we fix $X=x$ in this way, we then refer to the resulting distribution of the $Y$s in the strata as the _conditional distribution_ of $Y$ given $X=x$. We can write it using mathematical notation like this:
 
-$$ f_{Y \mid X=x} \mbox{ is the notation for conditional distribution and } \mbox{E}(Y \mid X=x) \mbox{ is the notation for conditional expected value.}$$
+$$ f_{Y \mid X=x} \mbox{ is the notation for conditional distribution and}$$
+
+$$\mbox{E}(Y \mid X=x) \mbox{ is the notation for conditional expected value.}$$
 
 If we think the height data is well approximated by the bivariate normal distribution, then we should see the normal approximation hold for each strata. Here we stratify the son heights by the standardized father heights and see that the assumption appears to hold:
 
@@ -373,7 +378,7 @@ $$
 \mbox{E}(Y | X=x) = \mu_Y +  \rho \frac{X-\mu_X}{\sigma_X}\sigma_Y
 $$
 
-This is the regression line, with slope $$\rho \frac{\sigma_Y}{\sigma_X}$$ and intercept $\mu_y - m\mu_X$. It is equivalent to the line we saw earlier:
+This is the regression line, with slope $\rho \frac{\sigma_Y}{\sigma_X}$ and intercept $\mu_y - m\mu_X$. It is equivalent to the line we saw earlier:
 
 $$
 \frac{\mbox{E}(Y \mid X=x)  - \mu_Y}{\sigma_Y} = \rho \frac{x-\mu_X}{\sigma_X}
@@ -391,11 +396,11 @@ $$
 \mbox{SD}(Y \mid X=x ) = \sigma_Y \sqrt{1-\rho^2} 
 $$
 
-To see why this is intuitive, notice that without conditioning, $\mbox{SD}(Y) = \sigma_Y$, we are looking at the variability of all the sons. But once we condition, we are only looking at the variability of the sons with a tall, 72 inch, father. This group will all tend to be somewhat tall so the standard deviation is reduced. 
+To see why this is intuitive, notice that without conditioning ($\mbox{SD}(Y) = \sigma_Y$), we are looking at the variability of all the sons. But once we condition, we are only looking at the variability of the sons with a tall, 72 inch, father. This group will all tend to be somewhat tall so the standard deviation is reduced. 
 
 Specifically, it is reduced to $\sqrt{1-\rho^2} = \sqrt{1 - 0.25}$ = 0.86 of what it was originally. We could say that the fathers height "explains" 14% of the sons height variability. 
 
-The statement '$X$ explains such and such percent of the variability' is commonly used in academic papers. In this case, this percent actually refers to the variance (the SD squared). So if the data is bivariate normal, the variance is reduced by $1-\rho^2$, so we say that $X$ explains $1- (1-\rho^2)=\rho^2$ (the correlation squared) of the variance. 
+The statement "$X$ explains such and such percent of the variability" is commonly used in academic papers. In this case, this percent actually refers to the variance (the SD squared). If the data is bivariate normal, the variance is reduced by $1-\rho^2$, so we say that $X$ explains $1- (1-\rho^2)=\rho^2$ (the correlation squared) of the variance. 
 
 But it is important to remember that the "variance explained" statement only makes sense when the data is approximated by a bivariate normal distribution.
 
@@ -425,7 +430,7 @@ m_2 <-  r * s_x / s_y
 b_2 <- mu_x - m_2*mu_y
 ```
 
-So we get $\mbox{E}(X \mid Y=y) =$ `r b_2` + `r m_2`y. Again we see regression to the average: the prediction for the father is closer to the father average than the son heights $y$ is to the son average.
+We get $\mbox{E}(X \mid Y=y) =$ `r b_2` + `r m_2`y. Again we see regression to the average: the prediction for the father is closer to the father average than the son heights $y$ is to the son average.
 
 Here is a plot showing the two regression lines:
 
