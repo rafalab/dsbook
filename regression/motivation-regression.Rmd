@@ -26,9 +26,9 @@ h %>% html_nodes("table") %>% .[[i]] %>% html_table(header = TRUE) %>%
 
 ## Sabermetics
 
-Statistics have been used in baseball since its beginnings. The dataset we will be using, included in the __Lahman__ library, goes back to the 19th century. For example, a summary statistics we will describe soon, the _batting average_, has been used for decades to summarize a batter's success. [Other statistics](http://mlb.mlb.com/stats/league_leaders.jsp) such as home runs (HR), runs batted in (RBI), and stolen bases (SB) are reported for each player in the game summaries included in the sports section of newspapers, with players rewarded for high numbers. Although summary statistics such as these were widely used in baseball, data analysis per se was not. These statistics were arbitrarily decided on without much thought as to whether they actually predicted anything or were related to helping a team win.
+Statistics have been used in baseball since its beginnings. The dataset we will be using, included in the __Lahman__ library, goes back to the 19th century. For example, a summary statistic we will describe soon, the _batting average_, has been used for decades to summarize a batter's success. [Other statistics](http://mlb.mlb.com/stats/league_leaders.jsp) such as home runs (HR), runs batted in (RBI), and stolen bases (SB) are reported for each player in the game summaries included in the sports section of newspapers, with players rewarded for high numbers. Although summary statistics such as these were widely used in baseball, data analysis per se was not. These statistics were arbitrarily chosen without much thought as to whether they actually predicted anything or were related to helping a team win.
 
-This changed with [Bill James](https://en.wikipedia.org/wiki/Bill_James). In the late 1970s, this aspiring writer and baseball fan started publishing articles describing more in-depth analysis of baseball data. He named the approach of using data to predict what outcomes best predicted if a team would win [_sabermetrics_](https://en.wikipedia.org/wiki/Sabermetrics). Until Billy Beane made sabermetrics the center of his baseball operation, Bill James' work was mostly ignored by the baseball world. Currently, sabermetrics popularity is no longer limited to just baseball; other sports have started to use this approach as well.
+This changed with [Bill James](https://en.wikipedia.org/wiki/Bill_James). In the late 1970s, this aspiring writer and baseball fan started publishing articles describing more in-depth analysis of baseball data. He named the approach of using data to predict what outcomes best predicted if a team would win [_sabermetrics_](https://en.wikipedia.org/wiki/Sabermetrics). Until Billy Beane made sabermetrics the center of his baseball operation, Bill James' work was mostly ignored by the baseball world. Currently, sabermetrics' popularity is no longer limited to just baseball; other sports have started to use this approach as well.
 
 
 In this chapter, to simplify the exercise, we will focus on scoring runs and ignore the two other important aspects of the game: pitching and fielding. We will see how regression analysis can help develop strategies to build a competitive baseball team with a constrained budget. The approach can be divided into two separate data analyses. In the first, we determine which recorded player-specific statistics predict runs. In the second, we examine if players were undervalued based on what our first analysis predicts. 
@@ -49,16 +49,16 @@ knitr::include_graphics("regression/img/Baseball_Diamond1.png")
 ```
 (Source: [Wikipedia Commons](https://commons.wikimedia.org/wiki/File:Baseball_diamond_simplified.svg))
 
-A batter who _goes around the bases_ and arrives home, scores a run. 
+A batter who _goes around the bases_ and arrives home, scores a _run_. 
 
 
 We are simplifying a bit, but there are five ways a batter can succeed, that is not make an out: 
 
-- Bases on balls (BB) - the pitcher fails to throw the ball through a predefined area considered to be hittable (the strikezone), so the batter is permitted to go to first base.
-- Single - Batter hits the ball and gets to first base.
-- Double (X2B) - Batter hits the ball and gets to second base.
-- Triple  (X3B) - Batter hits the ball and gets to third base.
-- Home Run (HR) - Batter hits the ball and goes all the way home and scores a run. 
+- _Bases on balls (BB)_ - the pitcher fails to throw the ball through a predefined area considered to be hittable (the strikezone), so the batter is permitted to go to first base.
+- _Single (X1B)_ - Batter hits the ball and gets to first base.
+- _Double (X2B)_ - Batter hits the ball and gets to second base.
+- _Triple  (X3B)_ - Batter hits the ball and gets to third base.
+- _Home Run (HR)_ - Batter hits the ball and goes all the way home and scores a run. 
 
 [Here](https://www.youtube.com/watch?v=xYxSZJ9GZ-w) is an example of a HR.
   
@@ -75,13 +75,13 @@ knitr::include_graphics("regression/img/JumboTron.png")
 
 (Source: [John Vennavally-Rao](https://twitter.com/jvrCTV/status/640230776806768640))
 
-Historically, the _batting average_ has been considered the most important offensive statistic. To define this average, we define a _hit_ (H) and an _at bat_ (AB). Singles, doubles, triples and home runs are hits. The fifth way to be successful, BB, is not a hit. An AB is the number of times you either get a hit or make an out; BBs are excluded. The batting average is simply H/AB and is considered the main measure of a success rate. Today this success rate ranges from 20% to 38%. We refer to the batting average in thousands so, for example, if your success rate is 25%, we call it _batting 250_.
+Historically, the _batting average_ has been considered the most important offensive statistic. To define this average, we define a _hit (H)_ and an _at bat (AB)_. Singles, doubles, triples and home runs are hits. The fifth way to be successful, BB, is not a hit. An AB is the number of times you either get a hit or make an out; BBs are excluded. The batting average is simply H/AB and is considered the main measure of a success rate. Today this success rate ranges from 20% to 38%. We refer to the batting average in thousands: for example, if your success rate is 25%, that is represented as an average of .250 and called _batting 250_.
 
 One of Bill James' first important insights is that the batting average ignores BB, but a BB is a success.  He proposed we use the _on base percentage_ (OPB) instead of batting average. He defined OBP as (H+BB)/(AB+BB) which is simply the proportion to plate appearances that don't result in an out, a very intuitive measure. He noted that a player that gets many more BB than the average player might not be recognized if the batter does not excel in batting average. But is this player not helping produce runs? No award is given to the player with the most BB. However, bad habits are hard to break and baseball did not immediately adopt OPB as an important statistic. In contrast, total stolen bases were considered important and an [award](http://www.baseball-almanac.com/awards/lou_brock_award.shtml) given to the player with the most. But players with high totals of SB, also made more outs as they did not always succeed. Does a player with high SB total help produce runs? Can we use data science to determine if it's better to pay for BB or SB? 
 
 ## Base on Ball or Stolen Bases?
 
-One of the challenges in this analysis is that it is not obvious how to determine if a player produces runs because so much depends on his teammates. We do keep track of the number of runs scored by a player. However, remember that if a player X bats right before someone who hits many HRs, batter X will score many runs. But these runs don't necessarily happen if we hire player X but not his HR hitting teammate.  However, we can examine team-level statistics. How do teams with many SB compare to teams with few? How about BB? We have data! Let's examine some. 
+One of the challenges in this analysis is that it is not obvious how to determine if a player produces runs because so much depends on his teammates. We do keep track of the number of runs scored by a player. However, remember that if a player X bats right before someone who hits many HRs, batter X will score many runs. But these runs don't necessarily happen if we hire player X but not his HR-hitting teammate.  However, we can examine team-level statistics. How do teams with many SB compare to teams with few? How about BB? We have data! Let's examine some. 
 
 Let's start with an obvious one: HRs. Do teams that hit more home runs score more runs? We examine data from 1961 to 2001. The visualization of choice when exploring the relationship between two variables, such as HRs and wins, is a scatterplot:
 
@@ -125,7 +125,7 @@ Teams %>% filter(yearID %in% 1961:2001 ) %>%
 
 We know that HR cause runs because, as the name implies, when a player hits a HR they are guaranteed at least one run. Could it be that HRs also cause BB and this makes it appear as if BB cause runs? When this happens we say there is _confounding_, an important concept we will learn more about throughout this chapter.
 
-Linear regression will help us parse all this out and quantify the associations. This will then help us determine what players to recruit. Specifically, we will try to predict things like how many more runs will a team score if we increase the number of BBs, but keep the HRs fixed? Regression will help us answer questions like this one.
+Linear regression will help us parse all this out and quantify the associations. This will then help us determine what players to recruit. Specifically, we will try to predict things like: how many more runs will a team score if we increase the number of BBs, but keep the HRs fixed? Regression will help us answer questions like this one.
 
 
 ## Regression applied to baseball statistics
@@ -188,7 +188,7 @@ reg_line <- summary_stats %>% summarize(slope = r*s_R/s_HR,
 p + geom_abline(intercept = reg_line$intercept, slope = reg_line$slope)
 ```
 
-Soon we will learn R functions, such as `lm`, that make fitting regression lines much easier. Another example is the __ggplot2__ function `geom_smooth` which computes and adds a regression line to plot along with confidence intervals, which we also learn about later. We use the argument `method = "lm"` which stands for _linear model_, the title of an upcoming section. So we can simplify the code above like this:
+Soon we will learn R functions, such as `lm`, that make fitting regression lines much easier. Another example is the __ggplot2__ function `geom_smooth`, which computes and adds a regression line to plot along with confidence intervals, which we also learn about later. We use the argument `method = "lm"`, which stands for _linear model_, the title of an upcoming section where we learn more about the method. We can simplify the code above like this:
 
 ```{r  hr-versus-runs-regression-easy}
 p + geom_smooth(method = "lm")
