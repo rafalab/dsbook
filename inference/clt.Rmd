@@ -1,10 +1,10 @@
-# Central Limit Theorem in practice
+# Central Limit Theorem in practice {#clt}
 
 The CLT tells us that the distribution function for a sum of draws is approximately normal. We also learned that dividing a normally distributed random variable by a constant is also a normally distributed variable. This implies that the distribution of $\bar{X}$ is approximately normal. 
 
 In summary, we have that $\bar{X}$ has an approximately normal distribution with expected value $p$ and standard error $\sqrt{p(1-p)/N}$. 
 
-Now how does this help us? Suppose we want to know what is the probability that we are within 1% from $p$. We are basically asking if:
+Now how does this help us? Suppose we want to know what is the probability that we are within 1% from $p$. We are basically asking what is
 
 $$
 \mbox{Pr}(| \bar{X} - p| \leq .01)
@@ -48,29 +48,29 @@ Therefore, there is a small chance that we will be close. A poll of only $N=25$ 
 Earlier we mentioned the _margin of error_. Now we can define it because it is simply two times the standard error, which we can now estimate. In our case it is:
 
 ```{r}
-2*se
+1.96*se
 ```
 
-Why do we multiply by 2? Because if you ask what is the probability that we are within two standard errors from $p$, we get:
+Why do we multiply by 1.96? Because if you ask what is the probability that we are within 1.96 standard errors from $p$, we get:
 
 $$
-\mbox{Pr}\left(Z \leq \, 2\mbox{SE}(\bar{X})  / \mbox{SE}(\bar{X}) \right) -
-\mbox{Pr}\left(Z \leq - 2 \mbox{SE}(\bar{X}) / \mbox{SE}(\bar{X}) \right) 
+\mbox{Pr}\left(Z \leq \, 1.96\,\mbox{SE}(\bar{X})  / \mbox{SE}(\bar{X}) \right) -
+\mbox{Pr}\left(Z \leq - 1.96\, \mbox{SE}(\bar{X}) / \mbox{SE}(\bar{X}) \right) 
 $$
 which is:
 
 $$
-\mbox{Pr}\left(Z \leq 2 \right) -
-\mbox{Pr}\left(Z \leq - 2\right) 
+\mbox{Pr}\left(Z \leq 1.96 \right) -
+\mbox{Pr}\left(Z \leq - 1.96\right) 
 $$
 
 which we know is about 95\%:
 
 ```{r}
-pnorm(2)-pnorm(-2)
+pnorm(1.96)-pnorm(-1.96)
 ```
 
-Hence, there is a 95% probability that $\bar{X}$ will be within $2\times \hat{SE}(\bar{X})$, in our case `r round(2*se)`, to $p$. Note that 95% is somewhat of an arbitrary choice and sometimes other percentages are used, but it is the most commonly used value to define _margin of error_. 
+Hence, there is a 95% probability that $\bar{X}$ will be within $1.96\times \hat{SE}(\bar{X})$, in our case `r round(1.96*se)`, to $p$. Note that 95% is somewhat of an arbitrary choice and sometimes other percentages are used, but it is the most commonly used value to define _margin of error_. We often round 1.96 up to 2 for simplicity of presentation.
 
 In summary, the CLT tells us that our poll based on a sample size of $25$ is not very useful. We don't really learn much when the margin of error is this large. All we can really say is that the popular vote will not be won by a large margin. This is why pollsters tend to use larger sample sizes. 
 
@@ -85,9 +85,9 @@ Suppose we want to use a Monte Carlo simulation to corroborate the tools we have
 ```{r, eval=FALSE}
 B <- 10000
 N <- 1000
-Xhat <- replicate(B, {
-  X <- sample(c(0,1), size=N, replace=TRUE, prob=c(1-p, p))
-  mean(X)
+x_hat <- replicate(B, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  mean(x)
 })
 ```
 
@@ -99,17 +99,17 @@ One thing we therefore do to corroborate theoretical results is to pick one or s
 p <- 0.45
 N <- 1000
 
-X <- sample(c(0,1), size=N, replace=TRUE, prob=c(1-p, p))
-Xhat <- mean(X)
+x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+x_hat <- mean(x)
 ```
 
 In this particular sample, our estimate is `Xhat`. We can use that code to do a Monte Carlo simulation:
 
 ```{r}
 B <- 10000
-Xhat <- replicate(B, {
-  X <- sample(c(0,1), size=N, replace=TRUE, prob=c(1-p, p))
-  mean(X)
+x_hat <- replicate(B, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  mean(x_hat)
 })
 ```
 
@@ -122,7 +122,7 @@ sd(Xhat)
 
 A histogram and qq-plot confirm that the normal approximation is accurate as well:
 
-```{r normal-approximation-for-polls, echo=FALSE, warning=FALSE, out.width="100%"}
+```{r normal-approximation-for-polls, echo=FALSE, warning=FALSE, out.width="100%", fig.height=3}
 library(gridExtra)
 p1 <- data.frame(Xhat=Xhat) %>% 
   ggplot(aes(Xhat)) + 
@@ -149,14 +149,11 @@ For our 25 sample above, our estimate $p$ is `.48` with margin of error `.20` an
 
 For realistic values of $p$, say from 0.35 to 0.65, if we run a very large poll with 100,000 people, theory tells us that we would predict the election perfectly since the largest possible margin of error is around 0.3\%. Here are the calculations:
 
-```{r standard-error-versus-p}
+```{r standard-error-versus-p, echo=FALSE}
 N <- 100000
 p <- seq(0.35, 0.65, length = 100)
 SE <- sapply(p, function(x) 2*sqrt(x*(1-x)/N))
-
-data.frame(p=p, SE = SE) %>% 
-  ggplot(aes(p, SE)) + 
-  geom_line()
+qplot(p, SE, geom = "line")
 ``` 
 
 One reason is that running such a poll is very expensive. Another possibly more important reason is that theory has its limitations. Polling is much more complicated than picking beads from an urn. Some people might lie to pollsters and others might not have phones. But perhaps the most important way an actual poll differs from an urn model is that we actually don't know for sure who is in our population and who is not. How do we know who is going to vote? Are we reaching all possible voters? Hence, even if our margin of error is very small, it might not be exactly right that our expected value is $p$. We call this bias. Historically, we observe that polls are indeed biased, although not by that much. The typical bias appears to be about 1-2%. This makes election forecasting a bit more interesting and we will talk about how to model this in a later chapter.
@@ -165,29 +162,37 @@ One reason is that running such a poll is very expensive. Another possibly more 
 
 1. Write an _urn model_ function that takes the proportion of Democrats $p$ and the sample size $N$ as arguments and returns the sample average if Democrats are 1s and Republicans are 0s. Call the function `take_sample`. 
 
-2. Now assume `p <- 0.45` and that your sample size is $N=100$. Take a sample of $N = 100$ observations, repeat that 10,000 times and save the vector of `mean(X)- p` into an object called `errors`. Hint: use the function you wrote for exercise 1 to write this in one line of code.
+2. Now assume `p <- 0.45` and that your sample size is $N=100$. Take a sample 10,000 times and save the vector of `mean(X) - p` into an object called `errors`. Hint: use the function you wrote for exercise 1 to write this in one line of code.
 
 
-3. Vector `errors` contains, for each simulated sample, the difference between the actual $p$ and our estimate $\bar{X}$. We refer to this difference as the _error_. Compute the average and make a histogram of the errors generated in the Monte Carlo simulation and select which of the following best describes their distributions:
+3. The vector `errors` contains, for each simulated sample, the difference between the actual $p$ and our estimate $\bar{X}$. We refer to this difference as the _error_. Compute the average and make a histogram of the errors generated in the Monte Carlo simulation and select which of the following best describes their distributions:
 
-```{r, eval=FALSE}
-mean(errors)
-hist(errors)
-```
+    ```{r, eval=FALSE}
+    mean(errors)
+    hist(errors)
+    ```
+    
+    A. The errors are all about 0.05.
+    
+    B. The error are all about -0.05.
+    
+    C. The errors are symmetrically distributed around 0.
+    
+    D. The errors range from -1 to 1.
 
 
-4. The error $\bar{X}-p$ is a random variable. In practice, the error is not observed because we do not know $p$. Here we observe it because we constructed the simulation. What we can do in practice is describe the size of the error. What is the average size of the error if we define the size by taking the absolute value $\mid \bar{X} - p \mid$ ?
+4. The error $\bar{X}-p$ is a random variable. In practice, the error is not observed because we do not know $p$. Here we observe it because we constructed the simulation.  What is the average size of the error if we define the size by taking the absolute value $\mid \bar{X} - p \mid$ ?
 
 
-5. The standard error is related to the value we just computed. It is related to the typical **size** of the error we make when predicting. We say **size** because we just saw that the errors are centered around 0, so in that sense the typical error is 0. For mathematical reasons related to the central limit theorem, we actually use the standard deviation of `errors` rather than the average of the absolute values. As we have discussed, the standard error is the squared root of the average squared distance $(\bar{X} - p)^2$. What is this standard deviation, defined as the squared root of the distance squared?
+5. The standard error is related to the typical **size** of the error we make when predicting. We say **size** because we just saw that the errors are centered around 0, so thus the averate error value 0. For mathematical reasons related to the Central Limit Theorem, we actually use the standard deviation of `errors` rather than the average of the absolute values to quantify the typical size. What is this standard deviation of the errors?
 
-6. The theory we just learned tells us what this standard deviation is going to be because it is the standard error of $\bar{X}$. Generate a sample and create an estimate of the standard error of $\bar{X}$.
+6. The theory we just learned tells us what this standard deviation is going to be because it is the standard error of $\bar{X}$. What does theory tell us is the standard error of $\bar{X}$ for a sample size of 100.
 
 
 7. In practice, we don't know $p$, so we construct an estimate of the theoretical prediction based by plugging in $\bar{X}$ for $p$. Compute this estimate. Set the seed at 1 with `set.seed(1)`.
 
 
-8. Note how close the standard error estimates obtained from the Monte Carlo simulation (exercise 5), the theoretical prediction (exercise 6), and the estimate of the theoretical prediction (exercise 7) are. The theory is working and it gives us a practical approach to knowing the typical error we will make if we predict $p$ with $\hat{X}$. Another advantage that the theoretical result provides is that it gives an idea of how large a sample size is required to obtain the precision we need. Earlier we learned that the largest standard errors occur for $p=0.5$. Create a plot of the largest standard error for $N$ ranging from 100 to 5,000. Based on this plot, how large does the sample size have to be to have a standard error of about 1%?
+8. Note how close the standard error estimates obtained from the Monte Carlo simulation (exercise 5), the theoretical prediction (exercise 6), and the estimate of the theoretical prediction (exercise 7) are. The theory is working and it gives us a practical approach to knowing the typical error we will make if we predict $p$ with $\bar{X}$. Another advantage that the theoretical result provides is that it gives an idea of how large a sample size is required to obtain the precision we need. Earlier we learned that the largest standard errors occur for $p=0.5$. Create a plot of the largest standard error for $N$ ranging from 100 to 5,000. Based on this plot, how large does the sample size have to be to have a standard error of about 1%?
 
     A. 100
     
@@ -198,7 +203,7 @@ hist(errors)
     D. 4,000
 
 
-9. For $N=100$, the central limit theorem tells us that the distribution of $\hat{X}$ is:
+9. For sample size $N=100$, the central limit theorem tells us that the distribution of $\bar{X}$ is:
 
     A. practically equal to $p$.
     
@@ -209,7 +214,7 @@ hist(errors)
     D. not a random variable.
     
 
-10. Based on the answer from exercise 8, errors $\bar{X} - p$ are:
+10. Based on the answer from exercise 8, the error $\bar{X} - p$ is:
 
     A. practically equal to 0.
     

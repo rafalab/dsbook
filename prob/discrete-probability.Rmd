@@ -6,7 +6,7 @@ We start by covering some basic principles related to categorical data. The subs
 
 The word probability is used in everyday language. Answering questions about probability is often hard, if not impossible. Here we discuss a mathematical definition of _probability_ that does permit us to give precise answers to certain questions. 
 
-For example, if I have 2 red beads and 3 blue beads inside an urn and I pick one at random, what is the probability of picking a red one? Our intuition tells us that the answer is 2/5 or 40%. A precise definition can be given by noting that there are five possible outcomes of which two satisfy the condition necessary for the event "pick a red bead". Since each of the five outcomes has the same chance of occurring, we conclude that the probability is .4 for red and .6 for blue. 
+For example, if I have 2 red beads and 3 blue beads inside an [urn](https://en.wikipedia.org/wiki/Urn_problem) (most probability books use this archaic term, so we do too) and I pick one at random, what is the probability of picking a red one? Our intuition tells us that the answer is 2/5 or 40%. A precise definition can be given by noting that there are five possible outcomes of which two satisfy the condition necessary for the event "pick a red bead". Since each of the five outcomes has the same chance of occurring, we conclude that the probability is .4 for red and .6 for blue. 
 
 A more tangible way to think about the probability of an event is as the proportion of times the event occurs when we repeat the experiment over and over, independently, and under the same conditions. 
 
@@ -34,7 +34,7 @@ and then use `sample` to pick a bead at random:
 sample(beads, 1)
 ```
 
-This line of code produces one random outcome. We want to repeat this experiment "over and over", but it is impossible to repeat forever. Instead, we repeat the experiment a large enough number of times to make the results practically equivalent. This is an example of a _Monte Carlo_ simulation. 
+This line of code produces one random outcome. We want to repeat this experiment "over and over", but it is impossible to repeat forever. Instead, we repeat the experiment a large enough number of times to make the results practically equivalent to repeating for ever. **This is an example of a _Monte Carlo_ simulation**. 
 
 Much of what mathematical and theoretical statisticians study, which we do not cover in this book, relates to providing rigorous definitions of "practically equivalent" as well as studying how close a large number of experiments gets us to what happens in the limit. Later in this section, we provide a practical approach to deciding what is "large enough".
 
@@ -67,7 +67,7 @@ Although this is a simple and not very useful example, we will use Monte Carlo s
 Before we continue, we will briefly explain the following important line of code:
 
 ```{r}
-set.seed(1) 
+set.seed(1986) 
 ```
 
 Throughout this book, we use random number generators. This implies that many of the results presented can actually change by chance, which then suggests that a frozen version of the book may show a different result than what you obtain when you try to code as shown in the book. This is actually fine since the results are random and change from time to time. However, if you want to to ensure that results are exactly the same every time you run them, you can set R's random number generation seed to a specific number. Above we set it to 1. 
@@ -98,8 +98,7 @@ sample(beads, 6)
   cannot take a sample larger than the population when 'replace = FALSE'`
 
 However, the `sample` function can be used directly, without the use of `replicate`, to repeat the same experiment of picking 1 out of the 5 beads, continually, under the same conditions. To do this, we sample _with replacement_: return the bead back to the urn after selecting it. 
-
-We can tell `sample` to do this changing the `replace` argument, which defaults to `FALSE`, to `replace=TRUE`:
+We can tell `sample` to do this changing the `replace` argument, which defaults to `FALSE`, to `replace = TRUE`:
 
 ```{r}
 events <- sample(beads, B, replace = TRUE)
@@ -115,16 +114,20 @@ Defining a distribution for categorical outcomes is relatively straightforward. 
 If we are randomly calling likely voters from a population that is 44% Democrat, 44% Republican, 10% undecided and 2% Green Party, these proportions define the probability for each group. The probability distribution is:
 
 $$
-\mbox{Pr}(\mbox{picking a Republican})=0.44\\ \mbox{Pr}(\mbox{picking a Democrat})=0.44\\
+\mbox{Pr}(\mbox{picking a Republican})=0.44\\ 
+
+\mbox{Pr}(\mbox{picking a Democrat})=0.44\\
+
 \mbox{Pr}(\mbox{picking an undecided})=0.10\\
-\mbox{Pr}(\mbox{picking a Green})=0.02\\
+
+\mbox{Pr}(\mbox{picking a Green})=0.02
 $$
 
 ## Independence
 
 We say two events are independent if the outcome of one does not affect the other. The classic example are coin tosses. Every time we toss a fair coin, the probability of seeing heads is 1/2 regardless of what previous tosses have revealed. The same is true when we pick beads from an urn with replacement. In the example above, the probability of red is 0.40 regardless of previous draws. 
 
-Many examples of events that are not independent come from card games. When we deal the first card, the probability of getting a King is 1/13 since there are thirteen possibilities: Ace, Deuce, Three, $\dots$, Ten, Jack, Queen, King, and Ace. Now if we deal a King for the first card, and don't replace it into the deck, the probabilities of a second card being a King is less because there are only three Kings left: the probability is 3 out of 51. These events are therefore **not independent**. The first outcome affected the next one.
+Many examples of events that are not independent come from card games. When we deal the first card, the probability of getting a King is 1/13 since there are thirteen possibilities: Ace, Deuce, Three, $\dots$, Ten, Jack, Queen, King, and Ace. Now if we deal a King for the first card, and don't replace it into the deck, the probabilities of a second card being a King is less because there are only three Kings left: the probability is 3 out of 51. These events are therefore **not independent**: the first outcome affected the next one.
 
 To see an extreme case of non-independent events, consider our example of drawing five beads at random **without** replacement:
 
@@ -142,7 +145,7 @@ If you have to guess the color of the first bead, you will predict blue since bl
 x[2:5]
 ```
 
-would you still guess blue? Of course not. Now you know that the probability of red is 1. The events are not independent so the probabilities changes.
+would you still guess blue? Of course not. Now you know that the probability of red is 1 since the only beed left is red. The events are not independent so the probabilities changes.
 
 ## Conditional probabilities
 
@@ -191,7 +194,7 @@ But we have to be very careful before using this since assuming independence can
 
 As an example, imagine a court case in which the suspect was described as having a mustache and a beard. The defendant has a mustache and a beard and the prosecution brings in an "expert" to testify that 1/10 men have beards and 1/5 have mustaches so using the multiplication rule we conclude that only $1/10 \times 1/5$ or 0.02 have both. 
 
-But to multiply like this we need to assume independence! The conditional probability of a man having a mustache conditional on him having a beard is .95. So the correct calculation probability is much higher: 0.09.
+But to multiply like this we need to assume independence! The conditional probability of a man having a mustache conditional on him having a beard is .95. So the correct calculation probability is much higher: $1/10 \times 95/100 = 0.095$.
 
 The multiplication rule also gives us a general formula for computing conditional probabilities:
 
@@ -260,7 +263,7 @@ Notice that the order matters here: 3,1 is different than 1,3. Also, note that (
 
 Optionally, we can add a vector. So if you want to see five random seven digit phone numbers out of all possible phone numbers, you can type:
 
-```{r, eval=FALSE}
+```{r}
 all_phone_numbers <- permutations(10, 7, v = 0:9)
 n <- nrow(all_phone_numbers)
 index <- sample(n, 5)
@@ -324,8 +327,8 @@ So to compute the probability of a _Natural 21_ in Blackjack, we can do this:
 aces <- paste("Ace", suits)
 
 facecard <- c("King", "Queen", "Jack", "Ten")
-facecard <- expand.grid( number=facecard, suit=suits)
-facecard <- paste( facecard$number, facecard$suit)
+facecard <- expand.grid(number = facecard, suit = suits)
+facecard <- paste(facecard$number, facecard$suit)
 
 hands <- combinations(52, 2, v = deck)
 mean(hands[,1] %in% aces & hands[,2] %in% facecard)
@@ -481,7 +484,7 @@ This plot shows that the Monte Carlo simulation provided a very good estimate of
 
 ## How many Monte Carlo experiments are enough
 
-In the examples above, we used $B=$10,000 Monte Carlo experiments. It turns out that this provided very accurate estimates. But in more complex calculations, 10,000 may not nearly enough. Also, for some calculations, 10,000 experiments might not be computationally feasible. In practice, we won't know what the answer is so we won't know if our Monte Carlo estimate is accurate. We know that the larger $B$, the better the approximation. But how big do we need it to be? This is actually a challenging question and answering it often requires advanced theoretical statistics training. 
+In the examples above, we used $B=10,000$ Monte Carlo experiments. It turns out that this provided very accurate estimates. But in more complex calculations, 10,000 may not nearly enough. Also, for some calculations, 10,000 experiments might not be computationally feasible. In practice, we won't know what the answer is so we won't know if our Monte Carlo estimate is accurate. We know that the larger $B$, the better the approximation. But how big do we need it to be? This is actually a challenging question and answering it often requires advanced theoretical statistics training. 
 
 One practical approach we will describe here is to check for the stability of the estimate. The following is an example with the birthday problem for a group of 22 people. 
 
@@ -506,7 +509,7 @@ $$
 \mbox{Pr}(A \mbox{ or } B) = \mbox{Pr}(A) + \mbox{Pr}(B) - \mbox{Pr}(A \mbox{ and } B)
 $$
 
-This rule is intuitive: think of a Venn diagram. If we simply add the probabilities, we count the intersection twice.
+This rule is intuitive: think of a Venn diagram. If we simply add the probabilities, we count the intersection twice so we need to substract one instance.
 
 ```{r venn-diagram-addition-rule, echo=FALSE, warning=FALSE, message=FALSE}
 library(VennDiagram)
@@ -528,7 +531,7 @@ In the case of a Natural 21, the intersection is empty since both hands can't ha
 
 In the 1970s, there was a game show called "Let's Make a Deal" and Monty Hall was the host. At some point in the game, contestants were asked to pick one of three doors. Behind one door there was a prize. The other doors had a goat behind them to show the contestant they had lost. If the contestant did not pick the prize door on his or her first try, Monty Hall would open one of the two remaining doors and show the contestant there was no prize. Then he would ask "Do you want to switch doors?" What would you do?
 
-We can use probability to show that if you stick with the original door choice, your chances of winning a prize remain 1 in 3. However, if you switch to the other door, your chances of winning double to 2 in 3! This seems counterintuitive. Many people incorrectly think both chances are 1 in 2 since you are choosing between 2 options. You can watch a detailed explanation [here](https://www.khanacademy.org/math/precalculus/prob-comb/dependent-events-precalc/v/monty-hall-problem) or read one [here](https://en.wikipedia.org/wiki/Monty_Hall_problem). Below we use a Monte Carlo simulation to see which strategy is better. Note that this code is written longer than it should be for pedagogical purposes. 
+We can use probability to show that if you stick with the original door choice, your chances of winning a prize remain 1 in 3. However, if you switch to the other door, your chances of winning double to 2 in 3! This seems counterintuitive. Many people incorrectly think both chances are 1 in 2 since you are choosing between 2 options. You can watch a detailed mathematical explanation of why this is [here](https://www.khanacademy.org/math/precalculus/prob-comb/dependent-events-precalc/v/monty-hall-problem) or read one [here](https://en.wikipedia.org/wiki/Monty_Hall_problem). Below we use a Monte Carlo simulation to see which strategy is better. Note that this code is written longer than it should be for pedagogical purposes. 
 
 Let's start with the stick strategy:
 
@@ -536,7 +539,7 @@ Let's start with the stick strategy:
 B <- 10000
 stick <- replicate(B, {
   doors <- as.character(1:3)
-  prize <- sample(c("car","goat","goat"))
+  prize <- sample(c("car", "goat", "goat"))
   prize_door <- doors[prize == "car"]
   my_pick  <- sample(doors, 1)
   show <- sample(doors[!doors %in% c(my_pick, prize_door)],1)
@@ -546,14 +549,14 @@ stick <- replicate(B, {
 mean(stick)
 ```
 
-As we write the code, we note that the lines starting with `my_pick` and `show` have no influence on the last logical operation. From this we should realize that the chance is 1 in 3, what we began with.
+As we write the code, we note that the lines starting with `my_pick` and `show` have no influence on the last logical operation since we stick to our original choice anyway. From this we should realize that the chance is 1 in 3, what we began with.
 
 Now let's repeat the exercise, but consider the switch strategy:
 
 ```{r}
 switch <- replicate(B, {
   doors <- as.character(1:3)
-  prize <- sample(c("car","goat","goat"))
+  prize <- sample(c("car", "goat", "goat"))
   prize_door <- doors[prize == "car"]
   my_pick  <- sample(doors, 1)
   show <- sample(doors[!doors %in% c(my_pick, prize_door)], 1)
@@ -622,7 +625,7 @@ celtic_wins <- sample(c(0,1), 4, replace = TRUE, prob = c(0.6, 0.4))
     }
     ```
 
-    Use the function `sapply` to compute the probability, call it `Pr`, of winning for `p <- seq(0.5, 0.95, 0.025)`. Then plot the result `plot(p, prob).
+    Use the function `sapply` to compute the probability, call it `Pr`, of winning for `p <- seq(0.5, 0.95, 0.025)`. Then plot the result.
 
 13. Repeat the exercise above, but now keep the probability fixed at `p <- 0.75` and compute the probability for different series lengths: best of 1 game, 3 games, 5 games,... Specifically, `N <- seq(1, 25, 2)`. Hint: use this function:
 

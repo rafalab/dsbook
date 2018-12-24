@@ -2,7 +2,7 @@
 
 We have now described several data visualization techniques and are ready to learn how to create them in R. Throughout the book, we will be using the __[ggplot2](http://ggplot2.org)__ package. We can load it, along with __dplyr__, as part of the tidyverse:
 
-```{r, message=FALSE, echo=FALSE}
+```{r, message=FALSE}
 library(tidyverse)
 ```
 
@@ -12,15 +12,13 @@ One reason __ggplot2__ is generally more intuitive for beginners is that it uses
 
 Another reason __ggplot2__ makes it easier for beginners is that its default behavior is carefully chosen to satisfy the great majority of cases and is visually pleasing. As a result, it is possible to create informative and elegant graphs with relatively simple and readable code.
 
-One limitation is that __ggplot2__ is designed to work exclusively with data tables in which rows are observations and columns are variables. However, a substantial percentage of datasets that beginners work with are, or can be converted into, this format. An advantage of this approach is that, assuming that our data follows this format, it simplifies the code and learning the grammar. 
-
-## The cheat sheet
+One limitation is that __ggplot2__ is designed to work exclusively with data tables in which rows are observations and columns are variables. However, a substantial percentage of datasets that beginners work with are, or can be converted into, this format. An advantage of this approach is that, assuming that our data follows this format, it simplifies the code and the learning of the grammar. 
 
 To use __ggplot2__  you will have to learn several functions and arguments. These are hard to memorize so we highly recommend you have the a [ggplot2 sheet cheat](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) handy. You can get a copy here: [https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) or simply perform an internet search for "ggplot2 cheat sheet".
 
 ## The components of a graph
 
-We construct a graph that summarizes the US murders dataset:
+We will construct a graph that summarizes the US murders dataset that looks like this:
 
 ```{r ggplot-example-plot, echo=FALSE}
 library(dslabs)
@@ -51,18 +49,20 @@ This data visualization shows us pretty much all the information in the data tab
 
 The first step in learning __ggplot2__ is to be able to break a graph apart into components. Let's break down the plot above and introduce some of the __ggplot2__ terminology. The main three components to note are:
  
-1. __Data__: The US murders data table is being summarized. We refer to this as the __data__ component. 
-2. __Geometry__: The plot above is a scatterplot. This is referred to as the 
-__geometry__ component. Other possible geometries are barplot, histograms, smooth densities, qqplots, and boxplots. 
-3. __Aesthetic mapping__: The x-axis values are used to display population size, the y-axis values are used to display the total number of murders, text is used to identify the states, and colors are used to denote the four different regions. These are the __aesthetic mappings__ component. How we define the mapping depends on what __geometry__ we are using. 
+* __Data__: The US murders data table is being summarized. We refer to this as the __data__ component. 
+*  __Geometry__: The plot above is a scatterplot. This is referred to as the 
+__geometry__ component. Other possible geometries are barplot, histogram, smooth densities, qqplot, and boxplot. 
+* __Aesthetic mapping__: The plot uses several visual cues to represent the information provided by the dataset. The two most important cues in this plot are the point positions in the x-axis and y-axis, which represent population size and the total number of murders respectively. Each point represents a different observation which implies we need to _map_ the data to the visual cue. Color is another visual cue that represents region and also needs a map. We refer to this as the __aesthetic mappings__ component. How we define the mapping depends on what __geometry__ we are using. 
 
 We also note that:
 
-4. The range of the x-axis and y-axis appears to be defined by the range of the data. They are both on log-scales. We refer to this as the 
-__scale__ component. 
-5. There are labels, a title, a legend, and we use the style of The Economist magazine.
+* The points are labeled with the state abbreviations.
+* The range of the x-axis and y-axis appears to be defined by the range of the data. They are both on log-scales. 
+* There are labels, a title, a legend, and we use the style of The Economist magazine.
 
-We will now construct the plot piece by piece. We start by loading the dataset:
+We will now construct the plot piece by piece.
+
+We start by loading the dataset:
 
 ```{r}
 library(dslabs)
@@ -86,6 +86,10 @@ murders %>% ggplot()
 It renders a plot, in this case a blank slate, since no geometry has been defined. The only style choice we see is a grey background.
 
 What has happened above is that the object was created and, because it was not assigned, it was automatically evaluated. But we can define an object, for example, like this:
+
+```{r, echo=FALSE}
+theme_set(theme_grey()) ## to immitate what happens with seeting theme
+```
 
 ```{r}
 p <- ggplot(data = murders)
@@ -112,14 +116,9 @@ Taking a quick look at the cheat sheet, we see that the function used to create 
 
 ```{r, echo=FALSE}
 ##https://ugoproto.github.io/ugo_r_doc/img/visualization_cs/ggplot2-cheatsheeta.png
-knitr::include_graphics("dataviz/img/ggplot2-cheatsheeta.png")
-```
-
-(Source: [RStudio](https://ugoproto.github.io/ugo_r_doc/img/visualization_cs/ggplot2-cheatsheeta.png))
-
-```{r, echo=FALSE}
 ##https://ugoproto.github.io/ugo_r_doc/img/visualization_cs/ggplot2-cheatsheetb.png
-knitr::include_graphics("dataviz/img/ggplot2-cheatsheetb.png")
+knitr::include_graphics(c("dataviz/img/ggplot2-cheatsheeta.png",
+                          "dataviz/img/ggplot2-cheatsheetb.png"))
 ```
 
 (Source: [RStudio](https://ugoproto.github.io/ugo_r_doc/img/visualization_cs/ggplot2-cheatsheeta.png))
@@ -129,6 +128,7 @@ Geometry function names follow this pattern: `geom` and the name of the geometry
 
 For `geom_point` to know what to do, we need to provide data and a mapping. We have already connected the object `p` with the `murders` data table and, if we add as a layer `geom_point`, we will default to using this data. To find out what mappings are expected, we read the __Aesthetics__ section of the help file `geom_point` help file:
 
+```
 > Aesthetics
 > 
 > geom_point understands the following aesthetics (required aesthetics are in bold):
@@ -140,7 +140,7 @@ For `geom_point` to know what to do, we need to provide data and a mapping. We h
 > alpha
 >
 > colour
-
+```
 
 and, as expected, we see that at least two arguments are required `x` and `y`. 
  
@@ -193,7 +193,7 @@ is fine, whereas this call:
 p_test <- p + geom_text(aes(population/10^6, total), label = abb) 
 ```
 
-will give you an error since `abb` is not found once it is outside of the `aes` function. The layer `geom_text` does not know where to find `abb` since it is not a global variable.
+will give you an error since `abb` is not found because is outside of the `aes` function. The layer `geom_text` does not know where to find `abb` since it is not a global variable.
 
 ## Tinkering with arguments
  
@@ -207,14 +207,14 @@ p + geom_point(aes(population/10^6, total), size = 3) +
 
 `size` is __not__ a mapping, it affects all the points so we do not need to include it inside `aes`.
 
-Now that the points are larger, it is hard to see the labels. If we read the help file for `geom_text`, we see the `nudge_x` argument, which moves the text slightly to the right:
+Now becuase the points are larger, it is hard to see the labels. If we read the help file for `geom_text`, we see the `nudge_x` argument, which moves the text slightly to the right or to the left.
 
 ```{r ggplot-example-6}
 p + geom_point(aes(population/10^6, total), size = 3) +
   geom_text(aes(population/10^6, total, label = abb), nudge_x = 1)
 ```
 
-This is preferred as it makes it easier to read the text.
+This is preferred as it makes it easier to read the text. In Section \@ref(add-on-packages) we learn a better way of assuring we can see the points and the labels.
 
 ## Global versus local aesthetic mappings
 
@@ -230,7 +230,7 @@ If we define a mapping in `ggplot`, then all the geometries that are added as la
 p <- murders %>% ggplot(aes(population/10^6, total, label = abb))
 ```
 
-and then we can simply use code as follows:
+and then we can simply write the following code:
 
 ```{r ggplot-example-7}
 p + geom_point(size = 3) + 
@@ -246,7 +246,7 @@ p + geom_point(size = 3) +
   geom_text(aes(x = 10, y = 800, label = "Hello there!"))
 ```
 
-Clearly, the second call to `geom_text` does not use the `population` and `total`.
+Clearly, the second call to `geom_text` does not use `population` and `total`.
 
 
 ## Scales
@@ -263,7 +263,7 @@ p + geom_point(size = 3) +
 
 Because we are in the log-scale now, the _nudge_ must be made smaller.
 
-This particular transformation is so common that __ggplot2__ provides specialized functions:
+This particular transformation is so common that __ggplot2__ provide the specialized functions `scale_x_log10` and `scale_y_log10` which we can use to rewrite the code like this:
 
 ```{r, eval=FALSE}
 p + geom_point(size = 3) +  
@@ -311,17 +311,17 @@ p + geom_point(size = 3, color ="blue")
 
 This, of course, is not what we want. We want to assign color depending on the geographical region. A nice default behavior of __ggplot2__ is that if we assign a categorical variable to color, it automatically assigns a different color to each category. It also adds a legend! 
 
-To map each point to a color, we need to use `aes` since this is a mapping. We use the following code:
+To map each point to a color, we need to use `aes` since the choice of color is determined by each observation and this this is a mapping. We use the following code:
 
 ```{r ggplot-example-12}
 p + geom_point(aes(col=region), size = 3)
 ```
 
-The `x` and `y` mappings are inherited from those already defined in `p`. So we do not redefine them. We also move `aes` to the first argument since that is where the mappings are expected in this call.
+The `x` and `y` mappings are inherited from those already defined in `p`, so we do not redefine them. We also move `aes` to the first argument since that is where the mappings are expected in this call.
 
-Here we see yet another useful default behavior: __ggplot2__ has automatically added a legend that maps color to region. 
+Here we see yet another useful default behavior: __ggplot2__ has automatically added a legend that maps color to region. To avoid adding this legend we set the `geom_point` argument `show.legend = FALSE`. 
 
-## Annotation and shapes
+## Annotation, shapes, and adjustments
 
 We often want to add shapes or annotation to figures that are not derived directly from the aesthetic mapping; examples include labels, boxes, shaded areas and lines.
 
@@ -329,7 +329,8 @@ Here we want to add a line that represents the average murder rate for the entir
 
 ```{r}
 r <- murders %>% 
-  summarize(rate = sum(total) /  sum(population) * 10^6) %>% .$rate
+  summarize(rate = sum(total) /  sum(population) * 10^6) %>% 
+  .$rate
 ```
 
 To add a line we use the `geom_abline` function. __ggplot2__ uses `ab` in the name to remind us we are supplying the intercept (`a`) and slope (`b`). The default line has slope 1 and intercept 0 so we only have to define the intercept:
@@ -347,9 +348,7 @@ We can change the line type and color of the lines using arguments. Also, we dra
 p <- p + geom_abline(intercept = log10(r), lty = 2, color = "darkgrey") +
   geom_point(aes(col=region), size = 3)  
 ```
-Note that we redefined `p`.
-
-## Adjustments 
+Note that we have redefined `p` and used this new `p` below and in the next section.
 
 The default plots created by __ggplot2__ are already very useful. However, we frequently need to make minor tweaks to the default behavior. Although it is not always obvious how to make these even with the cheat sheet, __ggplot2__ is very flexible.
 
@@ -359,7 +358,7 @@ For example, we can make changes to the legend via the `scale_color_discrete` fu
 p <- p + scale_color_discrete(name = "Region") 
 ```
 
-## Add-on packages
+## Add-on packages {#add-on-packages}
 
 The power of __ggplot2__ is augmented further due to the availability of add-on packages.
 The remaining changes needed to put the finishing touches on our plot require the __ggthemes__ and __ggrepel__ packages.
@@ -390,11 +389,10 @@ Now that we are done testing, we can write one piece of code that produces our d
 library(ggthemes)
 library(ggrepel)
 
-### First define the slope of the line
 r <- murders %>% 
-  summarize(rate = sum(total) /  sum(population) * 10^6) %>% .$rate
+  summarize(rate = sum(total) /  sum(population) * 10^6) %>%
+  .$rate
 
-## Now make the plot
 murders %>% ggplot(aes(population/10^6, total, label = abb)) +   
   geom_abline(intercept = log10(r), lty = 2, color = "darkgrey") +
   geom_point(aes(col=region), size = 3) +
@@ -408,23 +406,30 @@ murders %>% ggplot(aes(population/10^6, total, label = abb)) +
   theme_economist()
 ```
 
-## Other geometries
+```{r, echo=FALSE}
+ds_theme_set()
+```
 
-Now let's try to make the summary plots we have described in this chapter.
+BEFORE HERE MOVES. AFTER, STAYS HERE.
+
+## Other geometries: histograms, density, and boxplot  {#other-geometries}
+
+Now let's make the summary plots we have described earlies using __ggplot2__.
 
 ### Histogram {-}
 
-Let's start with the histogram. First, we need to use __dplyr__ to filter the data:
+
+Let's start with the histogram. We will make a histogram for female heights. First, we need to use __dplyr__ to filter the data:
 
 ```{r, eval=FALSE}
-heights %>% filter(sex=="Male")
+heights %>% filter(sex == "Female")
 ```
 
 Once we have a dataset, the next step is deciding what geometry we need. If you guessed `geom_histogram`, you guessed correctly. By looking at the help file for this function, we learn that the only required argument is `x`, the variable for which we will construct a histogram. The code looks like this:
 
 ```{r ggplot-histogram}
 p <- heights %>% 
-  filter(sex=="Male") %>% 
+  filter(sex == "Female") %>% 
   ggplot(aes(x = height)) 
 
 p + geom_histogram()
@@ -465,8 +470,14 @@ To fill in with color, we can use the `fill` argument.
 p + geom_density(fill="blue")
 ```
 
+To change the smoothness of the density we use the `adjust` argument to mulitply the default value by that `adjust`. For example, if we want the bandwidth to be twice as big we use:
 
-### QQ-plots {-}
+
+```{r eval = FALSE}
+p + geom_density(fill="blue", adjust = 2)
+```
+
+### QQ-plots {-} 
 
 For qq-plots we use the `geom_qq` geometry. From the help file, we learn that we need to specify the `sample` (we will learn about samples in a later chapter). 
 
@@ -478,14 +489,14 @@ p + geom_qq()
 
 By default, the sample variable is compared to a normal distribution with average 0 and standard deviation 1. To change this, again from the help file, we use the `dparams` arguments. 
 
-```{r  ggplot-qq-dparams}
+```{r  ggplot-qq-dparams, eval=FALSE}
 params <- heights %>% filter(sex=="Male") %>%
   summarize(mean = mean(height), sd = sd(height))
 
 p  +  geom_qq(dparams = params)
 ```
 
-Adding an identity line is as simple as assigning another layer. For straight lines, we use the `geom_abline` function. To help you remember the name of this function, remember that the `ab` in front of `line` serves to remind us that we need to supply an intercept (a) and slope (b) to draw the line $y=a+bx$. The default is the identity `a=0` and `b=1`.
+Adding an identity line is as simple as assigning another layer. For straight lines, we use the `geom_abline` function. The default is the identity.
 
 ```{r ggplot-qq-with-line}
 p +  geom_qq(dparams = params) + 
@@ -494,7 +505,7 @@ p +  geom_qq(dparams = params) +
 
 Another option here is to scale the data first and then make a qqplot against the standard normal:
 
-```{r ggplot-qq-standard-units}
+```{r ggplot-qq-standard-units, eval=FALSE}
 heights %>% 
   filter(sex=="Male") %>%
   ggplot(aes(sample = scale(height))) + 
@@ -516,24 +527,20 @@ p3 <- p + geom_histogram(binwidth = 3, fill = "blue", col="black")
 
 To print them all side-by-side, we can use the function `grid.arrange` in the __gridExtra__ package:
 
-```{r gridextra-example,  out.width='100%'}
+```{r gridextra-example, out.width='100%', fig.height=3}
 library(gridExtra)
 grid.arrange(p1,p2,p3, ncol = 3)
 ```
 
 ## Quick plots with `qplot`
 
-```{r}
-library(tidyverse)
-library(dslabs)
-data(murders)
-```
 
 We have learned the powerful approach to generating visualization with ggplot. However, there are instances in which all we want is to make a quick plot of, for example, a histogram of the values in a vector, a scatter plot of the values in two vectors, or a boxplot using categorical and numeric vectors. We demonstrated how to generate these plots with `hist`, `plot`, and `boxplot`. However, if we want to keep consistent with the ggplot style, we can use the function `qplot`.
 
 So if we have values in a vector, say:
 
 ```{r}
+data(murders)
 x <- murders$population
 ```
 
@@ -563,7 +570,7 @@ Looking at the help file for the `qplot` function, we see several ways in which 
 qplot(x, bins=15, color = I("black"), xlab = "Population")
 ```
 
-The reason we use `I("black")` is because we want `qplot` to treat `"black"` as a character rather than convert it to a factor, which is the default behavior within `aes`, which is internally called here. In general, the function `I` is used in R to say "keep it as it is!".
+The reason we use `I("black")` is because we want `qplot` to treat `"black"` as a character rather than convert it to a factor, which is the default behavior within `aes`, which is internally called here. In general, the function `I` is used in R to say "keep it as it is".
 
 One convenient feature of `qplot` is that it guesses what plot we want. For example, if we call it with two variables we get a scatterplot
 
@@ -585,9 +592,9 @@ We can also explicitly ask for a geometry using the `geom` argument:
 qplot(f, y, geom = "boxplot")
 ```
 
-We can also explicitly tell `qplot` what dataset to use:
+If we want to use data in a data frame, we can also explicitly tell `qplot` what data to use:
 
-```{r qplot-example-6}
+```{r qplot-example-6, eval = FALSE}
 qplot(population, total, data = murders)
 ```
 
@@ -635,13 +642,13 @@ data(murders)
 
     Print the object `p` defined in exercise one and describe what you see.
 
-    A. Nothing happens
+    A. Nothing happens.
 
-    B. A blank slate plot
+    B. A blank slate plot.
     
-    C. A scatter plot
+    C. A scatter plot.
     
-    D. A histogram
+    D. A histogram.
 
    
 3. Using the pipe `%>%`, create an object `p` but this time associated with the `heights` dataset instead of the `murders` dataset. 
@@ -653,15 +660,13 @@ data(murders)
    
 5. Now we are going to add a layers and the corresponding aesthetic mappings. For the murders data we plotted total murders versus population sizes. Explore the `murders` data frame to remind yourself what are the names for these two variables and select the correct answer. __Hint__: Look at `?murders`.
 
+    A. `state` and `abb`.
 
-    A. `state` and `abb`
-
-    B. `total_murers` and `population_size`
+    B. `total_murers` and `population_size`.
     
-    C.  `total` and `population`
-
-    D. `murders` and `size`
-
+    C.  `total` and `population`.
+    
+    D. `murders` and `size`.
 
 6. To create the scatter plot we add a layer with `geom_point`. The aesthetic mappings require us to define the x-axis and y-axis variables respectively. So the code looks like this:
 
@@ -694,13 +699,13 @@ data(murders)
 
     Why is this?
 
-    A. We need to map a character to each point through the label argument in aes
+    A. We need to map a character to each point through the label argument in aes.
 
-    B. We need to let `geom_label` know what character to use in the plot
+    B. We need to let `geom_label` know what character to use in the plot.
   
     C. The `geom_label` geometry does not require  x-axis and y-axis values.
     
-    D. `geom_label` is not a ggplot2 command
+    D. `geom_label` is not a ggplot2 command.
 
 
 9. Rewrite the code above to  abbreviation as the label through `aes`
@@ -726,9 +731,9 @@ data(murders)
     
     B. Because each label needs a different color we map the colors through the color argument of `aes` .
 
-    C. Use the `color` argument in `ggplot`
+    C. Use the `color` argument in `ggplot`.
     
-    D. Because we want all colors to be blue, we do not need to map colors, just use the color argument in `geom_label`
+    D. Because we want all colors to be blue, we do not need to map colors, just use the color argument in `geom_label`.
 
 
 11. Rewrite the code above to make the labels' color be determined by the state's region.
@@ -736,17 +741,17 @@ data(murders)
 12. Now we are going to change the x-axis to a log scale to account for the fact the distribution of population is skewed. Let's start by define an object `p` holding the plot we have made up to now
 
     ```{r, eval=FALSE}
-    p <- murders %>% ggplot(aes(population, total, label = abb, color = region)) +
+    p <- murders %>% 
+      ggplot(aes(population, total, label = abb, color = region)) +
       geom_label() 
     ```
 
     To change the y-axis to a log scale we learned about the `scale_x_log10()` function. Add this layer to the object `p` to change the scale and render the plot
 
 
-13. Repeat the previous exercise but now change both axes to be in the log scale
+13. Repeat the previous exercise but now change both axes to be in the log scale.
 
 14. Now edit the code above to add the title "Gun murder data" to the plot. Hint: use the `ggtitle` function.
-
 
 15. Now we are going to use the `geom_histogram` function to make a histogram of the heights in the `height` data frame. When reading the documentation for this function we see that it requires just one mapping, the values to be used for the histogram. Make a histogram of all the plots. 
 
@@ -762,14 +767,14 @@ data(murders)
 
 16. Now create a ggplot object using the pipe to assign the heights data to a ggplot object an assign `height` to the x values through the `aes` function
 
-17. Now we are ready to add a layer to actually make the histogram. Use the object `p` you have just created and the `geom_histogram` function to make the histogram
+17. Now we are ready to add a layer to actually make the histogram. Use the object created in the previous exercise and the `geom_histogram` function to make the histogram.
 
 18. Note that when we run the code in the previous exercise we get the warning:
 `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.`
 
     Use the `binwidth` argument to change the histogram made in the previous exercise to use bins of size 1 inch. 
 
-19. Now instead of histogram we are going to make a smooth density plot. In this case we will not make a object. instead we will render the plot with one line of code. Change the code previous used
+19. Now instead of a histogram we are going to make a smooth density plot. In this case we will not make an object, instead we will render the plot with one line of code. Change the code previously used
 
     ```{r, eval=FALSE}
     heights %>% 
@@ -780,11 +785,11 @@ data(murders)
     to make a smooth density instead of a histogram.
 
 
-20. Now we are going to make a density plot for males and females separately. We can do this using any of the following arguments group. We do this through the aesthetic mapping as each point need to be assigned the calculation of a density.
+20. Now we are going to make a density plot for males and females separately. We can do this using any of the `group` argument. We assign groups via the aesthetic mapping as each point needs to a group before making the calculations needed to estimate a density.
 
-22. We can also assign groups through the `color` argument. This has the added benefit that it uses color to distinguish the groups. Change the code above to use color
+21. We can also assign groups through the `color` argument. This has the added benefit that it uses color to distinguish the groups. Change the code above to use color
 
-23. We can also assign groups through the `fill` argument. This has the added benefit that it uses color to distinguish the groups. Like this:
+22. We can also assign groups through the `fill` argument. This has the added benefit that it uses colors to distinguish the groups, like this:
 
 
     ```{r, eval=FALSE}
@@ -793,7 +798,7 @@ data(murders)
       geom_density() 
     ```
 
-    However, here the second density is drawn over the other. We can change this by using alpha blending. Set the alpha parameter to 0.2 in the geom_density function to make this change.
+    However, here the second density is drawn over the other. We can change this by using alpha blending. Set the alpha parameter to 0.2 in the `geom_density` function to make this change.
 
 
 

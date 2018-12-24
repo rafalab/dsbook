@@ -4,13 +4,13 @@ Earlier, we explained why when summarizing a list of numeric values, such as hei
 
 Just as when using distributions to summarize numeric data, it is much more practical to define a function that operates on intervals rather than single values. The standard way of doing this is using the _cumulative distribution functions_ (CDF).
 
-We previously described empirical cumulative distribution function (eCDF) as a basic summary of a list of numeric values. As an example, we earlier defined the height distribution for adult male students. Here, we define the vector $x$ to contain the male heights:
+We previously described empirical cumulative distribution function (eCDF) as a basic summary of a list of numeric values. As an example, we earlier defined the height distribution for adult male students. Here, we define the vector $x$ to contain these heights:
 
 ```{r,  message=FALSE}
 library(tidyverse)
 library(dslabs)
 data(heights)
-x <- heights %>% filter(sex=="Male") %>% .$height
+x <- heights %>% filter(sex=="Male") %>% pull(height)
 ```
 
 We defined the empirical distribution function as:
@@ -38,21 +38,21 @@ Because we can compute the probability for any possible event this way, the cumu
 
 ## Theoretical distribution 
 
-In the data visualization chapter, we introduced the normal distribution as a useful approximation to many naturally occurring distributions, including that of height. The cumulative distribution for the normal distribution is defined by a mathematical formula which in R can be obtained with the function `pnorm`. We say that a random quantity is normally distributed with average `avg` and standard deviation `s`, if its probability distribution is defined by:
+In the data visualization chapter, we introduced the normal distribution as a useful approximation to many naturally occurring distributions, including that of height. The cumulative distribution for the normal distribution is defined by a mathematical formula which in R can be obtained with the function `pnorm`. We say that a random quantity is normally distributed with average `m` and standard deviation `s`, if its probability distribution is defined by:
 
 ```{r, eval=FALSE}
-F(a) = rnorm(a, avg, s)
+F(a) = rnorm(a, m, s)
 ```
 
-This is useful because if we are willing to use the normal approximation for, say, height, we don't need the entire data set to answer questions such as: what is the probability that a randomly selected student is taller then 70 inches? We just need the average height and standard deviation:
+This is useful because if we are willing to use the normal approximation for, say, height, we don't need the entire dataset to answer questions such as: what is the probability that a randomly selected student is taller then 70 inches? We just need the average height and standard deviation:
 
 ```{r}
-avg <- mean(x)
+m <- mean(x)
 s <- sd(x)
-1 - pnorm(70.5, avg, s)
+1 - pnorm(70.5, m, s)
 ```
 
-## Approximations
+## Theoretical distributions as approximations
 
 The normal distribution is derived mathematically: we do not need data to define it. For practicing data scientists, almost everything we do involves data. Data is always, technically speaking, discrete. For example, we could consider our height data categorical with each specific height a unique category. The probability distribution is defined by the proportion of students reporting each height. Here is a plot of that probability distribution:
 
@@ -64,7 +64,7 @@ While most students rounded up their heights to the nearest inch, others reporte
 
 With continuous distributions, the probability of a singular value is not even defined. For example, it does not make sense to ask what is the probability that a normally distributed value is 70. Instead, we define probabilities for intervals. We, thus, could ask what is the probability that someone is between 69.5 and 70.5.
 
-In cases like height, in which the data is rounded, the normal approximation is particularly useful if we deal with intervals that include exactly one round number. So, for example, the normal distribution is useful for approximating the proportion of students reporting between 69.5 and 70.5:
+In cases like height, in which the data is rounded, the normal approximation is particularly useful if we deal with intervals that include exactly one round number. So, for example, the normal distribution is useful for approximating the proportion of students reporting values in intervals like the following three:
 
 ```{r}
 mean(x <= 68.5) - mean(x <= 67.5)
@@ -75,12 +75,12 @@ mean(x <= 70.5) - mean(x <= 69.5)
 Note how close we get with the normal approximation:
 
 ```{r}
-pnorm(68.5, avg, s) - pnorm(67.5, avg, s) 
-pnorm(69.5, avg, s) - pnorm(68.5, avg, s) 
-pnorm(70.5, avg, s) - pnorm(69.5, avg, s) 
+pnorm(68.5, m, s) - pnorm(67.5, m, s) 
+pnorm(69.5, m, s) - pnorm(68.5, m, s) 
+pnorm(70.5, m, s) - pnorm(69.5, m, s) 
 ```
 
-However, the approximation is not as useful for other intervals. For instance, notice how the approximation breaks when we try to estimate:
+However, the approximation is not as useful for other intervals. For instance, notice how the approximation breaks down when we try to estimate:
 
 ```{r}
 mean(x <= 70.9) - mean(x<=70.1)
@@ -89,7 +89,7 @@ mean(x <= 70.9) - mean(x<=70.1)
 with
 
 ```{r}
-pnorm(70.9, avg, s) - pnorm(70.1, avg, s)
+pnorm(70.9, m, s) - pnorm(70.1, m, s)
 ```
 
 In general, we call this situation _discretization_. Although the true height distribution is continuous, the reported heights tend to be more common at discrete values, in this case, due to rounding. As long as we are aware of how to deal with this reality, the normal approximation can still be a very useful tool.
@@ -113,22 +113,22 @@ $$
 F(a) = \mbox{Pr}(X\leq a) = \int_{-\infty}^a f(x)\, dx
 $$
 
-For those that know Calculus, remember that the integral is related to a sum: it is the sum of bars with widths approximating 0. If you don't know Calculus, you can think of $f(x)$ as a curve for which the area under that curve up to the value $a$, gives you the probability of $X\leq a$. 
+For those that know Calculus, remember that the integral is related to a sum: it is the sum of bars with widths approximating 0. If you don't know Calculus, you can think of $f(x)$ as a curve for which the area under that curve up to the value $a$, gives you the probability $\mbox{Pr}(X\leq a)$. 
 
 For example, to use the normal approximation to estimate the probability of someone being taller than 76 inches, we use:
 
 
 ```{r}
-1 - pnorm(76, avg, s)
+1 - pnorm(76, m, s)
 ```
 
 which mathematically is the grey area below:
 
 ```{r intergrals, echo=FALSE}
-dat <- data_frame(x = seq(-4, 4, length=100) * s + avg,
-                  y = dnorm(x, avg, s))
+dat <- data_frame(x = seq(-4, 4, length=100) * s + m,
+                  y = dnorm(x, m, s))
 
-dat_ribbon <- filter(dat, x >= 2 * s + avg)
+dat_ribbon <- filter(dat, x >= 2 * s + m)
 
 ggplot(dat, aes(x, y)) +
   geom_line() +
@@ -139,15 +139,15 @@ The curve you see is the probability density for the normal distribution. In R, 
 
 Although it may not be immediately obvious why knowing about probability densities is useful, understanding this concept will be essential to those wanting to fit models to data for which predefined functions are not available.
 
-## Monte Carlo simulations
+## Monte Carlo simulations for continuous variables
 
 R provides functions to generate normally distributed outcomes. Specifically, the `rnorm` function takes three arguments: size, average (defaults to 0), and standard deviation (defaults to 1) and produces random numbers. Here is an example of how we could generate data that looks like our reported heights:
 
 ```{r}
 n <- length(x)
-avg <- mean(x)
+m <- mean(x)
 s <- sd(x)
-simulated_heights <- rnorm(n, avg, s)
+simulated_heights <- rnorm(n, m, s)
 ```
 
 Not surprisingly, the distribution looks normal:
@@ -161,17 +161,17 @@ data.frame(simulated_heights = simulated_heights) %>%
 
 This is one of the most useful functions in R as it will permit us to generate data that mimics natural events and answers questions related to what could happen by chance by running Monte Carlo simulations.
 
-If, for example, we pick 800 males at random, what is the distribution of the tallest person? How rare is a seven footer? The following Monte Carlo simulation helps us answer that question:
+If, for example, we pick 800 males at random, what is the distribution of the tallest person? How rare is a seven footer in a group of 800 males? The following Monte Carlo simulation helps us answer that question:
 
 ```{r}
 B <- 10000
 tallest <- replicate(B, {
-  simulated_data <- rnorm(800, avg, s)
+  simulated_data <- rnorm(800, m, s)
   max(simulated_data)
 })
 ```
 
-A seven footer is quite rare:
+Having a seven footer is quite rare:
 
 ```{r}
 mean(tallest >= 7*12)
@@ -217,7 +217,7 @@ For the student-t, the shorthand `t` is used so the functions are `dt` for the d
 5. Notice that the answer to the question does not change when you change units. This makes sense since the answer to the question should not be affected by what units we use. In fact, if you look closely, you notice that 61 and 64 are both 1 SD away from the average. Compute the probability that a randomly picked, normally distributed random variable is within 1 SD from the average.
 
 
-6. To see the math that explains why the answers to questions 3, 4, and 5 are the same, suppose we have a random variable with expected value $\mu$ and standard error $\sigma$. Suppose we ask the probability of $X$ being smaller or equal to $a$. Remember that, by definition, $a$ is $(a - \mu)/\sigma$ standard deviations $\sigma$ away from the average $\mu$. The probability is: 
+6. To see the math that explains why the answers to questions 3, 4, and 5 are the same, suppose we have a random variable with average $m$ and standard error $s$. Suppose we ask the probability of $X$ being smaller or equal to $a$. Remember that, by definition, $a$ is $(a - m)/s$ standard deviations $s$ away from the average $m$. The probability is: 
 
     $$
 \mbox{Pr}(X \leq a)
@@ -226,7 +226,7 @@ For the student-t, the shorthand `t` is used so the functions are `dt` for the d
     Now we subtract $\mu$ to both sides and then divide both sides by $\sigma$:
 
     $$
-\mbox{Pr}\left(\frac{X-\mu}{\sigma} \leq \frac{a-\mu}{\sigma} \right)
+\mbox{Pr}\left(\frac{X-m}{s} \leq \frac{a-m}{s} \right)
     $$
 
     The quantity on the right is a standard normal random variable. It has an average of 0 and a standard error of 1. We will call it $Z$:
@@ -234,22 +234,22 @@ For the student-t, the shorthand `t` is used so the functions are `dt` for the d
 
 
     $$
-\mbox{Pr}\left(Z \leq \frac{a-\mu}{\sigma} \right)
+\mbox{Pr}\left(Z \leq \frac{a-m}{s} \right)
     $$
 
-    So, no matter the units, the probability of $X\leq a$ is the same as the probability of a standard normal variable being less than $(a - \mu)/\sigma$. If `mu` is the average and `sigma` the standard error, which of the following R code would give us the right answer in every situation:
+    So, no matter the units, the probability of $X\leq a$ is the same as the probability of a standard normal variable being less than $(a - m)/s$. If `mu` is the average and `sigma` the standard error, which of the following R code would give us the right answer in every situation:
 
     A. `mean(X<=a)`
     
-    B. `pnorm((a - mu)/sigma)`
+    B. `pnorm((a - m)/s)`
     
-    C. `pnorm((a - mu)/sigma, mu, sigma)`
+    C. `pnorm((a - m)/s, m, s)`
     
     D. `pnorm(a)`
     
 7. Imagine the distribution of male adults is approximately normal with an expected value of 69 and a standard deviation of 3. How tall is the male in the 99th percentile? Hint: use `qnorm`.
 
 
-8. The distribution of IQ scores is approximately normally distributed.  The expected value is 100 and the standard deviation is 15. Suppose you want to know the distribution of the smartest person in your school district if 10,000 people are born each in your school district. Run a Monte Carlo simulation with `B=1000` generating one million IQ scores and keeping the highest. Make a histogram.
+8. The distribution of IQ scores is approximately normally distributed.  The average is 100 and the standard deviation is 15. Suppose you want to know the distribution of the highest IQ across all graduating classes if 10,000 people are born each in your school district. Run a Monte Carlo simulation with `B=1000` generating 10,000 IQ scores and keeping the highest. Make a histogram.
 
 

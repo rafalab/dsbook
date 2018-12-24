@@ -23,26 +23,26 @@ ifelse(sample(beads, 1) == "blue", 1, 0)
 
 Sometimes it's 1 and sometimes it's 0.
 
-In data science, we often deal with data that is affected by chance in some way: the data comes from a random sample, the data is affected by measurement error or the data measures some outcome that is random in nature. Being able to quantify the uncertainty introduced by randomness is one of the most important jobs of a data scientist. Statistical inference offers a framework, as well as several practical tools, for doing this. The first step is to learn how to mathematically describe random variables. We start with games of chance.
+In data science, we often deal with data that is affected by chance in some way: the data comes from a random sample, the data is affected by measurement error or the data measures some outcome that is random in nature. Being able to quantify the uncertainty introduced by randomness is one of the most important jobs of a data analysts. Statistical inference offers a framework, as well as several practical tools, for doing this. The first step is to learn how to mathematically describe random variables. We start with games of chance.
 
 
 ## Sampling models
 
-Many data generation procedures, those that produce the data we study, can be modeled quite well as draws from a urn. For instance, we can model the process of polling likely voters as drawing 0s (Republicans) and 1s (Democrats) from an urn containing the 0 and 1 code for all likely voters. In epidemiological studies, we often assume that the subjects in our study are a random sample from the population of interest. The data related to a specific outcome can be modeled as a random sample from an urn containing that outcome for the entire population of interest. Similarly, in experimental research, we often assume that the individual organisms we are studying, for example worms, flies, or mice, are a random sample from a larger population. Randomized experiments can also be modeled by draws from an urn given the way individuals are assigned into groups: when getting assigned, you draw your group at random. Sampling models are therefore ubiquitous in data science. Casino games offer a plethora of examples of real world situations in which sampling models are used to answer specific questions. We will therefore start with such examples.
+Many data generation procedures, those that produce the data we study, can be modeled quite well as draws from a urn. For instance, we can model the process of polling likely voters as drawing 0s (Republicans) and 1s (Democrats) from an urn containing the 0 and 1 code for all likely voters. In epidemiological studies, we often assume that the subjects in our study are a random sample from the population of interest. The data related to a specific outcome can be modeled as a random sample from an urn containing the outcome for the entire population of interest. Similarly, in experimental research, we often assume that the individual organisms we are studying, for example worms, flies, or mice, are a random sample from a larger population. Randomized experiments can also be modeled by draws from an urn given the way individuals are assigned into groups: when getting assigned, you draw your group at random. Sampling models are therefore ubiquitous in data science. Casino games offer a plethora of examples of real world situations in which sampling models are used to answer specific questions. We will therefore start with such examples.
 
 Suppose a very small casino hires you to consult on whether they should set up roulette wheels. To keep the example simple, we will assume that 1,000 people will play and that the only game you can play on the roulette wheel is to bet on red or black. The casino wants you to predict how much money they will make or lose. They want a range of values and, in particular, they want to know what's the chance of losing money. If this probability is too high, they will pass on installing roulette wheels.
 
-We are going to define a random variable `S` that will represent the casino's total winnings. Let's start by constructing the urn. A roulette wheel has 18 red pockets, 18 black pockets and 2 green ones. So playing a color in one game of roulette is equivalent to drawing from this urn: 
+We are going to define a random variable $S$ that will represent the casino's total winnings. Let's start by constructing the urn. A roulette wheel has 18 red pockets, 18 black pockets and 2 green ones. So playing a color in one game of roulette is equivalent to drawing from this urn: 
 
 ```{r}
-color <- rep(c("Black","Red","Green"), c(18,18,2))
+color <- rep(c("Black", "Red", "Green"), c(18, 18, 2))
 ```
 
-The 1,000 outcomes from 1,000 people playing are independent draws from this urn. If red comes up, the gambler wins and the casino loses a dollar, so we draw a -\$1. Otherwise, the casino wins a dollar and we draw a \$1. To construct our random variable `S`, we can use this code:
+The 1,000 outcomes from 1,000 people playing are independent draws from this urn. If red comes up, the gambler wins and the casino loses a dollar, so we draw a -\$1. Otherwise, the casino wins a dollar and we draw a \$1. To construct our random variable $S$, we can use this code:
 
 ```{r}
-n <- 10000
-X <- sample(ifelse( color=="Red", -1, 1),  n, replace = TRUE)
+n <- 1000
+X <- sample(ifelse( color == "Red", -1, 1),  n, replace = TRUE)
 X[1:10]
 ```
 
@@ -52,7 +52,7 @@ Because we know the proportions of 1s and -1s, we can generate the draws with on
 X <- sample(c(-1,1), n, replace = TRUE, prob=c(9/19, 10/19))
 ```
 
-We call this a **sampling model** since we are modeling the random behavior of roulette with the sampling of draws from an urn. The total winnings `S` is simply the sum of these 1,000 independent draws:
+We call this a **sampling model** since we are modeling the random behavior of roulette with the sampling of draws from an urn. The total winnings $S$ is simply the sum of these 1,000 independent draws:
 
 ```{r}
 X <- sample(c(-1,1), n, replace = TRUE, prob=c(9/19, 10/19))
@@ -63,11 +63,11 @@ S
 
 ## The probability distribution of a random variable
 
-If you run the code above, you see that $S$ changes every time. This is, of course, because `S` is a **random variable**. The probability distribution of a random variable tells us the probability of the observed value falling at any given interval. So, for example, if we want to know the probability that we lose money, we are asking the probability that `S` is in the interval $S<0$. 
+If you run the code above, you see that $S$ changes every time. This is, of course, because $S$ is a **random variable**. The probability distribution of a random variable tells us the probability of the observed value falling at any given interval. So, for example, if we want to know the probability that we lose money, we are asking the probability that $S$ is in the interval $S<0$. 
 
 Note that if we can define a cumulative distribution function $F(a) = \mbox{Pr}(S\leq a)$, then we will be able to answer any question related to the probability of events defined by our random variable $S$, including the event $S<0$. We call this $F$ the random variable's _distribution function_. 
 
-We can estimate the distribution function for the random variable $S$ by using a Monte Carlo simulation to generate many realizations of the random variable. With this code, we run the experiment of having 1,000 people play roulette, over and over, specifically `B`=10,000 times:
+We can estimate the distribution function for the random variable $S$ by using a Monte Carlo simulation to generate many realizations of the random variable. With this code, we run the experiment of having 1,000 people play roulette, over and over, specifically $B = 10,000$ times:
 
 ```{r}
 n <- 1000
@@ -128,13 +128,14 @@ $$\mbox{Pr}(S < 0) = \mbox{Pr}((S+n)/2 < (0+n)/2)$$
 and we can use the `pbinom` to compute $$\mbox{Pr}(S \leq 0)$$
 
 ```{r}
-pbinom(n/2, size = n, prob = 9/19)
+n <- 1000
+pbinom(n/2, size = n, prob = 10/19)
 ```
 
 Because this is a discrete probability function, to get $\mbox{Pr}(S < 0)$ rather than $\mbox{Pr}(S \leq 0)$, we write:
 
 ```{r}
-pbinom(n/2-1, size = n, prob = 9/19)
+pbinom(n/2-1, size = n, prob = 10/19)
 ```
 
 For the details of the binomial distribution, you can consult any basic probability book or even [Wikipedia](https://en.wikipedia.org/wiki/Binomial_distribution). 
@@ -144,11 +145,11 @@ Here we do not cover these details. Instead, we will discuss an incredibly usefu
 
 ## Distributions versus probability distributions
 
-Before we continue, let's make an important distinction and connection between the distribution of a list of numbers and a probability distribution. In the visualization chapter, we described how any list of numbers $x_1,\dots,x_n$ has a distribution. The definition is quite straightforward. We define $F(a)$ as the function that answers the question: what proportion of the list is less than or equal to $a$?. Because they are useful summaries when the distribution is approximately normal, we define the average and standard deviation. These are defined with a straightforward operation of the vector containing the list of numbers `x`:
+Before we continue, let's make an important distinction and connection between the distribution of a list of numbers and a probability distribution. In the visualization chapter, we described how any list of numbers $x_1,\dots,x_n$ has a distribution. The definition is quite straightforward. We define $F(a)$ as the function that tells us what proportion of the list is less than or equal to $a$. Because they are useful summaries when the distribution is approximately normal, we define the average and standard deviation. These are defined with a straightforward operation of the vector containing the list of numbers `x`:
 
 ```{r, eval=FALSE}
-avg <- sum(x)/length(x)
-s <- sqrt(sum((x - avg)^2) / length(x))
+m <- sum(x)/length(x)
+s <- sqrt(sum((x - m)^2) / length(x))
 ```
 
 A random variable $X$ has a distribution function. To define this, we do not need a list of numbers. It is a theoretical concept. In this case, we define the distribution as the $F(a)$ that answers the question: what is the probability that $X$ is less than or equal to $a$? There is no list of numbers. 
@@ -159,7 +160,7 @@ Another way to think about it, that does not involve an urn, is to run a Monte C
 
 ## Notation for random variables
 
-In statistical textbooks, upper case letters are used to denote random variables and we follow this convention here. Lower case letters are used for observed values. You will see some notation that includes both. For example, you will see events defined as $X \leq x$. Here $X$ is a random variable, making it a random event, and $x$ is an arbitrary value and not random. So, for example, $X$ might represent the number on a die roll and $x$ will represent an actual value we see. So in this case, the probability of $X=x$ is 1/6 regardless of the value of $x$. This notation is a bit strange because, when we ask questions about probability, $X$ is not an observed quantity. Instead, it's a random quantity that we will see in the future. We can talk about what we expect it to be, what values are probable, but not what it is. But once we have data, we do see a realization of $X$. So data scientists talk of what could have been after we see what actually happened. 
+In statistical textbooks, upper case letters are used to denote random variables and we follow this convention here. Lower case letters are used for observed values. You will see some notation that includes both. For example, you will see events defined as $X \leq x$. Here $X$ is a random variable, making it a random event, and $x$ is an arbitrary value and not random. So, for example, $X$ might represent the number on a die roll and $x$ will represent an actual value we see 1, 2, 3, 4, 5 or 6. So in this case, the probability of $X=x$ is 1/6 regardless of the observed value $x$. This notation is a bit strange because, when we ask questions about probability, $X$ is not an observed quantity. Instead, it's a random quantity that we will see in the future. We can talk about what we expect it to be, what values are probable, but not what it is. But once we have data, we do see a realization of $X$. So data scientists talk of what could have been after we see what actually happened. 
 
 ## Central Limit Theorem
 
@@ -191,15 +192,15 @@ which is about 5 cents. It is a bit counterintuitive to say that $X$ varies arou
 
 ```{r}
 B <- 10^6
-X <- sample(c(-1,1), B, replace = TRUE, prob=c(9/19, 10/19))
-mean(X)
+x <- sample(c(-1,1), B, replace = TRUE, prob=c(9/19, 10/19))
+mean(x)
 ```
 
 In general, if the urn has two possible outcomes, say $a$ and $b$, with proportions $p$ and $1-p$ respectively, the average is: 
 
 $$ap + b(1-p).$$ 
 
-To see this, notice that if there are $n$ beads in the urn, then we have $np$ $a$s, $n(1-p)$ $b$s and because the average is the sum, $n\times a \times p + n\times b \times (1-p)$, divided by the total $n$, we get that the average is $ap + b(1-p)$.
+To see this, notice that if there are $n$ beads in the urn, then we have $np$ $a$s and $n(1-p)$ $b$s and because the average is the sum, $n\times a \times p + n\times b \times (1-p)$, divided by the total $n$, we get that the average is $ap + b(1-p)$.
 
 Now the reason we define the expected value is because this mathematical definition turns out to be useful for approximating the probability distributions of sum, which then is useful for describing the distribution of averages and proportions. The first useful fact is that the expected value of the sum of the draws is:
 
@@ -219,7 +220,7 @@ $$
 \sqrt{\mbox{number of draws }} \times \mbox{ standard deviation of the numbers in the urn}
 $$
 
-Using the definition of standard deviation, we can derive, with a bit of math, that if a jar contains two values $a$ and $b$ with proportions $p$ and $(1-p)$ respectively, the standard deviation is: 
+Using the definition of standard deviation, we can derive, with a bit of math, that if an urn contains two values $a$ and $b$ with proportions $p$ and $(1-p)$ respectively, the standard deviation is: 
 
 $$\mid b - a \mid \sqrt{p(1-p)}.$$
 
@@ -245,7 +246,20 @@ As a result, when 1,000 people bet on red, the casino is expected to win \$50 wi
 
 ## Central Limit Theorem approximation
 
-The Central Limit Theorem (CLT) tells us that the sum `S` is approximated by a normal distribution. Using the formulas above, we know that the expected value and standard error are:
+We previously ran this Monte Carlo simulation:
+
+```{r, eval = FALSE}
+n <- 1000
+B <- 10000
+roulette_winnings <- function(n){
+  X <- sample(c(-1,1), n, replace = TRUE, prob=c(9/19, 10/19))
+  sum(X)
+}
+S <- replicate(B, roulette_winnings(n))
+```
+
+The Central Limit Theorem (CLT) tells us that the sum $S$ is approximated by a normal distribution. 
+Using the formulas above, we know that the expected value and standard error are:
 
 ```{r}
 n * (20-18)/38 
@@ -342,7 +356,7 @@ Statistical textbooks use the Greek letters $\mu$ and $\sigma$ to denote the exp
 An important implication of the final result is that the standard error of the average becomes smaller and smaller as $n$ grows larger. When $n$ is very large, then the standard error is practically 0 and the average of the draws converges to the average of the urn. This is known in statistical textbooks as the law of large numbers or the law of averages.
 
 
-### Misinterpreting law of averages
+## Misinterpreting law of averages
 
 The law of averages is sometimes misinterpreted. For example, if you toss a coin 5 times and see a head each time, you might hear someone argue that the next toss is probably a tail because of the law of averages: on average we should see 50\% heads and 50\% tails. A similar argument would be to say that red "is due" on the roulette wheel after seeing black come up five times in a row. These events are independent so the chance of a coin landing heads is 50\% regardless of the previous 5. This is also the case for the roulette outcome. The law of averages applies only when the number of draws is very large and not in small samples. After a million tosses, you will definitely see about 50\% heads regardless of the outcome of the first five tosses. 
 
@@ -378,22 +392,22 @@ $$
 However, be aware that the `sd` function returns a slightly different result:
 
 ```{r}
-identical(s,sd(x))
+identical(s, sd(x))
 s-sd(x)
 ```
 
-This is because the `sd` function R does not return the `sd` of the list, but rather uses a formula that estimates standard deviations of a population from a random sample $X_1, \dots, X_N$ which, for reasons not discussed here, divide by the $N-1$.
+This is because the `sd` function R does not return the `sd` of the list, but rather uses a formula that estimates standard deviations of a population from a random sample $X_1, \dots, X_N$ which, for reasons not discussed here, divide the sum of squares by the $N-1$.
 
 
 $$
-\bar{X} = \frac{1}{N} \sum_{i=1}^N X_i \\
+\bar{X} = \frac{1}{N} \sum_{i=1}^N X_i, \,\,\,\,
 s =  \sqrt{\frac{1}{N-1} \sum_{i=1}^N (X_i - \bar{X})^2}
 $$
 
 You can see that this is the case by typing:
 
 ```{r}
-N <- length(x)
+n <- length(x)
 s-sd(x)*sqrt((N-1)/N)
 ```
 
@@ -414,7 +428,7 @@ So be careful when using the `sd` function in R. However, keep in mind that thro
 2. The payout for winning on green is \$17 dollars. This means that if you bet a dollar and it lands on green, you get \$17. Create a sampling model using sample to simulate the random variable $X$ for your winnings. Hint: see the example below for how it should look like when betting on red.
 
     ```{r}
-    X <- sample(c(1,-1), 1, prob = c(9/19, 10/19))
+    x <- sample(c(1,-1), 1, prob = c(9/19, 10/19))
     ```
 3. Compute the expected value of $X$.
 
@@ -448,7 +462,7 @@ So be careful when using the `sd` function in R. However, keep in mind that thro
 
     C. The difference is within rounding error.
     
-    D. The CLT only works for the averages.
+    D. The CLT only works for averages.
 
 
 12. Now create a random variable $Y$ that is your average winnings per bet after playing off your winnings after betting on green 10,000 times.

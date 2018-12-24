@@ -1,6 +1,6 @@
 # Bayesian statistics
 
-What does it mean when an election forecaster tell us that a given candidate has a 90% chance of winning? In the context of the urn model, this would be equivalent to stating that the probability $p>0.5$ is 90%. However, as we discussed earlier, in the urn model $p$ is a fixed parameter and it does not make sense to talk about probability. With Bayesian statistics, we assume it is in fact random. 
+What does it mean when an election forecaster tell us that a given candidate has a 90% chance of winning? In the context of the urn model, this would be equivalent to stating that the probability $p>0.5$ is 90%. However, as we discussed earlier, in the urn model $p$ is a fixed parameter and it does not make sense to talk about probability. With the Bayesian approach we assume $p$ is random. 
 
 Forecasters also use models to describe variability at different levels. For example, sampling variability, pollster to pollster variability, day to day variability, and election to election variability. One of the most successful approaches used for this are hierarchical models, which can be explained in the context of Bayesian statistics.
 
@@ -49,7 +49,7 @@ set.seed(3)
 prev <- 0.00025
 N <- 100000
 outcome <- sample(c("Disease","Healthy"), N, replace = TRUE, 
-                  prob = c(prev,1-prev))
+                  prob = c(prev, 1 - prev))
 ```
 
 Note that there are very few people with the disease:
@@ -65,14 +65,14 @@ Also, there are many without the disease, which makes it more probable that we w
 
 ```{r}
 accuracy <- 0.99
-test <- vector("character",N)
-test[outcome=="Disease"]  <- sample(c("+","-"), N_D, replace=TRUE, 
+test <- vector("character", N)
+test[outcome == "Disease"]  <- sample(c("+", "-"), N_D, replace = TRUE, 
                                     prob = c(accuracy, 1 - accuracy))
-test[outcome=="Healthy"]  <- sample(c("-","+"), N_H, replace=TRUE, 
+test[outcome == "Healthy"]  <- sample(c("-", "+"), N_H, replace = TRUE, 
                                     prob = c(accuracy, 1 - accuracy))
 ```
 
-Because there are so many more controls than cases, even with a low false positive rate, we get more controls than cases in the group that tested positive (code not shown):
+Because there are so many more controls than cases, even with a low false positive rate, we get more controls than cases in the group that tested positive:
 
 
 ```{r}
@@ -91,7 +91,7 @@ José Iglesias is a professional baseball player. In April 2013, when he was sta
 |-------|---------|---|-----|
 | April | 20      | 9 | .450|
 
-The batting average (`AVG`) statistic is one way of measuring success. Roughly speaking, it tells us the success rate when batting. An `AVG` of .450 means José has been successful 45% of the times he has batted (`At Bats`) which is rather high, historically speaking. Keep in mind, for example, that no one has finished a season with an `AVG` of .400 or more since Ted Williams did it in 1941! To illustrate the way hierarchical models are powerful, we will try to predict José's batting average at the end of the season. Note that in a typical season, players have about 500 at bats.
+The batting average (`AVG`) statistic is one way of measuring success. Roughly speaking, it tells us the success rate when batting. An `AVG` of .450 means José has been successful 45% of the times he has batted (`At Bats`) which is rather high, historically speaking. Keep in mind that no one has finished a season with an `AVG` of .400 or more since Ted Williams did it in 1941! To illustrate the way hierarchical models are powerful, we will try to predict José's batting average at the end of the season. Note that in a typical season, players have about 500 at bats.
 
 With the techniques we have learned up to now, referred to as _frequentist techniques_, the best we can do is provide a confidence interval. We can think of outcomes from hitting as a binomial with a success rate of $p$. So if the success rate is indeed .450, the standard error of just 20 at bats is:
 
@@ -99,7 +99,7 @@ $$
 \sqrt{\frac{.450 (1-.450)}{20}}=.111
 $$
 
-This means that our confidence interval is .450-.222 to .450+.222 or .228 to .672.
+This means that our confidence interval is $.450 - .222$ to $.450 + .222$ or $.228$ to $.672$.
 
 This prediction has two problems. First, it is very large, so not very useful. Second, it is centered at .450, which implies that our best guess is that this new player will break Ted Williams' record. 
 
@@ -107,19 +107,19 @@ If you follow baseball, this last statement will seem wrong and this is because 
 
 First, let's explore the distribution of batting averages for all players with more than 500 at bats during the previous three seasons:
 
-```{r batting-averages-histogram, echo=FALSE, fig.width=10.5, fig.height=5.25, message=FALSE}
+```{r batting-averages-histogram, echo=FALSE, out.width="100%", fig.height=5, message=FALSE}
 library(Lahman)
 filter(Batting, yearID %in% 2010:2012) %>% 
-  mutate(AVG=H/AB) %>% 
-  filter(AB>500) %>% 
+  mutate(AVG = H/AB) %>% 
+  filter(AB > 500) %>% 
   ggplot(aes(AVG)) +
   geom_histogram(color="black", binwidth = .01) +
-  facet_wrap(~yearID)
+  facet_wrap( ~ yearID)
 ```
 
 The average player had an `AVG` of .275 and the standard deviation of the population of players was 0.027. So we can see already that .450 would be quite an anomaly since it is over six standard deviations away from the mean. 
 
-So is José lucky or is he the best batter seen in the last 50 years? Perhaps it's a combination of both. But how lucky and how good is he? If we become convinced that he is lucky, we should trade him to a team that trusts the .450 observation and is maybe overestimating his potential.
+So is José lucky or is he the best batter seen in the last 50 years? Perhaps it's a combination of both luck and taent. But how much of each? If we become convinced that he is lucky, we should trade him to a team that trusts the .450 observation and is maybe overestimating his potential.
 
 
 ## The hierarchical model
@@ -135,14 +135,11 @@ Now the second level of variability has to do with luck when batting. Regardless
 Statistical textbooks will write the model like this:
 $$
 \begin{aligned}
-p &\sim N(\mu, \tau^2) \mbox{ describes randomness in picking a player}\\
-Y \mid p &\sim N(p, \sigma^2) \mbox{ describes randomness in the performance of this particular player}
+p &\sim N(\mu, \tau^2) \\
+Y \mid p &\sim N(p, \sigma^2) 
 \end{aligned}
 $$
-
-with $\mu = .270$, $\tau = 0.027$, and $\sigma^2 = p(1-p)/N$.
-
-Note the two levels (this is why we call them hierarchical): 1) Player to player variability and 2) variability due to luck when batting. In a Bayesian framework, the first level is called a _prior distribution_ and the second the _sampling distribution_.
+We refer to the model as hierarchical becuase we need to know $p$, the first level, in order to model $Y$, the seconde level. In our example the first level describes randomness in assigning talent to a player and the second described describes randomness in this particular player's performance once we have fixed the talent parameter. In a Bayesian framework, the first level is called a _prior distribution_ and the second the _sampling distribution_. The dat analysis we have conducted here suggest that we set $\mu = .270$, $\tau = 0.027$, and $\sigma^2 = p(1-p)/N$.
 
 Now, let's use this model for José's data. Suppose we want to predict his innate ability in the form of his _true_ batting average $p$. This would be the hierarchical model for our data:
 
@@ -163,7 +160,7 @@ $$
 \end{aligned}
 $$
 
-This is a weighted average of the population average $\mu$ and the observed data $Y$. The weight depends on the SD of the population $\tau$ and the SD of our observed data $\sigma$. This weighted average is sometimes referred to as _shrinking_ because it _shrinks_ estimates towards a prior mean. In the case of José Iglesias, we have:
+This is a weighted average of the population average $\mu$ and the observed data $y$. The weight depends on the SD of the population $\tau$ and the SD of our observed data $\sigma$. This weighted average is sometimes referred to as _shrinking_ because it _shrinks_ estimates towards a prior mean. In the case of José Iglesias, we have:
 
 $$
 \begin{aligned}
@@ -174,13 +171,13 @@ B &=\frac{.111^2}{.111^2 + .027^2} = 0.944\\
 \end{aligned}
 $$
 
-The standard error can be shown to be:
+We do not show the derivation here, but the standard error can be shown to be:
 
 $$
 \mbox{SE}(p\mid y)^2 = \frac{1}{1/\sigma^2+1/\tau^2}
 = \frac{1}{1/.111^2 + 1/.027^2} = 0.00069
 $$
-and the standard deviation is therefore $0.026$. So we started with a frequentist 95% confidence interval that ignored data from other players and summarized just José's data: .450 $\pm$ 0.220. Then we used a Bayesian approach that incorporated data from other players and other years to obtain a posterior probability. This is actually referred to as an empirical Bayes approach because we used data to construct the prior. From the posterior, we can report what is called a 95% credible interval by reporting a region, centered at the mean, with a 95% chance of occurring. In our case, this turns out to be: .285 $\pm$ 0.052.
+and the standard deviation is therefore $0.026$. So we started with a frequentist 95% confidence interval that ignored data from other players and summarized just José's data: .450 $\pm$ 0.220. Then we used a Bayesian approach that incorporated data from other players and other years to obtain a posterior probability. This is actually referred to as an empirical Bayes approach because we used data to construct the prior. From the posterior, we can report what is called a 95% _credible interval_ by reporting a region, centered at the mean, with a 95% chance of occurring. In our case, this turns out to be: .285 $\pm$ 0.052.
 
 The Bayesian credible interval suggests that if another team is impressed by the .450 observation, we should consider trading José as we are predicting he will be just slightly above average. Interestingly, the Red Sox traded José to the Detroit Tigers in July. Here are the José Iglesias batting averages for the next five months: 
 
@@ -211,9 +208,9 @@ Although both intervals included the final batting average, the Bayesian credibl
     
 2. Let's assume that there is in fact a genetic component to SIDS and the the probability of $\mbox{Pr}(\mbox{second case of SIDS} \mid \mbox{first case of SIDS}) = 1/100$, is much higher than 1 in 8,500. What is the probability of both of her sons dying of SIDS?
 
-
-
-3. Many press reports stated that the expert claimed the probability of Sally Clark being innocent as 1 in 73 million. Perhaps the jury and judge also interpreted the testimony this way. This probability can be written like as the probability of _a mother is a son-murdering psychopath_ given that _two of her children are found dead with no evidence of physical harm__. According to Bayes' rule, what is this?
+3. Many press reports stated that the expert claimed the probability of Sally Clark being innocent as 1 in 73 million. Perhaps the jury and judge also interpreted the testimony this way. This probability can be written like as the probability of _a mother is a son-murdering psychopath_ given that 
+_two of her children are found dead with no evidence of physical harm_. 
+According to Bayes' rule, what is this?
 
 4. Assume that the chance of a son-murdering psychopath finding a way to kill her children, without leaving evidence of physical harm, is:
 

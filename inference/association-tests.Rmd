@@ -1,9 +1,7 @@
 # Association Tests
 
 ```{r, echo=FALSE}
-library(tidyverse)
-library(dslabs)
-set.seed(1)
+set.seed(1984)
 ```
 
 The statistical tests we have studied up to now leave out a
@@ -17,7 +15,9 @@ A [2014 PNAS paper](http://www.pnas.org/content/112/40/12349.abstract) analyzed 
 
 The main evidence for this conclusion comes down to a comparison of the percentages. Table S1 in the paper includes the information we need. Here are the three columns showing the overall outcomes:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dslabs)
 data("research_funding_rates")
 research_funding_rates %>% 
   select(discipline, contains("total"))
@@ -100,7 +100,7 @@ fisher.test(tab, alternative="greater")
 
 ## Chi-square Test
 
-Notice that, in a way, our funding rates example is similar to the Lady Tasting Tea. However, in the Lady Tasting Tea example, the number of blue and red beads is experimentally fixed and the number of answers given for each category is also fixed. This is because Fisher made sure there were four before tea and four after tea and the lady knew this, so the answers would also have to be four and four. If this is the case, the sum of the rows and the sum of the columns are fixed. This defines constraints on the possible ways we can fill the two
+Notice that, in a way, our funding rates example is similar to the Lady Tasting Tea. However, in the Lady Tasting Tea example, the number of blue and red beads is experimentally fixed and the number of answers given for each category is also fixed. This is because Fisher made sure there were four cups with milk poured before tea and four cups with milk poured after and the lady knew this, so the answers would also have to include four befores and four afters. If this is the case, the sum of the rows and the sum of the columns are fixed. This defines constraints on the possible ways we can fill the two
 by two table and also permits us to use the hypergeometric
 distribution. In general, this is not the case. Nonetheless, there is
 another approach, the Chi-squared test, which is described below. 
@@ -113,7 +113,7 @@ totals %>% summarize(percent_men = yes_men/(yes_men+no_men),
                      percent_women = yes_women/(yes_women+no_women))
 ```
 
-respectively. Would we see this again if we randomly assign funding at the rate:
+respectively. Would we see this again if we randomly assign funding at the overall rate:
 
 ```{r}
 funding_rate <- totals %>%
@@ -172,6 +172,7 @@ and can be computed like this:
 ```{r}
 odds_men <- (two_by_two$men[2] / sum(two_by_two$men)) / 
   (two_by_two$men[1] / sum(two_by_two$men))
+odds_men
 ```
 
 And the odds of being funded if you are a woman is:
@@ -184,6 +185,7 @@ and can be computed like this:
 ```{r}
 odds_women <- (two_by_two$women[2] / sum(two_by_two$women)) / 
   (two_by_two$women[1] / sum(two_by_two$women))
+odds_women
 ```
 
 The odds ratio is the ratio for these two odds: how many times larger are the odds for men than for women?
@@ -204,27 +206,6 @@ mat %>% knitr::kable()
 In this case, the odds ratio is $\frac{a/c}{b/d}$
 which is equivalent to $(ad) / (bc)$
 
-## Large samples, small p-values
-
-As mentioned earlier, reporting only p-values is not an appropriate
-way to report the results of data analysis. In scientific journals, for example, 
-some studies seem to overemphasize p-values. Some of these studies have large sample sizes
-and report impressively small p-values.  Yet when one looks closely at
-the results, we realize odds ratios are quite modest: barely bigger
-than 1. In this case the difference may not be *practically significant* or *scientifically significant*.
-
-Note that the relationship between odds ratio and p-value is not one-to-one. It depends on the sample size. So a very small p-value does not necessarily mean very large odds ratio.
-
-Notice what happens to the p-value if we multiply our two-by-two table by 10:
-
-```{r}
-two_by_two %>% 
-  select(-awarded) %>%
-  mutate(men = men*10, women = women*10) %>%
-  chisq.test() 
-```
-
-Yet the odds ratio is unchanged.
 
 ## Confidence intervals for the odds ratio
 
@@ -273,6 +254,28 @@ This is a slightly different p-value that with the chi-squared test. This is bec
 [McCullagh and Nelder, 1989](https://books.google.com/books?hl=en&lr=&id=h9kFH2_FfBkC).
 
 
+## Large samples, small p-values
+
+As mentioned earlier, reporting only p-values is not an appropriate
+way to report the results of data analysis. In scientific journals, for example, 
+some studies seem to overemphasize p-values. Some of these studies have large sample sizes
+and report impressively small p-values.  Yet when one looks closely at
+the results, we realize odds ratios are quite modest: barely bigger
+than 1. In this case the difference may not be *practically significant* or *scientifically significant*.
+
+Note that the relationship between odds ratio and p-value is not one-to-one. It depends on the sample size. So a very small p-value does not necessarily mean very large odds ratio.
+
+Notice what happens to the p-value if we multiply our two-by-two table by 10:
+
+```{r}
+two_by_two %>% 
+  select(-awarded) %>%
+  mutate(men = men*10, women = women*10) %>%
+  chisq.test() 
+```
+
+Yet the odds ratio is unchanged.
+
 ## Exercises {-}
 
 1. A famous athlete has an impressive career, winning 70% of her 500 career matches. However, this athlete gets criticized because in important events, such as the Olympics, she has a losing record of 8 wins and 9 losses. Perform a Chi squared test to determine if this losing record can be simply due to chance as opposed to not performing well under pressure.
@@ -285,12 +288,12 @@ This is a slightly different p-value that with the chi-squared test. This is bec
     
     B. Fisher's exact and the Chi squareare different names for the same test.
     
-    C. Because the sum of the rows and columns of the two by two table ere not fixedso the hypergeometric distribution is not an appropriate assumption for the null hypothesis. For this reason, Fisher's exact test is rarely applicable with observational data.
+    C. Because the sum of the rows and columns of the two by two table ere not fixed so the hypergeometric distribution is not an appropriate assumption for the null hypothesis. For this reason, Fisher's exact test is rarely applicable with observational data.
     
     D. Because the Chi square test runs faster.
 
   
-3. Compute the odds ratio of losing under pressure along with a confidence interval.
+3. Compute the odds ratio of "losing under pressure" along with a confidence interval.
 
   
 4. Notice that the p-value is larger than 0.05 but the 95% confidence interval does not include 1. What explains this?

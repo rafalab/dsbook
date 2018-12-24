@@ -1,12 +1,15 @@
 # Polls
 
+Opinion polling has been conducted since the 19th century. The general goal of these is to describe the opinions held by a specific population on a given set of topics. In recent times, these polls have been pervasive during presidential elections. Polls are useful when interviewing every member of a particular population is logistically impossible. The general strategy is to interview a smaller group, chosen at random, and then infer the opinions of the entire population from the opinions of the smaller group. Statistical theory is used to justify the process. This theory is referred to as  _inference_ and it is the main topic of this chapter.
+
 ##  Opinion polls
+
 
 Perhaps the best known opinion polls are those conducted to determine which candidate is preferred by voters in a given election. Political strategists make extensive use of polls to decide, among other things, how to invest resources. For example, they may want to know which geographical locations to focus their 'get out the vote' efforts. 
 
 Elections are a particularly interesting case of opinion polls because the actual opinion of the entire population is revealed on election day. Of course, it costs millions of dollars to run an actual election which makes polling a cost effective strategy for those that want to forecast the results. 
 
-Although typically the results of these polls are kept private, similar polls are conducted by news organizations because results tend to be of interest to the general public and, therefore, are often made public. We will eventually be looking at such data.
+Although typically the results of these polls are kept private, similar polls are conducted by news organizations because results tend to be of interest to the general public and made public. We will eventually be looking at such data.
 
 [Real Clear Politics](http://www.realclearpolitics.com) is an example of a news aggregator that organizes and publishes poll results. For example, [here](http://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html) are examples of polls reporting estimates of the popular vote for the 2016 presidential election:
 
@@ -16,7 +19,7 @@ knitr::include_graphics("inference/img/rcp-polls.png")
 
 (Source: [Real Clear Politics](https://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html))
 
-Although in the United States the popular vote does not determine the result of the presidential election, we will use it as an illustrative and simple example of how well polls work. Forecasting the election is a more complex process since it involves combining results from 50 states and DC.
+Although in the United States the popular vote does not determine the result of the presidential election, we will use it as an illustrative and simple example of how well polls work. Forecasting the election is a more complex process since it involves combining results from 50 states and DC and we describe it in Section \@ref(election-forecasting).
 
 Let's make some observations about the table above. First, note that different polls, all taken days before the election, report a different _spread_:  the estimated difference between support for the two candidates. Notice also that the reported spreads hover around what ended up being the actual result: Clinton won the popular vote by 2.1%. We also see a column titled **MoE** which stands for _margin of error_. 
 
@@ -27,14 +30,14 @@ We start by connecting probability theory to the task of using polls to learn ab
 
 ## The sampling model for polls
 
-To help us understand the connection between polls and what we have learned, let's construct a similar situation to the one pollsters face. We will use an urn instead of voters and, rather than competing with other pollsters for media attention, we will have a competition with a \$25 dollar prize. The challenge is to guess the spread between the proportion of blue and red beads in this urn (in this case, a pickle jar):
+To help us understand the connection between polls and what we have learned, let's construct a similar situation to the one pollsters face. To mimic the challenge real pollsters face in terms of competing with other pollsters for media attention, we will use an urn full of beads to represent  voters and pretend we are a competiting for a \$25 dollar prize. The challenge is to guess the spread between the proportion of blue and red beads in this urn (in this case, a pickle jar):
 
 
 ```{r, echo=FALSE, out.width="3in"}
 knitr::include_graphics("inference/img/urn.jpg")
 ```
 
-Before making a prediction, you can take a sample (with replacement) from the urn. To mimic the fact that running polls is expensive, it cost you \$0.10 per each bead you sample. Therefore, if your sample size is 250, and you win, you will break even since you will pay me \$25 to collect your \$25 prize. Your entry into the competition can be an interval. If the interval you submit contains the true proportion, you get half what you paid and pass to the second phase of the competition. In the second phase, the entry with the smallest interval is selected as the winner. 
+Before making a prediction, you can take a sample (with replacement) from the urn. To mimic the fact that running polls is expensive, it cost you \$0.10 per each bead you sample. Therefore, if your sample size is 250, and you win, you will break even since you will pay \$25 to collect your \$25 prize. Your entry into the competition can be an interval. If the interval you submit contains the true proportion, you get half what you paid and pass to the second phase of the competition. In the second phase, the entry with the smallest interval is selected as the winner. 
 
 The __dslabs__ package includes a function that shows a random draw from this urn:
 
@@ -45,7 +48,6 @@ set.seed(1)
 ```{r first-simulated-poll, comment=FALSE, warning=FALSE}
 library(tidyverse)
 library(dslabs)
-ds_theme_set()
 take_poll(25)
 ```
 
@@ -59,16 +61,16 @@ We want to predict the proportion of blue beads in the urn. Let's call this quan
 
 In statistical textbooks, the beads in the urn are called the _population_. The proportion of blue beads in the population $p$  is called a _parameter_. The 25 beads we see in the previous plot are called a _sample_. The task of statistical inference is to predict the parameter $p$ using the observed data in the sample. 
 
-Can we do this with the 25 observations above? It is certainly informative. For example, given that we see 13 red and 12 blue beads, it is unlikely that $p$ > .9 or $p$ < .1. But are we ready to predict with certainty that there are more red beads than blue?  
+Can we do this with the 25 observations above? It is certainly informative. For example, given that we see 13 red and 12 blue beads, it is unlikely that $p$ > .9 or $p$ < .1. But are we ready to predict with certainty that there are more red beads than blue in the jar?  
 
-We want to construct an estimate of $p$ using only the information we observe. An estimate can be thought of as a summary of the observed data that we think is informative about the parameter of interest. It seems intuitive to think that the proportion of blue beads in the sample $0.48$ must be at least related to the actual proportion $p$. But do we simply predict $p$ to be 0.48? First, remember that the sample proportion is a random variable. If we run the command `take_poll(25)` four times:
+We want to construct an estimate of $p$ using only the information we observe. An estimate should be thought of as a summary of the observed data that we think is informative about the parameter of interest. It seems intuitive to think that the proportion of blue beads in the sample $0.48$ must be at least related to the actual proportion $p$. But do we simply predict $p$ to be 0.48? First, remember that the sample proportion is a random variable. If we run the command `take_poll(25)` four times we get a different answer each time since the sample proportion is a random variable. 
+
 
 ```{r four-simulated-polls, echo=FALSE}
 par(mfrow=c(2,2), mar = c(3, 1, 3, 0), mgp = c(1.5, 0.5, 0)) 
 take_poll(25); take_poll(25); take_poll(25); take_poll(25)
 ```
 
-we get a different answer each time since the sample proportion is a random variable. 
  
 Note that in the four random samples shown above, the sample proportions range from 0.44 to 0.60. By describing the distribution of this random variable, we will be able to gain insights into how good this estimate is and how we can make it better.
 
@@ -76,9 +78,9 @@ Note that in the four random samples shown above, the sample proportions range f
 
 Conducting an opinion poll is being modeled as taking a random sample from an urn. We are proposing the use of the proportion of blue beads in our sample as an _estimate_ of the parameter $p$. Once we have this estimate, we can can easily report an estimate for the spread $2p-1$, but for simplicity we will illustrate the concepts for estimating $p$. We will use our knowledge of probability to defend our use of the sample proportion and quantify how close we think it is from the population proportion $p$.
 
-We start by defining the random variable $X=1$ if we pick a blue bead at random and $0$ if it is red. This implies that the population is a list of 0s and 1s. If we sample $N$ beads, then the average of the draws $X_1, \dots, X_N$ is equivalent to the proportion of blue beads in our sample. This is because adding the $X$s is equivalent to counting the blue beads and dividing this count by the total $N$ is equivalent to computing a proportion. We use the symbol $\bar{X}$ to represent this average. In general, in statistics textbooks a bar on top of a symbol means the average.
+We start by defining the random variable $X=1$ if we pick a blue bead at random and $X=0$ if it is red. This implies that the population is a list of 0s and 1s. If we sample $N$ beads, then the average of the draws $X_1, \dots, X_N$ is equivalent to the proportion of blue beads in our sample. This is because adding the $X$s is equivalent to counting the blue beads and dividing this count by the total $N$ is equivalent to computing a proportion. We use the symbol $\bar{X}$ to represent this average. In general, in statistics textbooks a bar on top of a symbol means the average.
 
-The theory we just learned about the sum of draws becomes useful because if we know the distribution of the sum $N \bar{X}$, we know the distribution of the average $\bar{X}$ because $N$ is a non-random constant. 
+The theory we just learned about the sum of draws becomes useful because if we that the distribution of the average $\bar{X}$ because $N$ is a non-random constant. 
 
 For simplicity, let's assume that the draws are independent: after we see each sampled bead, we return it to the urn. In this case, what do we know about the distribution of the sum of draws? First, we know that the expected value of the sum of draws is $N$ times the average of the values in the urn. We know that the average of the 0s and 1s in the urn must be $p$, the proportion of blue beads.
 
@@ -114,7 +116,7 @@ This result reveals the power of polls. The expected value of the sample proport
 
 If we take a large enough poll to make our standard error about 1%, we will be quite certain about who will win. But how large does the poll have to be for the standard error to be this small? 
 
-One problem is that we do not know $p$, so we can't compute the standard error. For illustrative purposes, let's assume that $p=0.51$ and make a plot of the standard error versus the sample size $N$: 
+One problem is that we do not know $p$, so we can't compute the standard error. However, for illustrative purposes, let's assume that $p=0.51$ and make a plot of the standard error versus the sample size $N$: 
 
 ```{r standard-error-versus-sample-size, echo=FALSE, message=FALSE, warning=FALSE}
 p <- 0.51
@@ -127,7 +129,7 @@ From the plot we see that we would need a poll of over 10,000 people to get the 
 sqrt(p*(1-p))/sqrt(1000)
 ```
 
-or 1.5 percentage points. So even with large polls, for close elections, $\bar{X}$ can lead us astray if we don't realize it is a random variable. Nonetheless, we can actually say more about how close we get the $p$.
+or 1.5 percentage points. So even with large polls, for close elections, $\bar{X}$ can lead us astray if we don't realize it is a random variable. Nonetheless, we can actually say more about how close we get the $p$ and we do that in Section \@ref(clt)
 
 ## Exercises {-}
 
@@ -140,7 +142,7 @@ or 1.5 percentage points. So even with large polls, for close elections, $\bar{X
 
 4. What is the standard error of $\bar{X}$? Hint: it's a function of $p$.
 
-5. Write a line of code that gives you the standard error `se` for the problem above for `p <- seq(0, 1, length = 100)`. Make a plot of `se` versus `p`. 
+5. Write a line of code that gives you the standard error `se` for the problem above for several values of $p$, specifically for `p <- seq(0, 1, length = 100)`. Make a plot of `se` versus `p`. 
 
 
 6. Copy the code above and put it inside a for-loop to make the plot for $N=25$, $N=100$ and $N=1000$. 
@@ -152,7 +154,7 @@ or 1.5 percentage points. So even with large polls, for close elections, $\bar{X
 8. What is the standard error of $d$?
 
 
-9. If the actual $p=.45$, it means the Republicans are winning by a relatively large margin since $d= -.1$, which is a 10% margin of victory. What is the standard error of $2\hat{X}-1$ in this case? 
+9. If the actual $p=.45$, it means the Republicans are winning by a relatively large margin since $d= -.1$, which is a 10% margin of victory. In this case, what is the standard error of $2\hat{X}-1$ if we take a sample of $N=25$? 
 
 
 10. Given the answer to 9, which of the following best describes your strategy of using a sample size of $N=25$?

@@ -55,9 +55,17 @@ However, we still have a problem. Although this interest rate guarantees that on
 
 $$\mbox{Pr}(S<0) = 0.01$$
 
-We know that $S$ is approximately normal. The expected value of $S$ is$\{ lp + x(1-p)\}n$ with $n$ the number of draws, which in this case represents loans. The standard error is $|x-l| \sqrt{np(1-p)}$. Because $x$ is positive and $l$ negative $|x-l|=x-l$. Note that these are just the formulas from above, but using more compact symbols. 
+We know that $S$ is approximately normal. The expected value of $S$ is 
 
-Now we are going to use a mathematical "trick" that is very common in statistics. We are going add and subtract the same quantities to both sides of the event $S<0$ so that the probability does not change and we end up with a standard normal random variable on the left, which will then permit us to write down an equation with only $x$ as an unknown. This "trick" is as follows:
+$$\mbox{E}[S] = \{ lp + x(1-p)\}n$$ 
+
+with $n$ the number of draws, which in this case represents loans. The standard error is 
+
+$$\mbox{SD}[S] = |x-l| \sqrt{np(1-p)}$$. 
+
+Because $x$ is positive and $l$ negative $|x-l|=x-l$. Note that these are just an application of the formulas shown erlier, but using more compact symbols. 
+
+Now we are going to use a mathematical "trick" that is very common in statistics. Weadd and subtract the same quantities to both sides of the event $S<0$ so that the probability does not change and we end up with a standard normal random variable on the left, which will then permit us to write down an equation with only $x$ as an unknown. This "trick" is as follows:
 
 If 
 
@@ -91,12 +99,12 @@ $$
 So this means that right side of the complicated equation must be $z$=`qnorm(0.01)`.
 
 $$
-\frac{- \{ lp + x(1-p)\}N}{(x-l) \sqrt{Np(1-p)}} = z
+\frac{- \{ lp + x(1-p)\}n} {(x-l) \sqrt{n p (1-p)}} = z
 $$
 
 The trick works because we end up with an expression containing $x$ that we know has to be equal to a known quantity $z$. Solving for $x$ is now simply algebra:
 
-$$ x = - l \frac{ np  - z \sqrt{np(1-p)}}{N(1-p) + z \sqrt{np(1-p)}}$$
+$$ x = - l \frac{ np  - z \sqrt{np(1-p)}}{n(1-p) + z \sqrt{np(1-p)}}$$
 
 which is:
 ```{r}
@@ -135,7 +143,7 @@ mean(profit<0)
 
 ## The Big Short
 
-One of your employees points out that since the bank is making `r round(loss_per_foreclosure*p + x*(1-p))` dollars per loan, the bank should give out more loans! Why just `n`? You explain that finding those `n` clients was hard. You need a group that is predictable and that keeps the chances of defaults low. He then points out that even if the probability of default is higher, as long as our expected value is positive, you can minimize your chances of losses by increasing $n$ and relying on the law of large numbers.
+One of your employees points out that since the bank is making `r round(loss_per_foreclosure*p + x*(1-p))` dollars per loan, the bank should give out more loans! Why just $n$? You explain that finding those `n` clients was hard. You need a group that is predictable and that keeps the chances of defaults low. He then points out that even if the probability of default is higher, as long as our expected value is positive, you can minimize your chances of losses by increasing $n$ and relying on the law of large numbers.
 
 He claims that even if the default rate is twice as high, say 4%, if we set the rate just a bit higher than:
 ```{r}
@@ -158,7 +166,7 @@ $$
 \mbox{Pr}(S < 0) = 
 \mbox{Pr}\left(Z < - \frac{\mbox{E}[S]}{\mbox{SE}[S]}\right)
 $$
-with $Z$ a standard normal random variable as above. If we define $\mu$ and $\sigma$ to be the expected value and standard deviation of the urn respectively (that is of a single loan), using the formulas above we have: $\mbox{E}[S]= n\mu$ and  $\mbox{SE}[S]= \sqrt{n}\sigma$. So if we define $z$=`qnorm(0.01)`, we have: 
+with $Z$ a standard normal random variable as shown earlier. If we define $\mu$ and $\sigma$ to be the expected value and standard deviation of the urn respectively (that is of a single loan), using the formulas above we have: $\mbox{E}[S]= n\mu$ and  $\mbox{SE}[S]= \sqrt{n}\sigma$. So if we define $z$=`qnorm(0.01)`, we have: 
 $$
  - \frac{n\mu}{\sqrt{n}\sigma} = - \frac{\sqrt{n}\mu}{\sigma} = z
 $$
@@ -178,7 +186,7 @@ n <- ceiling((z^2*(x-l)^2*p*(1-p))/(l*p + x*(1-p))^2)
 n
 ```
 
-loans, the probability of losing is about 0.01 and we are expected to earn a total of: 
+loans, the probability of losing is about 0.01 and we are expected to earn a total of 
 
 ```{r}
 n*(loss_per_foreclosure*p + x * (1-p))
@@ -195,7 +203,7 @@ profit <- replicate(B, {
                         prob=c(1-p, p), replace = TRUE) 
     sum(draws)
 })
-mean(profit<0)
+mean(profit)
 ```
 
 This seems like a no brainier. As a result, your colleague decides to leave your bank and start his own high risk mortgage company. A few months later, your colleague's bank has gone bankrupt. A book is written and eventually a movie is made relating the mistake your friend, and many others, made. What happened? 
