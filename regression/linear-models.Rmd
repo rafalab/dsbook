@@ -1,19 +1,5 @@
 # Confounding 
 
-```{r, echo=FALSE, message=FALSE}
-set.seed(1)
-library(tidyverse)
-library(dslabs)
-ds_theme_set()
-library(Lahman)
-library(HistData)
-data("GaltonFamilies")
-galton_heights <- GaltonFamilies %>%
-  filter(childNum == 1 & gender == "male") %>%
-  select(father, childHeight) %>%
-  rename(son = childHeight)
-```
-
 Previously, we noted a strong relationship between Runs and BB. If we find the regression line for predicting runs from bases on balls, we a get slope of:
 
 ```{r}
@@ -26,9 +12,9 @@ bb_slope <- Teams %>%
 
 bb_slope 
 ```
-So does this mean that if we go and hire low salary players with many BB, and who therefore increase the number of walks per game by 2, our team will score `r bb_slope*2` more runs per game? 
+So does this mean that if we go and hire low salary players with many BB, and who therefore increase the number of walks per game by 2, our team will score `r round(bb_slope*2, 1)` more runs per game? 
 
-We are again reminded that association is not causation. The data does provide strong evidence that a team with two more BB per game than the average team, scores `r bb_slope*2` runs per game. But this does not mean that BB are the cause. 
+We are again reminded that association is not causation. The data does provide strong evidence that a team with two more BB per game than the average team, scores `r round(bb_slope*2, 1)` runs per game. But this does not mean that BB are the cause. 
 
 Note that if we compute the regression line slope for singles we get:
 
@@ -62,15 +48,15 @@ A first approach is to keep HRs fixed at a certain value and then examine the re
 
 ```{r}
 dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
-  mutate(HR_strata = round(HR/G,1), 
-         BB_per_game = BB/G,
-         R_per_game = R/G) %>%
+  mutate(HR_strata = round(HR/G, 1), 
+         BB_per_game = BB / G,
+         R_per_game = R / G) %>%
   filter(HR_strata >= 0.4 & HR_strata <=1.2) 
 ```
 
 and then make a scatterplot for each strata:
 
-```{r runs-vs-bb-by-hr-strata, out.width="100%"}
+```{r runs-vs-bb-by-hr-strata, out.width="100%", fig.height=5}
 dat %>% 
   ggplot(aes(BB_per_game, R_per_game)) +  
   geom_point(alpha = 0.5) +
@@ -78,7 +64,7 @@ dat %>%
   facet_wrap( ~ HR_strata) 
 ```
 
-Remember that the regression slope for predicting runs with BB was `bb_slope`. Once we stratify by HR, these slopes are substantially reduced:
+Remember that the regression slope for predicting runs with BB was `r round(bb_slope, 1)`. Once we stratify by HR, these slopes are substantially reduced:
 
 ```{r}
 dat %>%  
@@ -86,8 +72,8 @@ dat %>%
   summarize(slope = cor(BB_per_game, R_per_game)*sd(R_per_game)/sd(BB_per_game))
 ```
 
-The slopes are reduced, but they are not 0, which indicates that BB are helpful for producing runs.
-In fact, the values above are closer to the slope we obtained from singles `r singles_slope`, which is more consistent with our intuition. Since both singles and BB get us to first base, they should have about the same predictive power.
+The slopes are reduced, but they are not 0, which indicates that BB are helpful for producing runs, just not as much as previously thought.
+In fact, the values above are closer to the slope we obtained from singles `r round(singles_slope, 2)`, which is more consistent with our intuition. Since both singles and BB get us to first base, they should have about the same predictive power.
 
 Although our understanding of the application tells us that HR cause BB but not the other way around, we can still check if stratifying by BB makes the effect of BB go down. To do this, we use the same code except that we swap HR and BBs to get this plot:
 
@@ -151,7 +137,7 @@ In this analysis, referred to as _multivariate regression_, you will often hear 
 
 Since Galton's original development, regression has become one of the most widely used tools in data science. One reason has to do with the fact that regression permits us to find relationships between two variables taking into account the effects of other variables that affect both, as we have just shown for BB, HR and runs in baseball. This has been particularly popular in fields where randomized experiments are hard to run, such as Economics and Epidemiology. 
 
-When we are not able to randomly assign each individual to a treatment or control group, confounding is particularly prevalent. For example, consider estimating the effect of eating fast foods on life expectancy using data collected from a random sample of people in a jurisdiction. Fast food consumers are more likely to be smokers, drinkers, and have lower incomes. Therefore, a naive regression model may lead to an overestimate of a negative health effect. So how do we do account for confounding in practice?
+When we are not able to randomly assign each individual to a treatment or control group, confounding is particularly prevalent. For example, consider estimating the effect of eating fast foods on life expectancy using data collected from a random sample of people in a jurisdiction. Fast food consumers are more likely to be smokers, drinkers, and have lower incomes. Therefore, a naive regression model may lead to an overestimate of the negative health effect of fast food. So how do we account for confounding in practice?
 
 We have described how if data is bivariate normal then the conditional expectations follow the regression line. The fact that the conditional expectation is a line is not an extra assumption but rather a derived result. However, in practice it is common to explicitly write down a model that describes the relationship between two or more variables using a _linear model_. 
 
@@ -181,20 +167,32 @@ Y_i = \beta_0 + \beta_1 (x_i - \bar{x}) + \varepsilon_i, \, i=1,\dots,N
 $$
 
 
-
-$x_i$ to $x_i - \bar{x}$ in which case $\beta_0$ would be the height when $x_i = \bar{x}$, which is the height of the son of an average father.
+with $\bar{x} = 1/N \sum_{i=1}^N x_i$ the average of the $x$. In this case $\beta_0$ represents the height when $x_i = \bar{x}$, which is the height of the son of an average father.
 
 ## Least Squares Estimates (LSE)
 
 For linear models to be useful, we have to estimate the unknown $\beta$s. The standard approach in science is to find the values that minimize the distance of the fitted model to the data. The following is called the least squares (LS) equation and we will see it often in this chapter. For Galton's data, we would write:
 
 $$ 
-RSS = \sum_{i=1}^n \left\{  Y_i - \left(\beta_0 + \beta_1 x_i \right)\right\}^2 
+RSS = \sum_{i=1}^n \left\{  y_i - \left(\beta_0 + \beta_1 x_i \right)\right\}^2 
 $$
 
-This quantity is called the residual sum of squares (RSS). Once we find the values that minimize the RSS, we will call the values the least squares estimates (LSE) and denote them with $\hat{\beta}_0$ and $\hat{\beta}_1$. 
+This quantity is called the residual sum of squares (RSS). Once we find the values that minimize the RSS, we will call the values the least squares estimates (LSE) and denote them with $\hat{\beta}_0$ and $\hat{\beta}_1$. Let's demonstrate this with the previously defined dataset:
 
-Let's write a function that computes the RSS for any pair of values $\beta_0$ and $\beta_1$:
+```{r, message=FALSE}
+library(HistData)
+data("GaltonFamilies")
+set.seed(1983)
+galton_heights <- GaltonFamilies %>%
+  filter(gender == "male") %>%
+  group_by(family) %>%
+  sample_n(1) %>%
+  ungroup() %>%
+  select(father, childHeight) %>%
+  rename(son = childHeight)
+```
+
+Now Let's write a function that computes the RSS for any pair of values $\beta_0$ and $\beta_1$.
 
 ```{r}
 rss <- function(beta0, beta1, data){
@@ -210,12 +208,12 @@ beta1 = seq(0, 1, len=nrow(galton_heights))
 results <- data.frame(beta1 = beta1,
                       rss = sapply(beta1, rss, beta0 = 25))
 results %>% ggplot(aes(beta1, rss)) + geom_line() + 
-  geom_line(aes(beta1, rss), col=2)
+  geom_line(aes(beta1, rss))
 ```
 
 We can see a clear minimum for $\beta_1$ at around 0.65. However, this minimum for $\beta_1$ is for when $\beta_0 = 25$, a value we arbitrarily picked. We don't know if  (25, 0.65) is the pair that minimizes the equation across all possible pairs. 
 
-Trial and error is not going to work in this case. Instead, we will use calculus: take the partial derivatives, set them to 0 and solve. Of course, if we have many parameters, these equations can get rather complex. But there are functions in R that do these calculations for us. We will learn these next. To learn the mathematics behind this, you can consult a book on linear models. 
+Trial and error is not going to work in this case. Instead, we will use calculus: take the partial derivatives, set them to 0 and solve for $\beta_1$ and $\beta_2$. Of course, if we have many parameters, these equations can get rather complex. But there are functions in R that do these calculations for us. We will learn these next. To learn the mathematics behind this, you can consult a book on linear models. 
 
 ## The `lm` function
 
@@ -245,7 +243,7 @@ The object `fit` includes more information about the fit. We can use the functio
 summary(fit)
 ```
 
-To understand some of the columns included in this summary we need to remember that the LSE are random variables. Mathematical statistics gives us some ideas of the distribution of these random variables
+To understand some of the information included in this summary we need to remember that the LSE are random variables. Mathematical statistics gives us some ideas of the distribution of these random variables
 
 
 ## LSE are random variables 
@@ -278,7 +276,8 @@ The reason these look normal is because the central limit theorem applies here a
 ```{r}
  sample_n(galton_heights, N, replace = TRUE) %>% 
   lm(son ~ father, data = .) %>% 
-  summary
+  summary %>%
+  .$coef
 ```
 
 You can see that the standard errors estimates reported by the `summary` are close to the standard errors from the simulation:
@@ -289,31 +288,10 @@ lse %>% summarize(se_0 = sd(beta_0), se_1 = sd(beta_1))
 
 The `summary` function also reports t-statistics (`t value`) and p-values (`Pr(>|t|)`). The t-statistic is not actually based on the central limit theorem but rather on the assumption that the $\varepsilon$s follow a normal distribution. Under this assumption, mathematical theory tells us that the LSE divided by their standard error, $\hat{\beta}_0 / \hat{\mbox{SE}}(\hat{\beta}_0 )$ and $\hat{\beta}_1 / \hat{\mbox{SE}}(\hat{\beta}_1 )$ follow a t-distribution with $N-p$ degrees of freedom and with $p$ the number of parameters in our model. In the case of height $p=2$, the two p-values are testing the null hypothesis that $\beta_0 = 0$ and $\beta_1=0$ respectively. 
 
-Remember that, as we described previously, for large enough $N$, the CLT works and the t-distribution becomes almost the same as the normal distribution. Also, notice that we can construct confidence intervals, but we will soon learn about __broom__, an add-on package that makes this easy.
+Remember that, as we described in Section \@ref(t-dist) for large enough $N$, the CLT works and the t-distribution becomes almost the same as the normal distribution. Also, notice that we can construct confidence intervals, but we will soon learn about __broom__, an add-on package that makes this easy.
 
 Although we do not show examples in this book, hypothesis testing with regression models is commonly used in Epidemiology and Economics to make statements such as "the effect of A on B was statistically significant after adjusting for X, Y and Z". However, several assumptions have to hold for these statements to be true. 
 
-## LSE are correlated (advanced)
-
-Although interpretation is not straightforward, it is useful to know that the LSE can be strongly correlated.
-
-```{r}
-lse %>% summarise(cor(beta_0, beta_1))
-```
-
-However, the correlation depends on how the predictors are defined or transformed. Here we standardize father heights which changes $x_i$ to $x_i - \bar{x}$:
-
-
-```{r}
-B <- 1000
-N <- 50
-lse <- replicate(B, {
-  sample_n(galton_heights, N, replace = TRUE) %>% 
-  mutate(father = father - mean(father)) %>%
-  lm(son ~ father, data = .) %>% .$coef 
-})
-cor(lse[1,], lse[2,]) 
-```
 
 ## Predicted values are random variables 
 
@@ -334,11 +312,6 @@ galton_heights %>% ggplot(aes(son, father)) +
 The R function `predict` takes an `lm` object as input and returns the prediction. If requested, the standard errors and other information from which we can construct confidence intervals is provided:
 
 ```{r father-son-predictor}
-galton_heights %>% 
-  mutate(Y_hat = predict(lm(son ~ father, data = .))) %>%
-  ggplot(aes(father, Y_hat)) +
-  geom_line()
-
 fit <- galton_heights %>% lm(son ~ father, data = .) 
 
 Y_hat <- predict(fit, se.fit = TRUE)
@@ -351,7 +324,7 @@ names(Y_hat)
 
 We have shown how BB and singles have similar predictive power for scoring runs. Another way to compare the usefulness of these baseball metrics is by assessing how stable they are across the years. Since we have to pick players based on their previous performances, we will prefer metrics that are more stable. In these exercises, we will compare the stability of singles and BBs. 
 
-1. Before we get started, we want to generate two tables. One for 2002 and another for the average of 1999-2001 seasons. We want to define per plate appearance statistics. Here is how we create the 2017 table. We keep only players with more than 100 plate appearances.
+1. Before we get started, we want to generate two tables. One for 2002 and another for the average of 1999-2001 seasons. We want to define per plate appearance statistics. Here is how we create the 2017 table. Keeping only players with more than 100 plate appearances.
 
     ```{r, eval=FALSE}
     library(Lahman)
@@ -374,6 +347,8 @@ We have shown how BB and singles have similar predictive power for scoring runs.
 
 5. Now fit a linear model for each metric and use the `confint` function to compare the estimates.
 
+
+CHANGE: MOVE PARTS OF THIS TO R PART
 
 # Advanced tidyverse: tibbles and `do`
 

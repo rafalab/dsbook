@@ -1,6 +1,6 @@
 # Case Study: Moneyball
 
-_Moneyball: The Art of Winning an Unfair Game_ is a book by Michael Lewis about the Oakland Athletics baseball team and its general manager, the person tasked with building the team, Billy Beane. 
+_Moneyball: The Art of Winning an Unfair Game_ is a book by Michael Lewis about the Oakland Athletics (A's) baseball team and its general manager, the person tasked with building the team, Billy Beane. 
 
 Traditionally, baseball teams use _scouts_ to help them decide what players to hire. These scouts evaluate players by observing them perform. Scouts tend to favor athletic players with observable physical abilities. For this reason, scouts tend to agree on who the best players are and, as a result, these players tend to be in high demand. This in turn drives up their salaries. 
 
@@ -37,13 +37,13 @@ In this chapter, to simplify the exercise, we will focus on scoring runs and ign
 
 To see how regression will help us find undervalued players, we actually don't need to understand all the details about the game of baseball, which has over 100 rules. Here, we distill the sport to the basic knowledge one needs to know how to effectively attack the data science problem. 
 
-The goal of a baseball game is to score more runs (points) than the other team. Each team has 9 batters that have an opportunity to hit a ball with a bat in a predetermined order. After the 9th batter has had their turn, the first batter bats again, then the second, and so on. Each time a batter has an opportunity to bat, we call it a plate appearance (PA). At each PA, the other team's _pitcher_ throws the ball and the batter tries to hit it. The PA ends with an binary outcome: the batter either makes an _out_ (failure) and returns to the bench or the batter doesn't (success) and can run around the bases, and potentially score a run (tag all 4 bases). Each team gets nine tries, referred to as _innings_, to score runs and each inning ends after three outs (three failures).
+The goal of a baseball game is to score more runs (points) than the other team. Each team has 9 batters that have an opportunity to hit a ball with a bat in a predetermined order. After the 9th batter has had their turn, the first batter bats again, then the second, and so on. Each time a batter has an opportunity to bat, we call it a plate appearance (PA). At each PA, the other team's _pitcher_ throws the ball and the batter tries to hit it. The PA ends with an binary outcome: the batter either makes an _out_ (failure) and returns to the bench or the batter doesn't (success) and can run around the bases, and potentially score a run (reach all 4 bases). Each team gets nine tries, referred to as _innings_, to score runs and each inning ends after three outs (three failures).
 
 Here is a video showing a [success](https://www.youtube.com/watch?v=HL-XjMCPfio) and here one showing a [failure](https://www.youtube.com/watch?v=NeloljCx-1g). In these videos, we see how luck is involved in the process. When at bat, the batter wants to hit the ball hard. If the batter hits it hard enough, it is a HR, the best possible outcome as the batter gets at least one automatic run. But sometimes, due to chance, the batter hits the ball very hard and a defender catches it, resulting in an out. In contrast, sometimes the batter hits the ball softly, but it lands just in the right place. The fact that there is chance involved hints at why probability models will be involved.
 
 Now there are several ways to succeed. Understanding this distinction will be important for our analysis. When the batter hits the ball, the batter wants to pass as many _bases_ as possible. There are four bases with the fourth one called _home plate_. Home plate is where batters start by trying to hit, so the bases form a cycle.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, out.width="50%"}
 ## source: http://quarterlyspeedbump.com/wp-content/uploads/2012/03/Baseball_Diamond1.jpeg
 knitr::include_graphics("regression/img/Baseball_Diamond1.png")
 ```
@@ -56,13 +56,13 @@ We are simplifying a bit, but there are five ways a batter can succeed, that is 
 
 - Bases on balls (BB) - the pitcher fails to throw the ball through a predefined area considered to be hittable (the strikezone), so the batter is permitted to go to first base.
 - Single - Batter hits the ball and gets to first base.
-- Double (X2B) - Batter hits the ball and gets to second base.
-- Triple  (X3B) - Batter hits the ball and gets to third base.
+- Double (2B) - Batter hits the ball and gets to second base.
+- Triple  (3B) - Batter hits the ball and gets to third base.
 - Home Run (HR) - Batter hits the ball and goes all the way home and scores a run. 
 
 [Here](https://www.youtube.com/watch?v=xYxSZJ9GZ-w) is an example of a HR.
   
-If a batter gets to a base, the batter still has a chance of getting home and scoring a run if the next batter hits successfully. While the batter is _on base_, the batter can also try to steal a base (SB). If a batter runs fast enough, the batter can try to go from first to second without the other team tagging him. [Here](https://www.youtube.com/watch?v=JSE5kfxkzfk) is an example of a stolen base.
+If a batter gets to a base, the batter still has a chance of getting home and scoring a run if the next batter hits successfully. While the batter is _on base_, the batter can also try to steal a base (SB). If a batter runs fast enough, the batter can try to go from one base to the next without the other team tagging the runner. [Here](https://www.youtube.com/watch?v=JSE5kfxkzfk) is an example of a stolen base.
 
 All these events are kept track of during the season and are available to us through the __Lahman__ package. Now we will start discussing how data analysis can help us decide how to use these statistics to evaluate players.
 
@@ -75,9 +75,9 @@ knitr::include_graphics("regression/img/JumboTron.png")
 
 (Source: [John Vennavally-Rao](https://twitter.com/jvrCTV/status/640230776806768640))
 
-Historically, the _batting average_ has been considered the most important offensive statistic. To define this average, we define a _hit_ (H) and an _at bat_ (AB). Singles, doubles, triples and home runs are hits. The fifth way to be successful, BB, is not a hit. An AB is the number of times you either get a hit or make an out; BBs are excluded. The batting average is simply H/AB and is considered the main measure of a success rate. Today this success rate ranges from 20% to 38%. We refer to the batting average in thousands so, for example, if your success rate is 25%, we call it _batting 250_.
+Historically, the _batting average_ has been considered the most important offensive statistic. To define this average, we define a _hit_ (H) and an _at bat_ (AB). Singles, doubles, triples and home runs are hits. The fifth way to be successful, BB, is not a hit. An AB is the number of times you either get a hit or make an out; BBs are excluded. The batting average is simply H/AB and is considered the main measure of a success rate. Today this success rate ranges from 20% to 38%. We refer to the batting average in thousands so, for example, if your success rate is 28%, we call it _batting 280_.
 
-One of Bill James' first important insights is that the batting average ignores BB, but a BB is a success.  He proposed we use the _on base percentage_ (OPB) instead of batting average. He defined OBP as (H+BB)/(AB+BB) which is simply the proportion to plate appearances that don't result in an out, a very intuitive measure. He noted that a player that gets many more BB than the average player might not be recognized if the batter does not excel in batting average. But is this player not helping produce runs? No award is given to the player with the most BB. However, bad habits are hard to break and baseball did not immediately adopt OPB as an important statistic. In contrast, total stolen bases were considered important and an [award](http://www.baseball-almanac.com/awards/lou_brock_award.shtml) given to the player with the most. But players with high totals of SB, also made more outs as they did not always succeed. Does a player with high SB total help produce runs? Can we use data science to determine if it's better to pay for BB or SB? 
+One of Bill James' first important insights is that the batting average ignores BB, but a BB is a success.  He proposed we use the _on base percentage_ (OPB) instead of batting average. He defined OBP as (H+BB)/(AB+BB) which is simply the proportion of plate appearances that don't result in an out, a very intuitive measure. He noted that a player that gets many more BB than the average player might not be recognized if the batter does not excel in batting average. But is this player not helping produce runs? No award is given to the player with the most BB. However, bad habits are hard to break and baseball did not immediately adopt OPB as an important statistic. In contrast, total stolen bases were considered important and an [award](http://www.baseball-almanac.com/awards/lou_brock_award.shtml) given to the player with the most. But players with high totals of SB, also made more outs as they did not always succeed. Does a player with high SB total help produce runs? Can we use data science to determine if it's better to pay for BB or SB? 
 
 ## Base on Ball or Stolen Bases?
 
@@ -88,8 +88,8 @@ Let's start with an obvious one: HRs. Do teams that hit more home runs score mor
 ```{r runs-vs-hrs, message=FALSE, warning=FALSE}
 library(Lahman)
 
-Teams %>% filter(yearID %in% 1961:2001 ) %>%
-  mutate(HR_per_game = HR/G, R_per_game = R/G) %>%
+Teams %>% filter(yearID %in% 1961:2001) %>%
+  mutate(HR_per_game = HR / G, R_per_game = R / G) %>%
   ggplot(aes(HR_per_game, R_per_game)) + 
   geom_point(alpha = 0.5)
 ```
@@ -97,8 +97,8 @@ Teams %>% filter(yearID %in% 1961:2001 ) %>%
 The plot shows a strong association: teams with more HRs tend to score more runs. Now let's examine the relationship between stolen bases and runs:
 
 ```{r runs-vs-sb}
-Teams %>% filter(yearID %in% 1961:2001 ) %>%
-  mutate(SB_per_game = SB/G, R_per_game = R/G) %>%
+Teams %>% filter(yearID %in% 1961:2001) %>%
+  mutate(SB_per_game = SB / G, R_per_game = R / G) %>%
   ggplot(aes(SB_per_game, R_per_game)) + 
   geom_point(alpha = 0.5)
 ```
@@ -106,13 +106,13 @@ Teams %>% filter(yearID %in% 1961:2001 ) %>%
 Here the relationship is not as clear. Finally, let's examine the relationship between BB and runs:
 
 ```{r runs-vs-bb}
-Teams %>% filter(yearID %in% 1961:2001 ) %>%
+Teams %>% filter(yearID %in% 1961:2001) %>%
   mutate(BB_per_game = BB/G, R_per_game = R/G) %>%
   ggplot(aes(BB_per_game, R_per_game)) + 
   geom_point(alpha = 0.5)
 ```
 
-Here again we see a clear association. But does this mean that increasing a team BBs **cause** an increase in runs? One of the most important lessons you learn in this chapter is that **assocation is not causation.**
+Here again we see a clear association. But does this mean that increasing a team BBs **cause** an increase in runs? One of the most important lessons you learn in this book is that **assocation is not causation.**
 
 In fact, it looks like BB and HRs are also associated:
 
@@ -130,7 +130,7 @@ Linear regression will help us parse all this out and quantify the associations.
 
 ## Regression applied to baseball statistics
 
-Can we use regression with these data? First, notice that the HR and Run data appear to be bivariate normal:
+Can we use regression with these data? First, notice that the HR and Run data appear to be bivariate normal. We save the plot into the object `p` as we will use it again later.
 
 ```{r hr-runs-bivariate}
 library(Lahman)
@@ -141,19 +141,8 @@ p <- Teams %>% filter(yearID %in% 1961:2001 ) %>%
 p
 ```
 
-We can see that the histograms of each strata confirm that the conditional distributions are normal:
 
-```{r hr-by-runs-hists, out.width="100%"}
-Teams %>% filter(yearID %in% 1961:2001) %>%
-  mutate(z_HR = round((HR - mean(HR))/sd(HR)), 
-         R_per_game = R/G) %>%
-  filter(z_HR %in% -2:3) %>%
-  ggplot(aes(x=R_per_game)) +  
-  geom_histogram(binwidth = 0.25, color = "black") +
-  facet_wrap(~z_HR) 
-```
-
-The qq-plots confirm that the normal approximation holds:
+The qq-plots confirm that the normal approximation is useful here:
 
 ```{r hr-by-runs-qq, out.width="100%"}
 Teams %>% filter(yearID %in% 1961:2001 ) %>%
