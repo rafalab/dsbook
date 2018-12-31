@@ -66,8 +66,8 @@ Once we have an estimate of $d$, we can construct an estimate for the proportion
 Thus, we can predict that the spread will be `r round(d_hat*100,1)` plus or minus `r round(moe*100 ,1)`, which not only includes the actual result we eventually observed on election night, but is quite far from including 0. Once we combine the 12 polls, we become quite certain that Obama will win the popular vote.
 
 ```{r confidence-coverage-2008-election,echo=FALSE}
-polls2 <- rbind(polls,c(13, d_hat, d_hat-moe, d_hat+moe, sum(polls$sample_size)))
-polls2[,1]<-as.character(polls2[,1]);polls2[13,1] <- "Avg"
+avg_poll <- data.frame(poll = "Avg", estimate = d_hat, low = d_hat-moe, high = d_hat+moe, sample_size = sum(polls$sample_size))
+polls2 <- rbind(polls,avg_poll)
 polls2$col <- as.character(c(rep(2,12),1))
 ggplot(polls2, aes(poll, estimate, ymin=low, ymax=high, color=col)) + 
   geom_hline(yintercept = 0) + 
