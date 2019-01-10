@@ -1,11 +1,11 @@
-# String Processing
+# String Processing  stringr and lubridate
 
 ```{r, message=FALSE}
 library(tidyverse)
 library(rvest)
 ```
 
-One of the most common data wrangling challenges involves converting or extracting numeric data, contained in character strings, into the numeric representations required to make plots, summarize or fit models in R. Also common is processing unorganized text into meaningful variable names or categorical variables. 
+One of the most common data wrangling challenges involves converting or extracting numeric data, contained in character strings, into the numeric representations required to make plots, summarize or fit models in R. Also common is processing unorganized text into meaningful variable names or categorical variables. Extracting dates and times are particularly challenging becuase in principle they represent numbers but are expressed as strings following different conventions.
 
 In the Web Scraping Section, we encountered an example related to creating the `murders` dataset we explored in the R chapter. After successfully extracting the raw data from a webpage into a table:
 
@@ -17,7 +17,6 @@ murders_raw <- read_html(url) %>%
   html_table() %>%
   .[[2]] %>%
   setNames(c("state", "population", "total", "murder_rate"))
-head(murders_raw)
 ```
 
 We realized that two of the columns that we expected to contain numbers actually contained characters:
@@ -27,7 +26,7 @@ class(murders_raw$population)
 class(murders_raw$total)
 ```
 
-This is a very common occurrence when web scraping since webpages and other formal documents use commas in numbers to improve readability; for example `4,853,875` is easier to read than `4853875`. Because this is such a common task, there is already a function, `parse_number` that readily does the conversion. However, many of the string processing challenges a data scientist faces are unique and often unexpected. It is therefore quite ambitious to write a comprehensive section on this topic. Here we use case studies that help us demonstrate how string processing is a powerful tool necessary for many data wrangling challenges. Specifically, we show the original _raw_ data used to create the data frames we have studied in this book and describe the string processing that was needed. 
+This is a very common occurrence when web scraping since webpages and other formal documents use commas in numbers to improve readability; for example `4,853,875` is easier to read than `4853875`. Because this is such a common task, there is already the `parse_number` function in the __readr__ package that readily does the conversion. However, many of the string processing challenges a data scientist faces are unique and often unexpected. It is therefore quite ambitious to write a comprehensive section on this topic. Here we use case studies that help us demonstrate how string processing is a powerful tool necessary for many data wrangling challenges. Specifically, we show the original _raw_ data used to create the data frames we have studied in this book and describe the string processing that was needed. 
 
 By going over these cases studies, we will cover some of the most common tasks in string processing including:
 
@@ -37,6 +36,10 @@ By going over these cases studies, we will cover some of the most common tasks i
 - extracting specific parts of strings
 - converting free form text to more uniform formats
 - splitting strings into multiple values
+
+
+Base R includes functions to perform all these tasks. However, they don't follow a unifying convention which makes it a bit hard to memorize and use. The __stringr__ package basically repackages this functionality, but uses a more consistent approach of naming functions and ordering their arguments. For example, in __stringr__, all the string processing functions start with `str_`. This means that if you type `str_` and hit tab, R will auto-complete and show all the available functions. As a result, we don't necessarily have to memorize all the function names. Another advantage is that the string is always the first argument, which means we can more easily use the pipe. We therefore will be focusing on the __stringr__ package. However, because the R-base equivalents are so widely used, below we include a table describing the __stringr__ functions and include R-base equivalent when available.
+
 
 ## Defining strings: single and double quotes and how to escape
 
@@ -57,6 +60,9 @@ Make sure you choose the correct single quote since using the back quote will gi
 ```{r, eval=FALSE}
 s <- `Hello`
 ```
+```
+Error: object 'Hello' not found
+```
 
 Now, what happens if our string includes double quotes? For example, if we want to write 10 inches like this `10"`? 
 You can't use:
@@ -68,6 +74,17 @@ because this is just the string `10` followed by a double quote. If you type thi
 
 ```{r}
 s <- '10"'
+```
+
+If we print out `s` we see that the doulbe quotes are _escaped_ with the backslash `\`.
+```{r}
+s
+```
+
+In fact, escaping with the backlash provides a way to define the string while still using the double quotes to define strings:
+
+```{r}
+s <- "10\""
 ```
 
 In R, the function `cat` lets us see what the string actually looks like:
@@ -96,14 +113,14 @@ s <- "5'10""
 ```
 closes the string after 10. Keep in mind that if we type one of the above code snippets into R, it will get stuck waiting for you to close the open quote and you will have to escape with the _esc_ button.
 
-In this situation, we need to _escape_ the function of the quotes. This is done with the backslash `\`. You can escape either character like this:
+In this situation, we need to escape the function of the quotes with the backslash `\`. You can escape either character like this:
 
 ```{r}
 s <- '5\'10"'
 cat(s)
 ```
 
-or: 
+or like this:
 
 ```{r}
 s <- "5'10\""
@@ -113,6 +130,22 @@ cat(s)
 Escaping character is something we often have to use when processing strings.
 
 ## The stringr package {#stringr}
+
+In this section we will use the following datasets as an example:
+
+```{r}
+library(dslabs)
+data(murders)
+
+url <- paste0("https://en.wikipedia.org/w/index.php?title=",
+              "Gun_violence_in_the_United_States_by_state&direction=prev&oldid=810166167")
+murders_raw <- read_html(url) %>%
+  html_nodes("table") %>%
+  html_table() %>%
+  .[[2]] %>%
+  setNames(c("state", "population", "total", "murder_rate"))
+```
+
 
 In general, string processing involves a string and a pattern. In R, we usually store strings in a character vector such as `murders$population`. Above, we scraped the web to obtain the `murders_raw` data. The first three strings in this vector defined by the population variable are:
 
@@ -130,7 +163,7 @@ This is because of the commas `,`. The string processing we want to do here is r
 
 In general, string processing tasks can be divided into **detecting**, **locating**, **extracting** or **replacing** patterns in strings. In our example, we need to **locate** the `,` and **replace** them with the empty characters `""`. 
 
-Base R includes functions to perform all these tasks. However, they don't follow a unifying convention which makes it a bit hard to memorize and use. The __stringr__ package basically repackages this functionality, but uses a more consistent approach of naming functions and ordering their arguments. For example, in __stringr__, all the string processing functions start with `str_`. This means that if you type `str_` and hit tab, R will auto-complete and show all the available functions. As a result, we don't necessarily have to memorize all the function names. Another advantage is that the string is always the first argument, which means we can more easily use the pipe. We therefore will be focusing on the __stringr__ package. However, because the R-base equivalents are so widely used, below we include a table describing the __stringr__ functions and include R-base equivalent when available.
+
 
 ### The `str_` functions
 

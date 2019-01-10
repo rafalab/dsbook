@@ -2,7 +2,7 @@
 
 _Association is not causation_ is perhaps the most important lesson one learns in a statistics class. _Correlation is not causation_ is another way to say this. In this chapter, we have described tools useful for quantifying associations between variables. However, we must be careful not to over interpret these associations. 
 
-There are many reasons that a variable $X$ can be correlated with a variable $Y$ without either being a cause for the other. Here, we examine three common ways that can lead to misinterpreting data.
+There are many reasons that a variable $X$ can be correlated with a variable $Y$ without having any direct effect on $Y$. Here, we examine three common ways that can lead to misinterpreting data.
 
 ## Spurious correlation
 
@@ -32,8 +32,8 @@ A Monte Carlo simulation can be used to show how data dredging can result in fin
 
 ```{r, cache=TRUE}
 N <- 25
-G <- 1000000
-sim_data <- tibble(group = rep(1:G, each = N), X = rnorm(N*G), Y = rnorm(N*G))
+g <- 1000000
+sim_data <- tibble(group = rep(1:g, each = N), x = rnorm(N*G), y = rnorm(N*G))
 ```
 
 The first column denotes group. We created `r cat(prettyNum(G, big.mark=",",scientific=FALSE))` groups and for each one we generated a pair of independent vectors, $X$ and $Y$, with `r N` observations each, stored in the second and third columns. Because we constructed the simulation, we know that $X$ and $Y$ are not correlated.
@@ -43,7 +43,7 @@ Next, we compute the correlation between `X` and `Y` for each group and look at 
 ```{r}
 res <- sim_data %>% 
   group_by(group) %>% 
-  summarize(r = cor(X, Y)) %>% 
+  summarize(r = cor(x, y)) %>% 
   arrange(desc(r))
 res
 ```
@@ -52,7 +52,7 @@ We see a maximum correlation of `r max(res$r)` and if you just plot the data fro
 
 ```{r dredging}
 sim_data %>% filter(group == res$group[which.max(res$r)]) %>%
-  ggplot(aes(X, Y)) +
+  ggplot(aes(x, y)) +
   geom_point() + 
   geom_smooth(method = "lm")
 ```
@@ -81,7 +81,7 @@ This particular form of data dredging is referred to as _p-hacking_. P-hacking i
 Suppose we take measurements from two independent outcomes, $X$ and $Y$, and we standardize the measurements. However, imagine we make a mistake and forget to standardize entry 23. We can simulate such data using:
 
 ```{r}
-set.seed(1)
+set.seed(1985)
 x <- rnorm(100,100,1)
 y <- rnorm(100,84,1)
 x[-23] <- scale(x[-23])
@@ -91,7 +91,7 @@ y[-23] <- scale(y[-23])
 The data look like this:
 
 ```{r outlier}
-tibble(x,y) %>% ggplot(aes(x,y)) + geom_point(alpha = 0.5)
+qplot(x,y, alpha = 0.5)
 ```
 
 Not surprisingly, the correlation is very high:
@@ -106,12 +106,10 @@ But this is driven by the one outlier. If we remove this outlier, the correlatio
 cor(x[-23], y[-23])
 ```
 
-There is an alternative to the sample correlation for estimating the population correlation that is robust to outliers. It is called _Spearman correlation_. The idea is simple: compute the correlation on the ranks of the values. Here is a plot of the ranks plotted against each other:
+In Section \@ref(robust-summaries) we described alternatives to the average and standard deviation that are robust to outliers. There is also an alternative to the sample correlation for estimating the population correlation that is robust to outliers. It is called _Spearman correlation_. The idea is simple: compute the correlation on the ranks of the values. Here is a plot of the ranks plotted against each other:
 
 ```{r scatter-plot-of-ranks}
-tibble(x,y) %>% 
-  ggplot(aes(rank(x),rank(y))) + 
-  geom_point(alpha = 0.5)
+qplot(rank(x), rank(y))
 ```
 
 The outlier is no longer associated with a very large value and the correlation comes way down:
@@ -188,7 +186,7 @@ A statistical test clearly rejects the hypothesis that gender and admission are 
 
 ```{r}
 admissions %>% group_by(gender) %>% 
-  summarize(total_admitted = round(sum(admitted/100*applicants)), 
+  summarize(total_admitted = round(sum(admitted / 100 * applicants)), 
             not_admitted = sum(applicants) - sum(total_admitted)) %>%
   select(-gender) %>% 
   do(tidy(chisq.test(.)))
@@ -213,8 +211,9 @@ One way to see this is to plot the total percent admitted to a major versus the 
 ```{r uc-berkeley-majors}
 admissions %>% 
   group_by(major) %>% 
-  summarize(major_selectivity = sum(admitted*applicants)/sum(applicants),
-            percent_women_applicants = sum(applicants*(gender=="women")/sum(applicants))*100) %>%
+  summarize(major_selectivity = sum(admitted * applicants) / sum(applicants),
+            percent_women_applicants = sum(applicants * (gender=="women")) /
+                                             sum(applicants) * 100) %>%
   ggplot(aes(major_selectivity, percent_women_applicants, label = major)) +
   geom_text()
 ```
@@ -224,16 +223,24 @@ There seems to be association. The plot suggests that women were much more likel
 
 ### Confounding explained graphically
 
-The following plot shows the percent of applicants that were accepted by gender:
+The following plot shows the number of applicants that were admitted and those that were not by:
 
 ```{r confounding}
+admissions %>%
+  mutate(yes = round(admitted/100*applicants), no = applicants - yes) %>%
+  select(-applicants, -admitted) %>%
+  gather(admission, number_of_students, -c("major", "gender")) %>%
+  ggplot(aes(gender, number_of_students, fill = admission)) +
+  geom_bar(stat = "identity", position = "stack") +
+  facet_wrap(. ~ major)
+
 admissions %>% 
-  mutate(percent_admitted = admitted*applicants/sum(applicants)) %>%
+  mutate(percent_admitted = admitted * applicants/sum(applicants)) %>%
   ggplot(aes(gender, y = percent_admitted, fill = major)) +
   geom_bar(stat = "identity", position = "stack")
 ```
 
-It also breaks down the acceptance rates by major: the size of the colored bars represents the percent of each major to which students were admitted. This breakdown allows us to see that the majority of accepted men came from two majors: A and B. It also lets us see that few women applied to these majors. What the plot does **not** show us is the percent admitted by major. 
+It also breaks down the acceptances by major. This breakdown allows us to see that the majority of accepted men came from two majors: A and B. It also lets us see that few women applied to these majors. 
 
 
 ### Average after stratifying
@@ -319,13 +326,13 @@ Who is right here? The original paper or the response? Here, you will examine th
 3. In the previous exercise, we noticed that the success rate is lower for women. But is it significant? Compute a p-value using a Chi Square test.
 
 
-4. We see that the p-value is about 0.05. So there appears to be some evidence of an association. But can we infer causation here? Is gender bias causing this observed difference? The response to the original paper claims that what we see here is similar to the UC Berkeley admissions example. Specifically they state that this `could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines, then an analysis across all disciplines could incorrectly show "evidence" of gender inequality.` To settle this dispute, create a dataset with number of applications, awards, and success rate for each gender. Reorder the disciplines by their overall success rate. Hint: use the `reorder` function to reorder the disciplines in a first step, then use gather, separate and spread to create the desired table.
+4. We see that the p-value is about 0.05. So there appears to be some evidence of an association. But can we infer causation here? Is gender bias causing this observed difference? The response to the original paper claims that what we see here is similar to the UC Berkeley admissions example. Specifically they state that this _"could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines, then an analysis across all disciplines could incorrectly show "evidence" of gender inequality."_ To settle this dispute, create a dataset with number of applications, awards, and success rate for each gender. Reorder the disciplines by their overall success rate. Hint: use the `reorder` function to reorder the disciplines in a first step, then use gather, separate and spread to create the desired table.
 
 
 5. To check if this is a case of Simpson's paradox, plot the success rates versus disciplines, which have been ordered by overall success, with colors to denote the genders and size to denote the number of applications.
 
   
-6. We definitely do not see the same level of confounding as in the UC Berkeley example. It is hard to say there is a confounder here. However, we do see that, based on the observed rates, some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But, unlike the UC Berkeley example, women are not more likely to apply for the harder subjects. So perhaps some of the selection committees are biased and others are not? 
+6. We definitely do not see the same level of confounding as in the UC Berkeley example. It is hard to say there is a confounder here. However, we do see that, based on the observed rates, some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But, unlike the UC Berkeley example, women are not more likely to apply for the harder subjects. So perhaps some of the selection committees are biased and others are not.  
 
     But, before we conclude this, we must check if these differences are any different than what we get by chance. Are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. Perform a Chi Square test for each discipline. Hint: define a function that receives the total of a two-by-two table and returns a data frame with the p-value. Use the 0.5 correction. Then use the do function. 
 

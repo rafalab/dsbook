@@ -352,7 +352,7 @@ CHANGE: MOVE PARTS OF THIS TO R PART
 
 # Advanced tidyverse: tibbles and `do`
 
-To see how we use `lm` function in a more complex analysis, let's go back to baseball. In a previous example, we estimated regression lines to predict runs for BB in different HR strata. We first constructed a data frame similar to this:
+To see how we use the `lm` function in a more complex analysis, let's go back to the baseball example. In a previous example, we estimated regression lines to predict runs for BB in different HR strata. We first constructed a data frame similar to this:
 
 ```{r}
 dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
@@ -401,26 +401,16 @@ dat %>%  group_by(HR) %>% class()
 
 The `tbl`, pronounced tibble, is a special kind of data frame. We have seen them before because __tidyverse__ functions such as `group_by` and `summarize` always return this type of data frame. The `group_by` function returns a special kind of `tbl`, the `grouped_df`. We will say more about these later.
 
-The manipulation verbs, `select`, `filter`, `mutate`, and `arrange`, preserve the class of the input: if they receive a data frame, they return a data frame. If they receive a tibble they return a tibble. But tibbles are the default data frame in the tidyverse: if you use one of the __tidyverse__ parsers, such as `read_csv` or `read_excel`, you will get a tibble.
+The manipulation verbs, `select`, `filter`, `mutate`, and `arrange`, preserve the class of the input: if they receive a data frame, they return a data frame. If they receive a tibble they return a tibble. But tibbles are the default data frame in the tidyverse:  parsers, such as `read_csv` or `read_excel`, return a tibble.
 
 Tibbles are very similar to data frames. In fact, you can think of them as a modern version of data frames. Nonetheless there are three important differences which we describe in the next section.
 
 
 ### Tibbles display better 
 
-The print method for tibbles is more readable than that of a data frame. To see this, compare these two outputs:
+The print method for tibbles is more readable than that of a data frame. To see this, compare these two outputs of typing `Teams` and `as_tibble(Teams)`.
 
-```{r, eval=FALSE}
-Teams
-```
-
-`Teams` is a data frame with many rows and columns. Nevertheless, the output shows everything, wraps around and is hard to read. It is so bad that we don't print it here; we let you print it on your screen. If you convert this data frame to a tibble data frame, the output is much more readable:
-
-```{r}
-as_tibble(Teams)
-```
-
-Also, notice that the output adjusts to your window size. To see this, change the width of your R console and notice how more/less columns are shown.
+Also, notice that the if using RStudio, output for a tibble adjusts to your window size. To see this, change the width of your R console and notice how more/less columns are shown.
 
 ### Subsets of tibbles are tibbles
 
@@ -450,13 +440,12 @@ A related feature is that tibbles will give you a warning if you try to access a
 Teams$hr
 ```
 
-returns a `NULL` with no warning, which can make it harder to debug. In contrast, this:
+returns a `NULL` with no warning, which can make it harder to debug. In contrast, if we try this with a tibble we get an informative warning:
 
 ```{r}
 as_tibble(Teams)$hr
 ```
 
-gives you an informative warning.
 
 ### Tibbles can have complex entries
 
@@ -569,15 +558,7 @@ We can add other important summaries, such as confidence intervals:
 tidy(fit, conf.int = TRUE)
 ```
 
-Because the outcome is a data frame, we can immediately use it with `do` to string together the commands that produce the table we are after:
-
-```{r}
-dat %>%  
-  group_by(HR) %>%
-  do(tidy(lm(R ~ BB, data = .), conf.int = TRUE))
-```
-
-Because a data frame is returned, we can filter and select the rows and columns we want:
+Because the outcome is a data frame, we can immediately use it with `do` to string together the commands that produce the table we are after. Because a data frame is returned, we can filter and select the rows and columns we want:
 
 ```{r}
 dat %>%  
@@ -600,7 +581,7 @@ dat %>%
   geom_point()
 ```
 
-Now we return to discussing our original task of determining if slopes changed. The plot we just made, using `do` and __broom__, shows that the confidence intervals overlap, which provides a nice visual confirmation that our assumption that the slope does not change is safe.
+Now we return to discussing our original task of determining if slopes changed. The plot we just made, using `do` and `tidy`, shows that the confidence intervals overlap, which provides a nice visual confirmation that our assumption that the slope does not change is safe.
 
 The other functions provided by __broom__, `glance` and `augment` relate to model specific and observation specific outcomes respectively. Here, we can see the model fit summaries `glance` returns:
 
@@ -657,7 +638,7 @@ We will see an example of `augment` in the next section.
 8. __Advanced__. Write a function that takes R, HR and BB as arguments and fits two linear models: `R ~ BB` and `R~BB+HR`. Then use the `do` function to obtain the `BB` for both models for each year since 1961. Then plot these against each other as a function of time.
 
 
-# Case study: Money Ball continued
+# Case study: Moneyball continued
 
 In trying to answer how well BB predict runs, data exploration led us to a model:
 
@@ -668,10 +649,10 @@ $$
 Here, the data is approximately normal and conditional distributions were also normal. Thus, we are justified in using a linear model:
 
 $$
-Y_i = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \varepsilon_i
+Y_i = \beta_0 + \beta_1 x_{i,1} + \beta_2 x_{i,2} + \varepsilon_i
 $$
 
-with $Y_i$ runs per game, $x_1$ walks per game, and $x_2$. To use `lm` here, we need to let it know we have two predictor variables. So we use the `+` symbol as follows:
+with $Y_i$ runs per game for team $i$, $x_{i,1}$ walks per game, and $x_{i,2}$. To use `lm` here, we need to let the function know we have two predictor variables. So we use the `+` symbol as follows:
 
 
 ```{r}
@@ -690,7 +671,7 @@ tidy(fit, conf.int = TRUE)
 
 When we fit the model with only one variable, the estimated slopes were `r bb_slope` and `r hr_slope` for BB and HR respectively. Note that when fitting the multivariate model both go down, with the BB effect decreasing much more. 
 
-So if we want to construct a metric to pick players, we need to consider singles, doubles, and triples as well. Can we build a model that predicts runs based on all these outcomes? 
+Now we want to construct a metric to pick players, we need to consider singles, doubles, and triples as well. Can we build a model that predicts runs based on all these outcomes? 
 
 We now are going to take somewhat of a "leap of faith" and assume that these five variables are jointly normal. This means that if we pick any one of them, and hold the other four fixed, the relationship with the outcome is linear and the slope does not depend on the four values held constant. If this is true, then a linear model for our data is:
 
@@ -698,19 +679,19 @@ $$
 Y_i = \beta_0 + \beta_1 x_{i,1} + \beta_2 x_{i,2} + \beta_3 x_{i,3}+ \beta_4 x_{i,4} + \beta_5 x_{i,5} + \varepsilon_i
 $$
 
-with $x_1, x_2, x_3, x_4, x_5$ representing BB, singles, doubles, triples, and HR respectively. 
+with $x_{i,1}, x_{i,2}, x_{i,3}, x_{i,4}, x_{i,5}$ representing BB, singles, doubles, triples, and HR respectively. 
 
 Using `lm`, we can quickly find the LSE for the parameters using:
 
 ```{r}
 fit <- Teams %>% 
   filter(yearID %in% 1961:2001) %>% 
-  mutate(BB = BB/G, 
-         singles = (H-X2B-X3B-HR)/G, 
-         doubles = X2B/G, 
-         triples =X3B/G, 
-         HR=HR/G,
-         R=R/G) %>%  
+  mutate(BB = BB / G, 
+         singles = (H - X2B - X3B - HR) / G, 
+         doubles = X2B / G, 
+         triples = X3B / G, 
+         HR = HR / G,
+         R = R / G) %>%  
   lm(R ~ BB + singles + doubles + triples + HR, data = .)
 ```
 
@@ -784,8 +765,7 @@ players <- Batting %>% filter(yearID %in% 1999:2001) %>%
 The player specific predicted runs computed here can be interpreted as the number of runs we predict a team will score if all batters are exactly like that player. The distribution shows that there is wide variability across players:
 
 ```{r r-hat-hist}
-players %>% ggplot(aes(R_hat)) + 
-  geom_histogram(binwidth = 0.5, color = "black")
+qplot(R_hat, data = players, geom = "histogram", binwidth = 0.5, color = I("black"))
 ```
 
 ## Adding salary and position information
@@ -801,17 +781,28 @@ players <- Salaries %>%
   right_join(players, by="playerID")
 ```
 
-Next, we add their defensive position. This is a somewhat complicated task because players play more than one position each year. Here, we pick the one position the player most played using the `top_n` function. To make sure we only pick one position, in the case of ties, we pick the first row of the resulting data frame. We also remove the `OF` position which stands for outfielder, a generalization of three positions left field (LF), center field (CF), and right field (RF). We also remove pitchers since they don't bat in the league in which the A's play.
+Next, we add their defensive position. This is a somewhat complicated task because players play more than one position each year. The __Lahman__ package table `Appearances` tells how many games each player played in each position so we can pick the position that was most played using `which.max` on each row. We use `apply` to do this. However, because some players are traded, they appear more than once on the table so we first add 
+H
+ere, 
+we pick the one position the player most played using the `top_n` function. To make sure we only pick one position, in the case of ties, we pick the first row of the resulting data frame. We also remove the `OF` position which stands for outfielder, a generalization of three positions left field (LF), center field (CF), and right field (RF). We also remove pitchers since they don't bat in the league in which the A's play.
 
 ```{r}
-players <- Fielding %>% filter(yearID == 2002) %>%
-  filter(!POS %in% c("OF","P")) %>%
+position_names <- c("G_p","G_c","G_1b","G_2b","G_3b","G_ss","G_lf","G_cf","G_rf")
+
+tmp_tab <- Appearances %>% 
+  filter(yearID == 2002) %>% 
   group_by(playerID) %>%
-  top_n(1, G) %>%
-  filter(row_number(G) == 1) %>%
-  ungroup() %>%
-  select(playerID, POS) %>%
-    right_join(players, by="playerID") %>%
+  summarize_at(position_names, sum) %>%
+  ungroup()
+  
+pos <- tmp_tab %>%
+  select(position_names) %>%
+  apply(., 1, which.max) 
+
+players <- data_frame(playerID = tmp_tab$playerID, POS = position_names[pos]) %>%
+  mutate(POS = str_to_upper(str_remove(POS, "G_"))) %>%
+  filter(POS != "P") %>%
+  right_join(players, by="playerID") %>%
   filter(!is.na(POS)  & !is.na(salary))
 ```
 
@@ -820,6 +811,7 @@ Finally, we add their first and last name:
 ```{r}
 players <- Master %>%
   select(playerID, nameFirst, nameLast, debut) %>%
+  mutate(debut = as.Date(debut)) %>%
   right_join(players, by="playerID")
 ```
 
@@ -834,7 +826,7 @@ players %>% select(nameFirst, nameLast, POS, salary, R_hat) %>%
 
 ## Picking 9 players
 
-Notice the very high salaries for most players. In fact, we see that players with a higher metric have higher salaries:
+Notice the very high salaries for most players. In fact, we see that, on average, players with a higher metric have higher salaries:
 
 ```{r predicted-runs-vs-salary}
 players %>% ggplot(aes(salary, R_hat, color = POS)) + 
@@ -842,10 +834,11 @@ players %>% ggplot(aes(salary, R_hat, color = POS)) +
   scale_x_log10()
 ```
 
-We do see some low cost players with very high metrics. These will be great for our team. Unfortunately, many of these are likely young players that have not yet been able to negotiate a salary and are unavailable. For example, the lowest earner in our top 10 list, Albert Pujols, was a rookie in 2001 and could not negotiate with other teams. Here is the plot without players that debuted before 1997:
+We do see some low cost players with very high metrics. These will be great for our team. Unfortunately, many of these are likely young players that have not yet been able to negotiate a salary and are unavailable. For example, the lowest earner in our top 10 list, Albert Pujols, was a rookie in 2001 and could not negotiate with other teams. Here we remake plot without players that debuted before 1997. We use the __lubridate__, introduced in Section \@ref(lubridate), function `year`.
 
-```{r predicted-runs-vs-salary-no-rookies}
-players %>% filter(debut < 1998) %>%
+```{r predicted-runs-vs-salary-no-rookies, message=FALSE, warning=FALSE}
+library(lubridate)
+players %>% filter(year(debut) < 1998) %>%
  ggplot(aes(salary, R_hat, color = POS)) + 
   geom_point() +
   scale_x_log10()
@@ -853,11 +846,11 @@ players %>% filter(debut < 1998) %>%
 
 We can search for good deals by looking at players that produce many more runs than others with similar salaries. We can use this table to decide what players to pick and keep our total salary below the 40 million dollars Billy Beane had to work with. This can be done using what computer scientists called linear programming. This is not something we teach, but we include the code anyway:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(reshape2)
 library(lpSolve)
 
-players <- players %>% filter(debut <= 1997 & debut > 1988)
+players <- players %>% filter(lubridate::year(debut) < 1998) 
 constraint_matrix <- acast(players, POS ~ playerID, fun.aggregate = length)
 npos <- nrow(constraint_matrix)
 constraint_matrix <- rbind(constraint_matrix, salary = players$salary)
@@ -877,7 +870,7 @@ our_team <- players %>%
 our_team %>% select(nameFirst, nameLast, POS, salary, R_hat)
 ```
 
-We see that these players all have above average BB and HR rates, while the same is not true for singles:
+We see that most of these players have above average BB and HR rates, while the same is not true for singles:
 
 ```{r}
 my_scale <- function(x) (x - median(x))/mad(x)
@@ -924,16 +917,6 @@ They called this on-base-percentage plus slugging percentage (OPS). Although the
 7. We see that using the regression approach predicts runs slightly better than OPS, but not that much. However, note that we have been computing OPS and predicting runs for teams when these measures are used to evaluate players. Let's show that OPS is quite similar to what one obtains with regression at the player level. For the 1961 season and after, compute the OPS and the predicted runs from our model for each player and plot them. Use the PA per game correction we used in the previous chapter:
 
 8. What players have show the largest difference between their rank by predicted runs and OPS?
-
-    __Answer__
-    ```{r, eval=FALSE}
-    res %>% 
-      select(playerID, teamID, yearID, OPS, R_hat, 
-             BB, singles, doubles, triples, HR) %>%
-      mutate_if(is.numeric, function(x) rank(-x)) %>%
-      arrange(desc(abs(OPS-R_hat))) %>% 
-      View()
-    ```
 
 # Regression fallacy
 
@@ -1015,7 +998,7 @@ two_years <- Batting %>%
   filter(POS!="P") %>% 
   select(-POS) %>%
   arrange(desc(`2013`)) %>% 
-  select(-playerID)
+  select(nameFirst, nameLast, `2013`, `2014`)
 ```  
 
 The same pattern arises when we look at the top performers: batting averages go down for the most of the top performers.
@@ -1033,9 +1016,7 @@ arrange(two_years, `2013`)
 Their batting averages go up! Is this some sort of reverse sophomore slump? It is not. There is no such thing as the sophomore slump. This is all explained with a simple statistical fact: the correlation for performance in two separate years is high, but not perfect:
 
 ```{r regression-fallacy}
-two_years %>% 
-  ggplot(aes(`2013`, `2014`)) + 
-  geom_point() 
+qplot(`2013`, `2014`, data = two_years)
 ```
 
 The correlation is: 
@@ -1108,7 +1089,7 @@ Thanks to my high school physics teacher, I know that the equation for the traje
 
 $$d = h_0 + v_0 t -  0.5 \times 9.8 t^2$$
 
-with $h_0$ and $v_0$ the starting height and velocity respectively. The data we simulated above followed this equation and added measurement error to simulate `n` observations for dropping the ball $(v_0=0)$ from the tower of Pisa $(h_0=56.67)$. 
+with $h_0$ and $v_0$ the starting height and velocity respectively. The data we simulated above followed this equation and added measurement error to simulate `n` observations for dropping the ball $(v_0=0)$ from the tower of Pisa $(h_0=55.86)$. 
 
 These are consistent with the parameter estimates:
 

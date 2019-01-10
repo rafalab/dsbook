@@ -1,11 +1,12 @@
-# Combining tables
-
+# Joining tables
 
 The information we need for a given analysis may not be just on one table. For example, when forecasting elections we used the function `left_join` to combine the information from two tables. Here we use a simpler example to illustrate the general challenge of combining tables.
 
 Suppose we want to explore the relationship between population size for US states and electoral votes. We have the population size in this table:
 
 ```{r}
+library(tidyverse)
+library(dslabs)
 data(murders)
 head(murders)
 ```
@@ -17,7 +18,7 @@ data(polls_us_election_2016)
 head(results_us_election_2016)
 ```
 
-Just joining these two tables together will not work since the order of the states is not quite the same:
+Just joining these two tables together will not work since the order of the states is not the same.
 
 ```{r}
 identical(results_us_election_2016$state, murders$state)
@@ -30,8 +31,7 @@ The _join_ functions, described below, are designed to handle this challenge.
 The _join_ functions in the __dplyr__ package make sure that the tables are combined so that matching rows are together. If you know SQL, you will see that the approach and syntax is very similar. The general idea is that one needs to identify one or more columns that will serve to match the two tables. Then a new table with the combined information is returned. Notice what happens if we join the two tables above by state using `left_join` (we will remove the `others` column so that the tables fit on the page):
 
 ```{r}
-tab <- left_join(murders, results_us_election_2016, by = "state") %>%
-  select(-others)
+tab <- left_join(murders, results_us_election_2016, by = "state") %>% select(-others)
 head(tab)
 ```
 
@@ -47,17 +47,17 @@ tab %>% ggplot(aes(population/10^6, electoral_votes, label = abb)) +
   geom_smooth(method = "lm", se = FALSE)
 ```
 
-We see the relationship is close to linear with about 2 electoral votes for every million persons, but with smaller states getting higher ratios.
+We see the relationship is close to linear with about 2 electoral votes for every million persons, but with very small states getting higher ratios.
 
 
 In practice, it is not always the case that each row in one table has a matching row in the other. For this reason, we have several versions of join. To illustrate this challenge, we will take subsets of the tables above. We create the tables `tab1` and `tab2` so that they have some states in common but not all:
 
 ```{r}
-tab_1 <- slice(murders, 1:6) %>% 
-  select(state, population)
+tab_1 <- slice(murders, 1:6) %>% select(state, population)
 tab_1
 ###NEEDS TO CHANGE
-tab_2 <- slice(results_us_election_2016, c(1:3, 5, 7:8)) %>% 
+tab_2 <- results_us_election_2016 %>% 
+  filter(state%in%c("Alabama", "Alaska", "Arizona", "California", "Connecticut","Delaware")) %>% 
   select(state, electoral_votes)
 tab_2
 ```
@@ -67,25 +67,25 @@ We will use these two tables as examples in the next sections.
 
 ### Left join
 
-Suppose we want a table like `tab_1`, but adding electoral votes to whatever states we have available. For this, we use left join with `tab_1` as the first argument.
+Suppose we want a table like `tab_1`, but adding electoral votes to whatever states we have available. For this, we use left join with `tab_1` as the first argument. We specify which column to use to match with the `by` argument.
 
 ```{r}
-left_join(tab_1, tab_2)
+left_join(tab_1, tab_2, by = "state")
 ```
 
 Note that `NA`s are added to the two states not appearing in `tab_2`. Also, notice that this function, as well as all the other joins, can receive the first arguments through the pipe:
 
-```{r}
-tab_1 %>% left_join(tab_2)
+```{r, eval=FALSE}
+tab_1 %>% left_join(tab_2, by = "state")
 ```
 
 
 ### Right join
 
-If instead of a table like `tab_1`, we want one like `tab_2`, we can use `right_join`:
+If instead of a table with the same rows as first table, we want one with the same rows as second table, we can use `right_join`:
 
 ```{r}
-tab_1 %>% right_join(tab_2)
+tab_1 %>% right_join(tab_2, by = "state")
 ```
 
 Now the NAs are in the column coming from `tab_1`.
@@ -95,7 +95,7 @@ Now the NAs are in the column coming from `tab_1`.
 If we want to keep only the rows that have information in both tables, we use inner join. You can think of this as an intersection:
 
 ```{r}
-inner_join(tab_1, tab_2)
+inner_join(tab_1, tab_2, by = "state")
 ```
 
 ### Full join
@@ -103,15 +103,15 @@ inner_join(tab_1, tab_2)
 If we want to keep all the rows and fill the missing parts with NAs, we can use a full join. You can think of this as a union:
 
 ```{r}
-full_join(tab_1, tab_2)
+full_join(tab_1, tab_2, by = "state")
 ```
 
 ### Semi join
 
-The `semi_join` lets us keep the part of first table, for which we have information, in the second. It does not add the columns of the second:
+The `semi_join` function lets us keep the part of first table, for which we have information, in the second. It does not add the columns of the second:
 
 ```{r}
-semi_join(tab_1, tab_2)
+semi_join(tab_1, tab_2, by = "state")
 ```
 
 
@@ -120,13 +120,13 @@ semi_join(tab_1, tab_2)
 The function `anti_join` is the opposite of `semi_join`. It keeps the elements of the first table, for which there is no information, in the second:
 
 ```{r}
-anti_join(tab_1, tab_2)
+anti_join(tab_1, tab_2, by = "state")
 ```
 
 The following diagram summarizes the above joins:
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, out.width = "40%"}
 knitr::include_graphics("wrangling/img/joins.png")
 ```
 
@@ -173,7 +173,7 @@ This is based on an R-base function `rbind`.
 
 ## Set operators
 
-Another set of commands useful for combing datasets are the set operators. When applied to vectors, these behave as their names suggest, `intersect` and `union`. However, if the __tidyverse__ or, more specifically, __dplyr__ is loaded, these functions can be used on data frames as opposed to just on vectors.
+Another set of commands useful for combing datasets are the set operators. When applied to vectors, these behave as their names suggest. Examples are`intersect`, `union`, `setdiff`, and `setequal`. However, if the __tidyverse__ or, more specifically, __dplyr__ is loaded, these functions can be used on data frames as opposed to just on vectors.
 
 ### Intersect
 
@@ -188,7 +188,7 @@ or characters:
 intersect(c("a","b","c"), c("b","c","d"))
 ```
 
-The function __dplyr__ also includes an `intersect` function that can be applied to tables that have the same column names. This function returns the rows in common between two tables. To make sure we use the __dplyr__ version of interesect rather than the base package version we can use `dplyr::intersect` like this:
+The function __dplyr__ includes an `intersect` function that can be applied to tables with the same column names. This function returns the rows in common between two tables. To make sure we use the __dplyr__ version of interesect rather than the base package version we can use `dplyr::intersect` like this:
 
 
 ```{r}
@@ -218,7 +218,7 @@ dplyr::union(tab_1, tab_2)
 
 ### `setdiff`
 
-The set difference between a first and second argument can be obtained with `setdiff`. Not unlike `instersect` and `union`, this function is not symmetric:
+The set difference between a first and second argument can be obtained with `setdiff`. Unlike `instersect` and `union`, this function is not symmetric:
 
 
 ```{r}
@@ -259,20 +259,16 @@ dplyr::setequal(tab_1, tab_2)
 
 1. Install and load the __Lahman__ library. This database includes data related to Baseball teams. It includes summary statistics about how the players performed on offense and defense for several years. It also includes personal information about the players.
 
-    Here is a data frame with the offensive statistics for all players in 2016.
-  
+    The `Batting` data frame contains the offensive statistics for all players for many years. You can see, for example, the top 10 hitters by running this code:
+    
     ```{r, eval=FALSE}
     library(Lahman)
-    Batting %>% filter(yearID == 2016) %>% as_tibble()
-    ```
     
-    You can see the top 10 hitters by running this code:
-    
-    ```{r, eval=FALSE}
     top <- Batting %>% 
       filter(yearID == 2016) %>%
       arrange(desc(HR)) %>%
       slice(1:10)
+    
     top %>% tbl_df
     ```
 

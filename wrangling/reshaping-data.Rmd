@@ -1,25 +1,34 @@
 # Reshaping data
 
-```{r, echo=FALSE}
+As we have seen throught the book, having data in _tidy_ format is what makes the tidyverse flow. After the first step in the data analysis process, importing data, a common next step is to reshape the data into a form that facilitates the rest of the analysis. The __tidyr__ package includes several functions that are useful for tidying data. 
+
+We will use the fertility wide format dataset described in Section \@ref(tidy-data) as an example in this section. 
+
+```{r, message=FALSE}
 library(tidyverse) 
+library(dslabs)
 path <- system.file("extdata", package="dslabs")
 filename <- file.path(path,  "fertility-two-countries-example.csv")
 wide_data <- read_csv(filename)
 ```
 
-As we have seen, having data in _tidy_ format is what makes the tidyverse flow. After the first step in the data analysis process, importing data, a common next step is to reshape the data into a form that facilitates the rest of the analysis. The __tidyr__ package includes several functions that are useful for tidying data. 
 
 ## `gather`
 
-One of the most used functions in the __tidyr__ package is `gather`, which converts wide data into tidy data. 
+One of the most used functions in the __tidyr__ package is `gather`, which, is useful for converting wide data into tidy data. 
 
-In the third argument of the `gather` function, you specify the columns that will be _gathered_. The default is to gather all columns so, in most cases, we have to specify the columns. Here we want columns `1960`, `1961` up to `2015`. The first argument sets the column/variable name that will hold the variable that is currently kept in the wide data column names. In our case, it makes sense to set name to `year`, although we can name it anything. The second argument sets the new column/variable name that will hold the values. In this case, we call it `fertility` since this is what is stored in this file. Note that nowhere in this file does it tell us this is fertility data. Instead, this information was kept in the file name.
+As with most tidyverse functions, the `gather`'s first argument is the data frame that will be converted. Here we want to reshape the `wide_data` dataset so that each row represents an fertility observation which implies we need three columns to store the year, country and the observed value. In it's current form, data from different years are in different columns with the year values stored in the column names. Throught the second and third argument we will tell `gather` the column names we want to assign to the columns containin the current column names and observations repsectively. In this a good choice for these two arguments would be `year` and `fertility`. Note that nowhere in the data file does it tell us this is fertility data. Instead, we deciphered this from the file name. Through the fourth argument we specify the columns containing observed values; these are the columns that that will be _gathered_. The default is to gather all columns so, in most cases, we have to specify the columns. In our example we want columns `1960`, `1961` up to `2015`. 
 
-The gathering code looks like this:
+The code to gather the fertility data therefore looks like this:
 
 ```{r}
-new_tidy_data <- wide_data %>%
-  gather(year, fertility, `1960`:`2015`)
+new_tidy_data <- gather(wide_data, year, fertility, `1960`:`2015`)
+```
+
+We can also use the pipe like this:
+
+```{r}
+new_tidy_data <- wide_data %>% gather(year, fertility, `1960`:`2015`)
 ```
 
 We can see that the data have been converted to tidy format with columns `year` and `fertility`:
@@ -28,8 +37,7 @@ We can see that the data have been converted to tidy format with columns `year` 
 head(new_tidy_data)
 ```
 
-However, each year resulted in two rows since we have two countries and this column was not gathered.
-
+and that each year resulted in two rows since we have two countries and this column was not gathered.
 A somewhat quicker way to write this code is to specify which column will **not** be gathered, rather than all the columns that will be gathered:
 
 ```{r}
@@ -37,14 +45,23 @@ new_tidy_data <- wide_data %>%
   gather(year, fertility, -country)
 ```
 
-The `new_tidy_data` object looks like the original `tidy_data` we used with just one minor difference. Can you spot it? Look at the data type of the year column:
+The `new_tidy_data` object looks like the original `tidy_data` we defined this way
+
+```{r}
+data("gapminder")
+tidy_data <- gapminder %>% 
+  filter(country %in% c("South Korea", "Germany") & !is.na(fertility)) %>%
+  select(country, year, fertility)
+```
+
+with just one minor difference. Can you spot it? Look at the data type of the year column:
 
 ```{r}
 class(tidy_data$year)
 class(new_tidy_data$year)
 ```
 
-The `gather` function assumes that column names are characters. So we need a bit more wrangling before we are ready to make a plot. We need to convert the year column to numbers. The `gather` function has an argument for that, the `convert` argument:
+The `gather` function assumes that column names are characters. So we need a bit more wrangling before we are ready to make a plot. We need to convert the year column to be numbers. The `gather` function includes the `convert` argument for this purpose:
 
 ```{r}
 new_tidy_data <- wide_data %>%
@@ -52,13 +69,12 @@ new_tidy_data <- wide_data %>%
 class(new_tidy_data$year)
 ```
 
-We could have also used the `mutate` and `as.numeric`.
+Note that we could have also used the `mutate` and `as.numeric`.
 
 Now that the data is tidy, we can use the same ggplot code as before:
 
 ```{r fertility-year-check}
-new_tidy_data %>% ggplot(aes(year, fertility, color = country)) +
-  geom_point()
+new_tidy_data %>% ggplot(aes(year, fertility, color = country)) + geom_point()
 ```
 
 ## `spread`
@@ -82,7 +98,7 @@ knitr::include_graphics("wrangling/img/gather-spread.png")
 
 The data wrangling shown above was simple compared to what is usually required. In our example spreadsheet files, we include an illustration that is slightly more complicated. It contains two variables: life expectancy and fertility. However, the way it is stored is not tidy and, as we will explain, not optimal.
 
-```{r}
+```{r, message=FALSE}
 path <- system.file("extdata", package = "dslabs")
 filename <- file.path(path, "life-expectancy-and-fertility-two-countries-example.csv")
 
@@ -90,7 +106,7 @@ raw_dat <- read_csv(filename)
 select(raw_dat, 1:5)
 ```
 
-First, note that the data is in wide format. Second, notice that this table includes values for two variables, fertility and life expectancy, with the column name encoding which column represents which variable. This is not a recommended way to store information, encoded in column names, but it is quite common. We will put our wrangling skills to work to extract this information and store it in a tidy fashion.
+First, note that the data is in wide format. Second, notice that this table includes values for two variables, fertility and life expectancy, with the column name encoding which column represents which variable. Encoding information in the column names is not a recommended but, unfortunately, it is quite common. We will put our wrangling skills to work to extract this information and store it in a tidy fashion.
 
 We can start the data wrangling with the `gather` function, but we should no longer use the column name `year` for the new column since it also contains the variable type. We will call it `key`, the default, for now:
 
@@ -120,8 +136,7 @@ dat %>% separate(key, c("year", "variable_name"))
 The function does separate the values, but we run into a new problem. We receive the warning `Too many values at 112 locations:` and that the `life_expectancy` variable is truncated to `life`. This is because the `_` is used to separate `life` and `expectancy` not just year and variable name! We could add a third column to catch this and let the `separate` function know which column to _fill in_ with missing values, `NA`, when there is no third value. Here we tell it to fill the column on the right:
 
 ```{r}
-dat %>% separate(key, c("year", "first_variable_name", "second_variable_name"), 
-                 fill = "right")
+dat %>% separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right")
 ```
 
 However, if we read the `separate` help file, we find that a better approach is to merge the last two variables when there is an extra separation:
@@ -142,26 +157,14 @@ The data is now in tidy format with one row for each observation with three vari
 
 ## `unite`
 
-It is sometimes useful to do the inverse of `separate`, unite two columns into one. To demonstrate how to use `unite`, we show code that, although this is *not* an optimal approach, serves as an illustration. Suppose that we did not know about `extra` and used this command to separate: 
+It is sometimes useful to do the inverse of `separate`, unite two columns into one. To demonstrate how to use `unite`, we show code that, although *not* the optimal approach, serves as an illustration. Suppose that we did not know about `extra` and used this command to separate: 
 
 ```{r}
 dat %>% 
-  separate(key, 
-           c("year", "first_variable_name", "second_variable_name"), 
-           fill = "right")
+  separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right")
 ```
 
-We can achieve the same final result by uniting the second and third columns like this:
-
-```{r}
-dat %>% 
-  separate(key, 
-           c("year", "first_variable_name", "second_variable_name"), 
-           fill = "right") %>%
-  unite(variable_name, first_variable_name, second_variable_name, sep="_")
-```
-
-Then spreading the columns:
+We can achieve the same final result by uniting the second and third columns, then spreading the columns and renaming `fertlity_NA` to `fertility`:
 
 ```{r}
 dat %>% 

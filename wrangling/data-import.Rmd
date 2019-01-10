@@ -2,17 +2,18 @@
 
 ## Text versus binary files
 
-For data science purposes, files can generally be classified into two categories: text files (also known as ASCII files) and binary files. You have already worked with text files. All your R scripts are text files and so are the R markdown files used to create this book. The csv tables you have read are also text files. One big advantage of these files is that we can easily "look" at them without having to purchase any kind of special software or follow complicated instructions. Any text editor can be used to examine a text file, including freely available editors such as RStudio, Notepad, textEdit, vi, emacs, nano, and pico. To see this, try opening a csv file using the "Open file" RStudio tool. You should be able to "see" the content right on your editor. However, if you try to open, say, an excel xls file, jpg or png file, you will not be able to see anything useful. These are binary files. Excel files are actually compressed folders with several text files inside. But the main distinction here is that text files can be easily examined. 
+For data science purposes, files can generally be classified into two categories: text files (also known as ASCII files) and binary files. You have already worked with text files. All your R scripts are text files and so are the R markdown files used to create this book. The csv tables you have read are also text files. One big advantage of these files is that we can easily "look" at them without having to purchase any kind of special software or follow complicated instructions. Any text editor can be used to examine a text file, including freely available editors such as RStudio, Notepad, textEdit, vi, emacs, nano, and pico. To see this, try opening a csv file using the "Open file" RStudio tool. You should be able to "see" the content right on your editor. However, if you try to open, say, an excel xls file, jpg or png file, you will not be able to see anything immediately useful. These are binary files. Excel files are actually compressed folders with several text files inside. But the main distinction here is that text files can be easily examined. 
 
 Although R includes tools for reading widely used binary files, such as xls files, in general you will want to find data sets stored in text files. Similarly, when sharing data you want to make it available as text files as long as storage is not an issue (binary files are much more efficient at saving space on your disk). 
 
+FIX AFTER WE MOVE
 Extracting data from a spreadsheet stored as a text file is perhaps the easiest way to bring data from a file to an R session. Unfortunately, spreadsheets are not always available and the fact that you can look at text files does not necessarily imply that extracting data from them will be straightforward. Part of what we learn in this chapter is to extract data from more complex text files such as html files.
 
 ## Unicode versus ASCII
 
 A challenge in data science is assuming a file is an ASCII text file when, in fact, it is something else that can look a lot like an ASCII text file: a Unicode text file. 
 
-To understand the difference between these, remember that everything on a computer needs to eventually be converted to 0s and 1s. ASCII is an _encoding_ that maps characters to numbers. ASCII uses 7 bits (0s and 1s) which results in $2^7 = 128$, enough to encode all the characters on an English language keyboard. However, other languages use characters not included in this encoding. For example, the é in México is not encoded by ASCII. For this reason, a new encoding, using more than 7 bits, was defined: Unicode. When using Unicode, one can chose between 8, 16, and 32 bits abbreviated UTF-8, UTF-16 and UTF-32 respectively. RStudio actually defaults to UTF-8 encoding. 
+To understand the difference between these, remember that everything on a computer needs to eventually be converted to 0s and 1s. ASCII is an _encoding_ that maps characters to numbers. ASCII uses 7 bits (0s and 1s) which results in $2^7 = 128$ unique items, enough to encode all the characters on an English language keyboard. However, other languages use characters not included in this encoding. For example, the é in México is not encoded by ASCII. For this reason, a new encoding, using more than 7 bits, was defined: Unicode. When using Unicode, one can chose between 8, 16, and 32 bits abbreviated UTF-8, UTF-16 and UTF-32 respectively. RStudio actually defaults to UTF-8 encoding. 
 
 Although we do not go into the details of how to deal with the different encodings here, it is important that you know these different encodings exist so that you can better diagnose a problem if you encounter it. One way problems manifest themselves is when you see "weird looking" characters you were not expecting. [Here](https://stackoverflow.com/questions/18789330/r-on-windows-character-encoding-hell) is an example.
 
@@ -22,6 +23,7 @@ Although we do not go into the details of how to deal with the different encodin
 library(tidyverse)
 ```
 
+FIX WHEN MOVED
 In the R chapter, we covered some of the basics of importing data. We described functions available in the default R installation. Here, we present a more general discussion and introduce the __tidyverse__ packages __readr__ and __readxl__.
 
 Currently, one of the most common ways of storing and sharing data for analysis is through electronic spreadsheets. A spreadsheet stores data in rows and columns. It is basically a file version of a data frame. When saving such a table to a computer file, one needs a way to define when a new row or column ends and the other begins. This in turn defines the cells in which single values are stored. 
@@ -39,6 +41,8 @@ However, not all spreadsheet files are in a text format. Google Sheets, which ar
 
 ## Paths and the Working Directory
 
+
+#CHANGE AFTER MOVE.. MAYBE BRING STUFF FROM TOOLS
 We start by demonstrating how to read-in a file that is already saved on your computer. There are several ways to do this and we will discuss three of them. However, you only need to learn one to follow along.
 
 The first step is to find the file containing your data and know its location in your file system.
@@ -66,9 +70,10 @@ path <- system.file("extdata", package="dslabs")
 list.files(path)
 ```
 
-Now that we know the location of these files, we are ready to import them into R. To make the code simpler and following along easier, you can move this file to your working directory. You can do this through the file system directly, but you can also do it within R itself using the `file.copy` function. To do this, it helps to define a variable with the full path using the function `file.path`. Using `paste` is not recommended since Microsoft Windows and Macs/Linux/Unix use different slashes for the paths. The function `file.path` is aware of your system and chooses the correct slashes. Here is an example:
+Now that we know the location of these files, we are ready to import them into R. To make the code simpler and following along easier, you can move this file to your working directory. You can do this through the file system directly, but you can also do it within R itself using the `file.copy` function. To do this, it helps to define a variable with the full path using the function `file.path`. Using `paste` to construct a filepath string is not recommended since Microsoft Windows and Macs/Linux/Unix use different slashes when representing paths. The function `file.path` is aware of your system and chooses the correct slashes. Here is an example of how to define a full path for a file:
 
 ```{r}
+path <- system.file("extdata", package = "dslabs")
 filename <- "murders.csv"
 fullpath <- file.path(path, filename)
 ```
@@ -86,6 +91,8 @@ You can check if the file is now in your working directory using the `file.exist
 ```{r}
 file.exists(filename)
 ```
+
+Because we have copied it here, in the next section we assume that `murders.csv` is in the working directory.
 
 ## The readr and readxl packages
 
@@ -107,7 +114,7 @@ The readxl package provides functions to read-in Microsoft Excel formats:
 | read_xls | original format |  xls |
 | read_xlsx | new format | xlsx |
 
-The Microsoft Excel formats permits you to have more than one spreadsheet in one file. These are referred to as _sheets_. The functions above read the first sheet by default, but the `excel_sheets` function gives us the names of the sheets in an excel file. These names can then be passed to the `sheet` argument in the three functions above to read sheets other than the first.
+The Microsoft Excel formats permits you to have more than one spreadsheet in one file. These are referred to as _sheets_. The functions listed above read the first sheet by default, but we can also read the others. The `excel_sheets` function gives us the names of all the sheets in an excel file. These names can then be passed to the `sheet` argument in the three functions above to read sheets other than the first.
 
 Although the suffix usually tells us what type of file it is, there is no guarantee that these always match. We can open the file to take a look or use function `read_lines` to look at a few lines:
 
@@ -117,20 +124,19 @@ read_lines("murders.csv", n_max = 3)
 
 This also shows that there is a header. Now we are ready to read-in the data into R. From the suffix and the peek at the file, we know to use `read_csv`:
 
-```{r}
+```{r, message}
 dat <- read_csv(filename)
 ```
-
-we can also use the full path for the file:
-
-```{r, eval=FALSE}
-dat <- read_csv(fullpath)
-```
-
-Note that we receive a message letting us know what data types were used for each column. Also note that `dat` is a `tibble` not just a data frame. This is because `read_csv` is a __tidyverse__ parser. We can see that the data has in fact been read-in with the content in the file:
+Note that we receive a message letting us know what data types were used for each column. 
+Also note that `dat` is a `tibble` not just a data frame. This is because `read_csv` is a __tidyverse__ parser. We can see that the data has in fact been read-in with the content in the file:
 
 ```{r}
 head(dat)
+```
+Finally, note that we can also use the full path for the file:
+
+```{r, eval=FALSE}
+dat <- read_csv(fullpath)
 ```
 
 ## R-base functions
@@ -166,7 +172,7 @@ url <- "https://raw.githubusercontent.com/rafalab/dslabs/master/inst/extdata/mur
 
 The `read_csv` file can read these files directly:
 
-```{r}
+```{r, message = FALSE}
 dat <- read_csv(url)
 ```
 
@@ -175,6 +181,8 @@ If you want to have a local copy of the file, you can use the `download.file` fu
 ```{r, eval=TRUE}
 download.file(url, "murders.csv")
 ```
+
+This will download the file and save it on your system with the name `murders.csv`. You can use any name here, not necessarily `murders.csv`. Note that when using `donwload.file` you should be careful as it will overwrite existing files without warning.
 
 Two functions that are sometimes useful when downloading data from the internet are `tempdir` and `tempfile`. The first creates a directory with a random name that is very likely to be unique. Similarly, `tempfile` creates a character string, not a file, that is likely to be a unique filename:
 
@@ -189,7 +197,6 @@ tmp_filename <- tempfile()
 download.file(url, tmp_filename)
 dat <- read_csv(tmp_filename)
 file.remove(tmp_filename)
-head(dat)
 ```
 
 
@@ -200,16 +207,17 @@ When reading in spreadsheets many things can go wrong. The file might have a mul
 With experience you will learn how to deal with different challenges. Carefully reading the help files for the functions discussed here will be useful. Two other functions that are helpful are `scan` and `readLines`. With scan you can read-in each cell of a file. Here is an example:
 
 ```{r}
-x <- scan(filename, sep=",", what = "c")
+path <- system.file("extdata", package = "dslabs")
+filename <- "murders.csv"
+x <- scan(file.path(path, filename), sep=",", what = "c")
 x[1:10]
 ```
 
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE}
 tmp <- file.remove(filename)
 ```
-
 
 
 ## Exercises {-}
@@ -224,7 +232,7 @@ tmp <- file.remove(filename)
     ```
 
   
-2. Note that the last one, the olive file, gives us a warning. This is because the first line of the file is missing the header for the first column. 
+2. Note that the last one, the `olive` file, gives us a warning. This is because the first line of the file is missing the header for the first column. 
 
     Read the help file for `read.csv` to figure out how to read in the file without reading this header. If you skip the header, you should not get this warning. Save the result to an object called `dat`
 
@@ -237,6 +245,6 @@ tmp <- file.remove(filename)
 
     to see that the names are not informative.
 
-    Use the `readLines` function to read in just the first line (we later learn how to extract values from the output)
+    Use the `readLines` function to read in just the first line (we later learn how to extract values from the output). 
 
   

@@ -17,8 +17,7 @@ knitr::include_graphics("wrangling/img/murders-data-wiki-page.png")
 
 Unfortunately, there is no link to a data file. To make the data frame that is loaded when we type `data(murders)`, we had to do some _web scraping_. 
 
-_Web scraping_, or _web harvesting_, are the terms we use to describe the process of extracting data from a website. The reason we can do this is because the information used by a browser to render webpages is received as a text file from a server. The text is code written in hyper text markup language (HTML). Every browser has a way to show the html source code for a page, each one different. On Chrome, you can use Control-U on a PC and command+alt+U on a Mac.
-
+_Web scraping_, or _web harvesting_, are the terms we use to describe the process of extracting data from a website. The reason we can do this is because the information used by a browser to render webpages is received as a text file from a server. The text is code written in hyper text markup language (HTML). Every browser has a way to show the html source code for a page, each one different. On Chrome, you can use Control-U on a PC and command+alt+U on a Mac. You will see something like this:
 
 ```{r, echo=FALSE}
 knitr::include_graphics("wrangling/img/html-code.png")
@@ -29,15 +28,6 @@ knitr::include_graphics("wrangling/img/html-code.png")
 Because this code is accessible, we can download the HTML file, import it into R, and then write programs to extract the information we need from the page. However, once we look at HTML code, this might seem like a daunting task. But we will show you some convenient tools to facilitate the process. To get an idea of how it works, here are a few lines of code from the Wikipedia page that provides the US murders data:
 
 ```
-p>The 2015 U.S. population total was 320.9 million. The 2015 U.S. overall murder
-rate per 100,000 inhabitants was 4.89.</p>
-<h2><span class="mw-headline" id="States">States</span>
-<span class="mw-editsection"><span class="mw-editsection-bracket">
-[</span>
-<a href=
-"/w/index.php?title=Murder_in_the_United_States_by_state&amp;action=edit&amp;section=1" 
-title="Edit section: States">
-edit</a><span class="mw-editsection-bracket">]</span></span></h2>
 <table class="wikitable sortable">
 <tr>
 <th>State</th>
@@ -73,7 +63,7 @@ title="List of U.S. states and territories by population">Population</a><br />
 <tr>
 ```
 
-You can actually see the data! We can also see a pattern of how it is stored. If you know HTML, you can write programs that leverage knowledge of these patterns to extract what we want. We also take advantage of a language widely used to make webpages look "pretty" called Cascading Style Sheets (CSS). We say more about this in the CSS Selector Section. 
+You can actually see the data, except data values are surrounded by html code such as `<td>`. We can also see a pattern of how it is stored. If you know HTML, you can write programs that leverage knowledge of these patterns to extract what we want. We also take advantage of a language widely used to make webpages look "pretty" called Cascading Style Sheets (CSS). We say more about this in the CSS Selector Section. 
 
 Although we provide tools that make it possible to scrape data without knowing HTML, for data scientists, it is quite useful to learn some HTML and CSS. Not only does this improve your scraping skills, but it might come in handy if you are creating a webpage to showcase you work. There are plenty of online courses and tutorials for learning these. Two examples are [Codeacademy](https://www.codecademy.com/learn/learn-html) and [W3schools](https://www.w3schools.com/).
 
@@ -81,7 +71,7 @@ Although we provide tools that make it possible to scrape data without knowing H
 
 The __tidyverse__ provides a web harvesting package called __rvest__. The first step using this package is to import the webpage into R. The package makes this quite simple:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(rvest)
 h <- read_html(url)
 ```
@@ -101,7 +91,13 @@ Now, how do we extract the table from the object `h`? If we print `h`, we don't 
 h
 ```
 
-When we know that the information is stored in an HTML table, you can see this in this line of the HTML code above `<table class="wikitable sortable">`. The different parts of an HTML document, often defined with a message in between  `<` and `>`  are referred to as _nodes_. The __rvest__ package includes functions to extract nodes of an HTML document: `html_nodes` extracts all nodes of different types and `html_node` extracts the first one. To extract the tables from the html code we use:
+We can see all the code the defines the downloaded webpage using the `html_text` function like this:
+
+```{r, eval=FALSE}
+html_text(h)
+```
+
+We don't show the output here becuase it includes thousands of characters but if we look at it, we can see the data we are after are stored in an HTML table: you can see this in this line of the HTML code above `<table class="wikitable sortable">`. The different parts of an HTML document, often defined with a message in between  `<` and `>`  are referred to as _nodes_. The __rvest__ package includes functions to extract nodes of an HTML document: `html_nodes` extracts all nodes of different types and `html_node` extracts the first one. To extract the tables from the html code we use:
  
 
 ```{r} 
@@ -121,7 +117,7 @@ tab[[3]]
 ```
 
 
-We are not quite there yet because this is clearly not a tidy dataset, not even a data frame. In the code above, you can definitely see a pattern and writing code to extract just the data is very doable. In fact, __rvest__ includes a function just for converting HTML tables into data frames:
+This is clearly not a tidy dataset, not even a data frame. In the code above, you can definitely see a pattern and writing code to extract just the data is very doable. In fact, __rvest__ includes a function just for converting HTML tables into data frames:
 
 
 ```{r}
@@ -141,13 +137,13 @@ We still have some wrangling to do. For example, we need to remove the commas an
 
 ## CSS selectors
 
-The default look of a webpage made with the most basic HTML is quite unattractive. The aesthetically pleasing pages we see today are made using CSS, which is used to add style to webpages. The fact that all pages for a company have the same style usually results from their use of the same CSS file to define the style. The general way these CSS files work is by defining how each of the elements of a webpage will look. The title, headings, itemized lists, tables, and links, for example, each receive their own style including font, color, size, and distance from the margin. CSS does this by leveraging patterns used to define these elements, referred to as _selectors_. An example of such a pattern, which we used above, is `table`, but there are many, many more. 
+The default look of a webpage made with the most basic HTML is quite unattractive. The aesthetically pleasing pages we see today are made using CSS to define the look and style of webpages. The fact that all pages for a company have the same style usually results from their use of the same CSS file to define the style. The general way these CSS files work is by defining how each of the elements of a webpage will look. The title, headings, itemized lists, tables, and links, for example, each receive their own style including font, color, size, and distance from the margin. CSS does this by leveraging patterns used to define these elements, referred to as _selectors_. An example of such a pattern, which we used above, is `table`, but there are many, many more. 
 
 If we want to grab data from a webpage and we happen to know a selector that is unique to the part of the page containing this data, we can use the `html_nodes` function. However, knowing which selector can be quite complicated. 
 In fact, the complexity of webpages has been increasing as they become more sophisticated. For some of the more advanced ones, it seems almost impossible to find the notes that define a particular piece of data. However, selector gadgets actually make this possible.
 
-[SelectorGadget](http://selectorgadget.com/) is piece of software that allows you to interactively determine what CSS selector you need to extract specific components from the webpage. If you plan on scraping data other than tables, we highly recommend you install it if you are interested in scraping html pages. A Chrome extension is available which permits you to turn on the gadget and then, as you click through the page, it highlights parts and shows you the selector you need to extract these parts. There are various demos of how to do this including author Hadley Wickham's
-[vignetter](https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html), and  [these ](https://stat4701.github.io/edav/2015/04/02/rvest_tutorial/) [two](https://www.analyticsvidhya.com/blog/2017/03/beginners-guide-on-web-scraping-in-r-using-rvest-with-hands-on-knowledge/) tutorials based on the package vignette. 
+[SelectorGadget](http://selectorgadget.com/) is piece of software that allows you to interactively determine what CSS selector you need to extract specific components from the webpage. If you plan on scraping data other than tables, we highly recommend you install it if you are interested in scraping html pages. A Chrome extension is available which permits you to turn on the gadget and then, as you click through the page, it highlights parts and shows you the selector you need to extract these parts. There are various demos of how to do this including __rvest__ author Hadley Wickham's
+[vignette](https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html), and  [these ](https://stat4701.github.io/edav/2015/04/02/rvest_tutorial/) [two](https://www.analyticsvidhya.com/blog/2017/03/beginners-guide-on-web-scraping-in-r-using-rvest-with-hands-on-knowledge/) tutorials based on the package vignette. 
 
 ## JSON
 
@@ -176,7 +172,7 @@ citi_bike$executionTime
 and the second is a data table:
 
 ```{r}
-head(citi_bike$stationBeanList)
+citi_bike$stationBeanList %>% tbl_df() 
 ```
 
 
@@ -187,7 +183,7 @@ You can learn much more by examining tutorials and help files from the __jsonlit
 ## Exercises {-}
 
 
-1. Visit the following web page: [http://www.stevetheump.com/Payrolls.htm](http://www.stevetheump.com/Payrolls.htm)
+1. Visit the following web page: [https://web.archive.org/web/20181024132313/http://www.stevetheump.com/Payrolls.htm](https://web.archive.org/web/20181024132313/http://www.stevetheump.com/Payrolls.htm)
 
     Notice there are several tables. Say we are interested in comparing the payrolls of teams across the years. The next few exercises take us through the steps needed to do this.
 
@@ -237,7 +233,7 @@ You can learn much more by examining tutorials and help files from the __jsonlit
 
 
 7. We saw in the previous analysis that the first table node is not actually a table. This happens sometimes in html because tables are used to make text look a certain way, as opposed to storing numeric values. 
-Remove the first component and then use `sappy` and `html_table` to covert each node in `nodes` into a table. Note that in this case,`sapply` will return a list of tables. You can also use `lapply` to assure that a list is applied.
+Remove the first component and then use `sappy` and `html_table` to covert each node in `nodes` into a table. Note that in this case, `sapply` will return a list of tables. You can also use `lapply` to assure that a list is applied.
 
 
 
