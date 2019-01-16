@@ -13,22 +13,23 @@ In this section, we focus on describing ways in which machine learning algorithm
 For this first example, we use the height data in dslabs:
 
 ```{r}
+library(dslabs)
 data(heights)
 ```
 
-We start by defining the outcome and predictors. In this case, we have only one predictor:
+We start by defining the outcome and predictors. 
 
 ```{r}
 y <- heights$sex
 x <- heights$height
 ```
 
-This is clearly a categorical outcome since $Y$ can be `Male` or `Female` and we only have one predictor: height.
+In this case, we have only one predictor, height, and `y` is clearly a categorical outcome since observed values are either`Male` or `Female`.
 We know that we will not be able to predict $Y$ very accurately based on $X$ because male and female average heights are not that different relative to within group variability. But can we do better than guessing? To answer this question, we need a quantitative definition of better. 
 
 ## Training and test sets
 
-Ultimately, a machine learning algorithm is evaluated on how it performs in the real world with completely new datasets. However, when developing an algorithm, we usually have a dataset for which we know the outcomes, as we do with the heights: we know the sex of every student in our dataset. Therefore, to mimic the ultimate evaluation process, we typically split the data into two and act as if we don't know the outcome for one of these. We stop pretending we don't know the outcome to evaluate the algorithm, but only *after* we are done constructing it. We refer to the group for which we know the outcome and use it to develop the algorithm as the _training_ set, and the group for which we pretend we don't know the outcome as the _test_ set. 
+Ultimately, a machine learning algorithm is evaluated on how it performs in the real world with completely new datasets. However, when developing an algorithm, we usually have a dataset for which we know the outcomes, as we do with the heights: we know the sex of every student in our dataset. Therefore, to mimic the ultimate evaluation process, we typically split the data into two and act as if we don't know the outcome for one of these. We stop pretending we don't know the outcome to evaluate the algorithm, but only *after* we are done constructing it. We refer to the group for which we know the outcome, and use to develop the algorithm, as the _training_ set. We refer to the group for which we pretend we don't know the outcome as the _test_ set. 
 
 A standard way of generating the training and test sets is by randomly splitting the data. The __caret__ package includes the function `createDataPartition` that helps us generates indexes for randomly splitting the data into training and test sets: 
 
@@ -131,7 +132,8 @@ best_cutoff
 Now we can now test this cutoff on our test set to make sure our accuracy is not overly optimistic:
 
 ```{r}
-y_hat <- ifelse(test_set$height > best_cutoff, "Male", "Female") %>% factor(levels = levels(test_set$sex))
+y_hat <- ifelse(test_set$height > best_cutoff, "Male", "Female") %>% 
+  factor(levels = levels(test_set$sex))
 y_hat <- factor(y_hat)
 mean(y_hat == test_set$sex)
 ```
@@ -173,7 +175,7 @@ There are several metrics that we can use to evaluate an algorithm in a way that
 
 To define sensitivity and specificity, we need a binary outcome. When the outcomes are categorical, we can define these terms for a specific category. In the digits example, we can ask for the specificity in the case of correctly predicting 2 as opposed to some other digit. Once we specify a category of interest, then we can talk about positive outcomes, $Y=1$, and negative outcomes, $Y=0$.
 
-In general, _sensitivity_ is defined as the ability of an algorithm to predict a positive outcome when the actual outcome is positive: call $\hat{Y}=1$ whenever $Y=1$. Because an algorithm that calls everything positive ($\hat{Y}=1$ no matter what) has perfect sensitivity, this metric on its own is not enough to judge an algorithm. For this reason, we also examine _specificity_, which is generally defined as the ability of an algorithm to not to predict a positive $\hat{Y}=0$ when the actual outcome is not a positive $Y=0$. We can summarize in the following way:
+In general, _sensitivity_ is defined as the ability of an algorithm to predict a positive outcome when the actual outcome is positive: $\hat{Y}=1$ when $Y=1$. Because an algorithm that calls everything positive ($\hat{Y}=1$ no matter what) has perfect sensitivity, this metric on its own is not enough to judge an algorithm. For this reason, we also examine _specificity_, which is generally defined as the ability of an algorithm to not predict a positive $\hat{Y}=0$ when the actual outcome is not a positive $Y=0$. We can summarize in the following way:
 
 * High sensitivity: $Y=1 \implies \hat{Y}=1$
 * High specificity: $Y=0 \implies \hat{Y} = 0$
@@ -192,9 +194,9 @@ rownames(mat) <- c("Predicted positve", "Predicted negative")
 as.data.frame(mat) %>% knitr::kable()
 ```
 
-Sensitivity is typically quantified by $TP/(TP+FN)$, or the proportion of actual positives (the first column or $TP+FN$) that are called positives `TP`. This quantity is referred to as the _true positive rate_ (TPR) or _recall_. 
+Sensitivity is typically quantified by $TP/(TP+FN)$, the proportion of actual positives (the first column = $TP+FN$) that are called positives `TP`. This quantity is referred to as the _true positive rate_ (TPR) or _recall_. 
 
-Specificity is typically quantified as $TN/(TN+FP)$ or the proportion of negatives (the second column or $FP+TN$) that are called negatives `TN`. This quantity is also called the true negative rate (TNR). There is another way of quantifying specificity which is $TP/(TP+FP)$ or the proportion of outcomes called positives (the first row or $TP+FP$) that are actually positives $TP$. This quantity is referred to as _precision_ and also as _positive predictive value (PPV)_. Note that, unlike TPR and TNR, precision depends on prevalence since higher prevalence implies you can get higher precision even when guessing. 
+Specificity is typically quantified as $TN/(TN+FP)$ or the proportion of negatives (the second column = $FP+TN$) that are called negatives `TN`. This quantity is also called the true negative rate (TNR). There is another way of quantifying specificity which is $TP/(TP+FP)$ or the proportion of outcomes called positives (the first row or $TP+FP$) that are actually positives $TP$. This quantity is referred to as _precision_ and also as _positive predictive value (PPV)_. Note that, unlike TPR and TNR, precision depends on prevalence since higher prevalence implies you can get higher precision even when guessing. 
 
 The multiple names can be confusing, so we include a table to help us remember the terms. The table includes a column that shows the definition if we think of the proportions as probabilities.
 
@@ -216,7 +218,7 @@ We can see that the high overall accuracy is possible despite relatively low sen
 
 ## Balanced accuracy and $F_1$ score
 
-Although, we usually recommend studying both specificity and sensitivity, very often it is useful to have a one number summary, for example for optimization purposes. One metric that is preferred over overall accuracy is the average of specificity and sensitivity, referred to as _balanced accuracy_. Because specificity and sensitivity are rates, it is more appropriate to compute the _harmonic_ average of specificity and sensitivity. In fact, the _$F_1$-score_, a widely used one number summary, is the harmonic average of precision and recall:
+Although, we usually recommend studying both specificity and sensitivity, very often it is useful to have a one number summary, for example for optimization purposes. One metric that is preferred over overall accuracy is the average of specificity and sensitivity, referred to as _balanced accuracy_. Because specificity and sensitivity are rates, it is more appropriate to compute the _harmonic_ average. In fact, the _$F_1$-score_, a widely used one number summary, is the harmonic average of precision and recall:
 
 $$
 \frac{1}{\frac{1}{2}\left(\frac{1}{\mbox{recall}} + 
@@ -248,7 +250,8 @@ Let's rebuild our prediction algorithm, but this time maximizing the F-score ins
 ```{r}
 cutoff <- seq(61, 70)
 F_1 <- map_dbl(cutoff, function(x){
-  y_hat <- ifelse(train_set$height > x, "Male", "Female") %>% factor(levels = levels(test_set$sex))
+  y_hat <- ifelse(train_set$height > x, "Male", "Female") %>% 
+    factor(levels = levels(test_set$sex))
   F_meas(data = y_hat, reference = factor(train_set$sex))
 })
 ```
@@ -268,7 +271,7 @@ We see that it is maximized at $F_1$ value of:
 max(F_1)
 ```
 
-when we use cutoff:
+This maixmum is achieved when we the following cutoff:
 ```{r}
 best_cutoff <- cutoff[which.max(F_1)]
 best_cutoff
@@ -277,8 +280,10 @@ best_cutoff
 A cutoff of 66 makes much more sense than 64. Furthermore, it balances the specificity and sensitivity of our confusion matrix:
 
 ```{r}
-y_hat <- ifelse(test_set$height > best_cutoff, "Male", "Female") %>% factor(levels = levels(test_set$sex))
-confusionMatrix(data = y_hat, reference = test_set$sex)
+y_hat <- ifelse(test_set$height > best_cutoff, "Male", "Female") %>% 
+  factor(levels = levels(test_set$sex))
+sensitivity(data = y_hat, reference = test_set$sex)
+specificity(data = y_hat, reference = test_set$sex)
 ```
 
 We now see that we do much better than guessing, that both sensitivity and specificity are relatively high, and that we have built our first machine learning algorithm. It takes height as a predictor and predicts female, if you are 66 inches or shorter. 
@@ -309,10 +314,8 @@ But, as described above, this would come at the cost of lower sensitivity. The c
 
 Remember that for each of these parameters, we can get a different sensitivity and specificity. For this reason, a very common approach to evaluating methods is to compare them graphically by plotting both.
 
-A widely used plot that does this is the _receiver operating characteristic_ (ROC) curve. If you are wondering where this name comes from, according to Wikipedia:
-
->> The ROC curve was first used during World War II for the analysis of radar signals before it was employed in signal detection theory.[35] Following the attack on Pearl Harbor in 1941, the United States army began new research to increase the prediction of correctly detected Japanese aircraft from their radar signals. For this purpose they measured the ability of radar receiver operators to make these important distinctions, which was called the Receiver Operating Characteristics.
-
+A widely used plot that does this is the _receiver operating characteristic_ (ROC) curve. If you are wondering where this name comes from, you can consult the 
+[ROC Wikipedia](https://en.wikipedia.org/wiki/Receiver_operating_characteristic).
 
 The ROC curve plots sensitivity (TPR) versus 1 - specificity or the false positive rate (FPR). Here is an ROC curve for guessing sex but using different probabilities of guessing male:
 
@@ -329,7 +332,7 @@ guessing <- map_df(probs, function(p){
 guessing %>% qplot(FPR, TPR, data =., xlab = "1 - Specificity", ylab = "Sensitivity")
 ```
 
-The ROC curve for guessing always looks like a straight line. A perfect algorithm would shoot straight to 1 and stay up there: perfect sensitivity for all values of specificity. So how does our second approach compare? We can construct an ROC curve for the height based approach:
+The ROC curve for guessing always looks like a straight line.  So how does our second approach compare? We can construct an ROC curve for the height based approach:
 
 ```{r}
 cutoffs <- c(50, seq(60, 75), 80)
