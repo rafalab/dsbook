@@ -2,13 +2,14 @@
 
 ## The date data type
 
-We have described three main types of vectors: numeric, character, and logical. In data science projects, we very often encounter variables that are dates. Although we can represent a date with a string, for example `November 2, 2017`, once we pick a reference day, referred to as the _epoch_, they can be converted to numbers as well. Computer languages usually use January 1, 1970, as the epoch. So November 2, 2017, is day 17,204. 
+We have described three main types of vectors: numeric, character, and logical. In data science projects, we very often encounter variables that are dates. Although we can represent a date with a string, for example `November 2, 2017`, once we pick a reference day, referred to as the _epoch_, they can be converted to numbers by calculating the number of days since the epoch. Computer languages usually use January 1, 1970, as the epoch. So, for example January 2, 2017 is day 1, December 31, 1969 is day -1, and November 2, 2017, is day 17,204. 
 
 Now how should we represent dates and times when analyzing data in R? We could just use days since the epoch, but then it is almost impossible to interpret. If I tell you it's November 2, 2017, you know what this means immediately. If I tell you it's day 17,204, you will be quite confused. Similar problems arise with times and even more complications can appear due to time zones. 
 
 For this reason, R defines a data type just for dates and times. We saw an example in the polls data:
 
-```{r}
+```{r,  message=FALSE, warning=FALSE}
+library(tidyverse)
 library(dslabs)
 data("polls_us_election_2016")
 polls_us_election_2016$startdate %>% head
@@ -26,7 +27,11 @@ Look at what happens when we convert them to numbers:
 as.numeric(polls_us_election_2016$startdate) %>% head
 ```
 
-It turns them into dates since the epoch. 
+It turns them into days since the epoch.The `as.Date` function can convert a character into a date. So to see that the epoch is day 0 we can type
+
+```{r}
+as.Date("1970-01-01") %>% as.numeric
+```
 
 Plotting functions, such as those in ggplot, are aware of the date format. This means that, for example, a scatterplot can use the numeric representation to decide on the position of the point, but include the string in the labels:
 
@@ -36,20 +41,20 @@ polls_us_election_2016 %>% filter(pollster == "Ipsos" & state =="U.S.") %>%
   geom_line()
 ```
 
-Note in particular that the months are displayed. 
+Note in particular that the month names are displayed, a very convinient feature.
 
 ## The lubridate package {#lubridate}
 
 The tidyverse includes functionality for dealing with dates through the __lubridate__ package. 
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(lubridate)
 ```
 
 We will take a random sample of dates to show some of the useful things one can do:
 
 ```{r}
-set.seed(2)
+set.seed(2002)
 dates <- sample(polls_us_election_2016$startdate, 10) %>% sort
 dates
 ```
@@ -57,7 +62,7 @@ dates
 The functions `year`, `month` and `day` extract those values:
 
 ```{r}
-data.frame(date = dates, 
+data_frame(date = dates, 
            month = month(dates),
            day = day(dates),
            year = year(dates))
@@ -70,7 +75,7 @@ month(dates, label = TRUE)
 ```
 
 
-Another useful set of functions are the _parsers_ that converts strings into dates.
+Another useful set of functions are the _parsers_ that converts strings into dates. The function `ymd` assumes the dates are in the format YYYY-MM-DD and tries to parse as best as possible.
 
 ```{r}
 x <- c(20090101, "2009-01-02", "2009 01 03", "2009-1-4",
@@ -78,10 +83,9 @@ x <- c(20090101, "2009-01-02", "2009 01 03", "2009-1-4",
 ymd(x)
 ```
 
-
 A further complication comes from the fact that dates often come in different formats in which the order of year, month, and day are different. The preferred format is to show year (with all four digits), month (two digits) and then day, or what is called the ISO 8601. Specifically we use YYYY-MM-DD so that if we order the string, it will be ordered by date. You can see the function `ymd` returns them in this format.
 
-What if you encounter dates such as "09/01/02"? This could be September 1, 2002 or January 2, 2009 or January 9, 2002. 
+But, what if you encounter dates such as "09/01/02"? This could be September 1, 2002 or January 2, 2009 or January 9, 2002. 
 In these cases, examining the entire vector of dates will help you determine what format it is by process of elimination. Once you know, you can use the many parses provided by __lubridate__.
 
 For example, if the string is:
@@ -110,7 +114,7 @@ dmy(x)
 dym(x)
 ```
 
-The __lubridate__ package is also useful for dealing with times. In R, you can get the current time typing `Sys.time()`. The __lubridate__ package provides a slightly more advanced function, `now`, that permits you to define the time zone:
+The __lubridate__ package is also useful for dealing with times. In R base, you can get the current time typing `Sys.time()`. The __lubridate__ package provides a slightly more advanced function, `now`, that permits you to define the time zone:
 
 ```{r}
 now()
@@ -127,7 +131,7 @@ now() %>% minute()
 now() %>% second()
 ```
 
-as a function to convert parse strings into times:
+It also includes a function to parse strings into times:
 
 ```{r}
 x <- c("12:34:56")
@@ -141,7 +145,30 @@ x <- "Nov/2/2012 12:34:56"
 mdy_hms(x)
 ```
 
-This package has many other useful functions. Two particular ones not described above are  `make_date` and `round_date`. 
+This package has many other useful functions. We describe two of these here that we find particularly useful.
+
+The`make_date` function can be used to quickly create a date object. It takes three arguments: year, month, day, hour, minute, seconds, and time zone defaulting to the epoch values on UTC time. So create an date object representing, for example, July 6, 2019 we write:
+
+```{r}
+make_date(1970, 7, 6)
+```
+
+To make a vector of January 1 for the 80s we write:
+
+```{r}
+make_date(1980:1989)
+```
+
+
+Another very useful function is the `round_date`. It can be used to _round_ dates to nearest year, quarter,  month, week, day, hour, minutes or seconds. So if we want to group all the polls by week of the year we can do the following:
+
+```{r}
+polls_us_election_2016 %>% 
+  mutate(week = round_date(startdate, "week")) %>%
+  group_by(week) %>%
+  summarize(margin = mean(rawpoll_clinton - rawpoll_trump)) %>%
+  qplot(week, margin, data = .)
+```
 
 
 ## Exercises {-}

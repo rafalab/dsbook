@@ -6,16 +6,16 @@ With the exception of labels used to represent categorical data, we have focused
 ## Case study: Trump tweets
 
 During the 2016 US presidential election, then candidate Donald J. Trump used his twitter account as a way to communicate with potential voters. On August 6, 2016, Todd Vaziri [tweeted](https://twitter.com/tvaziri/status/762005541388378112/photo/1) about Trump that "Every non-hyperbolic tweet is from iPhone (his staff). Every hyperbolic tweet is from Android (from him)." 
-Data scientist David Robinson conducted an [analysis](http://varianceexplained.org/r/trump-tweets/) to determine if data supported this assertion. Here, we go through David's analysis to learn some of the basics of text mining. To learn more about text mining in R, we recommend [this book](https://www.tidytextmining.com/).
+Data scientist David Robinson conducted an [analysis](http://varianceexplained.org/r/trump-tweets/) to determine if data supported this assertion. Here, we go through David's analysis to learn some of the basics of text mining. To learn more about text mining in R, we recommend [this Tidy Text Minig book](https://www.tidytextmining.com/) by Julia Silge and David Robinson.
 
 ```{r,echo=FALSE}
-set.seed(1)
+set.seed(2002)
 ```
 
 We will use the following libraries:
-```{r,message=FALSE}
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
 library(lubridate)
-library(tidyr)
 library(scales)
 ```
 
@@ -59,18 +59,10 @@ trump_tweets$text[16413] %>% str_wrap() %>% cat
 and the source variable tells us which device was used to compose and upload each tweet:
 
 ```{r}
-trump_tweets %>% count(source) %>% arrange(desc(n))
+trump_tweets %>% count(source) %>% arrange(desc(n)) %>% head(5)
 ```
 
-To start, we will use `extract` to remove the `Twitter for` part of the source and filter out retweets.
-
-```{r}
-trump_tweets %>% 
-  extract(source, "source", "Twitter for (.*)") %>%
-  count(source) 
-```
-
-We are interested in what happened during the campaign, so for this analysis we will focus on what was tweeted between the day Trump announced his campaign and election day. We define the following table containing just the tweets from that time period:
+We are interested in what happened during the campaign, so for this analysis we will focus on what was tweeted between the day Trump announced his campaign and election day. We define the following table containing just the tweets from that time period. Note that we use `extract` to remove the `Twitter for` part of the source and filter out retweets.
 
 ```{r}
 campaign_tweets <- trump_tweets %>% 
@@ -96,9 +88,7 @@ campaign_tweets %>%
   geom_line() +
   geom_point() +
   scale_y_continuous(labels = percent_format()) +
-  labs(x = "Hour of day (EST)",
-       y = "% of tweets",
-       color = "")
+  labs(x = "Hour of day (EST)", y = "% of tweets", color = "")
 ```
 
 
@@ -133,7 +123,7 @@ i <- 3008
 campaign_tweets$text[i] %>% str_wrap() %>% cat()
 campaign_tweets[i,] %>% 
   unnest_tokens(word, text) %>%
-  select(word)
+  pull(word) 
 ```
 
 Note that the function tries to convert tokens into words. To do this, however, it strips characters that are important in the context of twitter. Namely, the function removes all the `#` and `@`. A _token_ in the context of twitter is not the same as in the context of spoken or written English. For this reason, instead of using the default, words, we define a regex that captures twitter characters. This may appear complex, but all we are defining is a pattern that starts with @, # or neither, and is followed by any combination of letters or digits:
@@ -147,7 +137,7 @@ We can now use the `unnest_tokens` function with the `regex` option and appropri
 ```{r}
 campaign_tweets[i,] %>% 
   unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
-  select(word)
+  pull(word)
 ```
 
 Another minor adjustment we want to make is to remove the links to pictures:
@@ -156,12 +146,10 @@ Another minor adjustment we want to make is to remove the links to pictures:
 campaign_tweets[i,] %>% 
   mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", ""))  %>%
   unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
-  select(word)
+  pull(word)
 ```
 
-
 Now we are now ready to extract the words for all our tweets. 
-
 
 ```{r}
 tweet_words <- campaign_tweets %>% 
@@ -225,7 +213,16 @@ android_iphone_or <- tweet_words %>%
   spread(source, n, fill = 0) %>%
   mutate(or = (Android + 0.5) / (sum(Android) - Android + 0.5) / 
            ( (iPhone + 0.5) / (sum(iPhone) - iPhone + 0.5)))
+```
+
+Here are the highest odds ratios for Android
+
+```{r}
 android_iphone_or %>% arrange(desc(or))
+```
+
+and the top for iPhone:
+```{r}
 android_iphone_or %>% arrange(or)
 ```  
 
@@ -253,13 +250,13 @@ table(sentiments$lexicon)
 
 The `bing` lexicon divides words into `positive` and `negative` sentiments. We can see this using the _tidytext_ function `get_sentiments`:
 
-```{r}
+```{r, eval=FALSE}
 get_sentiments("bing")
 ```
 
-The `AFINN` lexicon assigns a score between -5 and 5, with -5 the most negative and 5 the most positive.
+The `AFINN` lexicon assigns a score between -5 and 5, with -5 the most negative and 5 the most positive. You access the lexicon like this:
 
-```{r}
+```{r, eval=FALSE}
 get_sentiments("afinn")
 ```
 
@@ -289,7 +286,7 @@ We can combine the words and sentiments using `inner_join`, which will only keep
 ```{r}
 tweet_words %>% inner_join(nrc, by = "word") %>% 
   select(source, word, sentiment) %>% 
-  sample_n(10)
+  sample_n(5)
 ```
 
 Now we are ready to perform a quantitative analysis comparing Android and iPhone by comparing the sentiments of the tweets posted from each device. Here we could perform a tweet by tweet analysis, assigning a sentiment to each tweet. However, this will be challenging since each tweet will have several sentiments attached to it, one for each word appearing in the lexicon. For illustrative purposes, we will perform a much simpler analysis: we will count and compare the frequencies of each sentiment appearing in each device.
@@ -378,7 +375,8 @@ To learn more, we again recommend the [Tidy Text Mining](https://www.tidytextmin
 
 Project Gutenberg is a digital archive of public domain books. The R package __gutenbergr__ facilitates the importation of these texts into R.
 
-You can install and load it like this:
+You can install and load by typing:
+
 ```{r, eval=FALSE}
 install.packages("gutenbergr")
 library(gutenbergr)
