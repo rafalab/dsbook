@@ -1,17 +1,19 @@
 # The caret package
 
-We have already learned about regression, logistic regression, and kNN as machine learning algorithms. In later sections, we learn several others. And this is just a small subset of all the algorithms out there. Many of these algorithms are implemented in R. However, they are distributed via different packages, developed by different authors, and often use different syntax. The __caret__ package tries to consolidate these differences and provide consistency. It currently includes 237 different methods which are summarized [here](https://topepo.github.io/caret/available-models.html). Keep in mind that caret does not include the packages and, to implement a package through caret, you still need to install the library. The required package for each method is included [here](https://topepo.github.io/caret/train-models-by-tag.html).
+We have already learned about regression, logistic regression, and kNN as machine learning algorithms. In later sections, we learn several others. And this is just a small subset of all the algorithms out there. Many of these algorithms are implemented in R. However, they are distributed via different packages, developed by different authors, and often use different syntax. The __caret__ package tries to consolidate these differences and provide consistency. It currently includes 237 different methods which are summarized [here](https://topepo.github.io/caret/available-models.html). Keep in mind that caret does not include the needed packages and, to implement a package through caret, you still need to install the library. The required packages for each method are described [here](https://topepo.github.io/caret/train-models-by-tag.html).
 
 The __caret__ package also provides a function that performs cross validation for us. Here we provide some examples showing how we use this incredibly helpful package. We will use the 2 or 7 example to illustrate:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dslabs)
 data("mnist_27")
 ```
 
 
-## The `train` functon
+## The caret `train` functon
 
-The `train` function lets us train different algorithms using similar syntax. So, for example, we can type:
+The __caret__ `train` function lets us train different algorithms using similar syntax. So, for example, we can type:
 
 ```{r}
 library(caret)
@@ -30,8 +32,8 @@ y_hat_knn <- predict(train_knn, mnist_27$test, type = "raw")
 This permits us to quickly compare the algorithms. For example, we can compare the accuracy like this:
 
 ```{r}
-confusionMatrix(y_hat_glm, mnist_27$test$y)$overall["Accuracy"]
-confusionMatrix(y_hat_knn, mnist_27$test$y)$overall["Accuracy"]
+confusionMatrix(y_hat_glm, mnist_27$test$y)$overall[["Accuracy"]]
+confusionMatrix(y_hat_knn, mnist_27$test$y)$overall[["Accuracy"]]
 ```
 
 ## Cross validation
@@ -44,7 +46,7 @@ getModelInfo("knn")
 
 We can also use a quick look up like this:
 
-```{r}
+```{r, eval=FALSE}
 modelLookup("knn")
 ```
 
@@ -93,7 +95,7 @@ confusionMatrix(predict(train_knn, mnist_27$test, type = "raw"),
                 mnist_27$test$y)$overall["Accuracy"]
 ```
 
-If we want to change of how we perform cross validation, we can use the `trainControl` function. We can make the code above go a bit faster by using, for example, 10-fold cross validation. This means we have 10 samples using 10% of the observations each. We accomplish this using the following code:
+If we want to change how we perform cross validation, we can use the `trainControl` function. We can make the code above go a bit faster by using, for example, 10-fold cross validation. This means we have 10 samples using 10% of the observations each. We accomplish this using the following code:
 
 ```{r cv-10-fold-accuracy-estimate}
 control <- trainControl(method = "cv", number = 10, p = .9)
@@ -106,7 +108,7 @@ ggplot(train_knn_cv, highlight = TRUE)
 
 We notice that the accuracy estimates are more variable, which is expected since we changed the number of samples used to estimate accuracy.
 
-We can also use the standard deviation bars obtained from the cross validation samples:
+We can also see the standard deviation bars obtained from the cross validation samples:
 
 ```{r accuracy-with-sd-bars}
 train_knn$results %>% 
@@ -140,8 +142,7 @@ plot_cond_prob(predict(train_knn, mnist_27$true_p, type = "prob")[,2])
 ```
 
 However, we do see that the boundary is somewhat wiggly. This is because kNN, like the basic bin smoother, does not use a kernel. To improve this we could try loess. By reading through the [available models](https://topepo.github.io/caret/available-models.html) we see that we can use the `gamLoess` method. 
-
-[Here](https://topepo.github.io/caret/train-models-by-tag.html), we see that we need to install the __gam__ package if we have not done so already:
+In the [caret manual](https://topepo.github.io/caret/train-models-by-tag.html) we see that we need to install the __gam__ package if we have not done so already:
 
 ```{r, eval=FALSE}
 install.packages("gam")
@@ -172,14 +173,18 @@ ggplot(train_loess, highlight = TRUE)
 We can see that the method performs similar to kNN:
 
 ```{r}
-confusionMatrix(data =predict(train_loess, mnist_27$test), 
+confusionMatrix(data = predict(train_loess, mnist_27$test), 
                 reference = mnist_27$test$y)$overall["Accuracy"]
 ```
 
 and produces a smoother estimate of the conditional probability:
 
-```{r gam-smooth, warning=FALSE}
-plot_cond_prob(predict(train_loess, mnist_27$true_p, type = "prob")[,2])
+```{r gam-smooth, warning=FALSE, echo=FALSE, out.width="100%"}
+p1 <- plot_cond_prob() + ggtitle("True conditional probability")
+
+p2 <- plot_cond_prob(predict(train_loess, mnist_27$true_p, type = "prob")[,2])
+
+gridExtra::grid.arrange(p2, p1, nrow=1)
 ```
 
 

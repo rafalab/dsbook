@@ -1,4 +1,4 @@
-# Cross validation
+# Cross validation {#cross-validation}
 
 In a previous chapter, we described that a common goal of machine learning is to find an algorithm that produces predictors $\hat{Y}$ for an outcome $Y$ that minimizes the MSE:
 
@@ -16,7 +16,7 @@ There are two important characteristics of the apparent error we should always k
 
 1. Because our data is random, the apparent error is a random variable. For example, the dataset we have may be a random sample from a larger population. So an algorithm having a lower apparent error than another algorithm, may be due to luck.
 
-2. If we train an algorithm on the same dataset that we use to compute the apparent error, we might be overtraining. In general, when we do this, the apparent error will be an underestimate of the true error. We saw an extreme example of this with k nearest neighbor.
+2. If we train an algorithm on the same dataset that we use to compute the apparent error, we might be overtraining. In general, when we do this, the apparent error will be an underestimate of the true error. We will see an extreme example of this with k nearest neighbor.
 
 Cross validation is a technique that permits us to alleviate both these problems. To understand cross validation, it helps to think of the true error, a theoretical quantity, as the average of many apparent errors obtained by applying the algorithm to $B$ new random samples of the data, none of them used to train the algorithm. As shown in a previous chapter, we think of the true error as:
 
@@ -44,7 +44,7 @@ knitr::include_graphics("ml/img/cv-2.png")
 
 So to imitate this situation, we carve out a piece of our dataset and pretend it is an independent dataset: we divide the dataset into a _training set_ (blue) and a _test set_ (red). We will train our algorithm exclusively on the training set and use the test set only for evaluation purposes.
 
-We usually try to select a small piece of the dataset so that we have as much data as possible to train. However, we also want the test set to be large so that we obtain a stable estimate of the loss. Typical choices are to use 10%-20% of the data for testing. 
+We usually try to select a small piece of the dataset so that we have as much data as possible to train. However, we also want the test set to be large so that we obtain a stable estimate of the loss without fitting an inpractical number of models. Typical choices are to use 10%-20% of the data for testing. 
 
 ```{r, echo=FALSE,  out.width = "500px", out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"'}
 knitr::include_graphics("ml/img/cv-3.png")
@@ -134,7 +134,7 @@ Generate a set of random predictors and outcomes like this:
 set.seed(1996)
 n <- 1000
 p <- 10000
-x <- matrix(rnorm(n*p), n, p)
+x <- matrix(rnorm(n * p), n, p)
 colnames(x) <- paste("x", 1:ncol(x), sep = "_")
 y <- rbinom(n, 1, 0.5) %>% factor()
 
@@ -188,7 +188,7 @@ income <- 10^(rnorm(n, 4.656786, 0.4394738))
 ```
 
 ```{r income-distribution}
-hist(log10(income))
+qplot(log10(income), bins = 30, color = I("black"))
 ```
 
 The population median is: 
@@ -201,7 +201,7 @@ m
 Suppose we don't have access to the entire population, but want to estimate the median $m$. We take a sample of 250 and estimate the population median $m$ with the sample median $M$:
 
 ```{r}
-set.seed(1)
+set.seed(1995)
 N <- 250
 X <- sample(income, N)
 M <- median(X)
@@ -212,16 +212,17 @@ Can we construct a confidence interval? What is the distribution of $M$ ?
 
 From a Monte Carlo simulation, we see that the distribution of $M$ is approximately normal with the following expected value and standard error:
 
-```{r median-is-normal}
-B <- 10^5
+```{r median-is-normal, message=FALSE, warning=FALSE, out.width="100%"}
+library(gridExtra)
+B <- 10^4
 Ms <- replicate(B, {
   X <- sample(income, N)
   M <- median(X)
 })
-par(mfrow=c(1,2))
-hist(Ms)
-qqnorm(Ms)
-qqline(Ms)
+p1 <- qplot(Ms, bins = 30, color = I("black"))
+p2 <- qplot(sample = scale(Ms)) + geom_abline()
+grid.arrange(p1, p2, ncol = 2)
+
 mean(Ms)
 sd(Ms)
 ```
@@ -234,7 +235,7 @@ Theory tells us that, in many situations, the distribution of the statistics obt
 
 
 ```{r}
-B <- 10^5
+B <- 10^4
 M_stars <- replicate(B, {
   X_star <- sample(X, N, replace = TRUE)
   M_star <- median(X_star)
@@ -244,8 +245,9 @@ M_stars <- replicate(B, {
 Now we can check how close it is to the actual distribution:
 
 ```{r boostram-versus-monte-carlo}
-qqplot(Ms, M_stars)
-abline(0,1)  
+tibble(monte_carlo = sort(Ms), bootstrap = sort(M_stars)) %>% 
+  qplot(monte_carlo, bootstrap, data = .) + 
+  geom_abline()
 ```
 
 We see it is not perfect, but it provides a decent approximation:
@@ -258,15 +260,15 @@ quantile(M_stars, c(0.05, 0.95))
 This is much better than what we get if we mindlessly use the CLT:
 
 ```{r}
-median(X) + 1.96 * sd(X)/sqrt(N) * c(-1,1)
+median(X) + 1.96 * sd(X) / sqrt(N) * c(-1, 1)
 ```
 
 
 If we know the distribution is normal, we can use the bootstrap to estimate the mean:
 
 ```{r}
-mean(Ms) + 1.96*sd(Ms)*c(-1,1)
-mean(M_stars) + 1.96*sd(M_stars)*c(-1,1)
+mean(Ms) + 1.96 * sd(Ms) * c(-1,1)
+mean(M_stars) + 1.96 * sd(M_stars) * c(-1, 1)
 ```
 
 **Note that we can use ideas similar to those used in the Bootstrap in cross validaion: instead of dividing the data into equal partitions, we simply Boostrap many times.**

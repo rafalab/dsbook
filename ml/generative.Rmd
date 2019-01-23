@@ -8,11 +8,11 @@ $$
 
 We have described several approaches to estimating $p(\mathbf{x})$. In all these approaches, we estimate the conditional probability directly and do not consider the distribution of the predictors. In machine learning, these are referred to as _discriminative_ approaches. 
 
-However, Bayes' theorem tells us that knowing the distribution of the predictors $\mathbf{X}$ may be useful. Methods that model the joint distribution of $Y$ and $\mathbf{X}$ are referred to as _generative models_ (we model how the entire data, $\mathbf{X}$ and $Y$, are generated). We start by describing the most general generative model, Naive Bayes, and then proceed to describe to more specific cases, quadratic discriminant analysis (QDA) and linear discriminant analysis (LDA).
+However, Bayes' theorem tells us that knowing the distribution of the predictors $\mathbf{X}$ may be useful. Methods that model the joint distribution of $Y$ and $\mathbf{X}$ are referred to as _generative models_ (we model how the entire data, $\mathbf{X}$ and $Y$, are generated). We start by describing the most general generative model, Naive Bayes, and then proceed to describe two specific cases, quadratic discriminant analysis (QDA) and linear discriminant analysis (LDA).
 
 ## Naive Bayes 
 
-Recall that we can rewrite $p(\mathbf{x})$ like this:
+Recall that Bayes rule tells use that we can rewrite $p(\mathbf{x})$ like this:
 
 $$
 p(\mathbf{x}) = \mbox{Pr}(Y=1|\mathbf{X}=\mathbf{x}) = \frac{f_{\mathbf{X}|Y=1}(\mathbf{x}) \mbox{Pr}(Y=1)}
@@ -25,10 +25,14 @@ with $f_{\mathbf{X}|Y=1}$ and $f_{\mathbf{X}|Y=0}$ representing the distribution
 Let's start with a very simple and uninteresting, yet illustrative, case: the example related to predicting sex from height. 
 
 ```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
 library(caret)
+
+library(dslabs)
 data("heights")
+
 y <- heights$height
-set.seed(2)
+set.seed(1995)
 test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
 train_set <- heights %>% slice(-test_index)
 test_set <- heights %>% slice(test_index)
@@ -46,9 +50,7 @@ params
 The prevalence, which we will denote with $\pi = \mbox{Pr}(Y=1)$, can be estimated from the data with: 
 
 ```{r}
-pi <- train_set %>% 
-  summarize(pi=mean(sex=="Female")) %>% 
-  .$pi
+pi <- train_set %>% summarize(pi=mean(sex=="Female")) %>% pull(pi)
 pi
 ```
 
@@ -95,7 +97,7 @@ $$
 { \hat{f}_{X|Y=0}(x)(1-\hat{\pi}) + \hat{f}_{X|Y=1}(x)\hat{\pi} }
 $$
 
-As we discussed earlier, our sample has a much lower prevalence, `r pi`, than the general population. So if we use the rule $\hat{p}(x)>0.5$ to predict females, our accuracy will be affected due to the low sensitivity: 
+As we discussed earlier, our sample has a much lower prevalence, `r signif(pi,2)`, than the general population. So if we use the rule $\hat{p}(x)>0.5$ to predict females, our accuracy will be affected due to the low sensitivity: 
 
 ```{r}
 y_hat_bayes <- ifelse(p_hat_bayes > 0.5, "Female", "Male")
@@ -110,10 +112,10 @@ specificity(data = factor(y_hat_bayes), reference = factor(test_set$sex))
 
 This is due mainly to the fact that $\hat{\pi}$ is substantially less than 0.5, so we tend to predict `Male` more often. It makes sense for a machine learning algorithm to do this in our sample because we do have a higher percentage of males. But if we were to extrapolate this to a general population, our overall accuracy would be affected by the low sensitivity. 
 
-The Naive Bayes approach gives us a direct way to correct this since we can simply force $\hat{pi}$ to be, for example, $\pi$. So to balance specificity and sensitivity, instead of changing the cutoff in the decision rule, we could simply change $\hat{\pi}$:
+The Naive Bayes approach gives us a direct way to correct this since we can simply force $\hat{\pi}$ to be whatever value we want it to be. So to balance specificity and sensitivity, instead of changing the cutoff in the decision rule, we could simply change $\hat{\pi}$ to 0.5 like this:
 
 ```{r}
-p_hat_bayes_unbiased <- f1*0.5 / (f1*0.5 + f0*(1-0.5)) 
+p_hat_bayes_unbiased <- f1 * 0.5 / (f1 * 0.5 + f0 * (1 - 0.5)) 
 y_hat_bayes_unbiased <- ifelse(p_hat_bayes_unbiased> 0.5, "Female", "Male")
 ```
 
@@ -134,7 +136,7 @@ qplot(x, p_hat_bayes_unbiased, geom = "line") +
 
 ## Quadratic Discriminant Analysis
 
-Quadratic Discriminant Analysis (QDA) is a version of _Naive Bayes_ in which we assume that the distributions $p_{\mathbf{X}|Y=1}(x)$ and $p_{\mathbf{X}|Y=0}(\mathbf{x})$ are multivariate normal. The simple example we described above is actually QDA. Let's now look at a slightly more complicated case: the 2 or 7 example.
+Quadratic Discriminant Analysis (QDA) is a version of _Naive Bayes_ in which we assume that the distributions $p_{\mathbf{X}|Y=1}(x)$ and $p_{\mathbf{X}|Y=0}(\mathbf{x})$ are multivariate normal. The simple example we described in the previous section is actually QDA. Let's now look at a slightly more complicated case: the 2 or 7 example.
 
 ```{r}
 data("mnist_27")
@@ -147,7 +149,7 @@ params <- mnist_27$train %>%
   group_by(y) %>% 
   summarize(avg_1 = mean(x_1), avg_2 = mean(x_2), 
             sd_1= sd(x_1), sd_2 = sd(x_2), 
-            r = cor(x_1,x_2))
+            r = cor(x_1, x_2))
 params
 ```
 
@@ -166,9 +168,7 @@ We can use the __caret__ package to fit the model and obtain predictors.
 
 ```{r}
 library(caret)
-train_qda <- train(y ~ ., 
-                   method = "qda",
-                   data = mnist_27$train)
+train_qda <- train(y ~ ., method = "qda", data = mnist_27$train)
 ```
 
 We see that we obtain relatively good accuracy:
@@ -193,13 +193,18 @@ plot_cond_prob <- function(p_hat=NULL){
 }
 ```
 
-```{r qda-estimate, echo=FALSE}
-plot_cond_prob(predict(train_qda, mnist_27$true_p, type = "prob")[,2])
+```{r qda-estimate, echo=FALSE, out.width="100%"}
+p1 <- plot_cond_prob() + ggtitle("True conditional probability")
+
+p2 <- plot_cond_prob(predict(train_qda, newdata = mnist_27$true_p)[,2]) +
+  ggtitle("QDA")
+
+grid.arrange(p2, p1, nrow=1)
 ```
 
-One reason QDA does not work as well as the kernel methods is perhaps because the assumption of normality does not quite hold. Although for the 2s it seems reasonable, for the 7s it does seem to be off (notice the slight curvature):
+One reason QDA does not work as well as the kernel methods is perhaps because the assumption of normality does not quite hold. Although for the 2s it seems reasonable, for the 7s it does seem to be off. Notice the slight curvature in the points for the 7s:
 
-```{r qda-does-not-fit}
+```{r qda-does-not-fit, out.width="100%"}
 mnist_27$train %>% mutate(y = factor(y)) %>% 
   ggplot(aes(x_1, x_2, fill = y, color=y)) + 
   geom_point(show.legend = FALSE) + 
@@ -208,8 +213,7 @@ mnist_27$train %>% mutate(y = factor(y)) %>%
 ```
 
 
-QDA worked well here, but it becomes harder to use as the number of predictors increases. Here we have 2 predictors and had to compute 4 means, 4 SDs and 2 correlations. How many parameters would we have if instead of 2 predictors, we had 10? 
-
+QDA can work well here, but it becomes harder to use as the number of predictors increases. Here we have 2 predictors and had to compute 4 means, 4 SDs and 2 correlations. How many parameters would we have if instead of 2 predictors, we had 10? 
 The main problem comes from estimating correlations for 10 of predictors. With 10, we have 45 correlations for each class. In general, the formula is $K\times p(p-1)/2$ which gets big fast. Once the number of parameters approaches the size of our data, the method becomes unpractical due to overfitting.
 
 
@@ -228,7 +232,7 @@ params <-params %>% mutate(sd_1 = mean(sd_1), sd_2=mean(sd_2), r=mean(r))
 params 
 ```
 
-The distributions now look like this:
+and the distributions like this:
 
 ```{r lda-explained, echo=FALSE}
 tmp <- lapply(1:2, function(i){
@@ -249,15 +253,20 @@ Now the size of the ellipses as well as the angle are the same. This is because 
 When we force this assumption, we can show mathematically that the boundary is a line, just as with logistic regression. For this reason, we call the method _linear_ discriminant analysis (LDA). Similarly, for QDA, we can show that the boundary must be a quadratic function.
 
 
-```{r lda-estimate, echo=FALSE}
-train_lda <- train(y ~ ., 
-                   method = "lda",
-                   data = mnist_27$train)
+```{r lda-estimate, echo=FALSE, out.width="100%"}
+train_lda <- train(y ~ ., method = "lda", data = mnist_27$train)
 
-plot_cond_prob(predict(train_lda, mnist_27$true_p, type = "prob")[,2])
+p1 <- plot_cond_prob() + ggtitle("True conditional probability")
+
+p2 <- plot_cond_prob(predict(train_lda, newdata = mnist_27$true_p)[,2]) +
+  ggtitle("LDA")
+
+grid.arrange(p2, p1, nrow=1)
 ```
 
-In this case, the lack of flexibility does not permit us to capture the nonlinearity in the true conditional probability function. We can fit the model using caret:
+In the case of LDA, the lack of flexibility does not permit us to capture the nonlinearity in the true conditional probability function. 
+
+Note we can fit the LDA model using caret:
 
 ```{r}
 train_lda <- train(y ~ .,
@@ -268,7 +277,7 @@ confusionMatrix(data = y_hat, reference = mnist_27$test$y)$overall["Accuracy"]
 ```
 
 
-## Connection distance
+## Connection to distance
 
 The normal density is:
 
@@ -297,7 +306,7 @@ y <- mnist$train$labels[index_127]
 x <- mnist$train$images[index_127,]
 index_train <- createDataPartition(y, p=0.8, list = FALSE)
 
-## get the quandrants
+# get the quandrants
 #temporary object to help figure out the quandrants
 row_column <- expand.grid(row=1:28, col=1:28) 
 upper_left_ind <- which(row_column$col <= 14 & row_column$row <= 14)
@@ -332,9 +341,7 @@ train_set %>%
 We use the __caret__ package to train the QDA model:
 
 ```{r}
-train_qda <- train(y ~ .,
-                   method = "qda",
-                   data = train_set)
+train_qda <- train(y ~ ., method = "qda", data = train_set)
 ```
 
 Now we estimate three conditional probabilities (although they have to add to 1):
@@ -346,13 +353,13 @@ predict(train_qda, test_set, type = "prob") %>% head()
 And our predictions are one of the three classes:
 
 ```{r}
-predict(train_qda, test_set)
+predict(train_qda, test_set) %>% head()
 ```
 
 So the confusion matrix has a 3 by 3 table:
 
 ```{r}
-confusionMatrix(predict(train_qda, test_set), test_set$y)
+confusionMatrix(predict(train_qda, test_set), test_set$y)$table
 ```
 
 The actuary is:
@@ -380,14 +387,11 @@ new_x %>% mutate(y_hat = predict(train_qda, new_x)) %>%
 Here is what it looks like for LDA:
 
 ```{r}
-train_lda <- train(y ~ .,
-                   method = "lda",
-                   data = train_set)
-
+train_lda <- train(y ~ ., method = "lda", data = train_set)
 confusionMatrix(predict(train_lda, test_set), test_set$y)$overal["Accuracy"]
 ```
 
-The accuracy is much worse because the model is more rigid:
+The accuracy is much worse because the model is more rigid. This is what the decision rule looks like:
 
 ```{r lda-too-rigid, echo=FALSE}
 new_x %>% mutate(y_hat = predict(train_lda, new_x)) %>%
@@ -400,17 +404,15 @@ new_x %>% mutate(y_hat = predict(train_lda, new_x)) %>%
 The results for kNN are much better:
 
 ```{r}
-train_knn <- train(y ~ .,
-                   method = "knn",
-                   tuneGrid = data.frame(k = seq(15, 51, 2)),
+train_knn <- train(y ~ ., method = "knn", tuneGrid = data.frame(k = seq(15, 51, 2)), 
                    data = train_set)
 
 confusionMatrix(predict(train_knn, test_set), test_set$y)$overal["Accuracy"]
 ```
 
-with much better accuracy now. 
+with much better accuracy now. The decision rule looks like this:
 
-```{r three-classes-knn-better}
+```{r three-classes-knn-better, echo=FALSE}
 new_x %>% mutate(y_hat = predict(train_knn, new_x)) %>%
   ggplot(aes(x_1, x_2, color = y_hat, z = as.numeric(y_hat))) +
   geom_point(size = 0.5, pch = 16) + 
@@ -418,7 +420,7 @@ new_x %>% mutate(y_hat = predict(train_knn, new_x)) %>%
   guides(colour = guide_legend(override.aes = list(size=2)))
 ```
 
-Note that the limitations of LDA are to the lack of fit of the normal assumption:
+Note that the limitations of LDA are to the lack of fit of the normal assumption, in particular for class 1.
 
 ```{r three-classes-lack-of-fit}
 train_set %>% mutate(y = factor(y)) %>% 
@@ -437,7 +439,7 @@ Generative models can be very powerful, but only when we are able to successfull
 We are going to apply LDA and QDA to the `tissue_gene_expression` dataset. We will start with simple examples based on this dataset and then develop a realistic example.
 
 
-1. Create a dataset with just the cerebellums and hippocampus, two parts of the brain, and a predictor matrix with 10 randomly selected columns.
+1. Create a dataset with just the cerebella and hippocampi, two parts of the brain, and a predictor matrix with 10 randomly selected columns.
 
     ```{r, eval=FALSE}
     set.seed(1993)
@@ -457,17 +459,17 @@ We are going to apply LDA and QDA to the `tissue_gene_expression` dataset. We wi
 3. Repeat exercises 1 with QDA. Does it have a higher accuracy than LDA?
 
 
-4. Are the same predictors (genes) driving the algorithm?
+4. Are the same predictors (genes) driving the algorithm? Make a plot as in exercise 2.
 
 
-5. One thing we see in the previous plot is that the value of predictors correlate in both groups: some predictors are low in both groups while others high in both groups. The mean value of each predictor or `colMeans(x)` is not informative or useful for prediction and often for interpretation purposes it is useful to center or scale each column. This can be achieved with the `preProcessing` argument in train. Re-run LDA with `preProcessing = "scale"`. Note that accuracy does not change but see how it is easier to identify the predictors that differ more between groups in the plot made in figure 3.
+5. One thing we see in the previous plot is that the value of predictors correlate in both groups: some predictors are low in both groups while others high in both groups. The mean value of each predictor or `colMeans(x)` is not informative or useful for prediction and often for interpretation purposes it is useful to center or scale each column. This can be achieved with the `preProcessing` argument in train. Re-run LDA with `preProcessing = "scale"`. Note that accuracy does not change but see how it is easier to identify the predictors that differ more between groups in the plot made in exercise 4.
 
 
 
-5. In the previous exercises we saw that both approaches worked well. Plot the predictor values for the two genes with the largest differences between the two groups in a scatter plot to see how they appear to follow a bivariate distribution as assumed by the LDA and QDA approaches. Color the points by the outcome.
+6. In the previous exercises we saw that both approaches worked well. Plot the predictor values for the two genes with the largest differences between the two groups in a scatter plot to see how they appear to follow a bivariate distribution as assumed by the LDA and QDA approaches. Color the points by the outcome.
 
 
-6. Now we are going to increase the complexity of the challenge slightly: we will consider all the tissue types.
+7. Now we are going to increase the complexity of the challenge slightly: we will consider all the tissue types.
 
     ```{r, eval=FALSE}
     set.seed(1993)
@@ -481,10 +483,10 @@ We are going to apply LDA and QDA to the `tissue_gene_expression` dataset. We wi
     
 
 
-7. We see that the results are slightly worse. Use the `confusionMatrix` function to learn what type of errors we are making.
+8. We see that the results are slightly worse. Use the `confusionMatrix` function to learn what type of errors we are making.
 
 
-8. Plot an image of the centers of the seven 10-dimensional normal distributions
+9. Plot an image of the centers of the seven 10-dimensional normal distributions
 
 
 

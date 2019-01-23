@@ -1,8 +1,9 @@
 # Smoothing
 
-Before continuing with machine learning algorithms, we introduce the important concept of _smoothing_. Smoothing is a very powerful technique used all across data analysis. Other names given to this technique are _curve fitting_ and _low pass filtering_. It is designed to detect trends in the presence of noisy data in cases in which the shape of the trend is unknown. The _smoothing_ name comes from the fact that to accomplish this feat, we assume that the trend is _smooth_, as in a smooth surface. In contrast, the noise, or deviation from the trend, is unpredictably wobbly:
+Before continuing learning about machine learning algorithms, we introduce the important concept of _smoothing_. Smoothing is a very powerful technique used all across data analysis. Other names given to this technique are _curve fitting_ and _low pass filtering_. It is designed to detect trends in the presence of noisy data in cases in which the shape of the trend is unknown. The _smoothing_ name comes from the fact that to accomplish this feat, we assume that the trend is _smooth_, as in a smooth surface. In contrast, the noise, or deviation from the trend, is unpredictably wobbly:
 
 ```{r signal-plus-noise-example, fig.height=6, echo=FALSE}
+library(tidyverse)
 set.seed(1)
 n <- 100
 x <- seq(-pi*4, pi*4, len = n)
@@ -19,7 +20,9 @@ Part of what we explain in this section are the assumptions that permit us to ex
 
 To explain these concepts, we will focus first on a problem with just one predictor. Specifically, we try to estimate the time trend in the popular vote polls (difference between Obama and McCain) from 2008. 
 
-```{r polls-2008-data}
+```{r polls-2008-data, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(dslabs)
 data("polls_2008")
 qplot(day, margin, data = polls_2008)
 ```
@@ -34,7 +37,7 @@ $$
 
 To think of this as a machine learning problem, consider that we want to predict $Y$ given a day $x$. If we knew the conditional expectation $f(x) = \mbox{E}(Y \mid X=x)$, we would use it. But since we don't know this conditional expectation, we have to estimate it. Let's use regression, since it is the only method we have learned up to now.
 
-```{r linear-regression-not-flexible}
+```{r linear-regression-not-flexible, echo=FALSE}
 resid <- ifelse(lm(margin~day, data = polls_2008)$resid > 0, "+", "-")
 polls_2008 %>% 
   mutate(resid = resid) %>% 
@@ -43,7 +46,7 @@ polls_2008 %>%
   geom_point(aes(color = resid), size = 3)
 ```
 
-The line we see does not appear to describe the trend very well. For example, on September 4 (day -62) the Republican Convention was held and gave John McCain a boost in the polls, which can be clearly seen in the data. However, the regression line does not capture this. To see the _lack of fit_ more clearly, we note that points above the fitted line (blue) and those below (red) are not evenly distributed. We therefore need an alternative, more flexible approach.
+The line we see does not appear to describe the trend very well. For example, on September 4 (day -62) the Republican Convention was held and the data suggest that it gave John McCain a boost in the polls. However, the regression line does not capture this potential trend. To see the _lack of fit_ more clearly, we note that points above the fitted line (blue) and those below (red) are not evenly distributed across days. We therefore need an alternative, more flexible approach.
 
 ## Bin smoothing
 
@@ -62,7 +65,7 @@ $$
 \hat{f}(x_0) = \frac{1}{N_0} \sum_{i \in A_0}  Y_i
 $$
 
-The idea behind _bin smoothing_ is to make this calculation with each value of $x$ as the center. So in the poll example, for each day, we would compute the average of the values within a week with that day in the center. Here are two examples: $x_0 = -125$ and $x_0 = -55$. The blue line is the resulting average.
+The idea behind _bin smoothing_ is to make this calculation with each value of $x$ as the center. So in the poll example, for each day, we would compute the average of the values within a week with that day in the center. Here are two examples: $x_0 = -125$ and $x_0 = -55$. The blue segment represents the resulting average.
 
 ```{r binsmoother-expained, echo=FALSE}
 span <- 3.5
@@ -119,7 +122,7 @@ if(knitr::is_html_output()){
 }
 ```
 
-The final result looks like this:
+The final code and  resulting estimate look like this:
 
 ```{r binsmoother-final}
 span <- 7 
@@ -134,7 +137,7 @@ polls_2008 %>% mutate(smooth = fit$y) %>%
 
 ## Kernels  
 
-The final result from the bin smoother is quite wiggly. One reason for this is that each time the window moves, two points change. We can attenuate this somewhat by taking weighted averages that give the center point more weight than far away points, with the two points at the edges that will change receiving very little weight.
+The final result from the bin smoother is quite wiggly. One reason for this is that each time the window moves, two points change. We can attenuate this somewhat by taking weighted averages that give the center point more weight than far away points, with the two points at the edges receiving very little weight.
 
 You can think of the bin smoother approach as a weighted average:
 
@@ -164,7 +167,7 @@ data.frame(x = tmp$x, w_0 = tmp$y) %>%
   geom_line()
 ```
 
-In this animation, we see that points on the edge get less weight (the size of the point is proportional to its weight):
+With this animation, we see that points on the edge get less weight (the size of the point is proportional to its weight):
 
 ```{r kernel-animation, echo=FALSE, warning=FALSE} 
 tmp <- polls_2008 %>%
@@ -210,7 +213,7 @@ if(knitr::is_html_output()){
 }
 ```
 
-The final result looks like this:
+The final code and resulting plot look like this:
 
 ```{r final-ksmooth-normal-kernel}
 span <- 7
@@ -320,7 +323,7 @@ polls_2008 %>% mutate(smooth = fit$fitted) %>%
 
 Different spans give us different estimates. We can see how different window sizes lead to different estimates:
 
-```{r loess-multi-span-animation, echo=FALSE, warning=FALSE} 
+```{r loess-multi-span-animation, echo=FALSE, warning=FALSE, fig.height=6} 
 spans <- c(.66, 0.25, 0.15, 0.10)
 
 fits <- data_frame(span = spans) %>% 
@@ -378,9 +381,9 @@ tmp %>% ggplot(aes(day, margin)) +
 
 There are three other differences between `loess` and the typical bin smoother. 
 
-1. The first is that rather than keeping the bin size the same, `loess` keeps the number of points used in the local fit the same. This number is controlled via the `span` argument which expects a proportion. For example, if `N` is the number of data points and `span=0.5`, then for a given $x$, `loess` will use the `0.5*N` closest points to $x$ for the fit. 
+1. The first is that rather than keeping the bin size the same, `loess` keeps the number of points used in the local fit the same. This number is controlled via the `span` argument which expects a proportion. For example, if `N` is the number of data points and `span=0.5`, then for a given $x$, `loess` will use the `0.5 * N` closest points to $x$ for the fit. 
 
-2. When fitting a line locally, `loess` uses _weighted_ approach. Basically, instead of using least squares, we minimize a weighted version:
+2. When fitting a line locally, `loess` uses a _weighted_ approach. Basically, instead of using least squares, we minimize a weighted version:
 
 $$
 \sum_{i=1}^N w_0(x_i) \left[Y_i - \left\{\beta_0 + \beta_1 (x_i-x_0)\right\}\right]^2
@@ -443,7 +446,7 @@ The `degree = 2` gives us more wiggly results. We actually prefer `degree = 1` a
 
 `ggplot` uses loess in its `geom_smooth` function. 
 
-```{r ggplot-loess-default}
+```{r ggplot-loess-default, warning=FALSE, message=FALSE}
 polls_2008 %>% ggplot(aes(day, margin)) +
   geom_point() + 
   geom_smooth()
@@ -452,7 +455,7 @@ polls_2008 %>% ggplot(aes(day, margin)) +
 But be careful with default behavior as they are rarely optimal.
 However, you can conveniently change them:
 
-```{r ggplot-loess-degree-1}
+```{r ggplot-loess-degree-1, warning=FALSE, message=FALSE}
 polls_2008 %>% ggplot(aes(day, margin)) +
   geom_point() + 
   geom_smooth(color="red",  span = 0.15,
@@ -469,7 +472,8 @@ polls_2008 %>% ggplot(aes(day, margin)) +
     library(tidyverse)
     library(purrr)
     library(pdftools)
-    
+    library(dslabs
+            )
     fn <- system.file("extdata", "RD-Mortality-Report_2015-18-180531.pdf",
                       package="dslabs")
     dat <- map_df(str_split(pdf_text(fn), "\n"), function(s){
@@ -513,6 +517,8 @@ polls_2008 %>% ggplot(aes(day, margin)) +
 
     ```{r, eval = FALSE}
     library(broom)
+    library(dslabs)
+    data("mnist_27")
     mnist_27$train %>% glm(y ~ x_2, family = "binomial", data = .) %>% tidy()
     ```
 

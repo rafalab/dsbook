@@ -4,13 +4,13 @@ In machine learning applications, we rarely can predict outcomes perfectly. For 
 
 ## Conditional probabilities
 
-We use the notation $(X_1 = x_1,\dots,X_p=x_p)$ to represent the fact that we have observed values $x_1,\dots,x_n$ for covariates $X_1, \dots, X_p$. This does not imply that the outcome $Y$ will take a specific value. Instead, it implies a specific probability. In particular, we denote the _conditional probabilities_ for each class $k$:
+We use the notation $(X_1 = x_1,\dots,X_p=x_p)$ to represent the fact that we have observed values $x_1,\dots,x_p$ for covariates $X_1, \dots, X_p$. This does not imply that the outcome $Y$ will take a specific value. Instead, it implies a specific probability. In particular, we denote the _conditional probabilities_ for each class $k$:
 
 $$
 \mbox{Pr}(Y=k \mid X_1 = x_1,\dots,X_p=x_p), \, \mbox{for}\,k=1,\dots,K
 $$
 
-To avoid writing out all the predictors, we will use the following bold letters: $\mathbf{X} \equiv (X_1,\dots,X_p)$ and $\mathbf{x} \equiv (x_1,\dots,x_p)$. We will also use the following notation for the conditional probability of being class $k$. 
+To avoid writing out all the predictors, we will use the bold letters like this: $\mathbf{X} \equiv (X_1,\dots,X_p)$ and $\mathbf{x} \equiv (x_1,\dots,x_p)$. We will also use the following notation for the conditional probability of being class $k$. 
 
 $$
 p_k(\mathbf{x}) = \mbox{Pr}(Y=k \mid \mathbf{X}=\mathbf{x}), \, \mbox{for}\, k=1,\dots,K
@@ -18,15 +18,14 @@ $$
 
 Note: We will be using the $p(x)$ notation to represent conditional probabilities as functions of the predictors. Do not confuse it with the $p$ that represents the number of predictors.
 
-Knowing these probabilities can guide the construction of an algorithm that makes the best prediction: for any given $\mathbf{x}$, we will predict the class $k$ with the largest probability among $p_1(x), p_2(x), \dots p_K(x)$. In mathematical notation, we write it like this: 
-
-$$\hat{Y} = \max_k p_k(\mathbf{x})$$
+Knowing these probabilities can guide the construction of an algorithm that makes the best prediction: for any given $\mathbf{x}$, we will predict the class $k$ with the largest probability among $p_1(x), p_2(x), \dots p_K(x)$. In mathematical notation, we write it like this: $\hat{Y} = \max_k p_k(\mathbf{x})$.
 
 In machine learning we refer to this as _Bayes' Rule_. But keep in mind that this is a theoretical rule since in practice we don't know $p_k(\mathbf{x}), k=1,\dots,K$. In fact, estimating these conditional probabilities can be thought of as the main challenge of machine learning. The better our estimate $\hat{p}_k(\mathbf{x})$, the better our predictor: 
 
 $$\hat{Y} = \max_k \hat{p}_k(\mathbf{x})$$
 
-So what we will predict depends on two things 1) how close $$\max_k p_k(\mathbf{x})$$ is to 1 and 2) how close our estimate $\hat{p}_k(\mathbf{x})$ is to $p_k(\mathbf{x})$. We can't do anything about the first restriction as it is determined by the nature of the problem, so our energy goes into finding ways to best estimate conditional probabilities. The first restriction does imply that we have limits as to how well even the best possible algorithm can perform. You should get used to the idea that while in some challenges we will be able to achieve almost perfect accuracy, digit readers for example, in others our success is restricted by the randomness of the process, movie recommendations for example. 
+So what we will predict depends on two things 1) how close are the $$\max_k p_k(\mathbf{x})$$ to 1 or 0 (perfect certainty)
+and 2) how close our estimates $\hat{p}_k(\mathbf{x})$ are to $p_k(\mathbf{x})$. We can't do anything about the first restriction as it is determined by the nature of the problem, so our energy goes into finding ways to best estimate conditional probabilities. The first restriction does imply that we have limits as to how well even the best possible algorithm can perform. You should get used to the idea that while in some challenges we will be able to achieve almost perfect accuracy, with digit readers for example, in others our success is restricted by the randomness of the process, with movie recommendations for example. 
 
 Before we continue, it is important to remember that defining our prediction by maximizing the probability is not always optimal in practice and depends on the context. As discussed above, sensitivity and specificity may differ in importance. But, even in these cases, having a good estimate of the $p_k(x), k=1,\dots,K$ will suffice for us to build optimal prediction models since we can control the balance between specificity and sensitivity however we wish. For instance, we can simply change the cutoffs used to predict one outcome or the other. In the plane example, we may ground the plane anytime the probability of malfunction is higher than 1 in a million as opposed to the default 1/2 used when error types are equally undesired. 
 
@@ -84,7 +83,7 @@ $$
 \frac{1}{B} \sum_{b=1}^B \frac{1}{N}\sum_{i=1}^N \left(\hat{y}_i^b - y_i^b\right)^2 
 $$
 
-with $y_{i}^b$ denoting the $i$th observation in the $b$-th random sample and $\hat{y}_i^b$ the resulting prediction obtained from applying the exact same algorithm to the $b$-th random sample. But again, in practice, we only observe one random sample so the expected MSE is only theoretical. However, in a later section, we describe an approach to estimating the MSE that tries to mimic this theoretical quantity.
+with $y_{i}^b$ denoting the $i$th observation in the $b$-th random sample and $\hat{y}_i^b$ the resulting prediction obtained from applying the exact same algorithm to the $b$-th random sample. But again, in practice, we only observe one random sample so the expected MSE is only theoretical. However, the Section \@ref(cross-validation), we describe an approach to estimating the MSE that tries to mimic this theoretical quantity.
 
 Before we continue, note that the there are loss functions other that the squared loss. For example, the _Mean Absolute Error_  uses absolute values instead of squaring the errors:
 
@@ -120,7 +119,7 @@ for any set of features $\mathbf{x} = (x_1, \dots, x_p)$. Of course this is easi
 1. Compute conditional probabilities for being Male for the `heights` dataset.  Round the heights to the closest inch. Plot the estimated conditional probability $P(x) = \mbox{Pr}(\mbox{Male} | \mbox{height}=x)$ for each $x$. 
 
  
-2. In the plot we just made, we see high variability for low values of height. This is because we have few data points. This time use the quantile $0.1,0.2,\dots,0.9$ and cut function to assure each group has the same number of points. Hint: for any numeric vector `x`, you can create groups based on quantiles like this: 
+2. In the plot we just made, we see high variability for low values of height. This is because we have few data points in these strata. This time use the quantile $0.1,0.2,\dots,0.9$ and cut function to assure each group has the same number of points. Hint: for any numeric vector `x`, you can create groups based on quantiles like this: 
 
     ```{r, eval=FALSE}
     cut(x, quantile(x, seq(0, 1, 0.1)), include.lowest = TRUE)

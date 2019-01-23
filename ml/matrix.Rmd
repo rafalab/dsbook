@@ -3,6 +3,8 @@
 In machine learning, situations in which all predictors are numeric, or can be converted to numerics in a meaningful way, are common. The digits data set is an example: every pixel records a number between 0 and 255. Let's load the data:
 
 ```{r}
+library(tidyverse)
+library(dslabs)
 if(!exists("mnist")) mnist <- read_mnist()
 ```
 
@@ -35,9 +37,7 @@ Before we do this, we will introduce matrix notation and basic R code to define 
 
 ## Notation
 
-In matrix algebra, we have three main types of objects: scalars, vectors and matrices. Let's start by defining and showing the notation for matrices
-
-A scalar is just one number. For example $a = 1$. To denote scalars in matrix notation, we usually use a lower case letter and do not bold.
+In matrix algebra, we have three main types of objects: scalars, vectors and matrices. A scalar is just one number. For example $a = 1$. To denote scalars in matrix notation, we usually use a lower case letter and do not bold.
 
 Vectors are like the numeric vectors we define in R: they include several scalar entries. For example, the column containing the first pixel:
 
@@ -45,10 +45,10 @@ Vectors are like the numeric vectors we define in R: they include several scalar
 length(x[,1])
 ```
 
-entries. In matrix algebra, we use the following notation:
+entries. In matrix algebra, we use the following notation for a vector representing a feature/predictor:
 
 $$ 
-\mathbf{X} = \begin{pmatrix}
+\begin{pmatrix}
 x_1\\\
 x_2\\\
 \vdots\\\
@@ -129,7 +129,7 @@ dim(x)
 
 ## Matrix operations
 
-We will learn several useful operations related to matrix algebra. We use the three motivating examples listed above.
+We will learn several useful operations related to matrix algebra. We use three of the motivating examples listed above.
 
 
 ### Converting a vector to a matrix 
@@ -158,7 +158,7 @@ identical(t(mat), mat_t)
 ```
 
 
-Remember that the `matrix` function recycles values in the vector **without warning** if the product of columns and rows does not match the length of the vector:
+__Warning__: The `matrix` function recycles values in the vector **without warning** if the product of columns and rows does not match the length of the vector:
 
 ```{r}
 matrix(my_vector, 5, 5)
@@ -179,7 +179,7 @@ image(1:28, 1:28, grid)
 The top of this plot is pixel 1, which is shown at the bottom so the image is flipped. To flip it back we can use:
 
 ```{r flip-matrix-image, fig.width = 4, fig.height = 4}
-image(1:28, 1:28, grid[,28:1])
+image(1:28, 1:28, grid[, 28:1])
 ```
 
 ### Row and column summaries
@@ -201,9 +201,8 @@ avg <- rowMeans(x)
 Once we have this, we can simply generate a boxplot:
 
 ```{r boxplot-of-digit-averages}
-data.frame(labels = as.factor(y), row_averages = avg) %>%
-  ggplot(aes(labels, row_averages)) +
-  geom_boxplot()
+data_frame(labels = as.factor(y), row_averages = avg) %>% 
+  qplot(labels, row_averages, data = ., geom = "boxplot") 
 ```
 
 From this plot we see that, not surprisingly, 1s use less ink than the other digits.
@@ -253,7 +252,7 @@ We see that there is little variation in the corners.
 
 So we could remove features that have no variation since these can't help us predict.
 
-In the R chapter, we described the operations used to extract columns: 
+In Section \@ref(matrices) Section, we described the operations used to extract columns: 
 
 ```{r, eval=FALSE}
 x[ ,c(351,352)]
@@ -294,7 +293,6 @@ We can quickly make a histogram of all the values in our dataset. We saw how we 
 
 ```{r}
 mat <- matrix(1:15, 5, 3)
-mat
 as.vector(mat)
 ```
 
@@ -323,7 +321,7 @@ We can also use logical operations with matrix logical:
 
 ```{r}
 mat <- matrix(1:15, 5, 3)
-mat[mat > 6 & mat <12] <- 0
+mat[mat > 6 & mat < 12] <- 0
 mat
 ```
 
@@ -378,7 +376,6 @@ a_N
    & \vdots & \\
   X_{N,1}-a_n&\dots & X_{N,p} -a_n
   \end{pmatrix}
--
 $$
 
 
@@ -419,7 +416,7 @@ Finally, although we do not cover matrix algebra operations such as matrix multi
     t(x) %*% x
     ```
 
-2. We can compute the cross product directly with the function with that name:
+2. We can compute the cross product directly with the function:
 
     ```{r, eval=FALSE}
     crossprod(x)
