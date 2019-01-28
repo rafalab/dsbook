@@ -4,7 +4,9 @@ Now that we have learned several methods and explored them with illustrative exa
 
 We can load this data using the following __dslabs__ package:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dslabs)
 mnist <- read_mnist()
 ```
 
@@ -30,7 +32,7 @@ table(mnist$train$labels)
 Because we want this example to run on a small laptop and in less than one hour, we will consider a subset of the dataset. We will sample 10,000 random rows from the training set and 1,000 random rows from the test set:
 
 ```{r}
-set.seed(123)
+set.seed(1990)
 index <- sample(nrow(mnist$train$images), 10000)
 x <- mnist$train$images[index,]
 y <- factor(mnist$train$labels[index])
@@ -46,12 +48,12 @@ In machine learning, we often transform predictors before running the machine al
 
 Examples of preprocessing include standardizing the predictors, taking the log transform of some predictors, removing predictors that are highly correlated with others, and removing predictors with very few non-unique values or close to zero variation. We show an example below.
 
-We can run the `nearZero` function to see that several features do not vary much from observation to observation. We can see that there are a large number of features with 0 variability:
+We can run the `nearZero` function, from the __caret__ package, to see that several features do not vary much from observation to observation. We can see that there are a large number of features with 0 variability:
 
-```{r pixel-sds}
+```{r pixel-sds, message=FALSE, warning=FALSE}
 library(matrixStats)
 sds <- colSds(x)
-qplot(sds, bins = 256, color = I("black"))
+qplot(sds, bins = 256)
 ```
 
 This is expected because there are parts of the image that rarely contain writing (dark pixels). 
@@ -63,7 +65,7 @@ library(caret)
 nzv <- nearZeroVar(x)
 ```
 
-We can see the columns that are removed:
+We can see the columns recommended for removal:
 
 ```{r near-zero-image, fig.width = 4, fig.height = 4}
 image(matrix(1:784 %in% nzv, 28, 28))
@@ -95,7 +97,6 @@ train_knn <- train(x[,col_index], y,
                    method = "knn", 
                    tuneGrid = data.frame(k = c(3,5,7)),
                    trControl = control)
-ggplot(train_knn)
 ```
 
 In general, it is a good idea to try a test run with a subset of the data to get an idea of timing before we start running code that might take hours to complete. You can do this as follows:
@@ -111,19 +112,18 @@ train_knn <- train(x[index ,col_index], y[index,]
                    trControl = control)
 ```
 
-Then increase `n` and `b` to get an idea of how long it takes a function of these values.
+We can then increase `n` and `b` and try to establish a pattern of how they affect computing time 
+to get an idea of how long the fitting process will take for larger values of `n` and `b`. You want to know if a function is going to take hours or even days, before you run it.
 
 Once we optimize our algorithm, we can fit it to the entire dataset:
 
 ```{r}
-fit_knn<- knn3(x[ ,col_index], y,  k = 5)
+fit_knn <- knn3(x[ ,col_index], y,  k = 5)
 ```
 
 The accuracy is almost 0.95!
 ```{r}
-y_hat_knn <- predict(fit_knn, 
-                        x_test[, col_index], 
-                        type="class")
+y_hat_knn <- predict(fit_knn, x_test[, col_index], type="class")
 cm <- confusionMatrix(y_hat_knn, factor(y_test))
 cm$overall["Accuracy"]
 ```
@@ -146,12 +146,12 @@ We will also reduce the number of trees that are fit since we are not yet buildi
 Finally, to compute on a smaller dataset, we will take a random sample of the observations when constructing each tree. We can change this number with the `nSamp` argument.
 
 
-```{r mnist-rf}
+```{r mnist-rf, message=FALSE, warning=FALSE}
 library(Rborist)
 control <- trainControl(method="cv", number = 5, p = 0.8)
 grid <- expand.grid(minNode = c(1) , predFixed = c(10, 15, 35))
 
-train_rf <-  train(x[ , col_index], 
+train_rf <-  train(x[, col_index], 
                    y, 
                    method = "Rborist", 
                    nTree = 50,
@@ -196,7 +196,7 @@ With some further tuning, we can get even higher accuracy.
 
 Unfortunately, the Rborist implementation of Random Forest does not yet support importance calculations. So we demonstrate with a quick fit using the __randomForest__ package.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(randomForest)
 rf <- randomForest(x, y,  ntree = 50)
 ```
@@ -218,7 +218,7 @@ image(matrix(imp, 28, 28))
 An important part of data science is visualizing results to determine why we are failing. How we do this depends on the application. Below we show the images of digits for which we made an incorrect prediction.
 We can compare what we get with kNN to Random Forest.
 
-Here is kNN:
+Here are the errors for kNN:
 
 ```{r knn-images, echo=FALSE, out.width="100%"}
 p_max <- predict(fit_knn, x_test[,col_index])
@@ -229,12 +229,12 @@ ind <- ind[order(p_max[ind], decreasing = TRUE)]
 rafalib::mypar(3,4)
 for(i in ind[1:12]){
   image(matrix(x_test[i,], 28, 28)[, 28:1], 
-        main = paste0("Pr(",y_hat_knn[i],")=",p_max[i]," is a ",y_test[i]),
+        main = paste0("Pr(",y_hat_knn[i],")=",round(p_max[i], 2)," but is a ",y_test[i]),
         xaxt="n", yaxt="n")
 }
 ```
  
-And here is Random Forest:
+And here are the errors for the random forest:
 
 ```{r rf-images, echo=FALSE, out.width="100%"}
 p_max <- predict(fit_rf, x_test[,col_index])$census  
@@ -247,12 +247,12 @@ ind <- ind[order(p_max[ind], decreasing = TRUE)]
 rafalib::mypar(3,4)
 for(i in ind[1:12]){
   image(matrix(x_test[i,], 28, 28)[, 28:1], 
-        main = paste0("Pr(",y_hat_rf[i],")=",p_max[i]," is a ",y_test[i]),
+        main = paste0("Pr(",y_hat_rf[i],")=",round(p_max[i], 2), " but is a ",y_test[i]),
         xaxt="n", yaxt="n")
 }
 ```
 
-# Ensembles
+## Ensembles
 
 The idea of an ensemble is similar to the idea of combining data from different pollsters to obtain a better estimate of the true support for each candidate. 
 
@@ -266,10 +266,8 @@ p_rf<- p_rf / rowSums(p_rf)
 p_knn  <- predict(fit_knn, x_test[,col_index])
 p <- (p_rf + p_knn)/2
 y_pred <- factor(apply(p, 1, which.max)-1)
-confusionMatrix(y_pred, y_test)
+confusionMatrix(y_pred, y_test)$overall["Accuracy"]
 ```
-
-
 
 For these exercises we are going to build several machine learning models for the
 `mnist_27` and then build an ensemble.
@@ -288,7 +286,7 @@ For these exercises we are going to build several machine learning models for th
                 "svmRadial", "svmRadialCost", "svmRadialSigma")
     ```
 
-    We have not explained many of these but apply them anyway using `train` with all the default parameters .You might need to install some packages. Keep in mind that you will likely get some warnings.
+    We have not explained many of these but apply them anyway using `train` with all the default parameters. Keep the results ina a list. You might need to install some packages. Keep in mind that you will likely get some warnings.
 
 
 2. Now that you have all the trained models in a list, use `sapply` or `map` to create a matrix of predictions for the test set. You should end up with a matrix with `length(mnist_27$test$y)` rows and `length(models)`. 

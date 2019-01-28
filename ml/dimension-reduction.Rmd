@@ -1,6 +1,6 @@
 #  Dimension Reduction 
 
-A typical machine learning challenge will include a large number of predictors. This makes the important step of data visualization somewhat challenging. We have shown methods for visualizing univariate and paired data, but plots that reveal relationships between many variables are more complicated in higher dimensionality. For example, to compare each of the 784 features in our predicting digits example,  we would have to create, for example, 306,936 scatter plots. Creating one single scatter-plot of the data is impossible due to the high dimensionality. 
+A typical machine learning challenge will include a large number of predictors, which makes visualization somewhat challenging. We have shown methods for visualizing univariate and paired data, but plots that reveal relationships between many variables are more complicated in higher dimensions. For example, to compare each of the 784 features in our predicting digits example,  we would have to create, for example, 306,936 scatter plots. Creating one single scatter-plot of the data is impossible due to the high dimensionality. 
 
 Here we describe a powerful techniques useful for exploratory data analysis, among other things, generally referred to as _dimension reduction_. The general idea is to reduce the dimension of the dataset while preserving important characteristics, such as the distance between features or observations. With fewer dimensions, visualization then becomes more feasible. The technique behind it all, the singular value decomposition, is also useful in other contexts. Principal component analysis (PCA) is the approach we will be showing. Before applying PCA to high dimensional dataset, we will motivate the ideas behind with a simple example.
 
@@ -12,29 +12,28 @@ We consider an example with twin heights. Some pairs are adults the others are c
 set.seed(1)
 library(MASS)
 n <- 100
-x <- rbind(mvrnorm(n/2, c(69,69), matrix(c(9, 9*0.9, 9*0.92, 9*1),2,2)),
-           mvrnorm(n/2, c(55,55), matrix(c(9, 9*0.9, 9*0.92, 9*1),2,2)))
+x <- rbind(mvrnorm(n / 2, c(69, 69), matrix(c(9, 9 * 0.9, 9 * 0.92, 9 * 1), 2, 2)),
+           mvrnorm(n / 2, c(55, 55), matrix(c(9, 9 * 0.9, 9 * 0.92, 9 * 1), 2, 2)))
 ```
 
-A scatter-plot quickly reveals that the correlation is high and that there are two groups of twins:
+A scatter-plot quickly reveals that the correlation is high and that there are two groups of twins, the adults (upper right points) and the childer (lower left points):
 
-```{r simulated-twin-heights, fig.width=4, fig.height=4, echo=FALSE,message=FALSE}
-lim <- c(48,78)
+```{r simulated-twin-heights, fig.width=4, fig.height=4, echo=FALSE, message=FALSE}
+lim <- c(48, 78)
 rafalib::mypar()
 plot(x, xlim=lim, ylim=lim)
 ```
 
-To help with the illustration, think of this as dataset with two features, the two heights, and $N$ observations. For illustrative purposes, we will act as if visualizing two dimensions is too challenging. We therefore want to reduce the dimensions from two to one, but still be able to understand important characteristics of the data. For example, that the observations cluster in to two groups: adults and children.
+Our features are $N$ two dimensional points, the two heights, and, for illustrative purposes, we will act as if visualizing two dimensions is too challenging. We therefore want to reduce the dimensions from two to one, but still be able to understand important characteristics of the data. For example, that the observations cluster in to two groups: adults and children.
 
-
-Let's consider a specific challenge: we want a one dimensional summary of our predictors from which we can approximate the distance between any two observations. In the figure below we show the distance between observation 1 and 2, and observation 1 and 51: 1 and 2 are closer:
+Let's consider a specific challenge: we want a one dimensional summary of our predictors from which we can approximate the distance between any two observations. In the figure below we show the distance between observation 1 and 2 (blue), and observation 1 and 51 (red). Note that the blue line is shorter which implies 1 and 2 are closer:
 
 ```{r distance-illustration, fig.width=4, fig.height=4, echo=FALSE}
 rafalib::mypar()
 plot(x, xlim=lim, ylim=lim)
-lines(x[c(1,2),], col = "blue", lwd = 2)
-lines(x[c(2,51),], col = "red", lwd = 2)
-points(x[c(1,2,51),], pch = 16)
+lines(x[c(1, 2),], col = "blue", lwd = 2)
+lines(x[c(2, 51),], col = "red", lwd = 2)
+points(x[c(1, 2, 51),], pch = 16)
 ```
 
 
@@ -54,21 +53,19 @@ z <- x[,1]
 ```
 
 Here are the approximate distances versus the original distances:
-```{r one-dim-approx-to-dist, fig.width=4, fig.height=4}
+```{r one-dim-approx-to-dist, echo = FALSE, fig.width=4, fig.height=4}
 plot(dist(x), dist(z))
 abline(0,1, col = "red")
 ```
 
-The plot looks about the same if we use the second dimension.
+The plot looks about the same if we use the second dimension. We obtain a general underestimation. This is to be expected because we are adding more positive quantities in the distance calculation as we increase the number of dimensions. If instead we use an average, like this
 
-We obtain a general underestimation. This is actually to be expected because we are adding more positive quantities in the actual distance. If instead we use and average like this:
+$$\sqrt{ \frac{1}{2} \sum_{j=1}^2 (X_{i,j}-X_{i,j})^2 },$$
 
-$$\sqrt{ \frac{1}{2} \sum_{j=1}^2 (X_{i,j}-X_{i,j})^2 }$$
+then the underestimation goes away. We divde the distance by $\sqrt{2}$ to achieve the correction.
 
-then the underestimation goes away
-
-```{r distance-approx-1, fig.width=4, fig.height=4}
-plot(dist(x), dist(z)*sqrt(2))
+```{r distance-approx-1, echo = FALSE, fig.width=4, fig.height=4}
+plot(dist(x) / sqrt(2), dist(z))
 abline(0, 1, col = "red")
 ```
 
@@ -89,7 +86,7 @@ z  <- cbind((x[,2] + x[,1])/2,  x[,2] - x[,1])
 
 we can see how the distance between points in mostly explained by the first dimension: the average.
 
-```{r rotation, fig.width=4, fig.height=4}
+```{r rotation, fig.width=4, fig.height=4, echo=FALSE}
 rafalib::mypar()
 plot(z, xlim=lim, ylim = lim - mean(lim))
 lines(z[c(1,2),], col = "blue", lwd = 2)
@@ -99,7 +96,7 @@ points(z[c(1,2,51),], pch = 16)
 
 This means that we can ignore the second dimension and not lose too much information. If the line is completely flat, we lose no information at all. Using the first dimension of this transformed matrix we obtain an even better approximation:
 
-```{r distance-approx-2, fig.width=4, fig.height=4}
+```{r distance-approx-2, echo=FALSE, fig.width=4, fig.height=4}
 plot(dist(x), dist(z[,1])*sqrt(2))
 abline(0,1)
 ```
@@ -145,7 +142,7 @@ A = \,
 \begin{pmatrix}
 1/2&1\\
 1/2&-1\\
-\end{pmatrix}
+\end{pmatrix}.
 $$
 
 
@@ -157,56 +154,55 @@ X = Z A^{-1}
 A^{-1} = \,
 \begin{pmatrix}
 1&1\\
-1/21&-1/2\\
-\end{pmatrix}
-\implies
+1/2&-1/2\\
+\end{pmatrix}.
 $$
 
 Dimension reduction can often be described as applying a transformation $A$ to a matrix $X$ with many columns that _moves_ the information contained in $X$ to the first few columns of $Z=AX$ then keeping just these few and thus reducing the dimension of the vectors contained in the rows.
 
 ## Orthogogal transformations (advaced)
 
-Note that we redefined distance above to account for the difference in dimensions. We can actually guarantee that the distance scales remain the same if we re-scale the columns of $A$ to assure that the sum of squares are 1:
+Note that we divided the above by $\sqrt{2}$ to account for the differences in dimensions when comparing a 2 dimenstion distance to a 1 dimension distance. We can actually guarantee that the distance scales remain the same if we re-scale the columns of $A$ to assure that the sum of squares are 1
 
-$$a_{1,1}^2 + a_{2,1}^2 = 1\mbox{ and } a_{1,2}^2 + a_{2,2}^2=1$$
+$$a_{1,1}^2 + a_{2,1}^2 = 1\mbox{ and } a_{1,2}^2 + a_{2,2}^2=1,$$
 
-and the correlation of the columns is 0:
+and that the correlation of the columns is 0:
 
 $$
-a_{1,1} a_{1,2} + a_{2,1} a_{2,2} = 0
+a_{1,1} a_{1,2} + a_{2,1} a_{2,2} = 0.
 $$
 
 Remember that if the columns are centered to have average 0, then the sum of squares is equivalent to the variance or standard deviation squared.
 
-In the particular example we have been working with, to achieve orthogonality, we multiply the first set of coefficients (first column of $A$) by $\sqrt{2}$ and the second by $1\sqrt{2}$ then we get the same exact distance if we use both dimensions
+In our example, to achieve orthogonality, we multiply the first set of coefficients (first column of $A$) by $\sqrt{2}$ and the second by $1/sqrt{2}$ then we get the same exact distance if we use both dimensions
 
 ```{r}
-z[,1] <- (x[,1] + x[,2])/sqrt(2)
-z[,2] <- (x[,2] - x[,1])/sqrt(2)
+z[,1] <- (x[,1] + x[,2]) / sqrt(2)
+z[,2] <- (x[,2] - x[,1]) / sqrt(2)
 ```
 
 This gives us a transformation that preserves the distance between any two points:
 
-```{r orthogonal-transformation, fig.width=4, fig.height=4}
+```{r orthogonal-transformation, fig.width=4, fig.height=4, echo=FALSE}
 plot(dist(x), dist(z))
 abline(0, 1, col = "red")
 ```
 
-and a great approximation if we use just the first dimension:
+and an improved approximation if we use just the first dimension:
 
 ```{r}
 sd(dist(x) - dist(z[,1]))
 ```
 
-In this case $Z$ is called an orthogonal rotation of $X$: it preserves the distances between points.
+In this case $Z$ is called an orthogonal rotation of $X$: it preserves the distances between rows.
 
-Note that by using the transformation above we can summarize the distance between any two pair of twins with just on dimension. For example, one-dimensional data exploration of the first dimension of $Z$ clearly shows the two groups:
+Note that by using the transformation above we can summarize the distance between any two pair of twins with just one dimension. For example, one-dimensional data exploration of the first dimension of $Z$ clearly shows that there are two groups, adults and children:
 
 ```{r twins-pc-1-hist}
 qplot(z[,1], bins = 20, color = I("black"))
 ```
 
-We reduced the number of dimensions from two to one with very little loss of information. 
+We successfully reduced the number of dimensions from two to one with very little loss of information. 
 
 The reason we were able to do this is because the columns of $X$ were very correlated:
 
@@ -226,18 +222,18 @@ It is actually common to obtain data with several highly correlated predictors. 
 
 ## Principal Component Analysis 
 
-In the computation above the total variability in our data can be defined as the sum of squares of the columns. We assume the column are centered so we have: 
+In the computation above the total variability in our data can be defined as the sum of the sum of squares of the columns. We assume the column are centered so this sum is equivalent to the sum of the variances of each column
 
 $$
-v_1 = \frac{1}{N}\sum_{i=1}^N X_{i,1}^2 \mbox{ and } v_2 =  \frac{1}{N}\sum_{i=1}^N X_{i,2}^2 
+v_1 + v_2, \mbox{ with } v_1 = \frac{1}{N}\sum_{i=1}^N X_{i,1}^2 \mbox{ and } v_2 =  \frac{1}{N}\sum_{i=1}^N X_{i,2}^2 
 $$
 
-Which we can compute using:
+We can compute $v_1$ and $v_2$ using
 ```{r}
 colMeans(x^2) 
 ```
 
-We can show, mathematically, that if we apply an orthogonal transformation as above, then the total variation remains the same:
+and we can show, mathematically, that if we apply an orthogonal transformation as above, then the total variation remains the same:
 
 ```{r}
 sum(colMeans(x^2))
@@ -258,7 +254,7 @@ pca <- prcomp(x)
 pca$rotation
 ```
 
-Note that the first PC is almost the same as that provided by the  $(X_1 + X_2)/\sqrt(2)$ we used earlier (except perhaps for a sign change that is arbitrary). 
+Note that the first PC is almost the same as that provided by the  $(X_1 + X_2) / \sqrt{2}$ we used earlier (except perhaps for a sign change that is arbitrary). 
 
 The function PCA returns both the rotation needed to transform $X$ so that the variability of the columns is decreasing from most variable to least as well as the resulting new matrix. By default the columns of $X$ are first centered. 
 
@@ -323,14 +319,12 @@ illustrate_pca(x, flip = -1)
 
 It turns out that we can find this linear transformation not just for two dimensions but for matrices of any dimension $p$. 
 
-For a multidimensional matrix with $X$ with say, $p$ columns, we can find a transformation that creates $Z$ that preserves distance between rows, but with the variance of the columns in decreasing order. The second column is the second principal component, the third column is the third principal component etc... 
-
-As in our example, if past $k$ these variances are very small, it means these dimensions have little to contribute to the distance and we can approximate distance between any two points with just $k$ dimensions.
+For a multidimensional matrix with $X$ with say, $p$ columns, we can find a transformation that creates $Z$ that preserves distance between rows, but with the variance of the columns in decreasing order. The second column is the second principal component, the third column is the third principal component and so on. As in our example, if after a certain number of columns, say $k$, the variance of the columns of $Z_j$, $j>k$ are very smalle, it means these dimensions have little to contribute to the distance and we can approximate distance between any two points with just $k$ dimensions. If $k$ is much smaller than $p$, then we can achieve a very efficient summary of our data.
 
 
 ## Iris Example
 
-The Iris data is a widely used example. It includes four botanical measurements related to three flower species:
+The Iris data is a widely used example in data analysis courses. It includes four botanical measurements related to three flower species:
 
 ```{r}
 names(iris)
@@ -361,14 +355,14 @@ pca <- prcomp(x)
 summary(pca)
 ```
 
-The first two dimensions account for 97%. So we should be able to approximate the distance very well. We can visualize the results of PCA:
+The first two dimensions account for 97% of the variability. So we should be able to approximate the distance very well. We can visualize the results of PCA:
 
 ```{r illustrate-pca-twin-heights-iris, echo=FALSE, fig.height = 6, out.width="100%"}
 rafalib::mypar()
 illustrate_pca(x)
 ```
 
-And see that the first pattern is  Sepal Length,  Petal Length and Petal Width (red) in one direction and Sepal Width (blue) in the other. The second patter is the Sepal Length and Petal Width in one direction (blue) and Petal Length and Petal Width in the other (red). You can see from the weights that the first PC1 drives most the variability and it clearly separates the first third (setosa) from the second two thirds (versicolor and virginica). If you look at the second column of the weights you notice that it somewhat separates versicolor (red) from virgnica (blue).
+And see that the first pattern is  Sepal Length,  Petal Length and Petal Width (red) in one direction and Sepal Width (blue) in the other. The second pattern is the Sepal Length and Petal Width in one direction (blue) and Petal Length and Petal Width in the other (red). You can see from the weights that the first PC1 drives most the variability and it clearly separates the first third (setosa) from the second two thirds (versicolor and virginica). If you look at the second column of the weights you notice that it somewhat separates versicolor (red) from virgnica (blue).
 
 We can see this better by plotting the first two PCs with color representing the species:
 
