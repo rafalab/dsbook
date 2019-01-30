@@ -41,7 +41,7 @@ If we multiply those two numbers, we get a number larger than 5 million, yet our
 keep <- movielens %>% 
   count(movieId) %>% 
   top_n(5, n) %>% 
-  .$movieId
+  pull(movieId)
 
 tab <- movielens %>% 
   filter(movieId%in%keep) %>% 
@@ -120,10 +120,10 @@ test_set <- test_set %>%
 
 ### Loss function 
 
-The Netflix challenge used the typical error loss. They decided on a winner based on the residual mean squared error (RMSE) on a test set. We define $y_{i,u}$ as the rating for movie $i$ by user $u$ and denote our prediction with $\hat{y}_{i,u}$. The RMSE is then defined as: 
+The Netflix challenge used the typical error loss. They decided on a winner based on the residual mean squared error (RMSE) on a test set. We define $y_{u,i}$ as the rating for movie $i$ by user $u$ and denote our prediction with $\hat{y}_{u,i}$. The RMSE is then defined as: 
 
 $$
-\mbox{RMSE} = \sqrt{\frac{1}{N} \sum_{i,u}^{} \left( \hat{y}_{i,u} - y_{i,u} \right)^2 }
+\mbox{RMSE} = \sqrt{\frac{1}{N} \sum_{u,i}^{} \left( \hat{y}_{u,i} - y_{u,i} \right)^2 }
 $$
 with $N$ being the number of user/movie combinations and the sum occurring over all these combinations.
 
@@ -143,10 +143,10 @@ Let's start by building the simplest possible recommendation system: we predict 
 
 
 $$
-Y_{i,u} = \mu + \varepsilon_{i,u}
+Y_{u,i} = \mu + \varepsilon_{u,i}
 $$
 
-with $\varepsilon_{i}$ independent errors sampled from the same distribution centered at 0 and $\mu$ the "true" rating for all movies. We know that the estimate that minimizes the RMSE is the least squares estimate of $\mu$ and, in this case, is the average of all ratings:
+with $\varepsilon_{i,u}$ independent errors sampled from the same distribution centered at 0 and $\mu$ the "true" rating for all movies. We know that the estimate that minimizes the RMSE is the least squares estimate of $\mu$ and, in this case, is the average of all ratings:
 
 ```{r}
 mu_hat <- mean(train_set$rating)
@@ -182,7 +182,7 @@ We know from experience that some movies are just generally rated higher than ot
 intuition, that different movies are rated differently, is confirmed by data. We can augment our previous model by adding the term $b_i$ to represent average ranking for movie $i$: 
 
 $$
-Y_{i,u} = \mu + b_i + \varepsilon_{i,u}
+Y_{u,i} = \mu + b_i + \varepsilon_{u,i}
 $$
 
 Statistics textbooks refer to to the $b$s as effects. However, in the Netflix challenge papers, they refer to them as "bias", thus the $b$ notation.
@@ -193,7 +193,7 @@ We can again use least squared to estimate the $b_i$ in the following way:
 fit <- lm(rating ~ as.factor(userId), data = movielens)
 ```
 
-Because there are thousands of $b_i$, each movie gets one, the `lm()` function will be very slow here. We therefore don't recommend running the code above. But in this particular situation, we know that the least square estimate $\hat{b}_i$ is just the average of $Y_{i,u} - \hat{\mu}$ for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
+Because there are thousands of $b_i$, each movie gets one, the `lm()` function will be very slow here. We therefore don't recommend running the code above. But in this particular situation, we know that the least square estimate $\hat{b}_i$ is just the average of $Y_{u,i} - \hat{\mu}$ for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
 
 ```{r}
 mu <- mean(train_set$rating) 
@@ -210,17 +210,17 @@ movie_avgs %>% qplot(b_i, geom ="histogram", bins = 10, data = ., color = I("bla
 
 Remember $\hat{\mu}=3.5$ so a $b_i = 1.5$ implies a perfect five star rating.
 
-Let's see how much our prediction improves once we use $\hat{y}_{i,u} = \hat{\mu} + \hat{b}_i$:
+Let's see how much our prediction improves once we use $\hat{y}_{u,i} = \hat{\mu} + \hat{b}_i$:
 
 ```{r}
 predicted_ratings <- mu + test_set %>% 
   left_join(movie_avgs, by='movieId') %>%
-  .$b_i
+  pull(b_i)
 
 model_1_rmse <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           data_frame(method="Movie Effect Model",  
-                                     RMSE = model_1_rmse ))
+                                     RMSE = model_1_rmse))
 rmse_results 
 ```
 
@@ -244,7 +244,7 @@ as well: some users are very cranky and others love every movie.
 This implies that a further improvement to our model may be:
 
 $$ 
-Y_{i,u} = \mu + b_i + b_u + \varepsilon_{i,u}
+Y_{u,i} = \mu + b_i + b_u + \varepsilon_{u,i}
 $$
 
 where $b_u$ is a user-specific effect. So now if a cranky user (negative $b_u$) rates a great movie (positive $b_i$), the effects counter each other and we may be able to correctly predict that this user gave this great movie a 3 rather than a 5. 
@@ -255,7 +255,7 @@ To fit this model, we could again use `lm` like this:
 lm(rating ~ as.factor(movieId) + as.factor(userId))
 ```
 
-but, for the reasons described earlier, we won't. Instead, we will compute an approximation but computing $\hat{\mu}$ and $\hat{b}_i$ and estimating $\hat{b}_u$ as the average of $y_{i,u} - \hat{\mu} - \hat{b}_i$
+but, for the reasons described earlier, we won't. Instead, we will compute an approximation but computing $\hat{\mu}$ and $\hat{b}_i$ and estimating $\hat{b}_u$ as the average of $y_{u,i} - \hat{\mu} - \hat{b}_i$
 
 ```{r}
 user_avgs <- train_set %>% 
@@ -271,16 +271,15 @@ predicted_ratings <- test_set %>%
   left_join(movie_avgs, by='movieId') %>%
   left_join(user_avgs, by='userId') %>%
   mutate(pred = mu + b_i + b_u) %>%
-  .$pred
+  pull(pred)
 
 
 model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           data_frame(method="Movie + User Effects Model",  
-                                     RMSE = model_2_rmse ))
-rmse_results %>% knitr::kable()
+                                     RMSE = model_2_rmse))
+rmse_results
 ```
-
 
 ## Exercises {-}
 
@@ -320,31 +319,31 @@ rmse_results %>% knitr::kable()
 6. Compute the average rating for each week and plot this average against day. Hint: use the `round_date` function before you `group_by`.
 
   
-7. The plot shows some evidence of a time effect. If we define $d_{i,u}$ as the day for user's $u$ rating of movie $i$, which of the following models is most appropriate:
+7. The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day for user's $u$ rating of movie $i$, which of the following models is most appropriate:
 
 
-    A. $Y_{i,u} = \mu + b_i + b_u + d_{i,u} + \varepsilon_{i,u}$.
+    A. $Y_{u,i} = \mu + b_i + b_u + d_{u,i} + \varepsilon_{u,i}$.
     
-    B. $Y_{i,u} = \mu + b_i + b_u + d_{i,u}\beta + \varepsilon_{i,u}$.
+    B. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
     
-    C. $Y_{i,u} = \mu + b_i + b_u + d_{i,u}\beta_i + \varepsilon_{i,u}$.
+    C. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta_i + \varepsilon_{u,i}$.
     
-    D. $Y_{i,u} = \mu + b_i + b_u + f(d_{i,u}) + \varepsilon_{i,u}$, with $f$ a smooth function of $d_{i,u}$.
+    D. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
     
   
 8. The `movielens` data also has a `genres` column. This column includes every genre that applies to the movie. Some movies fall under several genres. Define a category as whatever combination appears in this column. Keep only categories with more than 1,000 ratings. Then compute the average and standard error for each category. Plot these as error bar plots.
 
   
-9. The plot shows strong evidence of a genre effect. If we define $g_{i,u}$ as the genre for user's $u$ rating of movie $i$, which of the following models is most appropriate:
+9. The plot shows strong evidence of a genre effect. If we define $g_{u,i}$ as the genre for user's $u$ rating of movie $i$, which of the following models is most appropriate:
 
 
-    A. $Y_{i,u} = \mu + b_i + b_u + d_{i,u} + \varepsilon_{i,u}$.
+    A. $Y_{u,i} = \mu + b_i + b_u + d_{u,i} + \varepsilon_{u,i}$.
     
-    B. $Y_{i,u} = \mu + b_i + b_u + d_{i,u}\beta + \varepsilon_{i,u}$.
+    B. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
     
-    C. $Y_{i,u} = \mu + b_i + b_u + \sum{k=1}^K x_{i,u} \beta_k + \varepsilon_{i,u}$, with $x^k_{i,u} = 1$ if $g_{i,u}$ is genre $k$.
+    C. $Y_{u,i} = \mu + b_i + b_u + \sum{k=1}^K x_{u,i} \beta_k + \varepsilon_{u,i}$, with $x^k_{u,i} = 1$ if $g_{u,i}$ is genre $k$.
     
-    D. $Y_{i,u} = \mu + b_i + b_u + f(d_{i,u}) + \varepsilon_{i,u}$, with $f$ a smooth function of $d_{i,u}$.
+    D. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
 
   
 
@@ -426,16 +425,16 @@ Bayesian approach that shrunk predictions described in Section \@ref(bayesian-st
 The general idea behind regularization is to constrain the total variability of the effect sizes. Why does this help? Consider a case in which we have movie $i=1$ with 100 user ratings and 4 movies $i=2,3,4,5$ with just one user rating. We intend to fit the  model
 
 $$
-Y_{i,u} = \mu + b_i + \varepsilon_{i,u}
+Y_{u,i} = \mu + b_i + \varepsilon_{u,i}
 $$
 
-Suppose we know the average rating is, say, $\mu = 3$. If we use least squares, the estimate for the first movie effect $b_1$ is the average of the 100 user ratings, $1/100 \sum_{i=1}^{100} (Y_{i,1} - \mu)$, which we expect to be a quite precise. However the estimate for movies 2,3,4 and 5 will simply be the observed deviation from the average rating $\hat{b}_i = Y_{i,u} - \hat{\mu}$ which is an estimate based on just one number so it won't be precise at all. Note these estimate  makes the error $Y_{i,u} - \mu + \hat{b}_i$ equal to 0 for $i=2,3,4,5$, but this is a case of over-training. In fact, ignoring the one user and guessing that movies 2,3,4, and 5 are just average movies, $b_i = 0$, might provide a better prediction. The general idea of penalized regression is to control the total variablity of the movie effects: $\sum_{i=1}^5 b_i^2$. Specifically, instead of minimizing the least square equation, we minize an equation that adds a penalty:
+Suppose we know the average rating is, say, $\mu = 3$. If we use least squares, the estimate for the first movie effect $b_1$ is the average of the 100 user ratings, $1/100 \sum_{i=1}^{100} (Y_{i,1} - \mu)$, which we expect to be a quite precise. However the estimate for movies 2,3,4 and 5 will simply be the observed deviation from the average rating $\hat{b}_i = Y_{u,i} - \hat{\mu}$ which is an estimate based on just one number so it won't be precise at all. Note these estimate  makes the error $Y_{u,i} - \mu + \hat{b}_i$ equal to 0 for $i=2,3,4,5$, but this is a case of over-training. In fact, ignoring the one user and guessing that movies 2,3,4, and 5 are just average movies, $b_i = 0$, might provide a better prediction. The general idea of penalized regression is to control the total variability of the movie effects: $\sum_{i=1}^5 b_i^2$. Specifically, instead of minimizing the least square equation, we minimize an equation that adds a penalty:
 
-$$\frac{1}{N} \sum_{i,u} \left(y_{i,u} - \mu - b_i\right)^2 + \lambda \sum_{i} b_i^2$$
+$$\frac{1}{N} \sum_{u,i} \left(y_{u,i} - \mu - b_i\right)^2 + \lambda \sum_{i} b_i^2$$
 The first term is just least squares and the second is a penalty that gets larger when many $b_i$ are large. Using calculus we can actually show that the values of $b_i$ that minimize this equation are:
 
 $$
-\hat{b}_i(\lambda) = \frac{1}{\lambda + n_i} \sum_{u=1}^{n_i} \left(Y_{i,u} - \hat{\mu}\right)
+\hat{b}_i(\lambda) = \frac{1}{\lambda + n_i} \sum_{u=1}^{n_i} \left(Y_{u,i} - \hat{\mu}\right)
 $$
 
 where $n_i$ is the number of ratings made for movie $i$. This approach will have our desired effect: when our sample size $n_i$ is very large, which will give us a stable estimate, then the penalty $\lambda$ is effectively ignored since $n_i+\lambda \approx n_i$. However, when the $n_i$ is small, then the estimate $\hat{b}_i(\lambda)$ is shrunken towards 0. The larger $\lambda$, the more we shrink.
@@ -491,12 +490,12 @@ Do we improve our results?
 predicted_ratings <- test_set %>% 
   left_join(movie_reg_avgs, by = "movieId") %>%
   mutate(pred = mu + b_i) %>%
-  .$pred
+  pull(pred)
 
 model_3_rmse <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           data_frame(method="Regularized Movie Effect Model",  
-                                     RMSE = model_2_rmse ))
+                                     RMSE = model_3_rmse))
 rmse_results 
 ```
 
@@ -519,7 +518,7 @@ rmses <- sapply(lambdas, function(l){
     left_join(just_the_sum, by='movieId') %>% 
     mutate(b_i = s/(n_i+l)) %>%
     mutate(pred = mu + b_i) %>%
-    .$pred
+    pull(pred)
   return(RMSE(predicted_ratings, test_set$rating))
 })
 qplot(lambdas, rmses)  
@@ -531,7 +530,7 @@ However, while we show this as an illustration, in practice we should be using f
 We can use regularization for the estimate user effects as well. We are minimizing:
 
 $$
-\frac{1}{N} \sum_{i,u} \left(y_{i,u} - \mu - b_i - b_u \right)^2 + 
+\frac{1}{N} \sum_{u,i} \left(y_{u,i} - \mu - b_i - b_u \right)^2 + 
 \lambda \left(\sum_{i} b_i^2 + \sum_{u} b_u^2\right)
 $$
 
@@ -558,7 +557,7 @@ rmses <- sapply(lambdas, function(l){
     left_join(b_i, by = "movieId") %>%
     left_join(b_u, by = "userId") %>%
     mutate(pred = mu + b_i + b_u) %>%
-    .$pred
+    pull(pred)
   
     return(RMSE(predicted_ratings, test_set$rating))
 })
@@ -595,7 +594,7 @@ Now let's assign a _true_ quality for each school completely independent from si
 
 
 ```{r, eval=FALSE}
-mu <- round(80 + 2*rt(1000, 5))
+mu <- round(80 + 2 * rt(1000, 5))
 range(mu)
 schools <- data.frame(id = paste("PS",1:100), 
                       size = n, 
@@ -632,7 +631,7 @@ schools <- schools %>% mutate(score = sapply(avg_score, mean))
 4. The same is true for the worst schools! They are small as well. Plot the average score versus school size to see what's going on. Highlight the top 10 schools based on the _true_ quality. Use the log scale transform for the size.
 
 
-5. We can see that the standard error of the score has larger variability when the school is smaller. This is a basic statistical reality we learned in the probability and inference chapters! In fact, note that 4 of the top 10 schools are in the top 10 schools based on the exam score.
+5. We can see that the standard error of the score has larger variability when the school is smaller. This is a basic statistical reality we learned in the probability and inference sections. In fact, note that 4 of the top 10 schools are in the top 10 schools based on the exam score.
 
     Let's use regularization to pick the best schools. Remember regularization _shrinks_ deviations from the average towards 0. So to apply regularization here, we first need to define the overall average for all schools:
 
@@ -657,16 +656,16 @@ Matrix factorization is a widely used concept in machine learning. It is very mu
 We have described how the model:
 
 $$ 
-Y_{i,u} = \mu + b_i + b_u + \varepsilon_{i,u}
+Y_{u,i} = \mu + b_i + b_u + \varepsilon_{u,i}
 $$
 
 accounts for movie to movie differences through the $b_i$ and user to user differences through the $b_u$. But this model leaves out an important source of variation related to the fact that groups of movies have similar rating patterns and groups of users have similar rating patterns as well. We will discover these patterns by studying the residuals:
 
 $$
-r_{i,u} = y_{i,u} - \hat{b}_i - \hat{b}_u
+r_{u,i} = y_{u,i} - \hat{b}_i - \hat{b}_u
 $$
 
-To see this, we will convert the data into a matrix so that each user gets a row, each movie gets a column and $y_{i,u}$ is the entry in row $i$ and column $u$. For illustrative purposes, we will only consider a small subset of movies with many ratings and users that have rated many movies. We also keep Scent of a Woman (`movieId == 3252`) becuase we use it for a specific example:
+To see this, we will convert the data into a matrix so that each user gets a row, each movie gets a column, and $y_{u,i}$ is the entry in row $u$ and column $i$. For illustrative purposes, we will only consider a small subset of movies with many ratings and users that have rated many movies. We also keep Scent of a Woman (`movieId == 3252`) because we use it for a specific example:
 
 ```{r}
 train_small <- movielens %>% 
@@ -725,12 +724,12 @@ m_5 <- "Sleepless in Seattle"
 qplot(y[ ,m_4], y[,m_5], xlab = m_4, ylab = m_5)
 ```
 
-We can see a pattern:
+By looking at the correlation between movies, we can see a pattern:
 
 ```{r}
 x <- y[, c(m_1, m_2, m_3, m_4, m_5)]
 colnames(x)[1:2] <- c("Godfather", "Godfather 2")
-cor(x, use="pairwise.complete") %>% knitr::kable()
+cor(x, use="pairwise.complete")
 ```
 
 There seems to be people that like romantic comedies more than expected, while others that like gangster movies more than expected.
@@ -739,16 +738,19 @@ These results tell us that there is structure in the data. But how can we model 
 
 ## Factors
 
-Here is an illustration, using a simulation, of how we can use some structure to predict the $r_{i,u}$. Suppose our residuals `r` look like this:
+Here is an illustration, using a simulation, of how we can use some structure to predict the $r_{u,i}$. Suppose our residuals `r` look like this:
 
-```{r}
-q <- matrix(c(1 , 1, 1, -1, -1), ncol=1)
+```{r, echo=FALSE}
+q <- matrix(c(1 , 1, 1, -1, -1), ncol = 1)
 rownames(q) <- c("Godfather", "Godfather 2", m_3, m_4, m_5)
-p <- matrix(rep(c(2,0,-2), c(3,5,4)), ncol=1)
+p <- matrix(rep(c(2,0,-2), c(3,5,4)), ncol = 1)
 rownames(p) <- 1:nrow(p)
 
-set.seed(1)
+set.seed(1988)
 r <- jitter(p %*% t(q))
+```
+
+```{r}
 round(r, 1)
 ```
 
@@ -758,37 +760,37 @@ There seems to be pattern here. In fact, we can see very strong correlation patt
 cor(r) 
 ```
 
-We can create vectors `Q` and `P`, that can explain much of the structure we see. The `Q` would look like this:
+We can create vectors `q` and `p`, that can explain much of the structure we see. The `q` would look like this:
 
 ```{r}
 t(q) 
 ```
 
-and it narrows down movies to two groups: gangster and romance. We can also reduce the users to three groups: 
+and it narrows down movies to two groups: gangster (coded with 1) and romance (coded with -1). We can also reduce the users to three groups: 
 
 ```{r}
 p
 ```
 
-those that like gangster movies, but hate romance ones, the reverse, and those that don't care. The main point here is that we can reconstruct this vector of length 60 with a couple of vectors totaling 17 values. If these are the residuals for users $u=1,\dots,12$ for movies $i=1,\dots,5$ we can write the following mathematical formula for our residuals $r_{i,u}$.
+those that like gangster movies and dislike romance movies (coded as 2), those that like romance movies and dislike gangster movies (coded as -2), and those that don't care (coded as 0). The main point here is that we can almost reconstruct $r$ which has 60 values, with a couple of vectors totaling 17 values. If $r$ contains the residuals for users $u=1,\dots,12$ for movies $i=1,\dots,5$ we can write the following mathematical formula for our residuals $r_{u,i}$.
 
 
 $$
-r_{i,u} \approx p_u q_i 
+r_{u,i} \approx p_u q_i 
 $$
 
 This implies that we can explain more variability by modifying our previous model for movie recommendations to:
 
 $$
-Y_{i,u} = \mu + b_i + b_u + p_u q_i + \varepsilon_{i,j}
+Y_{u,i} = \mu + b_i + b_u + p_u q_i + \varepsilon_{u,i}
 $$
 
-However, what we motivated the need for the $p_u q_i$ term with a simple simulation. 
-The structure in our movie data seems to be much more complicated than gangster movie versus romance. We may have other factors. For example, we may have:
+
+However, we motivated the need for the $p_u q_i$ term with a simple simulation. The structure found in data is usually more complex. For example, in this first simulation we assumed there were was just one factor $p_u$ that determined which of the two genres movie $u$ belongs to. But the structure in our movie data seems to be much more complicated than gangster movie versus romance. We may have many other factors. Here we present a slightly more complex simulation. We know add a sixth movie.
 
 
-```{r}
-set.seed(1)
+```{r, echo=FALSE}
+set.seed(1988)
 m_6 <- "Scent of a Woman"
 q <- cbind(c(1 , 1, 1, -1, -1, -1), 
            c(1 , 1, -1, -1, -1, 1))
@@ -798,16 +800,17 @@ p <- cbind(rep(c(2,0,-2), c(3,5,4)),
 rownames(p) <- 1:nrow(p)
 
 r <- jitter(p %*% t(q), factor=1)
+```
+
+```{r}
 round(r, 1)
 ```
 
-Now we see another factor: love, hates, or doesn't care about Al Pacino. The correlation is a bit more complicated now
-
+By exploring the correlation structure of this new dataset
 ```{r}
 cor(r)
 ```
-
-Notice that the overall structure of the correlation obtained from the simulated data is not that far off the real correlation:
+We note that we perhaps need a second factor to account for the fact that some users like Al Pacino, while others dislike him or don't care.Notice that the overall structure of the correlation obtained from the simulated data is not that far off the real correlation:
 
 ```{r}
 six_movies <- c(m_1, m_2, m_3, m_4, m_5, m_6)
@@ -822,36 +825,33 @@ To explain this more complicated structure, we need two factors. For example som
 t(q) 
 ```
 
-one for ganster versus romance and another for Al Pacino versus no Al Pacino.
-We also need two sets of coefficients:
+With the first factor (the first row) used to code the gangster versus romance groups and a second factor (the second row) to explain the Al Pacino versus no Al Pacino groups. We will also need two sets of coefficients to explain the variability introduced by the $3\times 3$ types of groups:
 
 ```{r}
 p
 ```
 
-to explain the $3\times 3$ types of users.
-
-The model with two factors has more parameters, but still less than the original data:
+The model with two factors has 36 parameters that can be used to explain much of the variability in the 72 ratings:
 
 $$
-Y_{i,u} = \mu + b_i + b_u + p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \varepsilon_{i,j}
+Y_{u,i} = \mu + b_i + b_u + p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \varepsilon_{u,i}
 $$
 
-Note that this is not a linear model. To fit this model we need to use an algorithm other those used by `lm` to find the parameters that minimize the least squares. Also, the winning algorithms for the Netflix challenge used regularization to penalize for large values of $p$ and $q$, rather than using least squares. Implementing this approach is beyond the scope of this book.
-
+Note that in an actual data application, we need to fit this model to data. To explain the complex correlation we observe in real data, we usually permit the entries of $p$ and $q$ to be continuous values, rather than discrete ones as we used in the simulation. So, for example, rather than dividing movies into gangster or romance, we define a continuum. Also note that  this is not a linear model and to fit it we need to use an algorithm other than the one used by `lm` to find the parameters that minimize the least squares. The winning algorithms for the Netflix challenge fit a model similar to the above and used regularization to penalize for large values of $p$ and $q$, rather than using least squares. Implementing this 
+approach is beyond the scope of this book.
 
 ## Connection to SVD and PCA
 
 The decomposition:
 
 $$
-r_{i,u} \approx p_{u,1} q_{1,i} + p_{u,2} q_{2,i}
+r_{u,i} \approx p_{u,1} q_{1,i} + p_{u,2} q_{2,i}
 $$
 
 is very much related to SVD and PCA. SVD and PCA are complicated concepts, but one way to understand them is that SVD is an algorithm that finds the vectors $p$ and $q$ that permit us to rewrite the matrix $\mbox{r}$ with $m$ rows and $n$ columns as:
 
 $$
-r_{i,u} = p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \dots + p_{u,m} q_{m,i} 
+r_{u,i} = p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \dots + p_{u,m} q_{m,i} 
 $$
 
 with the variability of each term decreasing and with the $p$s uncorrelated. The algorithm also computes this variability so that we can know how much of the matrices total variability is explained as we add new terms. This may permit us to see that, with just a few terms, we can explain most of the variability.
@@ -878,14 +878,15 @@ dim(pca$x)
 We can see the variability of each of the vectors:
 
 ```{r, pca-sds}
-plot(pca$sdev)
+pc <- 1:nrow(x)
+qplot(pc, pca$sdev)
 ```
 
 and see that just the first few already explain a large percent:
 
 ```{r var-expained-pca}
-var_explained <- cumsum(pca$sdev^2/sum(pca$sdev^2))
-plot(var_explained)
+var_explained <- cumsum(pca$sdev^2 / sum(pca$sdev^2))
+qplot(pc, var_explained)
 ```
 
 We also notice that the first two principal components are related to the structure in opinions about movies:
@@ -893,7 +894,7 @@ We also notice that the first two principal components are related to the struct
 ```{r movies-pca, out.width="100%", height = 5}
 library(ggrepel)
 
-pcs <- data.frame(pca$rotation, name = colnames(y))
+pcs <- data.frame(pca$rotation, name = str_trunc(colnames(y), 30))
 
 highlight <- filter(pcs, PC1 < -0.1 | PC1 > 0.1 | PC2 < -0.075 | PC2 > 0.1)
 
@@ -978,8 +979,11 @@ my_image(y)
 1. How would you describe the data based on this figure?
 
     A. The test scores are all independent of each other.
+    
     B. The students that test well are at the top of the image and there seems to be three groupings by subject.
+    
     C. The students that are good at math are not good at science.
+    
     D. The students that are good at math are not good at humanities.
     
 2. You can examine the correlation between the test scores directly like this:
@@ -993,8 +997,11 @@ my_image(y)
     Which of the following best describes what you see?
 
     A. The test scores are independent.
+    
     B. Math and Science are highly correlated but the humanities are not.
+    
     C. There is high correlation between tests in the same subject but no correlation across subjects.
+    
     D. There is a correlation among all tests, but higher if the tests are in science and math and even higher within each subject.
     
 
@@ -1018,13 +1025,13 @@ my_image(y)
     max(abs(y - y_svd))
     ```
 
-    Compute the sum of squares of the columns of $Y$ and store them in `ss_y`. Then the sum of squares of columns of the transformed $YV$ and store them in $ss_yv$. Confirm that `sum(ss_y)` is equal to `sum(ss_yv)`
+    Compute the sum of squares of the columns of $Y$ and store them in `ss_y`. Then the sum of squares of columns of the transformed $YV$ and store them in `ss_yv`. Confirm that `sum(ss_y)` is equal to `sum(ss_yv)`
 
  
 4. We see that the total sum of squares is preserved. This is because $V$ is orthogonal. Now to start understanding how $YV$ is useful 
-plot `ss_y` against the column number and then do the same for $ss_yv$. What do you observe?
+plot `ss_y` against the column number and then do the same for `ss_yv`. What do you observe?
 
-5. We see that the variability of the columns of $YV$ is decreasing. Furthermore, we see that, relative to the first three, the variability of the columns beyond the third is almost 0. Now notice that we didn't have to compute `ss_yv` because we already have the answer. How? Remember that $YV = UD$ and because $U$ is orthogonal, we know that the sum of squares of the columns of $UD$ are the diagonal entries of $D$ squared. Confirm this by plotting the square root of $ss_yv$ versus the diagonal entries of $D$
+5. We see that the variability of the columns of $YV$ is decreasing. Furthermore, we see that, relative to the first three, the variability of the columns beyond the third is almost 0. Now notice that we didn't have to compute `ss_yv` because we already have the answer. How? Remember that $YV = UD$ and because $U$ is orthogonal, we know that the sum of squares of the columns of $UD$ are the diagonal entries of $D$ squared. Confirm this by plotting the square root of `ss_yv` versus the diagonal entries of $D$
 
  
 6. So from the above we know that the sum of squares of the columns of $Y$ (the total sum of squares) add up to the sum of `s$d^2` and that the transformation $YV$ gives us columns with sums of squares equal to `s$d^2`. Now compute what percent of the total variability is explained by just the first three columns of $YV$.
@@ -1066,7 +1073,7 @@ plot `ss_y` against the column number and then do the same for $ss_yv$. What do 
 
     $$Y = U_1 d_{1,1} V_1 ^{\top} + U_2 d_{2,2} V_2 ^{\top} + \dots + U_p d_{p,p} V_p ^{\top}$$
 
-    with $V_j$ the jth column of $V$. Plot $U_1$, then plot $V_1^{\top}$ using the same range for the y-axis limits, then make an image of $U_1 d_{1,1} V_1 ^{\top}$ and compare it to the image of $Y$. Hint: use the `my_image` function defined above. Use the `drop=FALSE` argument to assure the subsets of matrices are matrices.
+    with $V_j$ the jth column of $V$. Plot $U_1$, then plot $V_1^{\top}$ using the same range for the y-axis limits, then make an image of $U_1 d_{1,1} V_1 ^{\top}$ and compare it to the image of $Y$. Hint: use the `my_image` function defined above and use the `drop=FALSE` argument to assure the subsets of matrices are matrices.
 
   
 
@@ -1087,14 +1094,13 @@ plot `ss_y` against the column number and then do the same for $ss_yv$. What do 
   
 12. The second column clearly relates to a student's difference in ability in math/science versus the arts. We can see this most clearly from the plot of `s$v[,2]`. Adding the matrix we obtain with these two columns will help with our approximation:
 
-
     $$ Y \approx d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} $$
 
     We know it will explain 
 
-        ```{r,eval=FALSE}
-        sum(s$d[1:2]^2)/sum(s$d^2) * 100
-        ```
+    ```{r,eval=FALSE}
+    sum(s$d[1:2]^2)/sum(s$d^2) * 100
+    ```
 
     percent of the total variability. We can compute new residuals like this:
     
@@ -1131,7 +1137,7 @@ plot `ss_y` against the column number and then do the same for $ss_yv$. What do 
 
     $$ Y =  d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top} + \varepsilon$$
 
-    with $\varepsilon$ a matrix of independent identically distributed errors. This model is useful because we summarize of $100 \times 24$ observations with $3 \times (100+24+1) = 375$ numbers. Furthermore, the three components of the model have useful interpretations: 1 - the overall ability of a student, 2 - the difference in ability between the math/sciences and arts and 3 - the remaining differences between the three subjects. The sizes $d_{1,1}, d_{2,2}$ and $d_{3,3}$ tells us the variability explained by each component. Finally, note that the components $d_{j,j} U_j V_j^{\top}$ are equivalent to the jth principal component. Finish the exercise by plotting an image of  $Y$, an image of $d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$ and an image of the residuals, all with the same `zlim`.
+    with $\varepsilon$ a matrix of independent identically distributed errors. This model is useful because we summarize of $100 \times 24$ observations with $3 \times (100+24+1) = 375$ numbers. Furthermore, the three components of the model have useful interpretations: 1) the overall ability of a student, 2) the difference in ability between the math/sciences and arts and 3) the remaining differences between the three subjects. The sizes $d_{1,1}, d_{2,2}$ and $d_{3,3}$ tells us the variability explained by each component. Finally, note that the components $d_{j,j} U_j V_j^{\top}$ are equivalent to the jth principal component. Finish the exercise by plotting an image of  $Y$, an image of $d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$ and an image of the residuals, all with the same `zlim`.
 
   
 
