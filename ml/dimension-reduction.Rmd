@@ -9,7 +9,7 @@ Here we describe a powerful techniques useful for exploratory data analysis, amo
 We consider an example with twin heights. Some pairs are adults the others are children. Here we simulate 100 two dimensional points that represent the number of standard deviations each individual is from the mean height. Each point is a pair of twins. We use the `mvrnorm` function from the __MASS__ package to simulate bivariate normal data.
 
 ```{r, message=FALSE}
-set.seed(1)
+set.seed(1988)
 library(MASS)
 n <- 100
 x <- rbind(mvrnorm(n / 2, c(69, 69), matrix(c(9, 9 * 0.9, 9 * 0.92, 9 * 1), 2, 2)),
@@ -40,8 +40,8 @@ points(x[c(1, 2, 51),], pch = 16)
 We can compute these distances using `dist`:
 ```{r}
 d <- dist(x)
-as.matrix(d)[1,2]
-as.matrix(d)[2,51]
+as.matrix(d)[1, 2]
+as.matrix(d)[2, 51]
 ```
 
 This distance is based on two dimension and we need a distance approximation based on just one.
@@ -198,7 +198,8 @@ In this case $Z$ is called an orthogonal rotation of $X$: it preserves the dista
 
 Note that by using the transformation above we can summarize the distance between any two pair of twins with just one dimension. For example, one-dimensional data exploration of the first dimension of $Z$ clearly shows that there are two groups, adults and children:
 
-```{r twins-pc-1-hist}
+```{r twins-pc-1-hist, message=FALSE, warning=FALSE}
+library(tidyverse)
 qplot(z[,1], bins = 20, color = I("black"))
 ```
 
@@ -376,42 +377,45 @@ data.frame(pca$x[,1:2], Species=iris$Species) %>%
 
 We see that the first two dimensions preserve the distance:
 
+```{r}
+```
+
 ```{r dist-approx-4, fig.height = 4, fig.width = 4}
-d_approx <- dist(pca$x[,1:2])
-plot(d, d_approx)
-abline(0, 1, col="red")
+d_approx <- dist(pca$x[, 1:2])
+qplot(d, d_approx) + geom_abline(color="red")
 ```
 
 This example is more realistic than the first since we showed how we can visualize the data, using two dimensions, when the data was four dimensional.
 
-## MNIST
+## MNIST Example
 
-We have been using the written digits example. This dataset had 784 features. Is there any room for data reduction? Can we create simple machine learning algorithms with using fewer features?
+The written digits example 784 features. Is there any room for data reduction? Can we create simple machine learning algorithms with using fewer features?
 
 Let's load the data:
 ```{r}
+library(dslabs)
 if(!exists("mnist")) mnist <- read_mnist()
 ```
 
 Because the pixels are so small we expect those to be close to each other on the grid to be correlated, meaning that dimension reduction should be possible. 
 
 
-Let's try PCA. This will take a few seconds as it is a rather large matrix.
+Let's try PCA and explore the variance of the PCs. This will take a few seconds as it is a rather large matrix.
 
 ```{r, cache=TRUE}
 col_means <- colMeans(mnist$test$images)
 pca <- prcomp(mnist$train$images)
 ```
 
-And explore the variance of the PCs:
-
 ```{r mnist-pca-variance-explained}
-plot(pca$sdev)
+pc <- 1:ncol(mnist$test$images)
+qplot(pc, pca$sdev)
 ```
+
 We can see that the first few PCs already explain a large percent of the variability:
 
 ```{r}
-summary(pca)$importance[,1:5] %>% knitr::kable()
+summary(pca)$importance[,1:5] 
 ```
 
 And just by looking at the first two PCs we see information about the class. Here is a random sample of 2,000 digits:
@@ -426,7 +430,8 @@ data.frame(PC1 = pca$x[,1], PC2 = pca$x[,2],
 
 We can also _see_ the linear combinations on the grid to get an idea of what is getting weighted:
 
-```{r mnist-pca-1-4, out.width="100%"}
+```{r mnist-pca-1-4, out.width="100%", fig.height=3}
+library(RColorBrewer)
 tmp <- lapply( c(1:4,781:784), function(i){
     expand.grid(Row=1:28, Column=1:28) %>%
       mutate(id=i, label=paste0("PC",i), 
@@ -442,9 +447,9 @@ tmp %>% filter(id<5) %>%
   facet_wrap(~label, nrow = 1)
 ```
 
-The higher PCs appear related to unimportant variability in the corners:
+The lower variace PCs appear related to unimportant variability in the corners:
 
-```{r mnist-pca-last, out.width="100%"}
+```{r mnist-pca-last, out.width="100%", fig.height=3}
 tmp %>% filter(id>5) %>%
   ggplot(aes(Row, Column, fill=value)) +
   geom_raster() +
@@ -460,8 +465,8 @@ We try 36 dimensions since this explains about 80% of the data
 First fit the model:
 ```{r}
 library(caret)
-K <- 36
-x_train <- pca$x[,1:K]
+k <- 36
+x_train <- pca$x[,1:k]
 y <- factor(mnist$train$labels)
 fit <- knn3(x_train, y)
 ```
@@ -469,13 +474,13 @@ fit <- knn3(x_train, y)
 Now transform the test set:
 ```{r}
 x_test <- sweep(mnist$test$images, 2, col_means) %*% pca$rotation
-x_test <- x_test[,1:K]
+x_test <- x_test[,1:k]
 ```
 
 And we are ready to predict and see how we do:
 ```{r}
 y_hat <- predict(fit, x_test, type = "class")
-confusionMatrix(y_hat, factor(mnist$test$labels))$overall
+confusionMatrix(y_hat, factor(mnist$test$labels))$overall["Accuracy"]
 ```
 
 With just 36 dimensions  we get an accuracy well above 0.95.
