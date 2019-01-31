@@ -32,8 +32,8 @@ A Monte Carlo simulation can be used to show how data dredging can result in fin
 
 ```{r, cache=TRUE}
 N <- 25
-g <- 1000000
-sim_data <- tibble(group = rep(1:g, each = N), x = rnorm(N*G), y = rnorm(N*G))
+G <- 1000000
+sim_data <- tibble(group = rep(1:G, each = N), x = rnorm(N*G), y = rnorm(N*G))
 ```
 
 The first column denotes group. We created `r cat(prettyNum(G, big.mark=",",scientific=FALSE))` groups and for each one we generated a pair of independent vectors, $X$ and $Y$, with `r N` observations each, stored in the second and third columns. Because we constructed the simulation, we know that $X$ and $Y$ are not correlated.
@@ -70,7 +70,7 @@ If we performed regression on this group and interpreted the p-value, we would i
 ```{r}
 sim_data %>% 
   filter(group == res$group[which.max(res$r)]) %>%
-  do(tidy(lm(Y ~ X, data = .)))
+  do(tidy(lm(y ~ x, data = .)))
 ```
 
 This particular form of data dredging is referred to as _p-hacking_. P-hacking is a topic of much discussion because it is a problem in scientific publications. Because publishers tend to reward statistically significant results over negative results, there is an incentive to report significant results. In epidemiology and the social sciences, for example, researchers may look for associations between an adverse outcome and several exposures and report only the one exposure that resulted in a small p-value. Furthermore, they might try fitting several different models to account for confounding and pick the one that yields the smallest p-value. In experimental disciplines, an experiment might be repeated more than once, yet only the results of the one experiment with a small p-value reported. This does not necessarily happen due to unethical behavior, but rather as a result of statistical ignorance or wishful thinking. In advanced statistics courses, you learn methods to adjust for these multiple comparisons.
