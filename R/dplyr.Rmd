@@ -1,0 +1,451 @@
+# Basic data wrangling with dplyr
+
+Up to now we have been changing vectors by reordering them and subsetting them through indexing. However, once we start more advanced analyses, we will want to prepare data tables for data analysis. We refer to this task as data wrangling. For this purpose, we will introduce the __dplyr__ package which provides intuitive functionality for working with tables. In the Data Wrangling part of the book we will explore this topic in much more depth. 
+
+Once you install __dplyr__, you can load it using:
+
+```{r, message=FALSE, warning=FALSE}
+library(dplyr)
+```
+
+## Manipulating data frames
+
+The __dplyr__ package introduces functions that perform the some of the most common operations in data wrangling and uses names for these functions that are relatively easy to remember. For instance, to change the data table by adding a new column, we use `mutate`.  To filter the data table to a subset of rows, we use `filter`. Finally, to subset the data by selecting specific columns, we use `select`.
+
+### Adding a column with `mutate`
+
+We want all the necessary information for our analysis to be included in the data table. So the first task is to add the murder rates to our murders data frame.  The function mutate takes the data frame as a first argument and the name and values of the variable in the second using the convention `name = values`. So, to add murder rates, we use:
+ 
+```{r, message=FALSE}
+library(dslabs)
+data("murders")
+murders <- mutate(murders, rate = total / population * 100000)
+```
+
+Notice that here we used `total` and `population` inside the function, which are objects that are **not** defined in our workspace. But why don't we get an error?
+
+This is one of __dplyr__'s main features. Functions in this package, such as `mutate`, know to look for variables in the data frame provided in the first argument. In the call to mutate above, `total` will have the values in `murders$total`. This approach makes the code much more readable. 
+
+We can see that the new column is added:
+
+```{r}
+head(murders)
+```
+
+Although we have over-written the original `murders` object, this does not change the object that loaded with `data(murders)`. If we load the `murders` data again, the original will over-write our mutated version.
+
+### Subsetting with `filter`
+
+Now suppose that we want to filter the data table to only show the entries for which the murder rate is lower than 0.71. To do this, we use the `filter` function which takes the data table as an argument and then the conditional statement as the next. Like mutate, we can use the unquoted variable names from `murders` inside the function and it will know we mean the columns and not objects in the workspace.
+
+```{r}
+filter(murders, rate <= 0.71)
+```
+
+
+### Selecting columns with `select`
+
+Although our data table only has six columns, some data tables include hundreds. If we want to view just a few, we can use the dplyr `select` function. In the code below, we select three columns, assign this to a new object and then filter the new object: 
+
+```{r}
+new_table <- select(murders, state, region, rate)
+filter(new_table, rate <= 0.71)
+```
+
+In the call to `select`, the first argument `murders` is an object, but `state`, `region`, and `rate` are variable names. 
+
+### Exercises 
+
+1. Load the __dplyr__ package and the murders dataset.
+
+    ```{r, eval=FALSE}
+    library(dplyr)
+    library(dslabs)
+    data(murders)
+    ```
+
+    You can add columns using the __dplyr__ function `mutate`. This function is aware of the column names and inside the function you can call them unquoted:
+
+
+    ```{r, eval=FALSE}
+    murders <- mutate(murders, population_in_millions = population / 10^6)
+    ```
+
+    We can write `population` rather than `murders$population`. The function `mutate` knows we are grabbing columns from `murders`.
+
+    Use the function `mutate` to add a murders column named `rate` with the per 100,000 murder rate. Make sure you redefine `murders` as done in the example code above and remember the murder rate is defined by the total divided by the population size times 100,000.
+
+2. If `rank(x)` gives you the ranks of `x` from lowest to highest, `rank(-x)` gives you the ranks from highest to lowest. Use the function `mutate` to add a column `rank` containing the rank, from highest to lowest murder rate. Make sure you redefine murders.
+
+ 
+
+3. With __dplyr__, we can use `select` to show only certain columns. For example, with this code we would only show the states and population sizes:
+
+    ```{r, eval=FALSE}
+    select(murders, state, population) %>% head()
+    ```
+
+    Use `select` to show the state names and abbreviations in `murders`. Do not define a new object, just show the results.
+
+
+4. The __dplyr__ function `filter` is used to choose specific rows of the data frame to keep. Unlike `select` which is for columns, `filter` is for rows. For example, you can show just the New York row like this:
+
+    ```{r, eval=FALSE}
+    filter(murders, state == "New York")
+    ```
+    
+    You can use other logical vectors to filter rows.
+
+    Use `filter` to show the top 5 states with the highest murder rates. After we add murder rate and rank, do not change the murders dataset, just show the result. Remember that you can filter based on the `rank` column.
+
+ 
+5. We can remove rows using the `!=` operator. For example, to remove Florida, we would do this:
+
+    ```{r, eval=FALSE}
+    no_florida <- filter(murders, state != "Florida")
+    ```
+
+    Create a new data frame called `no_south` that removes states from the South region. How many states are in this category? You can use the function `nrow` for this.
+
+
+6. We can also use the `%in%` to filter with __dplyr__. You can therefore see the data from New York and Texas like this:
+
+    ```{r, eval=FALSE}
+    filter(murders, state %in% c("New York", "Texas"))
+    ```
+    
+    Create a new data frame called `murders_nw` with only the states from the Northeast and the West.  How many states are in this category? 
+
+
+7. Suppose you want to live in the Northeast or West **and** want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with `filter`. Here is an example in which we filter to keep only small states in the Northeast region.
+
+    ```{r, eval=FALSE}
+    filter(murders, population < 5000000 & region == "Northeast")
+    ```
+
+    Add a murder rate column and a rank column as done before. Create a table, call it `my_states`, that satisfies both the conditions: it is in the Northeast or West and the murder rate is less than 1.  Use select to show only the state name, the rate and the rank.
+
+## The pipe: `%>%`
+
+With __dplyer__ we can perform a series of operations, for example select and then filter, by sending the results of one function to another using what is called the _pipe operator_: `%>%`. Some details are included below. 
+We wrote the code above because we wanted to show the three variables for states that have murder rates below 0.71. To do this, we defined the intermediate object `new_table`. In __dplyr__ we can write code that looks more like a description of what we want to do: 
+
+$$ \mbox{original data }
+\rightarrow \mbox{ select }
+\rightarrow \mbox{ filter } $$
+
+
+For such an operation, we can use the pipe `%>%`. The code looks like this:
+
+```{r}
+murders %>% select(state, region, rate) %>% filter(rate <= 0.71)
+```
+
+This line of code is equivalent to the two lines of code above. What is going on here? 
+
+In general, the pipe _sends_ the result of the left side of the pipe to be the first argument of the function on the right side of the pipe. Here is a very simple example:
+
+```{r}
+16 %>% sqrt()
+```
+We can continue to pipe values along:
+
+```{r}
+16 %>% sqrt() %>% log2()
+```
+The above statement is equivalent to `log2(sqrt(16))`.
+
+Remember that the pipe sends values to the first argument, so we can define other arguments as if the first argument is already defined:
+
+```{r}
+16 %>% sqrt() %>% log(base = 2)
+```
+
+Therefore, when using the pipe with data frames and __dplyr__, we no longer need to specify the required first argument since the __dplyr__ functions we have described all take the data as the first argument. In the code we wrote:
+
+```{r, eval=FALSE}
+murders %>% select(state, region, rate) %>% filter(rate <= 0.71)
+```
+`murders` is the first argument of the `select` function, and the new data frame (formerly `new_table`) is the first argument of the `filter` function.
+
+
+### Exercises
+
+1. The pipe `%>%` can be used to perform operations sequentially without having to define intermediate objects, after redefining murder to include rate and rank.
+
+    ```{r, eval=FALSE}
+    murders <- mutate(murders, rate =  total / population * 100000, rank = rank(-rate))
+    ```
+
+    In the solution to the previous exercise, we did the following:
+    ```{r, eval=FALSE}
+    my_states <- filter(murders, region %in% c("Northeast", "West") & rate < 1)
+
+    select(my_states, state, rate, rank)
+    ```
+
+    The pipe `%>%` permits us to perform both operations sequentially without having to define an intermediate variable `my_states`. We therefore could have mutated and selected in the same line like this:
+
+    ```{r, eval=FALSE}
+    mutate(murders, rate =  total / population * 100000, rank = rank(-rate)) %>%
+      select(state, rate, rank)
+    ```
+
+    Notice that `select` no longer has a data frame as the first argument. The first argument is assumed to be the result of the operation conducted right before the  `%>%`.
+    
+    Repeat the previous exercise, but now instead of creating a new object, show the result and only include the state, rate, and rank columns. Use a pipe `%>%` to do this in just one line.
+
+2. Now we will make murders the original table one gets when loading using `data(murders)`. 
+Use just one line to create a new data frame, called `my_states`, that has a murder rate and a rank column, considers only states in the Northeast or West which have a murder rate lower than 1, and contains only the state, rate, and rank columns. The line should also have four components separated by three `%>%`. 
+
+    - The original dataset `murders`.
+    - A call to `mutate` to add the murder rate and the rank.
+    - A call to `filter` to keep only the states from the Northeast or West and that have a murder rate below 1.
+    - A call to `select` that keeps only the columns with the state name, the murder rate and the rank. 
+
+    The line should look something like this:
+    
+    ```{r, eval=FALSE}
+    my_states <- murders %>%
+      mutate SOMETHING %>% 
+      filter SOMETHING %>% 
+      select SOMETHING
+    ```
+
+## Summarizing data  
+
+An important part of exploratory data analysis is summarizing data. The average and standard deviation are two examples of widely used summary statistics. More informative summaries can often be achieved by first splitting data into groups. In this section, we cover two new __dplyr__ verbs that make these computations easier: `summarize` and `group_by`. We learn to access resulting values using the `pull` function.  
+
+```{r, message=FALSE, echo=FALSE}
+library(tidyverse)
+```
+
+### `summarize`
+
+The `summarize` function in __dplyr__ provides a way to compute summary statistics with intuitive and readable code. We start with a simple example based on heights. The `heights` dataset includes  heights and sex reported by students in an in-class survey. 
+
+```{r}
+library(dplyr)
+library(dslabs)
+data(heights)
+```
+
+The following code computes the average and standard deviation for females:
+
+```{r}
+s <- heights %>% 
+  filter(sex == "Female") %>%
+  summarize(average = mean(height), standard_deviation = sd(height))
+s
+```
+
+This takes our original data table as input, filters it to keep only females and then produces a new, summarized table with just the average and the standard deviation of heights. We get to choose the names of the columns of the resulting table. For example, above we decided to use `average` and `standard_deviation`, but we could have used other names just the same.
+
+Because the resulting table, stored in `s`, is a data frame, we can access the components with the accessor `$`, which in this case will be a numeric:
+
+```{r}
+s$average
+s$standard_deviation
+```
+
+As with most other __dplyr__ functions, `summarize` is aware of the variable names and we can use them directly. So when inside the call to the `summarize` function we write `mean(height)`, it is accessing the column with the name, and then computing the average of the respective numeric vector. We can compute any other summary that operates on vectors and returns a single value. For example, we can add the median, min and max like this:
+
+```{r}
+heights %>% 
+  filter(sex == "Female") %>%
+  summarize(median = median(height), minimum = min(height), maximum = max(height))
+```
+
+We can obtain these three values with just one line using the `quantiles` function; e.g. `quantile(x, c(0,0.5,1))` returns the min, median, and max of the vector `x`. However, if we attempt to use a function that returns two or more values:
+
+```{r, eval=FALSE}
+heights %>% 
+  filter(sex == "Female") %>%
+  summarize(range = quantile(height, c(0, 0.5, 1)))
+```
+
+we will receive an error: `Error: expecting result of length one, got : 2`. With the function `summarize`, we can only call functions that return a single value. In Section \@ref(do), we will learn how to deal with functions that return more than one value.
+
+For another example of how we can use the `summarize` function, let's compute the average murder rate for the United States. Remember our data table includes total murders and population size for each state and we have already used __dplyr__ to add a murder rate column:
+
+```{r}
+data(murders)
+murders <- murders %>% mutate(rate = total/population*100000)
+```
+
+Remember that the US murder is **not** the average of the state murder rates:
+
+```{r}
+summarize(murders, mean(rate))
+```
+
+This is because in the computation above the small states are given the same weight as the large ones. The US murder rate is the total US murders divided by the total US population. So the correct computation is:
+
+```{r}
+us_murder_rate <- murders %>% summarize(rate = sum(total) / sum(population) * 100000)
+us_murder_rate
+```
+
+This computation counts larger states proportionally to their size which results in a larger value.
+
+### `pull`
+
+The `us_murder_rate` object defined above represents just one number. Yet we are storing it in a data frame:
+
+```{r}
+class(us_murder_rate)
+```
+
+since, as most __dplyr__ functions, `summarize` always returns a data frame.
+
+This might be problematic if we want to use the result with functions that require a numeric value. Here we show a useful trick for accessing values stored in data piped via `%>%`: when a data object is piped it can be accessed using the `pull` function. To understand what we mean take a look at this line of code:
+
+```{r}
+us_murder_rate %>% pull(rate)
+```
+
+This returns the value in the `rate` column of `us_murder_rate` making it equivalent to `us_murder_rate$rate`. 
+
+To get a number from the original data table with one line of code we can type:
+
+```{r}
+us_murder_rate <- murders %>% 
+  summarize(rate = sum(total) / sum(population) * 100000) %>%
+  pull(rate)
+
+us_murder_rate
+```
+
+which is now a numeric:
+
+```{r}
+class(us_murder_rate)
+```
+
+We will see other instances in which using the `.` is useful. For now, we will only use it to produce numeric vectors from pipelines constructed with __dplyr__.
+
+### Group then summarize
+
+A common operation in data exploration is to first split data into groups and then compute summaries for each group. For example, we may want to compute the average and standard deviation for men's and women's heights separately. The `group_by` function helps us do this. 
+
+If we type this:
+
+```{r}
+heights %>% group_by(sex)
+```
+
+he result does not look very different from `heights`, except we see this `Groups: sex [2]` when we print the object. Although not immediately obvious from its appearance, this is now a special data frame called a _grouped data frame_ and __dplyr__ functions, in particular `summarize`, will behave differently when acting on this object. Conceptually, you can think of this table as many tables, with the same columns but not necessarily the same number of rows, stacked together in one object. When we summarize the data after grouping, this is what happens:
+
+```{r}
+heights %>% 
+  group_by(sex) %>%
+  summarize(average = mean(height), standard_deviation = sd(height))
+```
+
+The `summarize` function applies the summarization to each group separately.
+
+For another example, let's compute the median murder rate in the four regions of the country:
+
+```{r}
+murders %>% 
+  group_by(region) %>%
+  summarize(median_rate = median(rate))
+```
+
+## Sorting data frames
+
+When examining a dataset, it is often convenient to sort the table by the different columns. We know about the `order` and `sort` function, but for ordering entire tables, the __dplyr__ function `arrange` is useful. For example, here we order the states by population size:
+
+```{r}
+murders %>% arrange(population) %>% head()
+```
+
+With `arrange` we get to decide which column to sort by. To see the states by population, from smallest to largest, we arrange by `rate` instead:
+
+```{r}
+murders %>% 
+  arrange(rate) %>% 
+  head()
+```
+
+Note that the default behavior is to order in ascending order. In __dplyr__, the function `desc` transforms a vector so that it is in descending order. To sort the table in descending order, we can type:
+
+```{r}
+murders %>% 
+  arrange(desc(rate)) %>% 
+  head()
+```
+
+### Nested sorting 
+
+If we are ordering by a column with ties, we can use a second column to break the tie. Similarly, a third column can be used to break ties between first and second and so on. Here we order by `region` then, within region, we order by murder rate:
+
+```{r}
+murders %>% 
+  arrange(region, rate) %>% 
+  head()
+```
+
+
+### The top $n$ 
+
+In the code above, we have used the function `head` to avoid having the page fill up with the entire dataset. If we want to see a larger proportion, we can use the `top_n` function. This function takes a data frame as it's first argument, the number of rows to show in the second, and the variable to filter by in the third. Here is an example of how to who the top 10 rows:
+
+```{r}
+murders %>% top_n(10, rate)
+```
+
+Note that rows are not sorted by `rate`, only filtered. If want to sort, we need to use `arrange`.
+Note that if the third argument is left blank, `top_n`, filters by the last column.
+
+
+### Exercises {-}
+
+For these exercises, we will be using the data from the survey collected by the United States National Center for Health Statistics (NCHS). This center has conducted a series of health and nutrition surveys since the 1960’s. Starting in 1999, about 5,000 individuals of all ages have been interviewed every year and they complete the health examination component of the survey. Part of the data is made available via the __NHANES__ package which can install using:
+
+```{r, eval = FALSE}
+install.packages("NHANES")
+```
+
+Once you install it, you can load the data this way:
+
+```{r}
+library(NHANES)
+data(NHANES)
+```
+
+The NHANES data has many missing values. Remember that the main summarization function in R will return `NA` if any of the entries of the input vector is an `NA`. Here is an example:
+
+```{r}
+library(dslabs)
+data(na_example)
+mean(na_example)
+sd(na_example)
+```
+
+To ignore the `NA`s we can use the `na.rm` argument:
+
+```{r}
+mean(na_example, na.rm = TRUE)
+sd(na_example, na.rm = TRUE)
+```
+
+Let's now explore the NHANES data.
+
+1. We will provide some basic facts about blood pressure. First let's select a group to set the standard. We will use 20-29 year old females. Note that the category is coded with ` 20-29`, with a space in front! The `AgeDecade` is a categorical variable with these ages. What is the average and standard deviation of systolic blood pressure as saved in the `BPSysAve` variable? Save it to a variable called `ref`. Hint: Use `filter` and `summarize` and use the `na.rm = TRUE` argument when computing the average and standard deviation. You can also filter the NA values using `filter`.
+
+
+2. Using only one line of code, assign the average to a numeric variable `ref_avg`. Hint: Use the code similar to above and then the dot.
+
+
+3. Now report the min and max values for the same group.
+
+
+4. Compute the average and standard deviation for females, but for each age group separately. Note that the age groups are defined by `AgeDecade`. Hint: rather than filtering by age, filter by `Gender` and then use `group_by`.
+
+5. Now do the same for males. 
+
+6. We can actually combine both these summaries into one line of code. This is because `group_by` permits us to group by more than one variable. Obtain one big summary table using `group_by(AgeDecade, Gender)`.
+
+
+7. For males between the ages of 40-49, compare systolic blood pressure across race as reported in the `Race1` variable. Order the resulting table from lowest to highest average systolic blood pressure.

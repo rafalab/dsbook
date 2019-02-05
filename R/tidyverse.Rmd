@@ -1,0 +1,151 @@
+# The tidyverse
+
+## Tibbles
+
+When `summarize` receives the output of `group_by`, it somehow knows which rows of the tables go with which groups. Where is this information stored in the data.frame? 
+
+```{r}
+dat %>%  group_by(HR) %>% head()
+```
+
+Notice that there are no columns with this information. But, if you look closely at the output above, you see the line `A tibble: 6 x 3`. We can learn the class of the returned object using:
+
+```{r}
+dat %>%  group_by(HR) %>% class()
+```
+
+The `tbl`, pronounced tibble, is a special kind of data frame. We have seen them before because __tidyverse__ functions such as `group_by` and `summarize` always return this type of data frame. The `group_by` function returns a special kind of `tbl`, the `grouped_df`. We will say more about these later.
+
+The manipulation verbs, `select`, `filter`, `mutate`, and `arrange`, preserve the class of the input: if they receive a data frame, they return a data frame. If they receive a tibble they return a tibble. But tibbles are the default data frame in the tidyverse:  parsers, such as `read_csv` or `read_excel`, return a tibble.
+
+Tibbles are very similar to data frames. In fact, you can think of them as a modern version of data frames. Nonetheless there are three important differences which we describe in the next section.
+
+
+### Tibbles display better 
+
+The print method for tibbles is more readable than that of a data frame. To see this, compare these two outputs of typing `Teams` and `as_tibble(Teams)`.
+
+Also, notice that the if using RStudio, output for a tibble adjusts to your window size. To see this, change the width of your R console and notice how more/less columns are shown.
+
+### Subsets of tibbles are tibbles
+
+If you subset the columns of a data frame, you may get back an object that is not a data frame. For example:
+
+```{r}
+class(Teams[,20])
+```
+
+is not a data frame. With tibbles this does not happen:
+
+```{r}
+class(as_tibble(Teams)[,20])
+```
+
+This is useful in the tidyverse since functions require data frames as input. 
+
+With tibbles, if you want to access the vector that defines a column, and not get back a data frame, you need to use the accessor `$`:
+
+```{r}
+class(as_tibble(Teams)$HR)
+```
+
+A related feature is that tibbles will give you a warning if you try to access a column that does not exist. If we accidentally write `hr` instead of `HR` this:
+
+```{r}
+Teams$hr
+```
+
+returns a `NULL` with no warning, which can make it harder to debug. In contrast, if we try this with a tibble we get an informative warning:
+
+```{r}
+as_tibble(Teams)$hr
+```
+
+
+### Tibbles can have complex entries
+
+While data frame columns need to be vectors of numbers, strings or Boolean, tibbles can have more complex objects, such as lists or functions. Also, we can create tibbles  with functions:
+
+```{r}
+tibble(id = c(1, 2, 3), func = c(mean, median, sd))
+```
+
+
+### Tibbles can be grouped
+
+The function `group_by` returns a special kind of tibble: a grouped tibble. This class stores information that lets you know which rows are in which groups. The tidyverse functions, in particular the `summarize` function, are aware of the group information. In our example above, we saw that the `lm` function, which is not part of the tidyverse, does not know how to deal with grouped tibbles. The object is basically converted to a regular data frame and the function runs ignoring the groups. This is why we only get one pair of estimates:
+
+```{r}
+dat %>%  
+  group_by(HR) %>%
+  lm(R ~ BB, data = .)
+```
+
+To make these non-tidyverse functions work with the tidyverse, we will learn about `do`. 
+
+
+
+
+
+### Creating a data frame
+
+It is sometimes useful for us to create our own data frames. You can do this by using the `data.frame` function.   
+
+```{r}
+grades <- data.frame(names = c("John", "Juan", "Jean", "Yao"), 
+                     exam_1 = c(95, 80, 90, 85), 
+                     exam_2 = c(90, 85, 85, 90))
+grades
+```
+
+*Warning*: By default the function `data.frame` coerces characters into factors:
+```{r}
+class(grades$names)
+```
+
+To avoid this, we use the rather cumbersome argument `stringsAsFactors`:
+```{r}
+grades <- data.frame(names = c("John", "Juan", "Jean", "Yao"), 
+                     exam_1 = c(95, 80, 90, 85), 
+                     exam_2 = c(90, 85, 85, 90),
+                     stringsAsFactors = FALSE)
+class(grades$names)
+```
+
+
+
+## The dot operator
+
+The `us_murder_rate` object defined above represents just one number. Yet we are storing it in a data frame:
+
+```{r}
+class(us_murder_rate)
+```
+
+since, as most __dplyr__ functions, `summarize` always returns a data frame.
+
+This might be problematic if we want to use the result with functions that require a numeric value. Here we show a useful trick for accessing values stored in data piped via `%>%`: when a data object is piped it can be accessed using the dot `.`. To understand what we mean take a look at this line of code:
+
+```{r}
+us_murder_rate %>% .$rate 
+```
+
+This returns the value in the `rate` column of `us_murder_rate` making it equivalent to `us_murder_rate$rate`. To understand this line, you just need to think of `.` as a placeholder for the data that is being passed through the pipe. Because this data object is a data frame, we can access its columns with the `$`. 
+
+To get a number from the original data table with one line of code we can type:
+
+```{r}
+us_murder_rate <- murders %>% 
+  summarize(rate = sum(total) / sum(population) * 100000) %>%
+  .$rate
+
+us_murder_rate
+```
+
+which is now a numeric:
+
+```{r}
+class(us_murder_rate)
+```
+
+We will see other instances in which using the `.` is useful. For now, we will only use it to produce numeric vectors from pipelines constructed with __dplyr__.

@@ -87,11 +87,11 @@ filter(gapminder, year == 1962) %>%
   geom_point() 
 ```
 
-So in 1962, "the west versus developing world" view was grounded in some reality. But is this still the case 50 years later?
+In 1962, "the West versus developing world" view was grounded in some reality. Is this still the case 50 years later?
 
 ## Faceting
 
-We could easily plot the 2012 data in the same way we did for 1962. But to compare, side by side plots are preferable. In __ggplot2__, we can achieve this by _faceting variables_: we stratify the data by some variable and make the same plot for each strata. 
+We could easily plot the 2012 data in the same way we did for 1962. To make comparisons, however, side by side plots are preferable. In __ggplot2__, we can achieve this by _faceting_ variables: we stratify the data by some variable and make the same plot for each strata. 
 
 To achieve faceting, we add a layer with the function `facet_grid`, which automatically separates the plots. This function lets you facet by up to two variables using columns to represent one variable and rows to represent the other. The function expects the row and column variables to be separated by a `~`. Here is an example of a scatterplot with `facet_grid` added as the last layer:
 
@@ -310,7 +310,7 @@ for log transformed data, we know that the value of $x$ is about 1.5. If the sca
 
 then, to determine `x`, we need to compute $10^{1.5}$, which is not easy to do in our heads. The advantage of using logged scales is that we see the original values on the axes. However, the advantage of showing logged scales is that the original values are displayed in the plot, which are easier to interpret. For example, we would see "32 dollars a day" instead of "5 log base 2 dollars a day".
 
-As we learned earlier, if we want to scale the axis with logs, we can use the `scale_x_ccontinuous` function. So instead of logging the values first, we apply this layer:
+As we learned earlier, if we want to scale the axis with logs, we can use the `scale_x_continuous` function. Instead of logging the values first, we apply this layer:
 
 ```{r dollars-per-day-log-scale}
 gapminder %>% 
@@ -345,7 +345,7 @@ p + geom_point()
 ```
 
 
-Notice that we can't read the region names because the default __ggplot2__2 behavior is to write the labels horizontally and here we run out of room. We can easily fix this by either rotating the axes or rotating the labels. Consulting the cheat sheet we find we can rotate the axes with `coord_flip` or we can rotate the labels by changing the `theme` through `element_text`. The `hjust = 1` justifies the text so that it is next to the axis.
+Notice that we can't read the region names because the default __ggplot2__ behavior is to write the labels horizontally and here we run out of room. We can easily fix this by either rotating the axes or rotating the labels. Consulting the cheat sheet we find we can rotate the axes with `coord_flip` or we can rotate the labels by changing the `theme` through `element_text`. The `hjust = 1` justifies the text so that it is next to the axis.
 
 ```{r dollars-per-day-boxplot-rotate-labels}
 p + geom_point() +
@@ -558,7 +558,7 @@ gapminder %>%
   
 
 The previous data exploration suggest that the income gap between rich and poor countries has narrowed considerably during the last 40 years. 
-We used a series of histograms and boxplots to see this. Now we suggest a succinct way to convey this message with just one plot. 
+We used a series of histograms and boxplots to see this. We suggest a succinct way to convey this message with just one plot. 
 
 Let's start by noting that density plots for income distribution in `r past_year` and `r present_year` deliver the message that the gap is closing:
 
@@ -598,13 +598,13 @@ gapminder %>%
   facet_grid(year ~ .)
 ```
 
-which makes it appear as if there are the same number of countries in each group. To change this, we will need to learn to access computed variables with `geom_density` function.
+This makes it appear as if there are the same number of countries in each group. To change this, we will need to learn to access computed variables with `geom_density` function.
 
 ### Accessing computed variables {-}
 
 To have the areas of these densities be proportional to the size of the groups, we can simply multiply the y-axis values by the size of the group. From the `geom_density` help file, we see that the functions compute a variable called `count` that does exactly this. We want this variable to be on the y-axis rather than the density.
 
-In __ggplot2__, we access these variables by surrounding the name with two dots `..`. So we will use the following mapping:
+In __ggplot2__, we access these variables by surrounding the name with two dots `..`. We will use the following mapping:
 
 ```{r, eval=FALSE}
 aes(x = dollars_per_day, y = ..count..)
