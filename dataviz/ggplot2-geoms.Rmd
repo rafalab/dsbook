@@ -1,0 +1,200 @@
+BEFORE HERE MOVES. AFTER, STAYS HERE.
+# ggplot2 geometries {#other-geometries}
+
+Now let's make the summary plots we have described earlies using __ggplot2__.
+
+### Histogram {-}
+
+
+Let's start with the histogram. We will make a histogram for female heights. First, we use __dplyr__ to filter the data:
+
+```{r, eval=FALSE}
+heights %>% filter(sex == "Female")
+```
+
+Once we have a dataset, the next step is deciding what geometry we need. If you guessed `geom_histogram`, you guessed correctly. By looking at the help file for this function, we learn that the only required argument is `x`, the variable for which we will construct a histogram. The code looks like this:
+
+```{r ggplot-histogram}
+p <- heights %>% 
+  filter(sex == "Female") %>% 
+  ggplot(aes(x = height)) 
+
+p + geom_histogram()
+```
+
+As before, we can drop the `x =`.
+
+This call gives us a message:
+
+> `stat_bin()` using `bins = 30`. Pick better value with
+`binwidth`.
+ 
+We previously used a bin size of 1 inch, so the code looks like this:
+
+```{r, eval=FALSE}
+p + geom_histogram(binwidth = 1)
+```
+
+Finally, if for aesthetic reasons we want to add color, we use the arguments described in the help file. We also add labels and a title:
+
+```{r height-histogram-rep, echo=FALSE}
+p + geom_histogram(binwidth = 1, fill = "blue", col = "black") +
+  xlab("Male heights in inches") + 
+  ggtitle("Histogram")
+```
+
+### Density {-}
+
+To create a smooth density, we need a different geometry: we used `geom_density` instead. 
+
+```{r ggplot-density}
+p + geom_density()
+```
+
+To fill in with color, we can use the `fill` argument.
+
+```{r ggplot-density-with-fill}
+p + geom_density(fill="blue")
+```
+
+To change the smoothness of the density we use the `adjust` argument to mulitply the default value by that `adjust`. For example, if we want the bandwidth to be twice as big we use:
+
+
+```{r eval = FALSE}
+p + geom_density(fill="blue", adjust = 2)
+```
+
+### QQ-plots {-} 
+
+For qq-plots we use the `geom_qq` geometry. From the help file, we learn that we need to specify the `sample` (we will learn about samples in a later chapter). 
+
+```{r ggplot-qq}
+p <- heights %>% filter(sex=="Male") %>%
+  ggplot(aes(sample = height)) 
+p + geom_qq()
+```
+
+By default, the sample variable is compared to a normal distribution with average 0 and standard deviation 1. To change this, again from the help file, we use the `dparams` arguments. 
+
+```{r  ggplot-qq-dparams, eval=FALSE}
+params <- heights %>% filter(sex=="Male") %>%
+  summarize(mean = mean(height), sd = sd(height))
+
+p  +  geom_qq(dparams = params)
+```
+
+Adding an identity line is as simple as assigning another layer. For straight lines, we use the `geom_abline` function. The default is the identity.
+
+```{r ggplot-qq-with-line}
+p +  geom_qq(dparams = params) + 
+  geom_abline()
+```
+
+Another option here is to scale the data first and then make a qqplot against the standard normal:
+
+```{r ggplot-qq-standard-units, eval=FALSE}
+heights %>% 
+  filter(sex=="Male") %>%
+  ggplot(aes(sample = scale(height))) + 
+  geom_qq() +
+  geom_abline()
+```
+
+
+
+
+Looking at the help file for the `qplot` function, we see several ways in which we can improve the look of the plot:
+
+```{r qplot-example-2}
+qplot(x, bins=15, color = I("black"), xlab = "Population")
+```
+
+The reason we use `I("black")` is because we want `qplot` to treat `"black"` as a character rather than convert it to a factor, which is the default behavior within `aes`, which is internally called here. In general, the function `I` is used in R to say "keep it as it is".
+
+One convenient feature of `qplot` is that it guesses what plot we want. For example, if we call it with two variables we get a scatterplot
+
+```{r qplot-example-3}
+y <- murders$total
+qplot(x, y)
+```
+
+and if the first argument is a factor we get a points plot like this:
+
+```{r qplot-example-4}
+f <- murders$region
+qplot(f, y)
+```
+
+We can also explicitly ask for a geometry using the `geom` argument:
+
+```{r qplot-example-5}
+qplot(f, y, geom = "boxplot")
+```
+
+If we want to use data in a data frame, we can also explicitly tell `qplot` what data to use:
+
+```{r qplot-example-6, eval = FALSE}
+qplot(population, total, data = murders)
+```
+
+### Exercises 
+
+
+15. Now we are going to use the `geom_histogram` function to make a histogram of the heights in the `height` data frame. When reading the documentation for this function we see that it requires just one mapping, the values to be used for the histogram. Make a histogram of all the plots. 
+
+    What is the variable containing the heights?
+
+    A. `sex`
+  
+    B. `heights`
+    
+    C. `height`
+
+    D. `heights$height`
+
+16. Now create a ggplot object using the pipe to assign the heights data to a ggplot object an assign `height` to the x values through the `aes` function
+
+17. Now we are ready to add a layer to actually make the histogram. Use the object created in the previous exercise and the `geom_histogram` function to make the histogram.
+
+18. Note that when we run the code in the previous exercise we get the warning:
+`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.`
+
+    Use the `binwidth` argument to change the histogram made in the previous exercise to use bins of size 1 inch. 
+
+19. Now instead of a histogram we are going to make a smooth density plot. In this case we will not make an object, instead we will render the plot with one line of code. Change the code previously used
+
+    ```{r, eval=FALSE}
+    heights %>% 
+      ggplot(aes(height)) +
+      geom_histogram()
+    ```
+
+    to make a smooth density instead of a histogram.
+
+
+20. Now we are going to make a density plot for males and females separately. We can do this using any of the `group` argument. We assign groups via the aesthetic mapping as each point needs to a group before making the calculations needed to estimate a density.
+
+21. We can also assign groups through the `color` argument. This has the added benefit that it uses color to distinguish the groups. Change the code above to use color
+
+22. We can also assign groups through the `fill` argument. This has the added benefit that it uses colors to distinguish the groups, like this:
+
+
+    ```{r, eval=FALSE}
+    heights %>% 
+      ggplot(aes(height, fill = sex)) + 
+      geom_density() 
+    ```
+
+    However, here the second density is drawn over the other. We can change this by using alpha blending. Set the alpha parameter to 0.2 in the `geom_density` function to make this change.
+
+
+
+
+
+
+
+
+
+
+
+

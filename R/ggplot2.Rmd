@@ -1,12 +1,13 @@
 # ggplot2
 
-We have now described several data visualization techniques and are ready to learn how to create them in R. Throughout the book, we will be using the __[ggplot2](http://ggplot2.org)__ package. We can load it, along with __dplyr__, as part of the tidyverse:
+Throughout the book, we will be creating plot using the __[ggplot2](http://ggplot2.org)__ package. 
 
-```{r, message=FALSE}
-library(tidyverse)
+```{r, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
 ```
 
-Many other approaches are available for creating plots in R. In fact, the plotting capabilities that come with a basic installation of R are already quite powerful. We have seen examples of these already with the functions `plot`, `hist` and `boxplot`. There are also other packages for creating graphics such as __grid__ and __lattice__. We chose to use __ggplot2__ in this book because it breaks plots into components in a way that permits beginners to create relatively complex and aesthetically pleasing plots using syntax that is intuitive and comparatively easy to remember. 
+Many other approaches are available for creating plots in R. In fact, the plotting capabilities that come with a basic installation of R are already quite powerful. There are also other packages for creating graphics such as __grid__ and __lattice__. We chose to use __ggplot2__ in this book because it breaks plots into components in a way that permits beginners to create relatively complex and aesthetically pleasing plots using syntax that is intuitive and comparatively easy to remember. 
 
 One reason __ggplot2__ is generally more intuitive for beginners is that it uses a [grammar of graphics](http://www.springer.com/us/book/9780387245447), the _gg_ in __ggplot2__. This is analogous to the way learning grammar can help a beginner construct hundreds of different sentences by learning just a handful of verbs, nouns and adjectives without having to memorize each specific sentence. Similarly, by learning a handful of __ggplot2__ building blocks and its grammar, you will be able to create hundreds of different plots. 
 
@@ -51,7 +52,7 @@ The first step in learning __ggplot2__ is to be able to break a graph apart into
  
 * __Data__: The US murders data table is being summarized. We refer to this as the __data__ component. 
 *  __Geometry__: The plot above is a scatterplot. This is referred to as the 
-__geometry__ component. Other possible geometries are barplot, histogram, smooth densities, qqplot, and boxplot. 
+__geometry__ component. Other possible geometries are barplot, histogram, smooth densities, qqplot, and boxplot. We will learn more about these in the Data Visualization part of the book.
 * __Aesthetic mapping__: The plot uses several visual cues to represent the information provided by the dataset. The two most important cues in this plot are the point positions in the x-axis and y-axis, which represent population size and the total number of murders respectively. Each point represents a different observation which implies we need to _map_ the data to the visual cue. Color is another visual cue that represents region and also needs a map. We refer to this as the __aesthetic mappings__ component. How we define the mapping depends on what __geometry__ we are using. 
 
 We also note that:
@@ -117,8 +118,8 @@ Taking a quick look at the cheat sheet, we see that the function used to create 
 ```{r, echo=FALSE}
 ##https://ugoproto.github.io/ugo_r_doc/img/visualization_cs/ggplot2-cheatsheeta.png
 ##https://ugoproto.github.io/ugo_r_doc/img/visualization_cs/ggplot2-cheatsheetb.png
-knitr::include_graphics(c("dataviz/img/ggplot2-cheatsheeta.png",
-                          "dataviz/img/ggplot2-cheatsheetb.png"))
+knitr::include_graphics(c("R/img/ggplot2-cheatsheeta.png",
+                          "R/img/ggplot2-cheatsheetb.png"))
 ```
 
 (Source: [RStudio](https://ugoproto.github.io/ugo_r_doc/img/visualization_cs/ggplot2-cheatsheeta.png))
@@ -207,7 +208,7 @@ p + geom_point(aes(population/10^6, total), size = 3) +
 
 `size` is __not__ a mapping, it affects all the points so we do not need to include it inside `aes`.
 
-Now becuase the points are larger, it is hard to see the labels. If we read the help file for `geom_text`, we see the `nudge_x` argument, which moves the text slightly to the right or to the left.
+Now because the points are larger, it is hard to see the labels. If we read the help file for `geom_text`, we see the `nudge_x` argument, which moves the text slightly to the right or to the left.
 
 ```{r ggplot-example-6}
 p + geom_point(aes(population/10^6, total), size = 3) +
@@ -410,208 +411,74 @@ murders %>% ggplot(aes(population/10^6, total, label = abb)) +
 ds_theme_set()
 ```
 
-BEFORE HERE MOVES. AFTER, STAYS HERE.
 
-## Other geometries: histograms, density, and boxplot  {#other-geometries}
+## Quick plots with `qplot`
 
-Now let's make the summary plots we have described earlies using __ggplot2__.
+We have learned the powerful approach to generating visualization with ggplot. However, there are instances in which all we want is to make a quick plot of, for example, a histogram of the values in a vector, a scatter plot of the values in two vectors, or a boxplot using categorical and numeric vectors. We demonstrated how to generate these plots with `hist`, `plot`, and `boxplot`. However, if we want to keep consistent with the ggplot style, we can use the function `qplot`.
 
-### Histogram {-}
+If we have values in two vectors, say:
 
+```{r}
+data(murders)
+x <- log10(murders$population)
+y <- murders$total
+```
 
-Let's start with the histogram. We will make a histogram for female heights. First, we use __dplyr__ to filter the data:
+and we want to make a scatterplot with ggplot, we would have to type something like:
 
 ```{r, eval=FALSE}
-heights %>% filter(sex == "Female")
+data.frame(x = x, y = y) %>% 
+  ggplot(aes(x, y)) +
+  geom_point()
 ```
 
-Once we have a dataset, the next step is deciding what geometry we need. If you guessed `geom_histogram`, you guessed correctly. By looking at the help file for this function, we learn that the only required argument is `x`, the variable for which we will construct a histogram. The code looks like this:
+This seems like too much code for such a simple plot.
+The `qplot` function sacrifices the flexibility provided by the `ggplot` approach, but allows us to generate a plot quickly. 
 
-```{r ggplot-histogram}
-p <- heights %>% 
-  filter(sex == "Female") %>% 
-  ggplot(aes(x = height)) 
-
-p + geom_histogram()
+```{r qplot-example-1}
+qplot(x, y)
 ```
 
-As before, we can drop the `x =`.
-
-This call gives us a message:
-
-> `stat_bin()` using `bins = 30`. Pick better value with
-`binwidth`.
- 
-We previously used a bin size of 1 inch, so the code looks like this:
-
-```{r, eval=FALSE}
-p + geom_histogram(binwidth = 1)
-```
-
-Finally, if for aesthetic reasons we want to add color, we use the arguments described in the help file. We also add labels and a title:
-
-```{r height-histogram-rep, echo=FALSE}
-p + geom_histogram(binwidth = 1, fill = "blue", col = "black") +
-  xlab("Male heights in inches") + 
-  ggtitle("Histogram")
-```
-
-### Density {-}
-
-To create a smooth density, we need a different geometry: we used `geom_density` instead. 
-
-```{r ggplot-density}
-p + geom_density()
-```
-
-To fill in with color, we can use the `fill` argument.
-
-```{r ggplot-density-with-fill}
-p + geom_density(fill="blue")
-```
-
-To change the smoothness of the density we use the `adjust` argument to mulitply the default value by that `adjust`. For example, if we want the bandwidth to be twice as big we use:
-
-
-```{r eval = FALSE}
-p + geom_density(fill="blue", adjust = 2)
-```
-
-### QQ-plots {-} 
-
-For qq-plots we use the `geom_qq` geometry. From the help file, we learn that we need to specify the `sample` (we will learn about samples in a later chapter). 
-
-```{r ggplot-qq}
-p <- heights %>% filter(sex=="Male") %>%
-  ggplot(aes(sample = height)) 
-p + geom_qq()
-```
-
-By default, the sample variable is compared to a normal distribution with average 0 and standard deviation 1. To change this, again from the help file, we use the `dparams` arguments. 
-
-```{r  ggplot-qq-dparams, eval=FALSE}
-params <- heights %>% filter(sex=="Male") %>%
-  summarize(mean = mean(height), sd = sd(height))
-
-p  +  geom_qq(dparams = params)
-```
-
-Adding an identity line is as simple as assigning another layer. For straight lines, we use the `geom_abline` function. The default is the identity.
-
-```{r ggplot-qq-with-line}
-p +  geom_qq(dparams = params) + 
-  geom_abline()
-```
-
-Another option here is to scale the data first and then make a qqplot against the standard normal:
-
-```{r ggplot-qq-standard-units, eval=FALSE}
-heights %>% 
-  filter(sex=="Male") %>%
-  ggplot(aes(sample = scale(height))) + 
-  geom_qq() +
-  geom_abline()
-```
-
+We will learn more about `qplot` in Section \@ref(other-geometries)
 
 ## Grids of plots
 
 There are often reasons to graph plots next to each other. The __gridExtra__ package permits us to do that:
 
-```{r}
-p <- heights %>% filter(sex=="Male") %>% ggplot(aes(x = height)) 
-p1 <- p + geom_histogram(binwidth = 1, fill = "blue", col="black")
-p2 <- p + geom_histogram(binwidth = 2, fill = "blue", col="black")
-p3 <- p + geom_histogram(binwidth = 3, fill = "blue", col="black")
-```
-
-To print them all side-by-side, we can use the function `grid.arrange` in the __gridExtra__ package:
-
-```{r gridextra-example, out.width='100%', fig.height=3}
+```{r, out.width='100%', fig.height=3}
 library(gridExtra)
-grid.arrange(p1,p2,p3, ncol = 3)
+
+p1 <- murders %>%
+  mutate(rate = total/population*10^5) %>%
+  filter(population < 2*10^6) %>%
+  ggplot(aes(population/10^6, rate, label = abb)) +
+  geom_text() +
+  ggtitle("Small States")
+
+p2 <- murders %>%
+  mutate(rate = total/population*10^5) %>%
+  filter(population > 10*10^6) %>%
+  ggplot(aes(population/10^6, rate, label = abb)) +
+  geom_text() +
+  ggtitle("Large States")
+
+grid.arrange(p1, p2, ncol = 2)
 ```
 
-## Quick plots with `qplot`
 
+## Exercises 
 
-We have learned the powerful approach to generating visualization with ggplot. However, there are instances in which all we want is to make a quick plot of, for example, a histogram of the values in a vector, a scatter plot of the values in two vectors, or a boxplot using categorical and numeric vectors. We demonstrated how to generate these plots with `hist`, `plot`, and `boxplot`. However, if we want to keep consistent with the ggplot style, we can use the function `qplot`.
-
-If we have values in a vector, say:
+Start by loading the __dplyr__ and __ggplot2__ library as well as the `murders` and `heights` data.
 
 ```{r}
-data(murders)
-x <- murders$population
-```
-
-and we want to make a histogram with ggplot, we would have to type something like:
-
-```{r, eval=FALSE}
-data.frame(x = x) %>% 
-  ggplot(aes(x)) +
-  geom_histogram(bins=15)
-```
-
-Using R-base it is much quicker:
-
-```{r, eval=FALSE}
-hist(x)
-```
-
-However, using `qplot` we can generate a plot using the ggplot style just as quickly:
-
-```{r qplot-example-1}
-qplot(x, bins=15)
-```
-
-Looking at the help file for the `qplot` function, we see several ways in which we can improve the look of the plot:
-
-```{r qplot-example-2}
-qplot(x, bins=15, color = I("black"), xlab = "Population")
-```
-
-The reason we use `I("black")` is because we want `qplot` to treat `"black"` as a character rather than convert it to a factor, which is the default behavior within `aes`, which is internally called here. In general, the function `I` is used in R to say "keep it as it is".
-
-One convenient feature of `qplot` is that it guesses what plot we want. For example, if we call it with two variables we get a scatterplot
-
-```{r qplot-example-3}
-y <- murders$total
-qplot(x, y)
-```
-
-and if the first argument is a factor we get a points plot like this:
-
-```{r qplot-example-4}
-f <- murders$region
-qplot(f, y)
-```
-
-We can also explicitly ask for a geometry using the `geom` argument:
-
-```{r qplot-example-5}
-qplot(f, y, geom = "boxplot")
-```
-
-If we want to use data in a data frame, we can also explicitly tell `qplot` what data to use:
-
-```{r qplot-example-6, eval = FALSE}
-qplot(population, total, data = murders)
-```
-
-
-## Exercises {-}
-
-
-Start by loading the tidyverse or ggplot2 library as well as the `murders` and `heights` data.
-
-```{r}
-library(tidyverse)
+library(dplyr)
+library(ggplot2)
 library(dslabs)
 data(heights)
 data(murders)
 ```
 
-1. With ggplot2 plots can be saved as objects. For example we can associate a dataset with a plot object like this
+1. With __ggplot2__ plots can be saved as objects. For example we can associate a dataset with a plot object like this
 
     ```{r, eval = FALSE}
     p <- ggplot(data = murders)
@@ -752,60 +619,3 @@ data(murders)
 13. Repeat the previous exercise but now change both axes to be in the log scale.
 
 14. Now edit the code above to add the title "Gun murder data" to the plot. Hint: use the `ggtitle` function.
-
-15. Now we are going to use the `geom_histogram` function to make a histogram of the heights in the `height` data frame. When reading the documentation for this function we see that it requires just one mapping, the values to be used for the histogram. Make a histogram of all the plots. 
-
-    What is the variable containing the heights?
-
-    A. `sex`
-  
-    B. `heights`
-    
-    C. `height`
-
-    D. `heights$height`
-
-16. Now create a ggplot object using the pipe to assign the heights data to a ggplot object an assign `height` to the x values through the `aes` function
-
-17. Now we are ready to add a layer to actually make the histogram. Use the object created in the previous exercise and the `geom_histogram` function to make the histogram.
-
-18. Note that when we run the code in the previous exercise we get the warning:
-`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.`
-
-    Use the `binwidth` argument to change the histogram made in the previous exercise to use bins of size 1 inch. 
-
-19. Now instead of a histogram we are going to make a smooth density plot. In this case we will not make an object, instead we will render the plot with one line of code. Change the code previously used
-
-    ```{r, eval=FALSE}
-    heights %>% 
-      ggplot(aes(height)) +
-      geom_histogram()
-    ```
-
-    to make a smooth density instead of a histogram.
-
-
-20. Now we are going to make a density plot for males and females separately. We can do this using any of the `group` argument. We assign groups via the aesthetic mapping as each point needs to a group before making the calculations needed to estimate a density.
-
-21. We can also assign groups through the `color` argument. This has the added benefit that it uses color to distinguish the groups. Change the code above to use color
-
-22. We can also assign groups through the `fill` argument. This has the added benefit that it uses colors to distinguish the groups, like this:
-
-
-    ```{r, eval=FALSE}
-    heights %>% 
-      ggplot(aes(height, fill = sex)) + 
-      geom_density() 
-    ```
-
-    However, here the second density is drawn over the other. We can change this by using alpha blending. Set the alpha parameter to 0.2 in the `geom_density` function to make this change.
-
-
-
-
-
-
-
-
-
-
