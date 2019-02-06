@@ -332,7 +332,7 @@ class(a)
 
 To work efficiently in R, it is important to learn the different types of variables and what we can do with these.
 
-## Data frames
+## Data frames {#data-frames}
 
 Up to now, the variables we have defined are just one number. This is not very useful for storing data. The most common way of storing a dataset in R is in a _data frame_. Conceptually, we can think of a data frame as a table with rows representing observations and the different variables reported for each observation defining the columns. Data frames are particularly useful for datasets because we can combine different data types into one object. 
 
@@ -1183,5 +1183,84 @@ data(murders)
 
 8. Extend the code you used in exercise 7 to report the one entry that is **not** an actual abbreviation. Hint: use the `!` operator, which turns `FALSE` into `TRUE` and vice versa, then `which` to obtain an index.
 
+## Basic plots
+
+In the Chapter \@ref(ggplot2) we describe an add-on package that provides a powerful approach to producing plots in R. We then have an entire part on Data Visualization in which we provide many examples. Here we briefly describe some of the functions that are available in a basic R instalation.
+
+### `plot`
+
+The `plot` function can be used to make scatterplots. Here is a plot of total murders versus population.
+
+```{r first-plot}
+x <- murders$population / 10^6
+y <- murders$total
+
+plot(x, y)
+```
+
+For a quick plot that avoids accessing variables twice, we can use the `with` function:
+
+```{r, eval=FALSE}
+with(murders, plot(population, total))
+```
+
+The function `with` lets us use the `murders` column names in the `plot` function. It also works with any data frames and any function.
+
+### `hist`
+
+We will describe histograms as they relate to distribution in the Data Visualization part of the book. Here we will simply note that histograms are a powerful graphical summary of a list of numbers that gives you a general overview of the types of values you have. We can make a histogram of our murder rates by simply typing:
+
+```{r r-base-hist}
+x <- with(murders, total / population * 100000)
+hist(x)
+```
+
+We can see that there is a wide range of values with most of them between 2 and 3 and one very extreme case with a murder rate of more than 15:
+
+```{r}
+murders$state[which.max(murders$rate)]
+```
+
+### `boxplot`
+
+Boxplots will also be described in the Data Visualiation part of the book.  They provide a more terse summary than histograms, but they are easier to stack with other boxplots. For example, here we can use them to compare the different regions:
+
+```{r r-base-boxplot}
+murders$rate <- with(murders, total / population * 100000)
+boxplot(rate~region, data = murders)
+```
+We can see that the South has higher murder rates than the other three regions.
+
+### `image`
+
+The image function displays the values in a matrix using color. Here is a quick example:
+
+```{r}
+x <- matrix(1:120, 12, 10)
+image(x)
+```
+
+ 
+### Exercises 
+
+1. We made a plot of total murders versus population and noted a strong relationship. Not surprisingly, states with larger populations had more murders. 
+
+    ```{r, eval = FALSE}
+    library(dslabs)
+    data(murders)
+    population_in_millions <- murders$population/10^6
+    total_gun_murders <- murders$total
+    plot(population_in_millions, total_gun_murders)
+    ```
+
+    Keep in mind that many states have populations below 5 million and are bunched up. We may gain further insights from making this plot in the log scale. Transform the variables using the `log10` transformation and then plot them.
+    
+    
+2. Create a histogram of the state populations.
+
+    
+3. Generate boxplots of the state populations by region.
+   
+    
 
 

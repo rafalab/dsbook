@@ -1,4 +1,6 @@
-# ggplot2
+# ggplot2 {#ggplot2}
+
+Exploratory data visualization is perhaps the strength of R. One can quickly go from idea to data to plot with a unique balance of flexibility and ease. For example, Excel may be easier than R, but it is nowhere near as flexible. D3.js may be more flexible and powerful than R, but it takes much longer to generate a plot. Before we focus on data visualization, we first we want to introduce some very basic plotting functions.
 
 Throughout the book, we will be creating plot using the __[ggplot2](http://ggplot2.org)__ package. 
 
@@ -29,7 +31,7 @@ library(ggrepel)
 
 r <- murders %>% 
   summarize(pop=sum(population), tot=sum(total)) %>% 
-  mutate(rate = tot/pop*10^6) %>% .$rate
+  mutate(rate = tot/pop*10^6) %>% pull(rate)
 
 murders %>% ggplot(aes(x = population/10^6, y = total, label = abb)) +  
   geom_abline(intercept = log10(r), lty=2, col="darkgrey") +
@@ -331,7 +333,7 @@ Here we want to add a line that represents the average murder rate for the entir
 ```{r}
 r <- murders %>% 
   summarize(rate = sum(total) /  sum(population) * 10^6) %>% 
-  .$rate
+  pull(rate)
 ```
 
 To add a line we use the `geom_abline` function. __ggplot2__ uses `ab` in the name to remind us we are supplying the intercept (`a`) and slope (`b`). The default line has slope 1 and intercept 0 so we only have to define the intercept:
@@ -392,7 +394,7 @@ library(ggrepel)
 
 r <- murders %>% 
   summarize(rate = sum(total) /  sum(population) * 10^6) %>%
-  .$rate
+  pull(rate)
 
 murders %>% ggplot(aes(population/10^6, total, label = abb)) +   
   geom_abline(intercept = log10(r), lty = 2, color = "darkgrey") +
