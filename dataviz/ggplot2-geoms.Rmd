@@ -12,49 +12,38 @@ library(dslabs)
 To generate a barplot we can use the `geom_bar` geometry. The defualt is to count the number of each category and draw a bar. Here is the plot for the regions of the US.
 
 ```{r barplot-geom}
-murders %>% ggplot(aes(region)) + 
-  geom_bar()
+murders %>% ggplot(aes(region)) + geom_bar()
 ```
 
-We often already have a table with a distribution. For example a table like this:
+We often already have a table with a distribution that we want to presnet as barplot. Here is an example such a table:
 
 ```{r}
 data(murders)
 tab <- murders %>% 
   count(region) %>% 
-  mutate(proportion = n/sum(n)) %>%
-  mutate(region = reorder(region, proportion))
+  mutate(proportion = n/sum(n))
 tab
 ```
 
-We no longer want `geom_bar` to count but rather just plot a bar to the height provided by the `proportion` variable. For this we use the `stat="identity"` option. In the code below we also
+We no longer want `geom_bar` to count but rather just plot a bar to the height provided by the `proportion` variable. For this we need to provide `x` (the categories) and `y` (the values) and use the `stat="identity"` option. 
 
 ```{r}
-tab %>% ggplot(aes(region, proportion)) + 
-  geom_bar(stat = "identity")
+tab %>% ggplot(aes(region, proportion)) + geom_bar(stat = "identity")
 ```
 
-## Histogram 
+## Histograms 
 
-As an example, we will make a histogram for female heights. First, we use __dplyr__ to filter the data:
+To generate histograms we use the `geom_histogram`. By looking at the help file for this function, we learn that the only required argument is `x`, the variable for which we will construct a histogram. We dropped the `x` because we know it is the first argument.
+The code looks like this:
 
 ```{r, eval=FALSE}
-heights %>% filter(sex == "Female")
-```
-
-Once we have a dataset, the next step is deciding what geometry we need. If you guessed `geom_histogram`, you guessed correctly. By looking at the help file for this function, we learn that the only required argument is `x`, the variable for which we will construct a histogram. The code looks like this:
-
-```{r ggplot-histogram}
-p <- heights %>% 
+heights %>% 
   filter(sex == "Female") %>% 
-  ggplot(aes(x = height)) 
-
-p + geom_histogram()
+  ggplot(aes(height)) + 
+  geom_histogram()
 ```
 
-As before, we can drop the `x =`.
-
-This call gives us a message:
+If we run the code above, it  gives us a message:
 
 > `stat_bin()` using `bins = 30`. Pick better value with
 `binwidth`.
@@ -62,65 +51,85 @@ This call gives us a message:
 We previously used a bin size of 1 inch, so the code looks like this:
 
 ```{r, eval=FALSE}
-p + geom_histogram(binwidth = 1)
+heights %>% 
+  filter(sex == "Female") %>% 
+  ggplot(aes(height)) + 
+  geom_histogram(binwidth = 1)
 ```
 
 Finally, if for aesthetic reasons we want to add color, we use the arguments described in the help file. We also add labels and a title:
 
-```{r height-histogram-rep, echo=FALSE}
-p + geom_histogram(binwidth = 1, fill = "blue", col = "black") +
+```{r height-histogram}
+heights %>% 
+  filter(sex == "Female") %>% 
+  ggplot(aes(height)) +
+  geom_histogram(binwidth = 1, fill = "blue", col = "black") +
   xlab("Male heights in inches") + 
   ggtitle("Histogram")
 ```
 
 ## Density plots
 
-To create a smooth density, we need a different geometry: we use `geom_density` instead. 
+To create a smooth density, we use the `geom_density`. Here the data previously shown as a histogram:
 
-```{r ggplot-density}
-p + geom_density()
+```{r, eval=FALSE}
+heights %>% 
+  filter(sex == "Female") %>%
+  ggplot(aes(height)) +
+  geom_density()
 ```
 
 To fill in with color, we can use the `fill` argument.
 
-```{r ggplot-density-with-fill}
-p + geom_density(fill="blue")
+```{r ggplot-density}
+heights %>% 
+  filter(sex == "Female") %>%
+  ggplot(aes(height)) +
+  geom_density(fill="blue")
 ```
 
 To change the smoothness of the density we use the `adjust` argument to mulitply the default value by that `adjust`. For example, if we want the bandwidth to be twice as big we use:
 
 
 ```{r eval = FALSE}
-p + geom_density(fill="blue", adjust = 2)
+heights %>% 
+  filter(sex == "Female") + 
+  geom_density(fill="blue", adjust = 2)
+```
+
+
+## Boxplot
+
+The geometry for boxplot is `geom_boxplot`. As discussed, boxplots are useful for comparing distributions. For example, below are the previously shown heights for women, but compared to men. For this geometry, we need arugments `x` and the categories, and `y` the values. 
+
+```{r female-male-boxplots, echo=FALSE}
+heights %>% ggplot(aes(sex, height)) +
+  geom_boxplot()
 ```
 
 ## QQ-plots 
 
-For qq-plots we use the `geom_qq` geometry. From the help file, we learn that we need to specify the `sample` (we will learn about samples in a later chapter). 
+For qq-plots we use the `geom_qq` geometry. From the help file, we learn that we need to specify the `sample` (we will learn about samples in a later chapter). Here is the qqplot for men heights.
 
 ```{r ggplot-qq}
-p <- heights %>% filter(sex=="Male") %>%
-  ggplot(aes(sample = height)) 
-p + geom_qq()
+heights %>% filter(sex=="Male") %>%
+  ggplot(aes(sample = height)) +
+  geom_qq()
 ```
 
-By default, the sample variable is compared to a normal distribution with average 0 and standard deviation 1. To change this, again from the help file, we use the `dparams` arguments. 
+By default, the sample variable is compared to a normal distribution with average 0 and standard deviation 1. To change this,  from the help file, we use the `dparams` arguments. Adding an identity line is as simple as assigning another layer. For straight lines, we use the `geom_abline` function. The default is the identity.
 
-```{r  ggplot-qq-dparams, eval=FALSE}
+```{r  ggplot-qq-dparams}
 params <- heights %>% filter(sex=="Male") %>%
   summarize(mean = mean(height), sd = sd(height))
 
-p  +  geom_qq(dparams = params)
-```
-
-Adding an identity line is as simple as assigning another layer. For straight lines, we use the `geom_abline` function. The default is the identity.
-
-```{r ggplot-qq-with-line}
-p +  geom_qq(dparams = params) + 
+heights %>% filter(sex=="Male") %>%
+  ggplot(aes(sample = height)) +
+  geom_qq(dparams = params) +
   geom_abline()
 ```
 
-Another option here is to scale the data first and then make a qqplot against the standard normal:
+Another option here is to scale the data first and then make a qqplot against the standard normal. 
 
 ```{r ggplot-qq-standard-units, eval=FALSE}
 heights %>% 
@@ -130,41 +139,89 @@ heights %>%
   geom_abline()
 ```
 
+## Images
+
+The two geometries used to create images are __geom_tile__ and __geom_raster__. They behave similarly, to see how they differ please consult the help file. To create an image in __ggplot2__ we need a data frame with the x and y coordinates as well as the values associated with each of these. Here is an a data frame.
+
+```{r}
+x <- expand.grid(x = 1:12, y = 1:10) %>% 
+  mutate(z = 1:120) 
+```
+
+Note that this is the tidy version of a matrix `matrix(1:120, 12, 10)`. To plot the image we use the following code:
+
+```{r, eval=FALSE}
+x %>% ggplot(aes(x, y, fill = z)) + 
+  geom_raster()
+```
+
+With these images you will often want to change the color scale. This can be done through the `scale_fill_gradientn` layer.
+
+```{r ggplot2-image-new-colors}
+x %>% ggplot(aes(x, y, fill = z)) + 
+  geom_raster() + 
+  scale_fill_gradientn(colors =  terrain.colors(10))
+```
+
+
+
+
+
 ## Quick plots
 
-Looking at the help file for the `qplot` function, we see several ways in which we can improve the look of the plot:
+In Section \@ref(qplot) we introduced `qplot` as a useful function  when we need to make a quick scatterplot. We can also use `qplot` to make histograms, density plots, boxplot, qqplots and more. Although it does not provide the level of control as `ggplot`, `qplot` is definitely useful as it permits us to make a plot with  short snipet of code. 
+
+Suppose we have the female heights in an object `x`
+
+```{r}
+x <- heights %>% 
+  filter(sex=="Male") %>% 
+  pull(height)
+```
+
+To make a quick histogram we can use:
+
+```{r qplot-example-1}
+qplot(x)
+```
+
+The function guesses that we want to make a histogram because we only supplied one variable. In Section \@ref(qplot) we saw that if we supply `qplot` two variables it automatically makes a scatterplot. 
+
+To make a quick qqplot you have to use the `sample` argument. Note that we can add layers just as we do with `ggplot`.
 
 ```{r qplot-example-2}
+qplot(sample = scale(x)) + geom_abline()
+```
+
+
+If we supply a factor and a numeric vector we obtain a plot like the below. Note that in the code below we are using the `data` argument. Becuase the data frame is not the first argument in `qplot`, we have to use the dot operator.
+
+```{r qplot-example-3}
+heights %>% qplot(sex, height, data = .)
+```
+
+We can also select a specific geometry by using the `geom` argument. So to conver the plot above to a boxplot we use the following code:
+
+```{r qplot-example-4}
+heights %>% qplot(sex, height, data = ., geom = "boxplot")
+```
+
+We can also use the `geom` argument to generate a density plot instead of a histogram:
+
+```{r qplot-example-5}
+qplot(x, geom = "density")
+```
+
+Altough not as much as with `ggplot`, we do have some flexibility to improve the results of `qplot`. Looking at the help file we see several ways in which we can improve the look of the histogram above. Here is an example:
+
+```{r qplot-example-6}
 qplot(x, bins=15, color = I("black"), xlab = "Population")
 ```
 
-The reason we use `I("black")` is because we want `qplot` to treat `"black"` as a character rather than convert it to a factor, which is the default behavior within `aes`, which is internally called here. In general, the function `I` is used in R to say "keep it as it is".
+**Technical note**: The reason we use `I("black")` is because we want `qplot` to treat `"black"` as a character rather than convert it to a factor, which is the default behavior within `aes`, which is internally called here. In general, the function `I` is used in R to say "keep it as it is".
 
-One convenient feature of `qplot` is that it guesses what plot we want. For example, if we call it with two variables we get a scatterplot
 
-```{r qplot-example-3}
-y <- murders$total
-qplot(x, y)
-```
 
-and if the first argument is a factor we get a points plot like this:
-
-```{r qplot-example-4}
-f <- murders$region
-qplot(f, y)
-```
-
-We can also explicitly ask for a geometry using the `geom` argument:
-
-```{r qplot-example-5}
-qplot(f, y, geom = "boxplot")
-```
-
-If we want to use data in a data frame, we can also explicitly tell `qplot` what data to use:
-
-```{r qplot-example-6, eval = FALSE}
-qplot(population, total, data = murders)
-```
 
 ### Exercises 
 
