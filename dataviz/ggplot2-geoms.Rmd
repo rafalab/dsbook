@@ -1,12 +1,42 @@
-BEFORE HERE MOVES. AFTER, STAYS HERE.
 # ggplot2 geometries {#other-geometries}
 
-Now let's make the summary plots we have described earlies using __ggplot2__.
+In Chapter \@ref(ggplot2) we introduced the __ggplot2__ package for data visualization. Here we demonstrate how to generate the types of plots shows in the previous chapter.
 
-### Histogram {-}
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(dslabs)
+```
 
+## Barplots
 
-Let's start with the histogram. We will make a histogram for female heights. First, we use __dplyr__ to filter the data:
+To generate a barplot we can use the `geom_bar` geometry. The defualt is to count the number of each category and draw a bar. Here is the plot for the regions of the US.
+
+```{r barplot-geom}
+murders %>% ggplot(aes(region)) + 
+  geom_bar()
+```
+
+We often already have a table with a distribution. For example a table like this:
+
+```{r}
+data(murders)
+tab <- murders %>% 
+  count(region) %>% 
+  mutate(proportion = n/sum(n)) %>%
+  mutate(region = reorder(region, proportion))
+tab
+```
+
+We no longer want `geom_bar` to count but rather just plot a bar to the height provided by the `proportion` variable. For this we use the `stat="identity"` option. In the code below we also
+
+```{r}
+tab %>% ggplot(aes(region, proportion)) + 
+  geom_bar(stat = "identity")
+```
+
+## Histogram 
+
+As an example, we will make a histogram for female heights. First, we use __dplyr__ to filter the data:
 
 ```{r, eval=FALSE}
 heights %>% filter(sex == "Female")
@@ -43,9 +73,9 @@ p + geom_histogram(binwidth = 1, fill = "blue", col = "black") +
   ggtitle("Histogram")
 ```
 
-### Density {-}
+## Density plots
 
-To create a smooth density, we need a different geometry: we used `geom_density` instead. 
+To create a smooth density, we need a different geometry: we use `geom_density` instead. 
 
 ```{r ggplot-density}
 p + geom_density()
@@ -64,7 +94,7 @@ To change the smoothness of the density we use the `adjust` argument to mulitply
 p + geom_density(fill="blue", adjust = 2)
 ```
 
-### QQ-plots {-} 
+## QQ-plots 
 
 For qq-plots we use the `geom_qq` geometry. From the help file, we learn that we need to specify the `sample` (we will learn about samples in a later chapter). 
 
@@ -100,8 +130,7 @@ heights %>%
   geom_abline()
 ```
 
-
-
+## Quick plots
 
 Looking at the help file for the `qplot` function, we see several ways in which we can improve the look of the plot:
 
@@ -140,7 +169,7 @@ qplot(population, total, data = murders)
 ### Exercises 
 
 
-15. Now we are going to use the `geom_histogram` function to make a histogram of the heights in the `height` data frame. When reading the documentation for this function we see that it requires just one mapping, the values to be used for the histogram. Make a histogram of all the plots. 
+1. Now we are going to use the `geom_histogram` function to make a histogram of the heights in the `height` data frame. When reading the documentation for this function we see that it requires just one mapping, the values to be used for the histogram. Make a histogram of all the plots. 
 
     What is the variable containing the heights?
 
@@ -152,16 +181,16 @@ qplot(population, total, data = murders)
 
     D. `heights$height`
 
-16. Now create a ggplot object using the pipe to assign the heights data to a ggplot object an assign `height` to the x values through the `aes` function
+2. Now create a ggplot object using the pipe to assign the heights data to a ggplot object an assign `height` to the x values through the `aes` function
 
-17. Now we are ready to add a layer to actually make the histogram. Use the object created in the previous exercise and the `geom_histogram` function to make the histogram.
+3. Now we are ready to add a layer to actually make the histogram. Use the object created in the previous exercise and the `geom_histogram` function to make the histogram.
 
-18. Note that when we run the code in the previous exercise we get the warning:
+4. Note that when we run the code in the previous exercise we get the warning:
 `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.`
 
     Use the `binwidth` argument to change the histogram made in the previous exercise to use bins of size 1 inch. 
 
-19. Now instead of a histogram we are going to make a smooth density plot. In this case we will not make an object, instead we will render the plot with one line of code. Change the code previously used
+5. Now instead of a histogram we are going to make a smooth density plot. In this case we will not make an object, instead we will render the plot with one line of code. Change the code previously used
 
     ```{r, eval=FALSE}
     heights %>% 
@@ -172,11 +201,11 @@ qplot(population, total, data = murders)
     to make a smooth density instead of a histogram.
 
 
-20. Now we are going to make a density plot for males and females separately. We can do this using any of the `group` argument. We assign groups via the aesthetic mapping as each point needs to a group before making the calculations needed to estimate a density.
+6. Now we are going to make a density plot for males and females separately. We can do this using any of the `group` argument. We assign groups via the aesthetic mapping as each point needs to a group before making the calculations needed to estimate a density.
 
-21. We can also assign groups through the `color` argument. This has the added benefit that it uses color to distinguish the groups. Change the code above to use color
+7. We can also assign groups through the `color` argument. This has the added benefit that it uses color to distinguish the groups. Change the code above to use color
 
-22. We can also assign groups through the `fill` argument. This has the added benefit that it uses colors to distinguish the groups, like this:
+8. We can also assign groups through the `fill` argument. This has the added benefit that it uses colors to distinguish the groups, like this:
 
 
     ```{r, eval=FALSE}
