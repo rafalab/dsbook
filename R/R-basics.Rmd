@@ -431,7 +431,7 @@ In future sections, you will see how useful relational operators can be.
 **Advanced**: Mathematically, the values in `pop` are integers and there is an integer class in R. However, by default, numbers are assigned class numeric even when they are round integers. For example, `class(1)` returns numeric. You can turn them into class integer with the `as.integer()` function or by adding an `L` like this: `1L`. Note the class by typing: `class(1L)`
 
 
-### Factors
+### Factors {#factors}
 
 In the `murders` dataset, we might expect the region to also be a character vector. However, it is not:
 
@@ -446,10 +446,23 @@ It is a _factor_. Factors are useful for storing categorical data. We can see th
 levels(murders$region)
 ```
 
-In the background, R stores these _levels_ as integers and keeps a map to keep track of the labels. This is more memory efficient than storing all the characters. Yet factors are also a source of confusion since sometimes they behave like characters and sometimes they do not. As a result, confusing factors and characters are a common source of bugs. 
+In the background, R stores these _levels_ as integers and keeps a map to keep track of the labels. This is more memory efficient than storing all the characters. 
 
-In general, we recommend avoiding factors as much as possible, although they are sometimes necessary to fit models containing categorical data. We will see several example of these faction in the Regression and Machine Learning parts.
- 
+Note that the levels have an order that is different from the order of appearance in the factor object. The default is for the levels to follow alphabetical order. However, often we want the levels to follow a different order. We will see several examples of this in the Data Visualization part of the book. The function `reorder` lets us change the order of the levels of a factor variable based on a summary computed on a numeric vector. We will demonstrate this with a simple example.
+
+Suppose we want the levels of the region by the total number of murders rather than alphabetical order. If there are values associated with each level, we can use the `reorder` and specify a data summary to determine the order. The following code takes the sum of the total murders in each region, and reorders the factor following these sums.
+
+```{r}
+region <- murders$region
+value <- murders$total
+region <- reorder(region, value, FUN = sum)
+levels(region)
+```
+
+The new order is in agreement with the fact that the Northeast has the least murders and the South has the most.
+
+**Warning**: factors are a source of confusion since sometimes they behave like characters and sometimes they do not. As a result, confusing factors and characters are a common source of bugs.  
+
 ### Lists
 
 Data frames are a special case of _lists_. We will cover lists in more detail later, but know that they are useful because you can store any combination of different types. Below is an example of a list we created for you:
@@ -956,7 +969,7 @@ data("murders")
 
  
 
-##Vector arithmetics
+## Vector arithmetics
 
 California had the most murders, but does this mean it is the most dangerous state? What if it just has many more people than any other state? We can quickly confirm that California indeed has the largest population:
 
@@ -1049,7 +1062,7 @@ murders$state[order(murder_rate)]
 
 
 
-##Indexing
+## Indexing
 
 R provides a powerful and convenient way of indexing vectors. We can, for example, subset a vector based on properties of another vector. In this section, we continue working with our US murders example, which we can load like this:
 
@@ -1185,7 +1198,7 @@ data(murders)
 
 ## Basic plots
 
-In the Chapter \@ref(ggplot2) we describe an add-on package that provides a powerful approach to producing plots in R. We then have an entire part on Data Visualization in which we provide many examples. Here we briefly describe some of the functions that are available in a basic R instalation.
+In the Chapter \@ref(ggplot2) we describe an add-on package that provides a powerful approach to producing plots in R. We then have an entire part on Data Visualization in which we provide many examples. Here we briefly describe some of the functions that are available in a basic R installation.
 
 ### `plot`
 
@@ -1223,7 +1236,7 @@ murders$state[which.max(murders$rate)]
 
 ### `boxplot`
 
-Boxplots will also be described in the Data Visualiation part of the book.  They provide a more terse summary than histograms, but they are easier to stack with other boxplots. For example, here we can use them to compare the different regions:
+Boxplots will also be described in the Data Visualization part of the book.  They provide a more terse summary than histograms, but they are easier to stack with other boxplots. For example, here we can use them to compare the different regions:
 
 ```{r r-base-boxplot}
 murders$rate <- with(murders, total / population * 100000)
