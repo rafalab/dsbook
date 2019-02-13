@@ -1,8 +1,12 @@
 # Smoothing
 
+```{r, echo=FALSE}
+img_path <- "ml/img/"
+```
+
 Before continuing learning about machine learning algorithms, we introduce the important concept of _smoothing_. Smoothing is a very powerful technique used all across data analysis. Other names given to this technique are _curve fitting_ and _low pass filtering_. It is designed to detect trends in the presence of noisy data in cases in which the shape of the trend is unknown. The _smoothing_ name comes from the fact that to accomplish this feat, we assume that the trend is _smooth_, as in a smooth surface. In contrast, the noise, or deviation from the trend, is unpredictably wobbly:
 
-```{r signal-plus-noise-example, fig.height=6, echo=FALSE}
+```{r signal-plus-noise-example, message=FALSE, warning=FALSE, fig.height=6, echo=FALSE}
 library(tidyverse)
 set.seed(1)
 n <- 100
@@ -91,7 +95,7 @@ span <- 7
 fit <- with(polls_2008, ksmooth(day, margin, kernel="box", x.points = day, bandwidth = span))
 bin_fit <- data.frame(x = fit$x, .fitted=fit$y)
   
-if(!file.exists("ml/img/binsmoother-animation.gif")){
+if(!file.exists(file.path(img_path,"binsmoother-animation.gif"))){
   p <- tmp %>% 
     ggplot() +
     geom_smooth(aes(day, margin, group = center, frame = center), method = "lm", formula=y~1, se = FALSE) +
@@ -100,10 +104,10 @@ if(!file.exists("ml/img/binsmoother-animation.gif")){
     geom_line(aes(x=x, y = .fitted, frame = x, cumulative = TRUE), data = bin_fit, color = "red") + 
     ggtitle("x0 = ")
 
-  gganimate(p, filename = "ml/img/binsmoother-animation.gif", interval= .1)
+  gganimate(p, filename = file.path(img_path,"binsmoother-animation.gif"), interval= .1)
 }
 if(knitr::is_html_output()){
-  knitr::include_graphics("ml/img/binsmoother-animation.gif")
+  knitr::include_graphics(file.path(img_path,"binsmoother-animation.gif"))
 } else{
   centers <- quantile(tmp$center, seq(1,6)/6)
   tmp_bin_fit <- crossing(center=centers,bin_fit) %>%
@@ -181,7 +185,7 @@ span <- 7
 fit <- with(polls_2008, ksmooth(day, margin, kernel="normal", x.points = day, bandwidth = span))
 bin_fit <- data.frame(x = fit$x, .fitted=fit$y)
 
-if(!file.exists("ml/img/kernel-animation.gif")){
+if(!file.exists(file.path(img_path,"kernel-animation.gif"))){
   p <- tmp %>%
     ggplot() +
     geom_smooth(aes(day, margin, group = center, weight = weight, frame = center), method = "lm", formula=y~1, se=FALSE) +
@@ -191,10 +195,10 @@ if(!file.exists("ml/img/kernel-animation.gif")){
     geom_line(aes(x=x, y = .fitted, frame = x, cumulative = TRUE), data = bin_fit, color = "red") + 
     ggtitle("x0 = ")
   
-    gganimate(p, filename = "ml/img/kernel-animation.gif", interval= .1)
+    gganimate(p, filename = file.path(img_path,"kernel-animation.gif"), interval= .1)
 } 
 if(knitr::is_html_output()){
-  knitr::include_graphics("ml/img/kernel-animation.gif")
+  knitr::include_graphics(file.path(img_path,"kernel-animation.gif"))
 } else{
   centers <- quantile(tmp$center, seq(1,6)/6)
   tmp_bin_fit <- crossing(center=centers,bin_fit) %>%
@@ -235,7 +239,7 @@ There are several functions in R that implement bin smoothers. One example is `k
 A limitation of the bin smoother approach just described is that we need small windows for the approximately constant assumptions to hold. As a result, we end up with a small number of data points to average and obtain imprecise estimates $\hat{f}(x)$. Here we describe how _local weighted regression_ (loess) permits us to consider larger window sizes. To do this, we will use a mathematical result, referred to as Taylor's Theorem, which tells us that if you look closely enough at any smooth function $f(x)$, it will look like a line. To see why this makes sense, consider the curved edges gardeners make using straight edges:
 
 ```{r, echo=FALSE}
-knitr::include_graphics("ml/img/garden.ppg")
+knitr::include_graphics(file.path(img_path, "garden.png"))
 ```
 
 (Source: [Number 10](https://www.flickr.com/photos/number10gov/))
@@ -275,7 +279,7 @@ library(broom)
 fit <- loess(margin ~ day, degree=1, span = span, data=polls_2008)
 loess_fit <- augment(fit)
 
-if(!file.exists("ml/img/loess-animation.gif")){
+if(!file.exists(file.path(img_path,"loess-animation.gif"))){
   p <- ggplot(tmp, aes(day, margin)) +
     scale_size(range = c(0, 3)) +
     geom_smooth(aes(group = center, frame = center, weight = weight), method = "lm", se = FALSE) +
@@ -285,10 +289,10 @@ if(!file.exists("ml/img/loess-animation.gif")){
               data = loess_fit, color = "red") +
     ggtitle("x0 = ")
 
-  gganimate(p, filename = "ml/img/loess-animation.gif", interval= .1)
+  gganimate(p, filename = file.path(img_path,"loess-animation.gif"), interval= .1)
 }
 if(knitr::is_html_output()){
-  knitr::include_graphics("ml/img/loess-animation.gif")
+  knitr::include_graphics(file.path(img_path,"loess-animation.gif"))
 } else{
   centers <- quantile(tmp$center, seq(1,6)/6)
   tmp_loess_fit <- crossing(center=centers, loess_fit) %>%
@@ -323,7 +327,7 @@ polls_2008 %>% mutate(smooth = fit$fitted) %>%
 
 Different spans give us different estimates. We can see how different window sizes lead to different estimates:
 
-```{r loess-multi-span-animation, echo=FALSE, warning=FALSE, fig.height=6} 
+```{r loess-multi-span-animation, echo=FALSE, warning=FALSE, fig.height=6, out.width="100%"} 
 spans <- c(.66, 0.25, 0.15, 0.10)
 
 fits <- data_frame(span = spans) %>% 
@@ -336,7 +340,7 @@ tmp <- fits %>%
   filter(rank(dist) / n() <= span) %>%
   mutate(weight = (1 - (dist / max(dist)) ^ 3) ^ 3)
 
-if(!file.exists("ml/img/loess-multi-span-animation.gif")){
+if(!file.exists(file.path(img_path, "loess-multi-span-animation.gif"))){
   p <- ggplot(tmp, aes(day, margin)) +
     scale_size(range = c(0, 2)) +
     geom_smooth(aes(group = center, frame = center, weight = weight), method = "lm", se = FALSE) +
@@ -347,10 +351,10 @@ if(!file.exists("ml/img/loess-multi-span-animation.gif")){
     facet_wrap(~span) +
     ggtitle("x0 = ")
   
-  gganimate(p, filename = "ml/img/loess-multi-span-animation.gif", interval= .1)
+  gganimate(p, filename = file.path(img_path, "loess-multi-span-animation.gif"), interval= .1)
 }
 if(knitr::is_html_output()){
-  knitr::include_graphics("ml/img/loess-multi-span-animation.gif")
+  knitr::include_graphics(file.path(img_path,"loess-multi-span-animation.gif"))
 } else{
   centers <- quantile(tmp$center, seq(1,4)/4)
   tmp_fits <- crossing(center=centers, fits) %>%
@@ -464,7 +468,7 @@ polls_2008 %>% ggplot(aes(day, margin)) +
 
 
 
-## Exercises {-}
+## Exercises
 
 1. In the wrangling part of this book, we used the code below to obtain mortality counts for Puerto Rico for 2015-2018.
 

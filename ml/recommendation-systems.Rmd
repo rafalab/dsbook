@@ -1,4 +1,4 @@
-# Recommendation systems
+## Recommendation systems
 
 Recommendation systems use ratings that _users_ have given _items_ to make specific recommendations. Companies that sell many products to many customers and permit these customers to rate their products, like Amazon, are able to collect massive datasets that can be used to predict what rating a particular user will give a specific item. Items for which a high rating is predicted for a given user are then recommended to that user. 
 
@@ -8,7 +8,7 @@ On October 2006, Netflix offered a challenge to the data science community: impr
 [the winners were announced](http://bits.blogs.nytimes.com/2009/09/21/netflix-awards-1-million-prize-and-starts-a-new-contest/). You can read a good summary of how the winning algorithm was put together [here](http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/) 
 and a more detailed explanation [here](http://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf).  We will now show you some of the data analysis strategies used by the winning team.
 
-## Movielens data
+### Movielens data
 
 The Netflix data is not publicly available, but the [GroupLens research lab](https://grouplens.org/) generated their own database with over 20 million ratings for over 27,000 movies by more than 138,000 users. We make a small subset of this data available via the __dslabs__ package:
 
@@ -97,7 +97,7 @@ movielens %>%
 ```
 
 
-## Recommendation systems as a machine learning challenge
+### Recommendation systems as a machine learning challenge
 
 To see how this is a type of machine learning, notice that we need to build an algorithm with data we have collected that will then be applied outside our control, as users look for movie recommendations. So let's create a test set to assess the accuracy of the models we implement.
 
@@ -176,7 +176,7 @@ As we go along, we will be comparing different approaches. Let's start by creati
 rmse_results <- data_frame(method = "Just the average", RMSE = naive_rmse)
 ```
 
-## Modeling movie effects
+### Modeling movie effects
 
 We know from experience that some movies are just generally rated higher than others. This
 intuition, that different movies are rated differently, is confirmed by data. We can augment our previous model by adding the term $b_i$ to represent average ranking for movie $i$: 
@@ -281,7 +281,7 @@ rmse_results <- bind_rows(rmse_results,
 rmse_results
 ```
 
-## Exercises {-}
+### Exercises 
 
 1. Load the `movielens` data. 
 
@@ -348,9 +348,9 @@ rmse_results
   
 
 
-# Regularization
+## Regularization
 
-## Motivation
+### Motivation
 
 Despite the large movie to movie variation our improvement in RMSE was only about 5%. Let's explore where we made mistakes in our first model, using only movie effects $b_i$. Here are the 10 largest mistakes:
 
@@ -420,7 +420,7 @@ Regularization permits us to penalize large estimates that
 formed using small sample sizes. It has commonalities with the 
 Bayesian approach that shrunk predictions described in Section \@ref(bayesian-statistics). 
 
-## Penalized Least Squares
+### Penalized Least Squares
 
 The general idea behind regularization is to constrain the total variability of the effect sizes. Why does this help? Consider a case in which we have movie $i=1$ with 100 user ratings and 4 movies $i=2,3,4,5$ with just one user rating. We intend to fit the  model
 
@@ -501,7 +501,7 @@ rmse_results
 
 The penalized estimates provide a large improvement over the least squares estimated.
 
-## Choosing the penalty terms
+### Choosing the penalty terms
 
 Note that $\lambda$ is a tuning parameter. We can use cross-validation to choose it.
 
@@ -581,7 +581,7 @@ rmse_results %>% knitr::kable()
 
 ```
 
-## Exercises {-}
+### Exercises 
 
 An education expert is advocating for smaller schools. The expert bases this recommendation on the fact that among the best performing schools, many are small schools. Let's simulate a dataset for 100 schools. First, let's simulate the number of students in each school.
 
@@ -649,7 +649,7 @@ schools <- schools %>% mutate(score = sapply(avg_score, mean))
 
 8.  A common mistake to make when using regularization is shrinking values towards 0 that are not centered around 0. For example, if we don't subtract the overall average before shrinking, we actually obtain a very similar result. Confirm this by re-running the code from exercise 6 but without removing the overall mean. 
 
-# Matrix factorization
+## Matrix factorization
 
 Matrix factorization is a widely used concept in machine learning. It is very much related to factor analysis, singular value decomposition (SVD) and principal component analysis (PCA). Here we describe the concept in the context of movie recommendation systems.
 
@@ -736,7 +736,7 @@ There seems to be people that like romantic comedies more than expected, while o
 
 These results tell us that there is structure in the data. But how can we model this?
 
-## Factors
+### Factors
 
 Here is an illustration, using a simulation, of how we can use some structure to predict the $r_{u,i}$. Suppose our residuals `r` look like this:
 
@@ -840,7 +840,7 @@ $$
 Note that in an actual data application, we need to fit this model to data. To explain the complex correlation we observe in real data, we usually permit the entries of $p$ and $q$ to be continuous values, rather than discrete ones as we used in the simulation. So, for example, rather than dividing movies into gangster or romance, we define a continuum. Also note that  this is not a linear model and to fit it we need to use an algorithm other than the one used by `lm` to find the parameters that minimize the least squares. The winning algorithms for the Netflix challenge fit a model similar to the above and used regularization to penalize for large values of $p$ and $q$, rather than using least squares. Implementing this 
 approach is beyond the scope of this book.
 
-## Connection to SVD and PCA
+### Connection to SVD and PCA
 
 The decomposition:
 
@@ -930,7 +930,7 @@ pcs %>% select(name, PC2) %>% arrange(desc(PC2)) %>% slice(1:10)
 Fitting a model that incorporates these estimates is complicated. For those interested in implementing an approach that incorporates these ideas, we recommend trying the __recommenderlab__ package. The details are beyond the scope of this book.
 
 
-## Exercises {-}
+### Exercises
 
 In this exercise set, we will be covering a topic useful for understanding matrix factorization: the singular value decomposition (SVD). SVD is a mathematical result that is widely used in machine learning, both in practice and to understand the mathematical properties of some algorithms. This is a rather advanced topic and to complete this exercise set you will have to be familiar with linear algebra concepts such as matrix multiplication, orthogonal matrices, and diagonal matrices.
 

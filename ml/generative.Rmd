@@ -1,4 +1,4 @@
-# Generative models
+## Generative models
 
 We have described how, when using squared loss, the conditional expectation/probabilities provide the best approach to developing a decision rule. In a binary case, the smallest true error we can achieve is determined by Bayes' rule, which is a decision rule based on the true conditional probability:
 
@@ -10,7 +10,7 @@ We have described several approaches to estimating $p(\mathbf{x})$. In all these
 
 However, Bayes' theorem tells us that knowing the distribution of the predictors $\mathbf{X}$ may be useful. Methods that model the joint distribution of $Y$ and $\mathbf{X}$ are referred to as _generative models_ (we model how the entire data, $\mathbf{X}$ and $Y$, are generated). We start by describing the most general generative model, Naive Bayes, and then proceed to describe two specific cases, quadratic discriminant analysis (QDA) and linear discriminant analysis (LDA).
 
-## Naive Bayes 
+### Naive Bayes 
 
 Recall that Bayes rule tells use that we can rewrite $p(\mathbf{x})$ like this:
 
@@ -88,7 +88,7 @@ tmp %>%
 In fact, we can show that the Naive Bayes approach is similar to the logistic regression prediction mathematically. However, we leave the demonstration to a more advanced text, such as [this one](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). We can see that they are similar empirically by comparing the two resulting curves.
 
 
-## Controlling prevalence
+### Controlling prevalence
 
 One useful feature of the Naive Bayes approach is that it includes a parameter to account for differences in prevalence. Using our sample, we estimated $f_{X|Y=1}$, $f_{X|Y=0}$ and $\pi$. If we use hats to denote the estimates, we can write $\hat{p}(x)$ as:
 
@@ -134,7 +134,7 @@ qplot(x, p_hat_bayes_unbiased, geom = "line") +
   geom_vline(xintercept = 67, lty = 2)
 ```
 
-## Quadratic Discriminant Analysis
+### Quadratic Discriminant Analysis
 
 Quadratic Discriminant Analysis (QDA) is a version of _Naive Bayes_ in which we assume that the distributions $p_{\mathbf{X}|Y=1}(x)$ and $p_{\mathbf{X}|Y=0}(\mathbf{x})$ are multivariate normal. The simple example we described in the previous section is actually QDA. Let's now look at a slightly more complicated case: the 2 or 7 example.
 
@@ -164,7 +164,7 @@ mnist_27$train %>% mutate(y = factor(y)) %>%
 
 This defines the following estimate of $f(x_1, x_2)$.
 
-We can use the __caret__ package to fit the model and obtain predictors.
+We can use the `train` function from the __caret__ package, described in detail in Section \@ref(caret), to fit the model and obtain predictors.
 
 ```{r}
 library(caret)
@@ -193,10 +193,11 @@ plot_cond_prob <- function(p_hat=NULL){
 }
 ```
 
-```{r qda-estimate, echo=FALSE, out.width="100%"}
+```{r qda-estimate, echo=FALSE, out.width="100%", warning=FALSE, message=FALSE}
+library(gridExtra)
 p1 <- plot_cond_prob() + ggtitle("True conditional probability")
 
-p2 <- plot_cond_prob(predict(train_qda, newdata = mnist_27$true_p)[,2]) +
+p2 <- plot_cond_prob(predict(train_qda, newdata = mnist_27$true_p, type="prob")[,2]) +
   ggtitle("QDA")
 
 grid.arrange(p2, p1, nrow=1)
@@ -217,7 +218,7 @@ QDA can work well here, but it becomes harder to use as the number of predictors
 The main problem comes from estimating correlations for 10 of predictors. With 10, we have 45 correlations for each class. In general, the formula is $K\times p(p-1)/2$ which gets big fast. Once the number of parameters approaches the size of our data, the method becomes unpractical due to overfitting.
 
 
-## Linear discriminant analysis
+### Linear discriminant analysis
 
 A relatively simple solution to the problem of having too many parameters is to assume that the correlation structure is the same for all classes, which reduces the number of parameters we need to estimate.  
 
@@ -258,7 +259,7 @@ train_lda <- train(y ~ ., method = "lda", data = mnist_27$train)
 
 p1 <- plot_cond_prob() + ggtitle("True conditional probability")
 
-p2 <- plot_cond_prob(predict(train_lda, newdata = mnist_27$true_p)[,2]) +
+p2 <- plot_cond_prob(predict(train_lda, newdata = mnist_27$true_p, type="prob")[,2]) +
   ggtitle("LDA")
 
 grid.arrange(p2, p1, nrow=1)
@@ -277,7 +278,7 @@ confusionMatrix(data = y_hat, reference = mnist_27$test$y)$overall["Accuracy"]
 ```
 
 
-## Connection to distance
+### Connection to distance
 
 The normal density is:
 
@@ -293,7 +294,7 @@ $$
 
 which is the negative of a distance squared scaled by the standard deviation. For higher dimensions, the same is true except the scaling is more complex and involves correlations.
 
-## Case study: more than three classes
+### Case study: more than three classes
 
 We will briefly give a slightly more complex example: one with 3 classes instead of 2. We first create a dataset similar to the 2 or 7 dataset, except now we have 1s, 2s and 7s.
 
@@ -433,7 +434,7 @@ train_set %>% mutate(y = factor(y)) %>%
 Generative models can be very powerful, but only when we are able to successfully approximate the joint distribution of predictors conditioned on each class. 
 
 
-## Exercises {-}
+### Exercises 
 
 
 We are going to apply LDA and QDA to the `tissue_gene_expression` dataset. We will start with simple examples based on this dataset and then develop a realistic example.

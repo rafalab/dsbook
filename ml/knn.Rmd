@@ -1,4 +1,4 @@
-# Nearest neighbors
+## K-nearest neighbors
 
 Let's get back to our digits data with the two predictors. 
 
@@ -28,7 +28,7 @@ library(caret)
 fit_glm <- glm(y ~ x_1 + x_2, data=mnist_27$train, family="binomial")
 p_hat_logistic <- predict(fit_glm, mnist_27$test)
 y_hat_logistic <- factor(ifelse(p_hat_logistic > 0.5, 7, 2))
-confusionMatrix(data = y_hat_logistic, reference = mnist_27$test$y)$overall[1]
+confusionMatrix(data = y_hat_logistic, reference = mnist_27$test$y)$overall["Accuracy"]
 ```
 
 Now compare to kNN. We will use the `knn3` function from the __caret__ package. Looking at the help file of this package, we can see that we can call it in one of two ways. In the first, we specify a _formula_ and a data frame. The data frame contains all the data to be used. The formula has the from `outcome ~ predictor_1 + predictor_2 + predictor_3` and so on. Therefore, we would type `y ~ x_1 + x_2`. If we are going to use all the predictors, we can use the `.` like this `y ~ .`. The final call looks like this:
@@ -101,7 +101,7 @@ confusionMatrix(data = y_hat_knn, reference = mnist_27$test$y)$overall["Accuracy
 ```
 
 
-## Over training
+### Over training 
 
 Over-training is at its worst when we set $k=1$. With $k=1$ the estimate for each $(x_1, x_2)$ in the training set is obtained with just the $y$ corresponding to that point. So, in this case, if the $(x_1, x_2)$ are unique, we will obtain perfect accuracy in the training set because each point is used to predict itself. Remember that if the predictors are not unique and have different outcomes for at least one set of predictors then it is impossible to predict perfectly. 
 
@@ -147,7 +147,7 @@ The black curves denote the decision rule boundaries.
 
 The estimate $\hat{p}(x_1, x_2)$ follows the training data too closely (left). You can see that in the training set, boundaries have been drawn to perfectly surround a single red point in a sea of blue. Because most points $(x_1, x_2)$ are unique, the prediction is either 1 or 0 and the prediction for that point is the associated label. However, once we introduce the training set (right), we see that many of these small islands now have the opposite color and we end up making several incorrect predictions.
 
-## Over-smoothing
+### Over-smoothing
 
 Although not as badly as with the previous examples, we saw that with $k=5$ we also over-trained. Hence, we should consider a larger $k$. Let's try, as an example, a much larger number: $k=401$. 
 
@@ -171,7 +171,7 @@ grid.arrange(p1, p2, nrow=1)
 This size of $k$ is so large that it does not permit enough flexibility. We call this _over smoothing_. 
 
 
-## Picking the $k$ in kNN
+### Picking the $k$ in kNN
 
 
 So how do we pick $k$? 
@@ -234,7 +234,7 @@ max(accuracy$test)
 **So is this what we should expect if we apply this algorithm in the real world? The answer is "no" because we broke a golden rule of machine learning: we selected the $k$ using the test set. ** So how do we select the $k$ in the real world? In the next section, we introduce the important concept of cross validation which provides a way to estimate the expected loss for any given method using only the training set.
 
 
-## Exercises {-}
+### Exercises 
 
 1. Earlier, we used logistic regression to predict sex from height. Use kNN to do the same. Use the code described in this chapter to select the $F_1$ measure and plot it against $k$. Compare to the $F_1$ of about 0.6 we obtained with regression.
 

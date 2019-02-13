@@ -1,6 +1,10 @@
-# Trees and Random Forests
+## Classification and Regression Trees (CART)
 
-## The curse of dimensionality
+```{r, echo=FALSE}
+img_path <- "ml/img"
+```
+
+### The curse of dimensionality
 
 We described how methods such as LDA and QDA are not meant to be used with many predictors $p$ because the number of parameters that we need to estimate becomes too large. For example, with the digits example $p=784$, so we would have over 600,000 parameters with LDA and we would multiply that by the number of classes for QDA. Kernel methods such as kNN or local regression do not have model parameters to estimate. However, they also face a challenge when multiple predictors are used due to what is referred to the _curse of dimensionality_. The _dimension_ here refers to the fact that when we have $p$ predictors, the distance between two observations is computed in $p$-dimensional space.
 
@@ -58,8 +62,7 @@ So by the time we reach 100 predictors, the neighborhood is no longer very local
 
 Here we look at a set of elegant and versatile methods that adapt to higher dimensions and also allow these regions to take more complex shapes while still producing models that are interpretable. These are very popular, well-known and studied methods. We will concentrate on Regression and Decision Trees and their extension to Random Forests.
 
-
-## Classification and Regression Trees (CART)
+### CART motivation
 
 To motivate this section, we will use a new dataset 
 that includes the breakdown of the composition of olive oil into 8 fatty acids:
@@ -134,7 +137,7 @@ Decision trees like this are often used in practice. For example, to decide if a
 
 ```{r, echo=FALSE, out.width="50%"}
 # source https://www.researchgate.net/profile/Douglas_Walton/publication/228297479/figure/fig1/AS:301828123185152@1448972840090/Decision-Tree-for-Heart-Attack-Victim-adapted-from-Gigerenzer-et-al-1999-4.png
-knitr::include_graphics("ml/img/Decision-Tree-for-Heart-Attack-Victim-adapted-from-Gigerenzer-et-al-1999-4.png")
+knitr::include_graphics(file.path(img_path,"Decision-Tree-for-Heart-Attack-Victim-adapted-from-Gigerenzer-et-al-1999-4.png"))
 ```
 
 (Source: [Walton 2010 Informal Logic, Vol. 30, No. 2, pp. 159-184](https://papers.ssrn.com/sol3/Delivery.cfm/SSRN_ID1759289_code1486039.pdf?abstractid=1759289&mirid=1&type=2))
@@ -143,7 +146,7 @@ A tree is basically a flow chart of yes or no questions. The general idea of the
 Regression and decision trees operate by predicting an outcome variable $Y$ by partitioning the predictors.
 
 
-## Regression trees
+### Regression trees
 
 When the outcome is continuous, we call the method a _regression_ tree. To introduce regression trees, we will use the 2008 poll data used in previous sections to describe the basic idea of how we build these algorithms. As with other machine learning algorithms, we will try to estimate the conditional expectation $f(x) = \mbox{E}(Y | X = x)$ with $Y$ the poll margin and $x$ the day. 
 
@@ -220,7 +223,7 @@ polls_2008 %>%
 
 Intuitively we know that this is not a good approach as it will generally result in over-training. These `cp`, `minsplit` and `minbucket` three parameters can be used to control the variability of the final predictors. The larger these values are the more data is averaged to compute a predictor and thus reduce variability. The drawback is that it restrict flexibility. 
 
-So how do we pick these parameters? We can use cross validation just like with any tuning parameter. Here is an example of using cross validation to chose cp.
+So how do we pick these parameters? We can use cross validation, described in Section \@ref(cross-validation), just like with any tuning parameter. Here is an example of using cross validation to chose cp.
 
 ```{r polls-2008-tree-train}
 library(caret)
@@ -256,7 +259,7 @@ pruned_fit <- prune(fit, cp = 0.01)
 ```
 
 
-## Classification (decision) trees
+### Classification (decision) trees
 
 Classification, or decision trees, are used in classification problems where the outcome is categorical. We use the same partitioning principle with some differences to account for the fact that we are now working with a categorical outcome. 
 
@@ -384,7 +387,7 @@ ntrees <- 50
 XLIM <- range(polls_2008$day)
 YLIM <- range(polls_2008$margin)
 
-if(!file.exists("ml/img/rf.gif")){
+if(!file.exists(file.path(img_path,"rf.gif"))){
   sum <- rep(0,nrow(polls_2008))
   res <- vector("list", ntrees)
   animation::saveGIF({
@@ -424,7 +427,7 @@ if(!file.exists("ml/img/rf.gif")){
 }  
 
 if(knitr::is_html_output()){
-  knitr::include_graphics("ml/img/rf.gif")
+  knitr::include_graphics(file.path(img_path,"rf.gif"))
 } else {
   sum <- rep(0,nrow(polls_2008))
   res <- vector("list", ntrees)
@@ -510,7 +513,7 @@ Random Forrest perform better in all the examples we have considered. However, a
 To define _variable importance_ we counts how often a predictor is used in the individual trees. You can learn more about _variable importance_ in an advanced [machine learning book](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). The __caret__ package includes the function `varImp` that extracts variable importance from any model in which the calculation is implemented. We give an example on how we use variable importance in the next section.
 
 
-## Exercises {-}
+### Exercises
 
 1. Create a simple dataset where the outcomes grows 0.75 units on average for every increase in a predictor. 
 
