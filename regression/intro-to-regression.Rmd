@@ -1,6 +1,4 @@
-# (PART) Regression {-}
-
-# Introduction to Regression 
+# Regression 
 
 Up to this point, this book has focused mainly on _univariate_ variables. However, in data science applications, it is very common to be interested in the relationship between two or more variables. For instance, later in the chapter we will try to use a limited budget to build a baseball team by examining the relationship between player statistics and runs (points). Before delving into this more complex example, we introduce necessary concepts needed to understand regression using a simpler illustration. We actually use the dataset from which regression was born.
 
@@ -8,11 +6,11 @@ The example is from Genetics. [Francis Galton](https://en.wikipedia.org/wiki/Fra
 
 __Historical note__: Galton made important contributions to statistics and genetics but he was also one of the first proponents of eugenics, a scientifically flawed philosophical movement, favored by many biologists of Galton's time, but with horrific historical consequences. You can read more about it [here](https://pged.org/history-eugenics-and-genetics/).
 
-# Case study: Is height hereditary?
+## Case study: Is height hereditary?
 
 We have access to Galton's family height data through the __HistData__ package. This data contains heights on several dozen families: mothers, fathers, daughters and sons. To imitate Galton's analysis, we will create a dataset with the heights of fathers and a randomly selected son of each family: 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(HistData)
 data("GaltonFamilies")
@@ -45,7 +43,6 @@ galton_heights %>% ggplot(aes(father, son)) +
 
 We will learn that the correlation coefficient is an informative summary of how two variables move together and then see how this can be used to predict one variable using the other.
 
-# Correlation and the regression line
 
 ## The correlation coefficient 
 
@@ -97,7 +94,7 @@ as.data.frame(sim_data) %>%
 ```
 
 
-## Sample correlation is a random variable
+### Sample correlation is a random variable
 
 Before we continue connecting correlation to regression, let's remind ourselves about random variability.
 
@@ -151,7 +148,7 @@ data.frame(R) %>%
 
 If you increase $N$, you will see the distribution converging to normal.
 
-## When is correlation a useful summary?
+### Correlation is not always a useful summary
 
 Correlation is not always a good summary of the relationship between two variables. The following four artificial datasets, referred to as Anscombe's quartet, famously illustrate this point. All these pairs have a correlation of 0.82:
 
@@ -168,29 +165,41 @@ anscombe %>% mutate(row = seq_len(n())) %>%
 
 Correlation is only meaningful in a particular context. To help us understand when it is that correlation is meaningful as a summary statistic, we will return to the example of predicting son's height using the father's height. This will help motivate and define linear regression. We start by demonstrating how correlation can be useful for prediction.
 
-CHANGE: ADD SOME ON CONDITIONALS 
-
-## Prediction based on stratification
+## Conditional Expectations {#conditional-expectation}
 
 Suppose we are asked to guess the height of a randomly selected son and we don't know his father's height. Because the distribution of sons' heights is approximately normal, we know the average height, `r round(mean(galton_heights$son), 1)`, is the value with the highest proportion and would be the prediction with the highest chance of minimizing the error. But what if we are told that the father is taller than average, say 72 inches tall, do we still guess `r round(mean(galton_heights$son), 1)` for the son? 
 
-It turns out that if we were able to collect data from a very large number of fathers that are 72 inches, the distribution of their sons' heights would be normally distributed. This implies that the average of the distribution computed on this subset would be our best prediction. Can we figure out what this average is?
+It turns out that if we were able to collect data from a very large number of fathers that are 72 inches, the distribution of their sons' heights would be normally distributed. This implies that the average of the distribution computed on this subset would be our best prediction. 
 
-We call this approach _stratifying_ or _conditioning_. The distribution of the strata is called the _conditional distribution_ and the average of this distribution the _conditional average_. In our case, we are computing the average son height _conditioned_ on the father being 72 inches tall. A challenge when using this approach in practice is that for continuous data we don't have many data points matching exactly one value. For example, we have only: 
+In general, we call this approach _conditioning_. 
+To provide a mathematical description, consider we have a population of paris of values $(x_1,y_1),\dots,(x_n,y_n)$, for example all father and son heights in England. In the previous chapter we learned that if you take a random pair $(X,Y)$, the expected value and best predictor of $Y$ is $\mbox{E}(Y) = \mu_y$, the population average $1/n\sum_{i=1}^n y_i$. However, we are no longer interested in the general population, instead we are interesed in only the subset of a population with a specific $x_i$ value, 72 inches in our example. This subset of the population, is also a population and thus the same priciples and properties we have learned apply. The $y_i$ in the subpopulation have a distribution, referred to as the _conditional distribution_ and this distribution has an expected value referred to as the _conditional expectation_. In our example the conditional expectation is the average height of all sons in England with fathers that are 72 inches. The statistical notation is for the conditional expectation is
+
+$$
+\mbox{E}(Y \mid X = x)
+$$
+
+with $x$ reprenting the fixed value that defines that subset, for example 72 inches. Similarly we denote the standard deviation of the strata with
+
+$$
+\mbox{SD}(Y \mid X = x) = \sqrt{\mbox{Var}(Y \mid X = x)}
+$$
+
+Because the conditional expectation $E(Y\mid X=x)$ is the best predictor for the random variable $Y$ for an individual in the strata defined by $X=x$, many data science challenges reduce to estimating this quantity. The conditional standard deviation quantifies the precision of the prediction. 
+
+
+In the example we have been considering, we are interested in computing the average son height _conditioned_ on the father being 72 inches tall. We want to estimate $E(Y|X=72)$ using the sample collecte by Galton. We previously learned that the sample average is the preferred approach to estimating the population average. However, a challenge when using this approach to estimating conditional expectations is that for continuous data we don't have many data points matching exactly one value in our sample. For example, we have only: 
 
 ```{r}
 sum(galton_heights$father == 72)
 ```
 
-fathers that are exactly 72 inches. If we change the number to 72.5, we get even fewer: 
+fathers that are exactly 72 inches. If we change the number to 72.5, we get even fewer data points:
 
 ```{r}
 sum(galton_heights$father == 72.5)
 ```
 
-The small samples sizes will result in averages with large standard errors that are not useful for prediction. 
-
-For now, we will take the approach of creating strata of fathers with very similar heights. Specifically, we will round father heights to the nearest inch and assume that they are all 72 inches. If we do this, we end up with the following prediction for the son of a father that is 72 inches tall:
+A practical way to improve these estimates of the conditional expectations, is to define strata of with similar values of $x$. In our example, we can round father heights to the nearest inch and assume that they are all 72 inches. If we do this, we end up with the following prediction for the son of a father that is 72 inches tall:
 
 ```{r}
 conditional_avg <- galton_heights %>% 
@@ -242,7 +251,7 @@ galton_heights %>%
   geom_abline(intercept = 0, slope = r)
 ```
 
-In the next section, we explain that the line these averages follow is what we call the *regression line* and describe Galton's theoretical justification for using this line to estimate conditional means. Here we define it and compute the regression line for the data at hand. 
+The fact that these conditional averages follow a line is not a coincidence. In the next section, we explain that the line these averages follow is what we call the *regression line*, which  improves the precision of our estimates. However, it is not always appropriate to estimate conditioanl expectations with the regression line so we also describe Galton's theoretical justification for using the regression line.
 
 ## The regression line
 
@@ -251,13 +260,14 @@ If we are predicting a random variable $Y$ knowing the value of another $X=x$ us
 $$ 
 \left( \frac{Y-\mu_Y}{\sigma_Y} \right) = \rho \left( \frac{x-\mu_X}{\sigma_X} \right)
 $$
+
 We can rewrite it like this:
 
 $$ 
 Y = \mu_Y + \rho \left( \frac{x-\mu_X}{\sigma_X} \right) \sigma_Y
 $$
 
-If there is perfect correlation, we predict an increase that is the same number of SDs. If there is 0 correlation, then we don't use $x$ at all for the prediction and simply predict the average $\mu_Y$.  For values between 0 and 1, the prediction is somewhere in between. If the correlation is negative, we predict a reduction instead of an increase. 
+If there is perfect correlation, the regression line predicts an increase that is the same number of SDs. If there is 0 correlation, then we don't use $x$ at all for the prediction and simply predict the average $\mu_Y$.  For values between 0 and 1, the prediction is somewhere in between. If the correlation is negative, we predict a reduction instead of an increase. 
 
 
 Note that if the correlation is positive and lower than 1, our prediction is closer, in standard units, to the average height than the value using to predict, $x$, is to the average of the $x$s. This is why we call it _regression_: the son regresses to the average height. In fact, the title of Galton's paper was: _Regression toward mediocrity in hereditary stature_. To add regression lines to plots, we will need the above formula in the form: 
@@ -294,7 +304,7 @@ galton_heights %>%
 ```
 
 
-## Regression improves precision 
+### Regression improves precision 
 
 Let's compare the two approaches to prediction that we have presented: 
 
@@ -346,7 +356,7 @@ The regression line is therefore much more stable than the conditional mean. The
 
 So why not always use the regression for prediction? Because it is not always appropriate. For example, Anscombe provided cases for which the data does not have a linear relationship. So are we justified in using the regression line to predict? Galton answered this in the positive for height data. The justification, which we include in the next section, is somewhat more advanced than the rest of the chapter.
 
-## Bivariate normal distribution (advanced)
+### Bivariate normal distribution (advanced)
 
 Correlation and the regression slope are a widely used summary statistic, but they are often misused or misinterpreted. Anscombe's examples provide over-simplified cases of dataset in which summarizing with correlation would be a mistake. But there are many more real life examples.
 
@@ -364,13 +374,7 @@ colnames(sim_data) <- c("r","x","y")
 as.data.frame(sim_data) %>% ggplot(aes(x,y)) +facet_wrap(~r) + geom_point() +geom_vline(xintercept = 0,lty=2) + geom_hline(yintercept = 0,lty=2) 
 ```
 
-A more technical way to define the bivariate normal distribution is the following: if $X$ is a normally distributed random variable, $Y$ is also a normally distributed random variable, and for any stratum of $X$, say $X=x$, $Y$ is approximately normal in that stratum, then the pair is approximately bivariate normal. 
-
-When we fix $X=x$ in this way, we then refer to the resulting distribution of the $Y$s in the strata as the _conditional distribution_ of $Y$ given $X=x$. We can write it using mathematical notation like this:
-
-CHANGE: ALREADY IN BAYES. CONSOLIDATE IN ONE 
-
-$$ f_{Y \mid X=x} \mbox{ is the notation for conditional distribution and } \mbox{E}(Y \mid X=x) \mbox{ is the notation for conditional expected value.}$$
+A more technical way to define the bivariate normal distribution is the following: if $X$ is a normally distributed random variable, $Y$ is also a normally distributed random variable, and the conditional distribution of $Y$ for any $X=x$ is approximately normal, then the pair is approximately bivariate normal. 
 
 If we think the height data is well approximated by the bivariate normal distribution, then we should see the normal approximation hold for each strata. Here we stratify the son heights by the standardized father heights and see that the assumption appears to hold:
 
@@ -400,7 +404,7 @@ This implies that, if our data is approximately bivariate, the regression line g
 
 In summary, if our data is approximately bivariate, then the conditional expectation, the best prediction of $Y$ given we know the value of $X$, is given by the regression line.
 
-## Variance explained
+### Variance explained
 
 The bivariate normal theory also tells us that the standard deviation of the _conditional_ distribution described above is:
 
@@ -416,7 +420,7 @@ The statement '$X$ explains such and such percent of the variability' is commonl
 
 But it is important to remember that the "variance explained" statement only makes sense when the data is approximated by a bivariate normal distribution.
 
-## Warning: there are two regression lines
+### Warning: there are two regression lines
 
 We computed a regression line to predict the son's height from father's height. We used these calculations: 
 
@@ -456,7 +460,7 @@ galton_heights %>%
 
 with blue for the predicting son heights with father heights and red for predicting father heights with son heights.
 
-## Exercises {-}
+### Exercises {-}
 
 
 1. Load the `GaltonFamilies` data from the __HistData__. The children in each family are listed by gender and then by height. Create a dataset called `galton_heights` by picking a male and female at random. 

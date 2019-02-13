@@ -8,7 +8,9 @@ There are many reasons that a variable $X$ can be correlated with a variable $Y$
 
 The following comical example underscores that correlation is not causation. It shows a very strong correlation between divorce rates and margarine consumption. 
 
-```{r divorce-versus-margarine, echo=FALSE}
+```{r divorce-versus-margarine, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dslabs)
 the_title <- paste("Correlation =", 
                 round(with(divorce_margarine, 
                            cor(margarine_consumption_per_capita, divorce_rate_maine)),2))
@@ -33,10 +35,10 @@ A Monte Carlo simulation can be used to show how data dredging can result in fin
 ```{r, cache=TRUE}
 N <- 25
 g <- 1000000
-sim_data <- tibble(group = rep(1:g, each = N), x = rnorm(N*G), y = rnorm(N*G))
+sim_data <- tibble(group = rep(1:g, each = N), x = rnorm(N * g), y = rnorm(N * g))
 ```
 
-The first column denotes group. We created `r cat(prettyNum(G, big.mark=",",scientific=FALSE))` groups and for each one we generated a pair of independent vectors, $X$ and $Y$, with `r N` observations each, stored in the second and third columns. Because we constructed the simulation, we know that $X$ and $Y$ are not correlated.
+The first column denotes group. We created `r cat(prettyNum(g, big.mark=",",scientific=FALSE))` groups and for each one we generated a pair of independent vectors, $X$ and $Y$, with `r N` observations each, stored in the second and third columns. Because we constructed the simulation, we know that $X$ and $Y$ are not correlated.
 
 Next, we compute the correlation between `X` and `Y` for each group and look at the max:
 
@@ -63,14 +65,15 @@ Remember that the correlation summary is a random variable. Here is the distribu
 res %>% ggplot(aes(x=r)) + geom_histogram(binwidth = 0.1, color = "black")
 ```
 
-It's just a mathematical fact that if we observe `r cat(prettyNum(G,big.mark=",",scientific=FALSE))` random correlations that are expected to be 0, but have a standard error of `r sd(res$r)`, the largest one will be close 1. 
+It's just a mathematical fact that if we observe `r cat(prettyNum(g, big.mark=",",scientific=FALSE))` random correlations that are expected to be 0, but have a standard error of `r sd(res$r)`, the largest one will be close 1. 
 
 If we performed regression on this group and interpreted the p-value, we would incorrectly claim this was a statistically significant relation:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
+library(broom)
 sim_data %>% 
   filter(group == res$group[which.max(res$r)]) %>%
-  do(tidy(lm(Y ~ X, data = .)))
+  do(tidy(lm(y ~ x, data = .)))
 ```
 
 This particular form of data dredging is referred to as _p-hacking_. P-hacking is a topic of much discussion because it is a problem in scientific publications. Because publishers tend to reward statistically significant results over negative results, there is an incentive to report significant results. In epidemiology and the social sciences, for example, researchers may look for associations between an adverse outcome and several exposures and report only the one exposure that resulted in a small p-value. Furthermore, they might try fitting several different models to account for confounding and pick the one that yields the smallest p-value. In experimental disciplines, an experiment might be repeated more than once, yet only the results of the one experiment with a small p-value reported. This does not necessarily happen due to unethical behavior, but rather as a result of statistical ignorance or wishful thinking. In advanced statistics courses, you learn methods to adjust for these multiple comparisons.

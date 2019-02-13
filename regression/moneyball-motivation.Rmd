@@ -1,4 +1,8 @@
-# Case Study: Moneyball
+## Case Study: Moneyball
+
+```{r,echo=FALSE}
+img_path <- "regression/img/"
+```
 
 _Moneyball: The Art of Winning an Unfair Game_ is a book by Michael Lewis about the Oakland Athletics (A's) baseball team and its general manager, the person tasked with building the team, Billy Beane. 
 
@@ -8,7 +12,8 @@ From 1989 to 1991, the A's had one of the highest payrolls in baseball. They wer
 
 As motivation for this chapter, we will pretend it is 2002 and try to build a baseball team with a limited budget, just like the A's had to do. To appreciate what you are up against, note that in 2002 the Yankees' payroll of \$125,928,583 more than tripled the Oakland A's \$39,679,746: 
 
-```{r mlb-2002-payroll, echo=FALSE, message=FALSE}
+```{r mlb-2002-payroll, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
 library(rvest)
 url <- "http://www.stevetheump.com/Payrolls.htm"
 h <- read_html(url) 
@@ -24,7 +29,7 @@ h %>% html_nodes("table") %>% .[[i]] %>% html_table(header = TRUE) %>%
 
 
 
-## Sabermetics
+### Sabermetics
 
 Statistics have been used in baseball since its beginnings. The dataset we will be using, included in the __Lahman__ library, goes back to the 19th century. For example, a summary statistics we will describe soon, the _batting average_, has been used for decades to summarize a batter's success. [Other statistics](http://mlb.mlb.com/stats/league_leaders.jsp) such as home runs (HR), runs batted in (RBI), and stolen bases (SB) are reported for each player in the game summaries included in the sports section of newspapers, with players rewarded for high numbers. Although summary statistics such as these were widely used in baseball, data analysis per se was not. These statistics were arbitrarily decided on without much thought as to whether they actually predicted anything or were related to helping a team win.
 
@@ -33,7 +38,7 @@ This changed with [Bill James](https://en.wikipedia.org/wiki/Bill_James). In the
 
 In this chapter, to simplify the exercise, we will focus on scoring runs and ignore the two other important aspects of the game: pitching and fielding. We will see how regression analysis can help develop strategies to build a competitive baseball team with a constrained budget. The approach can be divided into two separate data analyses. In the first, we determine which recorded player-specific statistics predict runs. In the second, we examine if players were undervalued based on what our first analysis predicts. 
 
-## Baseball basics
+### Baseball basics
 
 To see how regression will help us find undervalued players, we actually don't need to understand all the details about the game of baseball, which has over 100 rules. Here, we distill the sport to the basic knowledge one needs to know how to effectively attack the data science problem. 
 
@@ -45,7 +50,7 @@ Now there are several ways to succeed. Understanding this distinction will be im
 
 ```{r, echo = FALSE, out.width="50%"}
 ## source: http://quarterlyspeedbump.com/wp-content/uploads/2012/03/Baseball_Diamond1.jpeg
-knitr::include_graphics("regression/img/Baseball_Diamond1.png")
+knitr::include_graphics(file.path(img_path,"Baseball_Diamond1.png"))
 ```
 (Source: [Wikipedia Commons](https://commons.wikimedia.org/wiki/File:Baseball_diamond_simplified.svg))
 
@@ -70,7 +75,7 @@ All these events are kept track of during the season and are available to us thr
  
 ```{r, echo = FALSE}
 # source http://i0.wp.com/mopupduty.com/wp-content/uploads/2010/09/JumboTron.jpg
-knitr::include_graphics("regression/img/JumboTron.png")
+knitr::include_graphics(file.path(img_path,"JumboTron.png"))
 ```
 
 (Source: [John Vennavally-Rao](https://twitter.com/jvrCTV/status/640230776806768640))
@@ -79,7 +84,7 @@ Historically, the _batting average_ has been considered the most important offen
 
 One of Bill James' first important insights is that the batting average ignores BB, but a BB is a success.  He proposed we use the _on base percentage_ (OPB) instead of batting average. He defined OBP as (H+BB)/(AB+BB) which is simply the proportion of plate appearances that don't result in an out, a very intuitive measure. He noted that a player that gets many more BB than the average player might not be recognized if the batter does not excel in batting average. But is this player not helping produce runs? No award is given to the player with the most BB. However, bad habits are hard to break and baseball did not immediately adopt OPB as an important statistic. In contrast, total stolen bases were considered important and an [award](http://www.baseball-almanac.com/awards/lou_brock_award.shtml) given to the player with the most. But players with high totals of SB, also made more outs as they did not always succeed. Does a player with high SB total help produce runs? Can we use data science to determine if it's better to pay for BB or SB? 
 
-## Base on Ball or Stolen Bases?
+### Base on Ball or Stolen Bases?
 
 One of the challenges in this analysis is that it is not obvious how to determine if a player produces runs because so much depends on his teammates. We do keep track of the number of runs scored by a player. However, remember that if a player X bats right before someone who hits many HRs, batter X will score many runs. But these runs don't necessarily happen if we hire player X but not his HR hitting teammate.  However, we can examine team-level statistics. How do teams with many SB compare to teams with few? How about BB? We have data! Let's examine some. 
 
@@ -128,7 +133,7 @@ We know that HR cause runs because, as the name implies, when a player hits a HR
 Linear regression will help us parse all this out and quantify the associations. This will then help us determine what players to recruit. Specifically, we will try to predict things like how many more runs will a team score if we increase the number of BBs, but keep the HRs fixed? Regression will help us answer questions like this one.
 
 
-## Regression applied to baseball statistics
+### Regression applied to baseball statistics
 
 Can we use regression with these data? First, notice that the HR and Run data appear to be bivariate normal. We save the plot into the object `p` as we will use it again later.
 
