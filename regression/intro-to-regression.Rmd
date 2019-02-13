@@ -115,7 +115,8 @@ B <- 1000
 N <- 25
 R <- replicate(B, {
   sample_n(galton_heights, N, replace = TRUE) %>% 
-    summarize(r=cor(father, son)) %>% .$r
+    summarize(r=cor(father, son)) %>% 
+    pull(r)
 })
 
 qplot(R, geom = "histogram", binwidth = 0.05, color = I("black"))
@@ -239,7 +240,7 @@ Furthermore, these centers appear to follow a linear relationship. Below we plot
 ```{r conditional-averages-follow-line, echo=FALSE}
 r <- galton_heights %>% 
   summarize(r = cor(father, son)) %>% 
-  .$r
+  pull(r)
 
 galton_heights %>% 
   mutate(father = round(father)) %>% 
@@ -322,7 +323,7 @@ conditional_avg <- replicate(B, {
   dat <- sample_n(galton_heights, N)
   dat %>% filter(round(father) == 72) %>% 
     summarize(avg = mean(son)) %>% 
-    .$avg
+    pull(avg)
   })
 
 regression_prediction <- replicate(B, {
@@ -460,7 +461,7 @@ galton_heights %>%
 
 with blue for the predicting son heights with father heights and red for predicting father heights with son heights.
 
-### Exercises {-}
+### Exercises 
 
 
 1. Load the `GaltonFamilies` data from the __HistData__. The children in each family are listed by gender and then by height. Create a dataset called `galton_heights` by picking a male and female at random. 
