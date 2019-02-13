@@ -1,8 +1,9 @@
-# Confidence intervals
+## Confidence intervals
 
 Confidence intervals are a very useful concept widely employed by data analysts. A version of these that are commonly seen come from the `ggplot` geometry `geom_smooth`. Here is an example using a temperature dataset available in R:
 
-```{r first-confidence-intervals-example, message=FALSE, echo=FALSE}
+```{r first-confidence-intervals-example, warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)
 data("nhtemp")
 data.frame(year = as.numeric(time(nhtemp)), temperature=as.numeric(nhtemp)) %>%
   ggplot(aes(year, temperature)) + 
@@ -33,7 +34,7 @@ And notice that the interval here:
 
 ```{r}
 x <- sample(c(0, 1), size = N, replace = TRUE, prob = c(1-p, p))
-x_hat <- mean(X)
+x_hat <- mean(x)
 se_hat <- sqrt(x_hat * (1 - x_hat) / N)
 c(x_hat - 1.96 * se_hat, x_hat + 1.96 * se_hat)
 ```
@@ -105,7 +106,7 @@ So, for example, for $p=0.95$, $(1-p)/2 = 0.975$ and we get the 1.96 we have bee
 qnorm(0.975)
 ```
 
-## A Monte Carlo simulation
+### A Monte Carlo simulation
 
 We can run a Monte Carlo simulation to confirm that, in fact, a 95\% confidence interval includes $p$ 95\% of the time.
 
@@ -149,9 +150,70 @@ ggplot(tab, aes(poll, estimate, ymin=low, ymax=high, col = p_inside)) +
 ```
 
 
-## The correct language
+### The correct language
 
 When using the theory we described above, it is important to remember that it is the intervals that are random, not $p$. In the plot above, we can see the random intervals moving around and $p$, represented with the vertical line, staying in the same place. The proportion of blue in the urn $p$ is not. So the 95\% relates to the probability that this random interval falls on top of $p$. Saying the $p$ has a 95\% of being between this and that is technically an incorrect statement because $p$ is not random. 
+
+### Exercises 
+
+For these exercises, we will use actual polls from the 2016 election. You can load the data from the __dslabs__ package.
+
+```{r}
+library(dslabs)
+data("polls_us_election_2016")
+```
+
+Specifically, we will use all the national polls that ended within one week before the election.
+
+```{r, message=FALSE, message=FALSE}
+library(tidyverse)
+polls <- polls_us_election_2016 %>% 
+  filter(enddate >= "2016-10-31" & state == "U.S.") 
+```
+
+1. For the first poll, you can obtain the samples size and estimated Clinton percentage with:
+
+    ```{r, eval=FALSE}
+    N <- polls$samplesize[1]
+    x_hat <- polls$rawpoll_clinton[1]/100
+    ```
+
+    Assume there are only two candidates and construct a 95% confidence interval for the election night proportion $p$. 
+
+
+2. Now use `dplyr` to add a confidence interval as two columns, call them `lower` and `upper`, to the object `poll`. Then use `select` to show the `pollster`, `enddate`, `x_hat`,`lower`, `upper` variables. Hint: define temporary columns `x_hat` and `se_hat`. 
+
+3. The final tally for the popular vote was Clinton 48.2%	and Trump 46.1%. Add a column, call it `hit`, to the previous table stating if the confidence interval included the true proportion $p=0.482$ or not. 
+
+
+4. For the table you just created, what proportion of confidence intervals included $p$?
+
+
+5. If these confidence intervals are constructed correctly, and the theory holds up, what proportion should include $p$?
+
+
+6. A much smaller proportion of the polls than expected produce confidence intervals containing $p$. If you look closely at the table, you will see that most polls that fail to include $p$ are underestimating. The reason for this is undecided voters, individuals polled that do not yet know who they will vote for or do not want to say. Because, historically, undecideds divide evenly between the two main candidates on election day, it is more informative to estimate the spread or the difference between the proportion of two candidates $d$, which in this election was $0.482 - 0.461 = 0.021$. Assume that there are only two parties and that $d = 2p - 1$, define:
+
+    ```{r, message=FALSE, comment=FALSE}
+    polls <- polls_us_election_2016 %>% 
+      filter(enddate >= "2016-10-31" & state == "U.S.")  %>%
+      mutate(d_hat = rawpoll_clinton / 100 - rawpoll_trump / 100)
+    ```
+
+    and re-do exercise 1, but for the difference.
+
+
+7. Now repeat exercise 3, but for the difference.
+
+
+8. Now repeat exercise 4, but for the difference.
+
+
+9. Although the proportion of confidence intervals goes up substantially, it is still lower that 0.95. In the next chapter, we learn the reason for this. To motivate this, make a plot of the error, the difference between each poll's estimate and the actual $d=0.021$. Stratify by pollster.
+
+10. Re-do the plot that you made for exercise 9, but only for pollsters that took five or more polls.
+
+
 
 
 ## Power
@@ -206,66 +268,5 @@ In this case, there is actually a large chance of seeing 52 or larger under the 
 Keep in mind that there is a close connection between p-values and confidence intervals. If a 95% confidence interval of the spread does not include 0, we know that the p-value must be smaller than 0.05. 
 
 To learn more about p-values, you can consult any statistics textbook. However, in general, we prefer reporting confidence intervals over p-values since it gives us an idea of the size of the estimate. If we just report the p-value we provide no information about the significance of the finding in the context of the problem.
-
-
-## Exercises {-}
-
-For these exercises, we will use actual polls from the 2016 election. You can load the data from the __dslabs__ package.
-
-```{r}
-library(dslabs)
-data("polls_us_election_2016")
-```
-
-Specifically, we will use all the national polls that ended within one week before the election.
-
-```{r, message=FALSE, comment=FALSE}
-library(tidyverse)
-polls <- polls_us_election_2016 %>% 
-  filter(enddate >= "2016-10-31" & state == "U.S.") 
-```
-
-1. For the first poll, you can obtain the samples size and estimated Clinton percentage with:
-
-    ```{r, eval=FALSE}
-    N <- polls$samplesize[1]
-    x_hat <- polls$rawpoll_clinton[1]/100
-    ```
-
-    Assume there are only two candidates and construct a 95% confidence interval for the election night proportion $p$. 
-
-
-2. Now use `dplyr` to add a confidence interval as two columns, call them `lower` and `upper`, to the object `poll`. Then use `select` to show the `pollster`, `enddate`, `x_hat`,`lower`, `upper` variables. Hint: define temporary columns `x_hat` and `se_hat`. 
-
-3. The final tally for the popular vote was Clinton 48.2%	and Trump 46.1%. Add a column, call it `hit`, to the previous table stating if the confidence interval included the true proportion $p=0.482$ or not. 
-
-
-4. For the table you just created, what proportion of confidence intervals included $p$?
-
-
-5. If these confidence intervals are constructed correctly, and the theory holds up, what proportion should include $p$?
-
-
-6. A much smaller proportion of the polls than expected produce confidence intervals containing $p$. If you look closely at the table, you will see that most polls that fail to include $p$ are underestimating. The reason for this is undecided voters, individuals polled that do not yet know who they will vote for or do not want to say. Because, historically, undecideds divide evenly between the two main candidates on election day, it is more informative to estimate the spread or the difference between the proportion of two candidates $d$, which in this election was $0.482 - 0.461 = 0.021$. Assume that there are only two parties and that $d = 2p - 1$, define:
-
-    ```{r, message=FALSE, comment=FALSE}
-    polls <- polls_us_election_2016 %>% 
-      filter(enddate >= "2016-10-31" & state == "U.S.")  %>%
-      mutate(d_hat = rawpoll_clinton / 100 - rawpoll_trump / 100)
-    ```
-
-    and re-do exercise 1, but for the difference.
-
-
-7. Now repeat exercise 3, but for the difference.
-
-
-8. Now repeat exercise 4, but for the difference.
-
-
-9. Although the proportion of confidence intervals goes up substantially, it is still lower that 0.95. In the next chapter, we learn the reason for this. To motivate this, make a plot of the error, the difference between each poll's estimate and the actual $d=0.021$. Stratify by pollster.
-
-10. Re-do the plot that you made for exercise 9, but only for pollsters that took five or more polls.
-
 
 

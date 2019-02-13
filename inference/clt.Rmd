@@ -1,4 +1,4 @@
-# Central Limit Theorem in practice {#clt}
+## Central Limit Theorem in practice {#clt}
 
 The CLT tells us that the distribution function for a sum of draws is approximately normal. We also learned that dividing a normally distributed random variable by a constant is also a normally distributed variable. This implies that the distribution of $\bar{X}$ is approximately normal. 
 
@@ -32,8 +32,8 @@ In statistics textbooks, we use a little hat to denote estimates. The estimate c
 Now we continue with our calculation, but dividing by $\hat{\mbox{SE}}(\bar{X})=\sqrt{\bar{X}(1-\bar{X})/N})$ instead. In our first sample we had 12 blue and 13 red so $\bar{X} = 0.48$ and our estimate of standard error is: 
 
 ```{r}
-X_hat <- 0.48
-se <- sqrt(X_hat*(1-X_hat)/25)
+x_hat <- 0.48
+se <- sqrt(x_hat*(1-x_hat)/25)
 se
 ```
 
@@ -77,7 +77,7 @@ In summary, the CLT tells us that our poll based on a sample size of $25$ is not
 From the table above, we see that typical sample sizes range from 700 to 3500. To see how this gives us a much more practical result, notice that if we had obtained a $\bar{X}$=0.48 with a sample size of 2,000, our standard error $\hat{\mbox{SE}}(\bar{X})$ would have been `r n<-2000;se<-sqrt(0.48*(1-0.48)/n);se`. So our result is an estimate of `48`% with a margin of error of `r round(2*se*100)`%. In this case, the result is much more informative and would make us think that there are more red balls than blue. Keep in mind, however, that this is hypothetical. We did not take a poll of 2,000 since we don't want to ruin the competition.
 
 
-## A Monte Carlo simulation
+### A Monte Carlo simulation
 
 
 Suppose we want to use a Monte Carlo simulation to corroborate the tools we have built using probability theory. To create the simulation, we would write code like this:
@@ -103,49 +103,50 @@ x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
 x_hat <- mean(x)
 ```
 
-In this particular sample, our estimate is `Xhat`. We can use that code to do a Monte Carlo simulation:
+In this particular sample, our estimate is `x_hat`. We can use that code to do a Monte Carlo simulation:
 
 ```{r}
 B <- 10000
 x_hat <- replicate(B, {
   x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
-  mean(x_hat)
+  mean(x)
 })
 ```
 
 To review, the theory tells us that $\bar{X}$ is approximately normally distributed, has expected value $p=$ `r p` and standard error $\sqrt{p(1-p)/N}$ = `r sqrt(p*(1-p)/N)`. The simulation confirms this:
 
 ```{r}
-mean(Xhat)
-sd(Xhat)
+mean(x_hat)
+sd(x_hat)
 ```
 
 A histogram and qq-plot confirm that the normal approximation is accurate as well:
 
-```{r normal-approximation-for-polls, echo=FALSE, warning=FALSE, out.width="100%", fig.height=3}
+```{r normal-approximation-for-polls, echo=FALSE, warning=FALSE, message=FALSE, out.width="100%", fig.height=3}
+library(tidyverse)
 library(gridExtra)
-p1 <- data.frame(Xhat=Xhat) %>% 
-  ggplot(aes(Xhat)) + 
+p1 <- data.frame(x_hat=x_hat) %>% 
+  ggplot(aes(x_hat)) + 
   geom_histogram(binwidth = 0.005, color="black")
-p2 <-  data.frame(Xhat=Xhat) %>% 
-  ggplot(aes(sample=Xhat)) + 
-  stat_qq(dparams = list(mean=mean(Xhat), sd=sd(Xhat))) +
+p2 <-  data.frame(x_hat=x_hat) %>% 
+  ggplot(aes(sample=x_hat)) + 
+  stat_qq(dparams = list(mean=mean(x_hat), sd=sd(x_hat))) +
   geom_abline() + 
-  ylab("Xhat") + 
+  ylab("x_hat") + 
   xlab("Theoretical normal")
 grid.arrange(p1,p2, nrow=1)
 ```
 
 Of course, in real life we would never be able to run such an experiment because we don't know $p$. But we could run it for various values of $p$ and $N$ and see that the theory does indeed work well for most values. You can easily do this by re-running the code above after changing `p` and `N`.
 
-## The spread
+### The spread
 
 The competition is to predict the spread, not the proportion $p$. However, because we are assuming there are only two parties, we know that the spread if $p - (1-p) = 2p - 1$.  As a result, everything we have done can easily be adapted to an estimate of $2p - 1$. Once we have our estimate $\bar{X}$ and $\hat{\mbox{SE}}(\bar{X})$, we estimate the spread with $2\bar{X} - 1$ and, since we are multiplying by 2, the standard error is $2\hat{\mbox{SE}}(\bar{X})$. Note that subtracting 1 does not add any variability so it does not affect the standard error. 
 
 For our 25 sample above, our estimate $p$ is `.48` with margin of error `.20` and our estimate of the spread is `0.04` with margin of error `.40`. Again, not a very useful sample size. However, the point is that once we have an estimate and standard error for $p$, we have it for the spread $2p-1$.
 
 
-## Bias: why not run a very large poll?
+### Bias: why not run a very large poll?
 
 For realistic values of $p$, say from 0.35 to 0.65, if we run a very large poll with 100,000 people, theory tells us that we would predict the election perfectly since the largest possible margin of error is around 0.3\%. Here are the calculations:
 
@@ -158,7 +159,7 @@ qplot(p, SE, geom = "line")
 
 One reason is that running such a poll is very expensive. Another possibly more important reason is that theory has its limitations. Polling is much more complicated than picking beads from an urn. Some people might lie to pollsters and others might not have phones. But perhaps the most important way an actual poll differs from an urn model is that we actually don't know for sure who is in our population and who is not. How do we know who is going to vote? Are we reaching all possible voters? Hence, even if our margin of error is very small, it might not be exactly right that our expected value is $p$. We call this bias. Historically, we observe that polls are indeed biased, although not by that much. The typical bias appears to be about 1-2%. This makes election forecasting a bit more interesting and we will talk about how to model this in a later chapter.
 
-## Exercises {-}
+### Exercises {-}
 
 1. Write an _urn model_ function that takes the proportion of Democrats $p$ and the sample size $N$ as arguments and returns the sample average if Democrats are 1s and Republicans are 0s. Call the function `take_sample`. 
 

@@ -1,12 +1,15 @@
-# Statistical models
+## Statistical models
 
 ```{r, echo=FALSE, message=FALSE}
 set.seed(2)
+img_path <- "inference/img/"
 ```
 
 "All models are wrong, but some are useful" -George E. P. Box
 
-## Poll aggregators
+In this section we will describe how statistical models were used by Fivethirtyeight, and other poll aggregotors, to improve the election forecasts power of individual polls.
+
+### Poll aggregators
  
 As we described earlier, a few weeks before the 2012 election Nate Silver was giving Obama a 90% chance of winning. How was Mr. Silver so confident? We will use a Monte Carlo simulation to illustrate the insight Mr. Silver had and others missed. To do this, we generate results for 12 polls taken the week before the election. We mimic sample sizes from actual polls and construct and report 95\% confidence intervals for each of the 12 polls. We save the results from this simulation in a data frame and add a poll ID column.
 
@@ -65,9 +68,14 @@ Once we have an estimate of $d$, we can construct an estimate for the proportion
 
 Thus, we can predict that the spread will be `r round(d_hat*100,1)` plus or minus `r round(moe*100 ,1)`, which not only includes the actual result we eventually observed on election night, but is quite far from including 0. Once we combine the 12 polls, we become quite certain that Obama will win the popular vote.
 
-```{r confidence-coverage-2008-election,echo=FALSE}
-polls2 <- rbind(polls,c(13, d_hat, d_hat-moe, d_hat+moe, sum(polls$sample_size)))
-polls2[,1]<-as.character(polls2[,1]);polls2[13,1] <- "Avg"
+```{r confidence-coverage-2008-election, echo=FALSE}
+p_hat <- (1+d_hat)/2
+moe <- 2*1.96*sqrt(p_hat*(1-p_hat)/sum(polls$sample_size))
+new_row <- data_frame(d_hat, d_hat-moe, d_hat+moe, sum(polls$sample_size),13)
+names(new_row) <- names(polls)
+polls2 <- bind_rows(polls, new_row)
+polls2$poll<-as.character(polls2$poll);
+polls2$poll[13] <- "Avg"
 polls2$col <- as.character(c(rep(2,12),1))
 ggplot(polls2, aes(poll, estimate, ymin=low, ymax=high, color=col)) + 
   geom_hline(yintercept = 0) + 
@@ -84,7 +92,7 @@ Since the 2008 elections, other organizations have started their own election fo
 
 
 ```{r, echo=FALSE, out.width="100%"}
-knitr::include_graphics("inference/img/pollster-2016-predictions.png")
+knitr::include_graphics(file.path(img_path, "pollster-2016-predictions.png"))
 ```
 
 (Source: [New York Times](https://www.nytimes.com/interactive/2016/upshot/presidential-polls-forecast.html))
@@ -96,14 +104,14 @@ Although not nearly as interesting as predicting the electoral college, for illu
 
 
 ```{r, echo=FALSE}
-knitr::include_graphics("inference/img/popular-vote-538.png")
+knitr::include_graphics(file.path(img_path, "popular-vote-538.png"))
 ```
 
 (Source: [FiveThirtyEight](https://projects.fivethirtyeight.com/2016-election-forecast/))
 
 We introduce actual data from the 2016 US presidential election to show how models are motivated and built to produce these predictions.
 
-## Poll data
+### Poll data
 
 We use public polling data organized by FiveThirtyEight for the 2016 presidential election. The data is included as part of of the __dslabs__ package:
 
@@ -157,7 +165,7 @@ polls %>%
 
 The data does not appear to be normally distributed and the standard error appears to be larger than `r moe`. The theory is not quite working here.
 
-## Pollster bias
+### Pollster bias
 
 Notice that various pollsters are involved and some are taking several polls a week:
 
@@ -188,7 +196,7 @@ is between 0.018 and 0.033, which agrees with the within poll variation we see. 
 In the following section, rather than use the urn model theory, we are instead going to develop a data-driven model. 
 
 
-## A data driven model {#data-driven-model}
+### A data driven model {#data-driven-model}
 
 For each pollster, let's collect their last reported result before the election:
 
@@ -244,7 +252,7 @@ Our confidence interval is wider now since it incorporates the pollster variabil
 
 Are we now ready to declare a probability of Clinton winning the popular vote? Not yet. In our model $d$ is a fixed parameter so we can't talk about probabilities. To provide probabilities, we will need to learn about Bayesian statistics.
 
-## Exercises {-}
+### Exercises {-}
 
 1. We have been using urn models to motivate the use of probability models. Most data science applications are not related to data obtained from urns. More common are data that come from individuals. The reason probability plays a role here is because the data come from a random sample. The random sample is taken from a population and the urn serves as an analogy for the population. 
 
