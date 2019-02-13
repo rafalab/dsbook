@@ -1,8 +1,8 @@
-# Random variables
+## Random variables
 
 Random variables are numeric outcomes resulting from random processes. We can easily generate random variables using some of the simple examples we have shown. For example, define `X` to be 1, if a bead is blue and red otherwise.
 
-```{r,echo=FALSE, message=FALSE}
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 dslabs::ds_theme_set()
 set.seed(1)
@@ -26,7 +26,7 @@ Sometimes it's 1 and sometimes it's 0.
 In data science, we often deal with data that is affected by chance in some way: the data comes from a random sample, the data is affected by measurement error or the data measures some outcome that is random in nature. Being able to quantify the uncertainty introduced by randomness is one of the most important jobs of a data analysts. Statistical inference offers a framework, as well as several practical tools, for doing this. The first step is to learn how to mathematically describe random variables. We start with games of chance.
 
 
-## Sampling models
+### Sampling models
 
 Many data generation procedures, those that produce the data we study, can be modeled quite well as draws from a urn. For instance, we can model the process of polling likely voters as drawing 0s (Republicans) and 1s (Democrats) from an urn containing the 0 and 1 code for all likely voters. In epidemiological studies, we often assume that the subjects in our study are a random sample from the population of interest. The data related to a specific outcome can be modeled as a random sample from an urn containing the outcome for the entire population of interest. Similarly, in experimental research, we often assume that the individual organisms we are studying, for example worms, flies, or mice, are a random sample from a larger population. Randomized experiments can also be modeled by draws from an urn given the way individuals are assigned into groups: when getting assigned, you draw your group at random. Sampling models are therefore ubiquitous in data science. Casino games offer a plethora of examples of real world situations in which sampling models are used to answer specific questions. We will therefore start with such examples.
 
@@ -61,7 +61,7 @@ S
 ```
 
 
-## The probability distribution of a random variable
+### The probability distribution of a random variable
 
 If you run the code above, you see that $S$ changes every time. This is, of course, because $S$ is a **random variable**. The probability distribution of a random variable tells us the probability of the observed value falling at any given interval. So, for example, if we want to know the probability that we lose money, we are asking the probability that $S$ is in the interval $S<0$. 
 
@@ -143,7 +143,7 @@ For the details of the binomial distribution, you can consult any basic probabil
 Here we do not cover these details. Instead, we will discuss an incredibly useful approximation provided by mathematical theory that applies generally to sums and averages of draws from any urn: the Central Limit Theorem (CLT).
 
 
-## Distributions versus probability distributions
+### Distributions versus probability distributions
 
 Before we continue, let's make an important distinction and connection between the distribution of a list of numbers and a probability distribution. In the visualization chapter, we described how any list of numbers $x_1,\dots,x_n$ has a distribution. The definition is quite straightforward. We define $F(a)$ as the function that tells us what proportion of the list is less than or equal to $a$. Because they are useful summaries when the distribution is approximately normal, we define the average and standard deviation. These are defined with a straightforward operation of the vector containing the list of numbers `x`:
 
@@ -158,18 +158,18 @@ However, if $X$ is defined by drawing from an urn with numbers in it, then there
 
 Another way to think about it that does not involve an urn is to run a Monte Carlo simulation and generate a very large list of outcomes of $X$. These outcomes are a list of numbers. The distribution of this list will be a very good approximation of the probability distribution of $X$. The longer the list, the better the approximation. The average and standard deviation of this list will approximate the expected value and standard error of the random variable.
 
-## Notation for random variables
+### Notation for random variables
 
 In statistical textbooks, upper case letters are used to denote random variables and we follow this convention here. Lower case letters are used for observed values. You will see some notation that includes both. For example, you will see events defined as $X \leq x$. Here $X$ is a random variable, making it a random event, and $x$ is an arbitrary value and not random. So, for example, $X$ might represent the number on a die roll and $x$ will represent an actual value we see 1, 2, 3, 4, 5 or 6. So in this case, the probability of $X=x$ is 1/6 regardless of the observed value $x$. This notation is a bit strange because, when we ask questions about probability, $X$ is not an observed quantity. Instead, it's a random quantity that we will see in the future. We can talk about what we expect it to be, what values are probable, but not what it is. But once we have data, we do see a realization of $X$. So data scientists talk of what could have been after we see what actually happened. 
 
-## Central Limit Theorem
+### Central Limit Theorem
 
 The Central Limit Theorem (CLT) tells us that when the number of draws, also called the _sample size_, is large, the probability distribution of the sum of the independent draws is approximately normal. Because sampling models are used for so many data generation processes, the CLT is considered one of the most important mathematical insights in history.
 
 Previously, we discussed that if we know that the distribution of a list of numbers is approximated by the normal distribution, all we need to describe the list are the average and standard deviation. We also know that the same applies to probability distributions. If a random variable has a probability distribution that is approximated with the normal distribution, then all we need to describe the probability distribution are the average and standard deviation, referred to as the expected value and standard error.
 
 
-## The expected value and standard error
+### The expected value and standard error
 
 We have described sampling models for draws. We will now go over the mathematical theory that lets us approximate the probability distributions for the sum of draws. Once we do this, we will be able to help the casino predict how much money they will make. The same approach we use for the sum of draws will be useful for describing the distribution of averages and proportion which we will need to understand how polls work.
 
@@ -244,7 +244,7 @@ As a result, when 1,000 people bet on red, the casino is expected to win \$50 wi
 
 **Advanced note**: Before continuing we should point out that exact probability calculations for the casino winnings can be performed with the binomial distribution. However, here we focus on the CLT which can be generally applied to sums of random variables in a way that the binomial distribution can't.
 
-## Central Limit Theorem approximation
+### Central Limit Theorem approximation
 
 We previously ran this Monte Carlo simulation:
 
@@ -287,7 +287,7 @@ which is also in very good agreement with our Monte Carlo result:
 mean(S < 0)
 ```
 
-## Statistical properties of averages
+### Statistical properties of averages
 
 There are serveal useful mathematical results that we used above and often employ when working with data. We list them below.
 
@@ -347,22 +347,20 @@ $$
 5. If $X$ is a normally distributed random variable, then if $a$ and $b$ are non-random constants, $aX + b$ is also a normally distributed random variable. All we are doing is changing the units of the random variable by multiplying by $a$, then shifting the center by $b$. 
 
 
-### Why we use $\mu$ and $\sigma$ {-}
+Note that statistical textbooks use the Greek letters $\mu$ and $\sigma$ to denote the expected value and standard error respectively. This is because $\mu$ is the Greek letter for $m$, the first letter of _mean_, which is another term used for expected value. Similarly, $\sigma$ is the Greek letter for $s$, the first letter of standard error. 
 
-Statistical textbooks use the Greek letters $\mu$ and $\sigma$ to denote the expected value and standard error respectively. This is because $\mu$ is the Greek letter for $m$, the first letter of _mean_, which is another term used for expected value. Similarly, $\sigma$ is the Greek letter for $s$, the first letter of standard error. 
-
-## Law of large numbers
+### Law of large numbers
 
 An important implication of the final result is that the standard error of the average becomes smaller and smaller as $n$ grows larger. When $n$ is very large, then the standard error is practically 0 and the average of the draws converges to the average of the urn. This is known in statistical textbooks as the law of large numbers or the law of averages.
 
 
-## Misinterpreting law of averages
+### Misinterpreting law of averages
 
 The law of averages is sometimes misinterpreted. For example, if you toss a coin 5 times and see a head each time, you might hear someone argue that the next toss is probably a tail because of the law of averages: on average we should see 50\% heads and 50\% tails. A similar argument would be to say that red "is due" on the roulette wheel after seeing black come up five times in a row. These events are independent so the chance of a coin landing heads is 50\% regardless of the previous 5. This is also the case for the roulette outcome. The law of averages applies only when the number of draws is very large and not in small samples. After a million tosses, you will definitely see about 50\% heads regardless of the outcome of the first five tosses. 
 
 Another funny misuse of the law of averages is in sports when TV sportscasters predict a player is about to succeed because they have failed a few times in a row.
 
-## How large is large in CLT?
+### How large is large in CLT?
 
 The CLT works when the number of draws is large. But large is a relative term. In many circumstances as few as 30 draws is enough to make the CLT useful. In some specific instances, as few as 10 is enough. However, these should not be considered general rules. Note, for example, that when the probability of success is very small, we need larger sample sizes. 
 
@@ -371,7 +369,7 @@ By way of illustration, let's consider the lottery. In the lottery, the chances 
 You can examine the properties of the Poisson distribution using `dpois` and `ppois`. You can generate random variables following this distribution with `rpois`. However, we do not cover the theory here. You can learn about the Poisson distribution in any probability textbook and even [Wikipedia](https://en.wikipedia.org/wiki/Poisson_distribution).
 
 
-## Population SD versus the sample SD
+### Population SD versus the sample SD
 
 The standard deviation of a list `x` (we use heights as an example) is defined as the square root of the average of the squared differences:
 
@@ -408,7 +406,7 @@ You can see that this is the case by typing:
 
 ```{r}
 n <- length(x)
-s-sd(x)*sqrt((N-1)/N)
+s-sd(x)*sqrt((n-1) / n)
 ```
 
 For all the theory discussed here, you need to compute the actual standard deviation as defined:
@@ -419,7 +417,7 @@ sqrt(mean((x-m)^2))
 
 So be careful when using the `sd` function in R. However, keep in mind that throughout the book we sometimes use the `sd` function when we really want the actual SD. This is because when the list size is big, these two are practically equivalent since $\sqrt{(N-1)/N}$ is close to 1.
 
-## Exercises {-}
+### Exercises {-}
 
 
 1. In American Roulette you can also bet on green. There are 18 reds, 18 blacks and 2 greens (0 and 00). What are the chances the green comes out?

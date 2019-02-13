@@ -1,8 +1,8 @@
-# Discrete probability
+## Discrete probability
 
 We start by covering some basic principles related to categorical data. The subset of probability is referred to as _discrete probability_. It will help us understand the probability theory we will later introduce for numeric and continuous data, which is much more common in data science applications. Discrete probability is more useful in card games and therefore we use these as examples.
 
-## Relative frequency
+### Relative frequency
 
 The word probability is used in everyday language. Answering questions about probability is often hard, if not impossible. Here we discuss a mathematical definition of _probability_ that does permit us to give precise answers to certain questions. 
 
@@ -10,14 +10,14 @@ For example, if I have 2 red beads and 3 blue beads inside an [urn](https://en.w
 
 A more tangible way to think about the probability of an event is as the proportion of times the event occurs when we repeat the experiment over and over, independently, and under the same conditions. 
 
-## Notation
+### Notation
 
 We use the notation $\mbox{Pr}(A)$ to denote the probability of event $A$ happening. We use the very general term _event_ to refer to things that can happen when something occurs by chance. In our previous example, the event was "picking a red bead". In a political poll in which we call 100 likely voters at random, an example of an event is "calling 48 Democrats and 52 Republicans".
 
 In data science applications, we will often deal with continuous variables. These events will often be things like "is this person taller than 6 feet". In this case, we write events in a more mathematical form: $X \geq 6$. We will see more of these examples later. Here we focus on categorical data.
 
 
-## Monte Carlo simulations
+### Monte Carlo simulations
 
 Computers provide a way to actually perform the simple random experiment described above: pick a bead at random from a bag that contains three blue beads and two red ones. Random number generators permit us to mimic the process of picking at random. 
 
@@ -62,7 +62,7 @@ The numbers above are the estimated probabilities provided by this Monte Carlo s
 
 Although this is a simple and not very useful example, we will use Monte Carlo simulations to estimate probabilities in cases in which it is harder to compute the exact ones. Before delving into more complex examples, we use simple ones to demonstrate the computing tools available in R.
 
-## Setting the random seed
+### Setting the random seed
 
 Before we continue, we will briefly explain the following important line of code:
 
@@ -70,7 +70,7 @@ Before we continue, we will briefly explain the following important line of code
 set.seed(1986) 
 ```
 
-Throughout this book, we use random number generators. This implies that many of the results presented can actually change by chance, which then suggests that a frozen version of the book may show a different result than what you obtain when you try to code as shown in the book. This is actually fine since the results are random and change from time to time. However, if you want to to ensure that results are exactly the same every time you run them, you can set R's random number generation seed to a specific number. Above we set it to 1. 
+Throughout this book, we use random number generators. This implies that many of the results presented can actually change by chance, which then suggests that a frozen version of the book may show a different result than what you obtain when you try to code as shown in the book. This is actually fine since the results are random and change from time to time. However, if you want to to ensure that results are exactly the same every time you run them, you can set R's random number generation seed to a specific number. Above we set it to 1986. We want to avoid using the same seed everytime. A popular way to pick the seed is the year - month - day. For exmaple, we picked 1986 on December 20, 2018: $2018 - 12 - 20 = 1986$. 
 
 ```{r,eval=FALSE}
 ?set.seed
@@ -107,7 +107,7 @@ prop.table(table(events))
 
 Not surprisingly, we get results very similar to those previously obtained with `replicate`.
   
-## Probability distributions
+### Discrete probability distributions
 
 Defining a distribution for categorical outcomes is relatively straightforward. We simply assign a probability to each category. In cases that can be thought of as beads in an urn, for each bead type, their proportion defines the distribution. 
 
@@ -123,7 +123,9 @@ $$
 \mbox{Pr}(\mbox{picking a Green})=0.02
 $$
 
-## Independence
+
+
+### Independence
 
 We say two events are independent if the outcome of one does not affect the other. The classic example are coin tosses. Every time we toss a fair coin, the probability of seeing heads is 1/2 regardless of what previous tosses have revealed. The same is true when we pick beads from an urn with replacement. In the example above, the probability of red is 0.40 regardless of previous draws. 
 
@@ -147,7 +149,7 @@ x[2:5]
 
 would you still guess blue? Of course not. Now you know that the probability of red is 1 since the only beed left is red. The events are not independent so the probabilities change.
 
-## Conditional probabilities
+### Conditional probabilities
 
 When events are not independent, _conditional probabilities_ are useful. We already saw an example of a conditional probability: we computed the probability that a second dealt card is a King given that the first was a King. In probability, we use the following notation:
 
@@ -165,7 +167,7 @@ $$
 
 This is the mathematical way of saying: the fact that $B$ happened does not affect the probability of $A$ happening. In fact, this can be considered the mathematical definition of independence.
 
-## Multiplication rule
+### Multiplication rule
 
 If we want to know the probability of two events, say $A$ and $B$, occurring, we can use the multiplication rule:
 
@@ -182,7 +184,7 @@ $$
 \mbox{Pr}(A \mbox{ and } B \mbox{ and } C) = \mbox{Pr}(A)\mbox{Pr}(B \mid A)\mbox{Pr}(C \mid A \mbox{ and } B)
 $$
 
-### Multiplication rule under indepedence {-}
+### Multiplication rule under indepedence
 
 When we have independent events, then the multiplication rule becomes simpler:
 
@@ -205,7 +207,27 @@ $$
 
 To illustrate how we use these formulas and concepts in practice, we will use several examples related to card games.
 
-## Combinations and permutations
+### Addition rule
+
+The addition rule tells us that:
+
+$$
+\mbox{Pr}(A \mbox{ or } B) = \mbox{Pr}(A) + \mbox{Pr}(B) - \mbox{Pr}(A \mbox{ and } B)
+$$
+
+This rule is intuitive: think of a Venn diagram. If we simply add the probabilities, we count the intersection twice so we need to substract one instance.
+
+```{r venn-diagram-addition-rule, echo=FALSE, warning=FALSE, message=FALSE}
+library(VennDiagram)
+grid.newpage()
+tmp <- draw.pairwise.venn(22, 20, 11, category = c("A", "B"), 
+                   lty = rep("blank", 2), 
+                   fill = c("light blue", "pink"), 
+                   alpha = rep(0.5, 2),  
+                   cat.dist = rep(0.025, 2), cex=0)
+```
+
+### Combinations and permutations
 
 In our very first example we imagined an urn with five beads. As a reminder, to compute the probability distribution of one draw, we simply listed out all the possibilities. There were 5 and so then, for each event, we counted how many of these possibilities were associated with the event. The resulting probability of choosing a blue bead is 3/5 because out of the five possible outcomes, three were blue.
 
@@ -342,7 +364,7 @@ mean((hands[,1] %in% aces & hands[,2] %in% facecard) |
 ```
 
 
-### Monte Carlo example {-}
+### Monte Carlo example 
 
 Instead of using `combinations` to deduce the exact probability of a Natural 21, we can use a Monte Carlo to estimate this probability. In this case, we draw two cards over and over and keep track of how many 21s we get. We can use the function sample to draw two cards without replacements:
 
@@ -383,7 +405,7 @@ results <- replicate(B, blackjack())
 mean(results)
 ```
 
-## Birthday problem 
+### Birthday problem example
 
 Suppose you are in a classroom with 50 people. If we assume this is a randomly selected group of 50 people, what is the chance that at least two people have the same birthday? Although it is somewhat advanced, we can deduce this mathematically. We will do this later. Here we use a Monte Carlo simulation. For simplicity, we assume nobody was born on February 29. This actually doesn't change the answer much. 
 
@@ -450,7 +472,8 @@ prob <- sapply(n, compute_prob)
 
 We can now make a plot of the estimated probabilities of two people having the same birthday in a group of size $n$:
 
-```{r birthday-problem-mc-probabilities}
+```{r birthday-problem-mc-probabilities, warning=FALSE, message=FALSE}
+library(tidyverse)
 prob <- sapply(n, compute_prob)
 qplot(n, prob)
 ```
@@ -482,7 +505,7 @@ qplot(n, prob) +
 This plot shows that the Monte Carlo simulation provided a very good estimate of the exact probability. Had it not been possible to compute the exact probabilities, we would have still been able to accurately estimate the probabilities.
 
 
-## How many Monte Carlo experiments are enough
+### How many Monte Carlo experiments are enough
 
 In the examples above, we used $B=10,000$ Monte Carlo experiments. It turns out that this provided very accurate estimates. But in more complex calculations, 10,000 may not nearly enough. Also, for some calculations, 10,000 experiments might not be computationally feasible. In practice, we won't know what the answer is so we won't know if our Monte Carlo estimate is accurate. We know that the larger $B$, the better the approximation. But how big do we need it to be? This is actually a challenging question and answering it often requires advanced theoretical statistics training. 
 
@@ -501,33 +524,8 @@ qplot(log10(B), prob, geom = "line")
 In this plot, we can see that the values start to stabilize; that is, they vary less than .01, around 1000. Note that the exact probability, which we know in this case, is `r eprob[25]`. 
 
 
-## Addition rule
 
-Another way to compute the probability of a Natural 21 is to notice that it is the probability of an Ace followed by a face card or a face card followed by an Ace. Here we use the addition rule:
-
-$$
-\mbox{Pr}(A \mbox{ or } B) = \mbox{Pr}(A) + \mbox{Pr}(B) - \mbox{Pr}(A \mbox{ and } B)
-$$
-
-This rule is intuitive: think of a Venn diagram. If we simply add the probabilities, we count the intersection twice so we need to substract one instance.
-
-```{r venn-diagram-addition-rule, echo=FALSE, warning=FALSE, message=FALSE}
-library(VennDiagram)
-grid.newpage()
-tmp <- draw.pairwise.venn(22, 20, 11, category = c("A", "B"), 
-                   lty = rep("blank", 2), 
-                   fill = c("light blue", "pink"), 
-                   alpha = rep(0.5, 2),  
-                   cat.dist = rep(0.025, 2), cex=0)
-```
-
-In the case of a Natural 21, the intersection is empty since both hands can't happen simultaneously. The probability of an Ace followed by a face card is $1/13 \times 16/51$ and the probability of a face card followed by an Ace is $16/52 \times 4/51$. These two are actually the same, which makes sense due to symmetry. In any case, we get the same result using the addition rule:
-
-```{r}
-1/13*16/51 + 16/52*4/51 + 0
-```
-
-## Monty Hall problem
+### Monty Hall problem example
 
 In the 1970s, there was a game show called "Let's Make a Deal" and Monty Hall was the host. At some point in the game, contestants were asked to pick one of three doors. Behind one door there was a prize. The other doors had a goat behind them to show the contestant they had lost. If the contestant did not pick the prize door on his or her first try, Monty Hall would open one of the two remaining doors and show the contestant there was no prize. Then he would ask "Do you want to switch doors?" What would you do?
 
@@ -570,7 +568,7 @@ mean(switch)
 The Monte Carlo estimate confirms the 2/3 calculation. This helps us gain some insight by showing that we are removing a door, `show`, that is definitely not a winner from our choices. We also see that unless we get it right when we first pick, you win: 1 - 1/3 = 2/3. 
 
 
-## Exercises {-}
+### Exercises {-}
 
 
 1. One ball will be drawn at random from a box containing: 3 cyan balls, 5 magenta balls, and 7 yellow balls. What is the probability that the ball will be cyan?
@@ -639,5 +637,4 @@ celtic_wins <- sample(c(0,1), 4, replace = TRUE, prob = c(0.6, 0.4))
       mean(result)
     }
     ```
-    
-
+ 

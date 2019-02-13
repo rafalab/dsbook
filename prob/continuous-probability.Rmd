@@ -1,4 +1,4 @@
-# Continuous probability
+## Continuous probability
 
 Earlier, we explained why when summarizing a list of numeric values, such as heights, it is not useful to construct a distribution that defines a proportion to each possible outcome. For example, if we measure every single person in a very large population of size $n$ with extremely high precision, since no two people are exactly the same height, we need to assign the proportion $1/n$ to each observed value and attain no useful summary at all. Similarly, when defining probability distributions, it is not useful to assign a very small probability to every single height.
 
@@ -6,7 +6,7 @@ Just as when using distributions to summarize numeric data, it is much more prac
 
 We previously described empirical cumulative distribution function (eCDF) as a basic summary of a list of numeric values. As an example, we earlier defined the height distribution for adult male students. Here, we define the vector $x$ to contain these heights:
 
-```{r,  message=FALSE}
+```{r,  message=FALSE, warning=FALSE}
 library(tidyverse)
 library(dslabs)
 data(heights)
@@ -36,7 +36,7 @@ F(b)-F(a)
 Because we can compute the probability for any possible event this way, the cumulative probability function defines the probability distribution for picking a height at random from our vector of heights `x`. 
 
 
-## Theoretical distribution 
+### Theoretical distribution 
 
 In the data visualization chapter, we introduced the normal distribution as a useful approximation to many naturally occurring distributions, including that of height. The cumulative distribution for the normal distribution is defined by a mathematical formula which in R can be obtained with the function `pnorm`. We say that a random quantity is normally distributed with average `m` and standard deviation `s`, if its probability distribution is defined by:
 
@@ -52,7 +52,7 @@ s <- sd(x)
 1 - pnorm(70.5, m, s)
 ```
 
-## Theoretical distributions as approximations
+### Theoretical distributions as approximations
 
 The normal distribution is derived mathematically: we do not need data to define it. For practicing data scientists, almost everything we do involves data. Data is always, technically speaking, discrete. For example, we could consider our height data categorical with each specific height a unique category. The probability distribution is defined by the proportion of students reporting each height. Here is a plot of that probability distribution:
 
@@ -94,7 +94,7 @@ pnorm(70.9, m, s) - pnorm(70.1, m, s)
 
 In general, we call this situation _discretization_. Although the true height distribution is continuous, the reported heights tend to be more common at discrete values, in this case, due to rounding. As long as we are aware of how to deal with this reality, the normal approximation can still be a very useful tool.
 
-## The probability density
+### The probability density
 
 For categorical distributions, we can define the probability of a category. For example, a roll of a die, let's call it $X$, can be 1,2,3,4,5 or 6. The probability of 4 is defined as:
 
@@ -139,7 +139,7 @@ The curve you see is the probability density for the normal distribution. In R, 
 
 Although it may not be immediately obvious why knowing about probability densities is useful, understanding this concept will be essential to those wanting to fit models to data for which predefined functions are not available.
 
-## Monte Carlo simulations for continuous variables
+### Monte Carlo simulations for continuous variables
 
 R provides functions to generate normally distributed outcomes. Specifically, the `rnorm` function takes three arguments: size, average (defaults to 0), and standard deviation (defaults to 1) and produces random numbers. Here is an example of how we could generate data that looks like our reported heights:
 
@@ -153,7 +153,6 @@ simulated_heights <- rnorm(n, m, s)
 Not surprisingly, the distribution looks normal:
 
 ```{r simulated-heights, echo=FALSE}
-ds_theme_set()
 data.frame(simulated_heights = simulated_heights) %>%
   ggplot(aes(simulated_heights)) + 
   geom_histogram(color="black", binwidth = 1) 
@@ -180,14 +179,13 @@ mean(tallest >= 7*12)
 Here is the resulting distribution:
 
 ```{r simulated-tallest-height, echo=FALSE}
-ds_theme_set()
 data.frame(tallest = tallest) %>% ggplot(aes(tallest)) + 
   geom_histogram(color="black", binwidth = 1) 
 ```
 
 Note that it does not look normal.
 
-## Other continuous distributions
+### Other continuous distributions
 
 The normal distribution is not the only useful theoretical distribution.  Other continuous distributions that we may encounter are the student-t, chi-squared, exponential, gamma, beta, and beta-binomial. R provides functions to compute the density, the quantiles, the cumulative distribution functions and to generate Monte Carlo simulations. R uses a convention that lets us remember the names, namely using the letters `d`, `q`, `p` and `r` in front of a shorthand for the distribution. We have already seen the functions `dnorm`, `pnorm` and `rnorm` for the normal distribution. The functions `qnorm` gives us the quantiles. We can therefore draw a distribution like this:
 
@@ -200,7 +198,7 @@ data.frame(x, f = dnorm(x)) %>%
 
 For the student-t, the shorthand `t` is used so the functions are `dt` for the density, `qt` for the quantiles, `pt` for the cumulative distribution function, and `rt` for Monte Carlo simulation.
 
-## Exercises {-}
+### Exercises {-}
 
 1. Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is 5 feet or shorter? 
 
