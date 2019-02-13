@@ -1,3 +1,4 @@
+rm(list = ls(all = TRUE))
 library(maps)## load maps first to avoid map conflict with purrr
 library(MASS) ## load MASS and matrixStats first to avoid select and count conflict
 library(matrixStats) 
