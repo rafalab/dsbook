@@ -61,7 +61,7 @@ participants. Basically, we construct an estimate of the spread, let's call it $
 ```{r}
 d_hat <- polls %>% 
   summarize(avg = sum(estimate*sample_size) / sum(sample_size)) %>% 
-  .$avg
+  pull(avg)
 ```
 
 Once we have an estimate of $d$, we can construct an estimate for the proportion voting for Obama, which we can then use to estimate the standard error. Once we do this, we see that our margin of error is `r p_hat <- (1+d_hat)/2; moe <- 2*1.96*sqrt(p_hat*(1-p_hat)/sum(polls$sample_size)); moe`. 
@@ -252,7 +252,7 @@ Our confidence interval is wider now since it incorporates the pollster variabil
 
 Are we now ready to declare a probability of Clinton winning the popular vote? Not yet. In our model $d$ is a fixed parameter so we can't talk about probabilities. To provide probabilities, we will need to learn about Bayesian statistics.
 
-### Exercises {-}
+### Exercises 
 
 1. We have been using urn models to motivate the use of probability models. Most data science applications are not related to data obtained from urns. More common are data that come from individuals. The reason probability plays a role here is because the data come from a random sample. The random sample is taken from a population and the urn serves as an analogy for the population. 
 
