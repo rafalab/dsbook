@@ -2,7 +2,7 @@
 
 
 ```{r, echo=FALSE}
-img_path <- "wrangling/img/"
+img_path <- "img";"wrangling/img/"
 ```
 
 One of the most common data wrangling challenges involves extracting numeric data contained in character strings and converting them into the numeric representations required to make plots, compute summaries or fit models in R. Also common is processing unorganized text into meaningful variable names or categorical variables. Many of the string processing challenges a data scientist faces are unique and often unexpected. It is therefore quite ambitious to write a comprehensive section on this topic. Here we use a series of case studies that help us demonstrate how string processing is a necessary step for many data wrangling challenges. Specifically, we describe the process of converting the not yet shown original _raw_ data from which we extracted the `murders`, `heights`, and `research_funding_rates` example into the data frames we have studied in this book. 
@@ -396,15 +396,22 @@ str_detect(s, pattern)
 
 We take this opportunity to introduce the `str_view` function, which is helpful for troubleshooting as it shows us the first match for each string:
 
-```{r}
+```{r, eval=FALSE}
 str_view(s, pattern)
+```
+```{r, echo=FALSE}
+knitr::include_graphics(file.path(img_path,"str_view-1.png"))
 ```
 
 and `str_view_all` shows us all the matches, so `3'2` has two matches and `5'10` has three.
 
-```{r}
+```{r, eval=FALSE}
 str_view_all(s, pattern)
 ```
+```{r, echo=FALSE}
+knitr::include_graphics(file.path(img_path,"str_view-2.png"))
+```
+
 
 There are many other special characters. We will learn some others below, but you can see most or all of them in the [cheat sheet](https://www.rstudio.com/wp-content/uploads/2016/09/RegExCheatsheet.pdf) mentioned earlier. 
 
@@ -413,9 +420,13 @@ There are many other special characters. We will learn some others below, but yo
 
 Character classes are used to define a series of characters that can be matched. We define character classes with square brackets `[]`. So, for example, if we want the pattern to match only if we have a `5` or a `6`, we use the regex `[56]`:
 
-```{r}
+```{r, eval=FALSE}
 str_view(s, "[56]")
 ```
+```{r, echo=FALSE}
+knitr::include_graphics(file.path(img_path,"str_view-3.png"))
+```
+
 
 Suppose we want to match values between 4 and 7. A common way to define character classes is with ranges.  So, for example, `[0-9]` is equivalent to `\\d`. The pattern we want is therefore `[4-7]`. 
 
@@ -438,7 +449,7 @@ What if we want a match when we have exactly 1 digit? This will be useful in our
 
 This pattern now only detects the strings with exactly one digit:
 
-```{r}
+```{r, eval=FALSE}
 pattern <- "^\\d$"
 yes <- c("1", "5", "9")
 no <- c("12", "123", " 1", "a4", "b")
@@ -446,17 +457,31 @@ s <- c(yes, no)
 str_view_all(s, pattern)
 ```
 
+```{r, echo=FALSE}
+pattern <- "^\\d$"
+yes <- c("1", "5", "9")
+no <- c("12", "123", " 1", "a4", "b")
+s <- c(yes, no)
+knitr::include_graphics(file.path(img_path,"str_view-4.png"))
+```
+
+
+
 The ` 1` does not match because it does not start with the digit but rather with a space, which is actually not easy to see.
 
 ### Quantifiers
 
 For the inches part, we can have one or two digits. This can be specified in regex with _quantifiers_. This is done by following the pattern with curly brackets containing the number of times the previous entry can be repeated. We use an example to illustrate. The pattern for one or two digits is:
 
-```{r}
+```{r, eval=FALSE}
 pattern <- "^\\d{1,2}$"
 yes <- c("1", "5", "9", "12")
 no <- c("123", "a4", "b")
 str_view(c(yes, no), pattern)
+```
+
+```{r, echo=FALSE}
+knitr::include_graphics(file.path(img_path,"str_view-5.png"))
 ```
 
 In this case, `123` does **not** match, but `12` does. So  to look for our feet and inches pattern, we can add the symbols for feet `'` and inches `"` after the digits. 
@@ -599,10 +624,13 @@ sum(str_detect(problems, pattern))
 
 To see why this is, we show some examples that expose why we don't have more matches:
 
-```{r}
+```{r, eval=FALSE}
 problems[c(2, 10, 11, 12, 15)] %>% str_view(pattern)
 ```
 
+```{r, echo=FALSE}
+knitr::include_graphics(file.path(img_path,"str_view-6.png"))
+```
 An initial problem we see immediately is that some students wrote out the words "feet" and "inches". We can see the entries that did this with the `str_subset` function:
 
 ```{r}
