@@ -136,11 +136,7 @@ This model suggests that if the number of HR is fixed at $x_2$, we observe a lin
 
 In this analysis, referred to as _multivariate regression_, you will often hear people say that the BB slope $\beta_1$ is _adjusted_ for the HR effect. If the model is correct then confounding has been accounted for. But how do we estimate $\beta_1$ and $\beta_2$ from the data? For this, we learn about linear models and least squares estimates.
 
-## Linear Models and Least Squared Estimates {#lse}
-
-Since Galton's original development, regression has become one of the most widely used tools in data science. One reason has to do with the fact that regression permits us to find relationships between two variables taking into account the effects of other variables that affect both, as we have just shown for BB, HR and runs in baseball. This has been particularly popular in fields where randomized experiments are hard to run, such as Economics and Epidemiology. 
-
-When we are not able to randomly assign each individual to a treatment or control group, confounding is particularly prevalent. For example, consider estimating the effect of eating fast foods on life expectancy using data collected from a random sample of people in a jurisdiction. Fast food consumers are more likely to be smokers, drinkers, and have lower incomes. Therefore, a naive regression model may lead to an overestimate of the negative health effect of fast food. So how do we account for confounding in practice?
+## Least Squared Estimates {#lse}
 
 We have described how if data is bivariate normal then the conditional expectations follow the regression line. The fact that the conditional expectation is a line is not an extra assumption but rather a derived result. However, in practice it is common to explicitly write down a model that describes the relationship between two or more variables using a _linear model_. 
 
@@ -555,7 +551,7 @@ We will see an example of `augment` in the next section.
 8. __Advanced__. Write a function that takes R, HR and BB as arguments and fits two linear models: `R ~ BB` and `R~BB+HR`. Then use the `do` function to obtain the `BB` for both models for each year since 1961. Then plot these against each other as a function of time.
 
 
-## Case study: Moneyball continued
+## Case study: Moneyball (continued)
 
 In trying to answer how well BB predict runs, data exploration led us to a model:
 
@@ -803,39 +799,7 @@ players %>% mutate(BB = my_scale(BB),
   arrange(desc(R_hat))
 ```
 
-## Exercises 
-
-Since the 1980s, sabermetricians have used a summary statistic different from batting average to evaluate players. They realized walks were important and that doubles, triples and HR, should be weighed more than singles. As a result, they proposed the following metric:
-
-$$
-\frac{\mbox{BB}}{\mbox{PA}} + \frac{\mbox{Singles} + 2 \mbox{Doubles} + 3 \mbox{Triples} + 4\mbox{HR}}{\mbox{AB}}
-$$
-
-They called this on-base-percentage plus slugging percentage (OPS). Although the sabermetricians probably did not use regression, here we show how this metric is close to what one gets with regression.
-
-1. Compute the OPS for each team in the 2001 season. Then plot Runs per game versus OPS.
-
-     
-2. For every year since 1961, compute the correlation between runs per game and OPS then plot these correlations as a function of year.
-
-
-
-3. Note that we can rewrite OPS as a weighted average of BB, singles, doubles, triples and HR. We know that the weight for doubles, triples, and HR are 2, 3 and 4 times that of singles. But what about BB? What is the weight for BB relative to singles. Hint: the weight for BB relative to singles will be a function of AB and PA.
-
-   
-4. Note that the weight for BB, $\frac{\mbox{AB}}{\mbox{PA}}$, will change from team to team. To see how variable it is, compute and plot this quantity for each team for each year since 1961. Then plot it again, but instead of computing it for every team, compute and plot the ratio for the entire year. Then, once you are convinced that there is not much of a time or team trend, report the overall average.
- 
-
-5. So now we know that the formula for OPS is proportional to $0.91 \times \mbox{BB} + \mbox{singles} + 2 \times \mbox{doubles} + 3 \times \mbox{triples} + 4 \times \mbox{HR}$. Let's see how these coefficients compare to those obtained with regression. Fit a regression model to the data after 1961, as done earlier: using per game statistics for each year for each team. After fitting this model, report the coefficients as weights relative to the coefficient for singles.
-
-
-6. We see that our linear regression model coefficients follow the same general trend as those used by OPS, but with slightly less weight for metrics other than singles. For each team in years after 1961, compute the OPS, the predicted runs with the regression model and compute the correlation between the two as well as the correlation with runs per game.
-
-7. We see that using the regression approach predicts runs slightly better than OPS, but not that much. However, note that we have been computing OPS and predicting runs for teams when these measures are used to evaluate players. Let's show that OPS is quite similar to what one obtains with regression at the player level. For the 1961 season and after, compute the OPS and the predicted runs from our model for each player and plot them. Use the PA per game correction we used in the previous chapter:
-
-8. What players have show the largest difference between their rank by predicted runs and OPS?
-
-## Regression fallacy
+## The regression fallacy
 
 Wikipedia defines the _sophomore slump_ as: 
 
@@ -1016,4 +980,36 @@ tidy(fit, conf.int = TRUE)
 ```
 
 The Tower of Pisa height is within the confidence interval for $\beta_0$, the initial velocity 0 is in the confidence interval for $\beta_1$ (note the p-value is larger than 0.05), and the acceleration constant is in a confidence interval for $-2 \times \beta_2$. 
+
+## Exercises 
+
+Since the 1980s, sabermetricians have used a summary statistic different from batting average to evaluate players. They realized walks were important and that doubles, triples and HR, should be weighed more than singles. As a result, they proposed the following metric:
+
+$$
+\frac{\mbox{BB}}{\mbox{PA}} + \frac{\mbox{Singles} + 2 \mbox{Doubles} + 3 \mbox{Triples} + 4\mbox{HR}}{\mbox{AB}}
+$$
+
+They called this on-base-percentage plus slugging percentage (OPS). Although the sabermetricians probably did not use regression, here we show how this metric is close to what one gets with regression.
+
+1. Compute the OPS for each team in the 2001 season. Then plot Runs per game versus OPS.
+
+     
+2. For every year since 1961, compute the correlation between runs per game and OPS then plot these correlations as a function of year.
+
+
+
+3. Note that we can rewrite OPS as a weighted average of BB, singles, doubles, triples and HR. We know that the weight for doubles, triples, and HR are 2, 3 and 4 times that of singles. But what about BB? What is the weight for BB relative to singles. Hint: the weight for BB relative to singles will be a function of AB and PA.
+
+   
+4. Note that the weight for BB, $\frac{\mbox{AB}}{\mbox{PA}}$, will change from team to team. To see how variable it is, compute and plot this quantity for each team for each year since 1961. Then plot it again, but instead of computing it for every team, compute and plot the ratio for the entire year. Then, once you are convinced that there is not much of a time or team trend, report the overall average.
+ 
+
+5. So now we know that the formula for OPS is proportional to $0.91 \times \mbox{BB} + \mbox{singles} + 2 \times \mbox{doubles} + 3 \times \mbox{triples} + 4 \times \mbox{HR}$. Let's see how these coefficients compare to those obtained with regression. Fit a regression model to the data after 1961, as done earlier: using per game statistics for each year for each team. After fitting this model, report the coefficients as weights relative to the coefficient for singles.
+
+
+6. We see that our linear regression model coefficients follow the same general trend as those used by OPS, but with slightly less weight for metrics other than singles. For each team in years after 1961, compute the OPS, the predicted runs with the regression model and compute the correlation between the two as well as the correlation with runs per game.
+
+7. We see that using the regression approach predicts runs slightly better than OPS, but not that much. However, note that we have been computing OPS and predicting runs for teams when these measures are used to evaluate players. Let's show that OPS is quite similar to what one obtains with regression at the player level. For the 1961 season and after, compute the OPS and the predicted runs from our model for each player and plot them. Use the PA per game correction we used in the previous chapter:
+
+8. What players have show the largest difference between their rank by predicted runs and OPS?
 

@@ -8,7 +8,7 @@ The word probability is used in everyday language. Answering questions about pro
 
 For example, if I have 2 red beads and 3 blue beads inside an [urn](https://en.wikipedia.org/wiki/Urn_problem) (most probability books use this archaic term, so we do too) and I pick one at random, what is the probability of picking a red one? Our intuition tells us that the answer is 2/5 or 40%. A precise definition can be given by noting that there are five possible outcomes of which two satisfy the condition necessary for the event "pick a red bead". Since each of the five outcomes has the same chance of occurring, we conclude that the probability is .4 for red and .6 for blue. 
 
-A more tangible way to think about the probability of an event is as the proportion of times the event occurs when we repeat the experiment over and over, independently, and under the same conditions. 
+A more tangible way to think about the probability of an event is as the proportion of times the event occurs when we repeat the experiment an infinite number of times, independently, and under the same conditions. 
 
 ### Notation
 
@@ -16,8 +16,25 @@ We use the notation $\mbox{Pr}(A)$ to denote the probability of event $A$ happen
 
 In data science applications, we will often deal with continuous variables. These events will often be things like "is this person taller than 6 feet". In this case, we write events in a more mathematical form: $X \geq 6$. We will see more of these examples later. Here we focus on categorical data.
 
+  
+### Probability distributions
 
-### Monte Carlo simulations
+If we know the relative frequency of the different categories, defining a distribution for categorical outcomes is relatively straightforward. We simply assign a probability to each category. In cases that can be thought of as beads in an urn, for each bead type, their proportion defines the distribution. 
+
+If we are randomly calling likely voters from a population that is 44% Democrat, 44% Republican, 10% undecided and 2% Green Party, these proportions define the probability for each group. The probability distribution is:
+
+$$
+\mbox{Pr}(\mbox{picking a Republican})=0.44\\ 
+
+\mbox{Pr}(\mbox{picking a Democrat})=0.44\\
+
+\mbox{Pr}(\mbox{picking an undecided})=0.10\\
+
+\mbox{Pr}(\mbox{picking a Green})=0.02
+$$
+
+
+## Monte Carlo simulations for categorical data
 
 Computers provide a way to actually perform the simple random experiment described above: pick a bead at random from a bag that contains three blue beads and two red ones. Random number generators permit us to mimic the process of picking at random. 
 
@@ -34,7 +51,7 @@ and then use `sample` to pick a bead at random:
 sample(beads, 1)
 ```
 
-This line of code produces one random outcome. We want to repeat this experiment "over and over", but it is impossible to repeat forever. Instead, we repeat the experiment a large enough number of times to make the results practically equivalent to repeating for ever. **This is an example of a _Monte Carlo_ simulation**. 
+This line of code produces one random outcome. We want to repeat this experiment an infinite number of times, but it is impossible to repeat forever. Instead, we repeat the experiment a large enough number of times to make the results practically equivalent to repeating for ever. **This is an example of a _Monte Carlo_ simulation**. 
 
 Much of what mathematical and theoretical statisticians study, which we do not cover in this book, relates to providing rigorous definitions of "practically equivalent" as well as studying how close a large number of experiments gets us to what happens in the limit. Later in this section, we provide a practical approach to deciding what is "large enough".
 
@@ -78,7 +95,7 @@ Throughout this book, we use random number generators. This implies that many of
 
 In the exercises, we may ask you to set the seed to assure that the results you obtain are exactly what we expect them to be. 
 
-### With and without replacement {-}
+### With and without replacement 
 
 The function `sample` has an argument that permits us to pick more than one element from the urn. However, by default, this selection occurs _without replacement_: after a bead is selected, it is not put back in the bag. Notice what happens when we ask to randomly select five beads:
 
@@ -106,26 +123,8 @@ prop.table(table(events))
 ```
 
 Not surprisingly, we get results very similar to those previously obtained with `replicate`.
-  
-### Discrete probability distributions
 
-Defining a distribution for categorical outcomes is relatively straightforward. We simply assign a probability to each category. In cases that can be thought of as beads in an urn, for each bead type, their proportion defines the distribution. 
-
-If we are randomly calling likely voters from a population that is 44% Democrat, 44% Republican, 10% undecided and 2% Green Party, these proportions define the probability for each group. The probability distribution is:
-
-$$
-\mbox{Pr}(\mbox{picking a Republican})=0.44\\ 
-
-\mbox{Pr}(\mbox{picking a Democrat})=0.44\\
-
-\mbox{Pr}(\mbox{picking an undecided})=0.10\\
-
-\mbox{Pr}(\mbox{picking a Green})=0.02
-$$
-
-
-
-### Independence
+## Independence
 
 We say two events are independent if the outcome of one does not affect the other. The classic example are coin tosses. Every time we toss a fair coin, the probability of seeing heads is 1/2 regardless of what previous tosses have revealed. The same is true when we pick beads from an urn with replacement. In the example above, the probability of red is 0.40 regardless of previous draws. 
 
@@ -149,7 +148,7 @@ x[2:5]
 
 would you still guess blue? Of course not. Now you know that the probability of red is 1 since the only beed left is red. The events are not independent so the probabilities change.
 
-### Conditional probabilities
+## Conditional probabilities
 
 When events are not independent, _conditional probabilities_ are useful. We already saw an example of a conditional probability: we computed the probability that a second dealt card is a King given that the first was a King. In probability, we use the following notation:
 
@@ -166,6 +165,8 @@ $$
 $$
 
 This is the mathematical way of saying: the fact that $B$ happened does not affect the probability of $A$ happening. In fact, this can be considered the mathematical definition of independence.
+
+## Addition and multiplication rules
 
 ### Multiplication rule
 
@@ -227,7 +228,7 @@ tmp <- draw.pairwise.venn(22, 20, 11, category = c("A", "B"),
                    cat.dist = rep(0.025, 2), cex=0)
 ```
 
-### Combinations and permutations
+## Combinations and permutations
 
 In our very first example we imagined an urn with five beads. As a reminder, to compute the probability distribution of one draw, we simply listed out all the possibilities. There were 5 and so then, for each event, we counted how many of these possibilities were associated with the event. The resulting probability of choosing a blue bead is 3/5 because out of the five possible outcomes, three were blue.
 
@@ -405,7 +406,54 @@ results <- replicate(B, blackjack())
 mean(results)
 ```
 
-### Birthday problem example
+## Examples 
+
+In this Section we described two popular examples related to discrete probability: the Monty Hall problem and the Birthday problem. We use R code to help illustrate the mathematical concepts.
+
+### Monty Hall problem
+
+In the 1970s, there was a game show called "Let's Make a Deal" and Monty Hall was the host. At some point in the game, contestants were asked to pick one of three doors. Behind one door there was a prize. The other doors had a goat behind them to show the contestant they had lost. If the contestant did not pick the prize door on his or her first try, Monty Hall would open one of the two remaining doors and show the contestant there was no prize. Then he would ask "Do you want to switch doors?" What would you do?
+
+We can use probability to show that if you stick with the original door choice, your chances of winning a prize remain 1 in 3. However, if you switch to the other door, your chances of winning double to 2 in 3! This seems counterintuitive. Many people incorrectly think both chances are 1 in 2 since you are choosing between 2 options. You can watch a detailed mathematical explanation of why this is [here](https://www.khanacademy.org/math/precalculus/prob-comb/dependent-events-precalc/v/monty-hall-problem) or read one [here](https://en.wikipedia.org/wiki/Monty_Hall_problem). Below we use a Monte Carlo simulation to see which strategy is better. Note that this code is written longer than it should be for pedagogical purposes. 
+
+Let's start with the stick strategy:
+
+```{r}
+B <- 10000
+stick <- replicate(B, {
+  doors <- as.character(1:3)
+  prize <- sample(c("car", "goat", "goat"))
+  prize_door <- doors[prize == "car"]
+  my_pick  <- sample(doors, 1)
+  show <- sample(doors[!doors %in% c(my_pick, prize_door)],1)
+  stick <- my_pick
+  stick == prize_door
+})
+mean(stick)
+```
+
+As we write the code, we note that the lines starting with `my_pick` and `show` have no influence on the last logical operation since we stick to our original choice anyway. From this we should realize that the chance is 1 in 3, what we began with.
+
+Now let's repeat the exercise, but consider the switch strategy:
+
+```{r}
+switch <- replicate(B, {
+  doors <- as.character(1:3)
+  prize <- sample(c("car", "goat", "goat"))
+  prize_door <- doors[prize == "car"]
+  my_pick  <- sample(doors, 1)
+  show <- sample(doors[!doors %in% c(my_pick, prize_door)], 1)
+  stick <- my_pick
+  switch <- doors[!doors%in%c(my_pick, show)]
+  switch == prize_door
+})
+mean(switch)
+```
+
+The Monte Carlo estimate confirms the 2/3 calculation. This helps us gain some insight by showing that we are removing a door, `show`, that is definitely not a winner from our choices. We also see that unless we get it right when we first pick, you win: 1 - 1/3 = 2/3. 
+
+
+### Birthday problem 
 
 Suppose you are in a classroom with 50 people. If we assume this is a randomly selected group of 50 people, what is the chance that at least two people have the same birthday? Although it is somewhat advanced, we can deduce this mathematically. We will do this later. Here we use a Monte Carlo simulation. For simplicity, we assume nobody was born on February 29. This actually doesn't change the answer much. 
 
@@ -505,9 +553,10 @@ qplot(n, prob) +
 This plot shows that the Monte Carlo simulation provided a very good estimate of the exact probability. Had it not been possible to compute the exact probabilities, we would have still been able to accurately estimate the probabilities.
 
 
-### How many Monte Carlo experiments are enough
+## Infinity in practice
 
-In the examples above, we used $B=10,000$ Monte Carlo experiments. It turns out that this provided very accurate estimates. But in more complex calculations, 10,000 may not nearly enough. Also, for some calculations, 10,000 experiments might not be computationally feasible. In practice, we won't know what the answer is so we won't know if our Monte Carlo estimate is accurate. We know that the larger $B$, the better the approximation. But how big do we need it to be? This is actually a challenging question and answering it often requires advanced theoretical statistics training. 
+The theory described here requires repeating experiments over and over for ever. In practice we can't do this. 
+In the examples above, we used $B=10,000$ Monte Carlo experiments and it turned out that this provided accurate estimates. The larger this number, the more accurate the estimate becomes until the approximaton is so good that your computer can't tell the difference. But in more complex calculations, 10,000 may not nearly enough. Also, for some calculations, 10,000 experiments might not be computationally feasible. In practice, we won't know what the answer is so we won't know if our Monte Carlo estimate is accurate. We know that the larger $B$, the better the approximation. But how big do we need it to be? This is actually a challenging question and answering it often requires advanced theoretical statistics training. 
 
 One practical approach we will describe here is to check for the stability of the estimate. The following is an example with the birthday problem for a group of 22 people. 
 
@@ -523,49 +572,6 @@ qplot(log10(B), prob, geom = "line")
 
 In this plot, we can see that the values start to stabilize; that is, they vary less than .01, around 1000. Note that the exact probability, which we know in this case, is `r eprob[25]`. 
 
-
-
-### Monty Hall problem example
-
-In the 1970s, there was a game show called "Let's Make a Deal" and Monty Hall was the host. At some point in the game, contestants were asked to pick one of three doors. Behind one door there was a prize. The other doors had a goat behind them to show the contestant they had lost. If the contestant did not pick the prize door on his or her first try, Monty Hall would open one of the two remaining doors and show the contestant there was no prize. Then he would ask "Do you want to switch doors?" What would you do?
-
-We can use probability to show that if you stick with the original door choice, your chances of winning a prize remain 1 in 3. However, if you switch to the other door, your chances of winning double to 2 in 3! This seems counterintuitive. Many people incorrectly think both chances are 1 in 2 since you are choosing between 2 options. You can watch a detailed mathematical explanation of why this is [here](https://www.khanacademy.org/math/precalculus/prob-comb/dependent-events-precalc/v/monty-hall-problem) or read one [here](https://en.wikipedia.org/wiki/Monty_Hall_problem). Below we use a Monte Carlo simulation to see which strategy is better. Note that this code is written longer than it should be for pedagogical purposes. 
-
-Let's start with the stick strategy:
-
-```{r}
-B <- 10000
-stick <- replicate(B, {
-  doors <- as.character(1:3)
-  prize <- sample(c("car", "goat", "goat"))
-  prize_door <- doors[prize == "car"]
-  my_pick  <- sample(doors, 1)
-  show <- sample(doors[!doors %in% c(my_pick, prize_door)],1)
-  stick <- my_pick
-  stick == prize_door
-})
-mean(stick)
-```
-
-As we write the code, we note that the lines starting with `my_pick` and `show` have no influence on the last logical operation since we stick to our original choice anyway. From this we should realize that the chance is 1 in 3, what we began with.
-
-Now let's repeat the exercise, but consider the switch strategy:
-
-```{r}
-switch <- replicate(B, {
-  doors <- as.character(1:3)
-  prize <- sample(c("car", "goat", "goat"))
-  prize_door <- doors[prize == "car"]
-  my_pick  <- sample(doors, 1)
-  show <- sample(doors[!doors %in% c(my_pick, prize_door)], 1)
-  stick <- my_pick
-  switch <- doors[!doors%in%c(my_pick, show)]
-  switch == prize_door
-})
-mean(switch)
-```
-
-The Monte Carlo estimate confirms the 2/3 calculation. This helps us gain some insight by showing that we are removing a door, `show`, that is definitely not a winner from our choices. We also see that unless we get it right when we first pick, you win: 1 - 1/3 = 2/3. 
 
 
 ## Exercises
