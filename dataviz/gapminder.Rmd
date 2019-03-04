@@ -1,6 +1,6 @@
 # Data visualization in practice {#gapminder}
 
-In this section, we will demonstrate how relatively simple __ggplot2__ code can create insightful and aesthetically pleasing plots. As motivation we will create plots that help us better understand trends in world health and economics. We will implement what we learned in Chapters \@ref(ggplot2) and \@ref(other-geometries) and learn how augment the code to perfect the plots. As we go through our case study we will describe relevant general data visualization principles and learn concepts such as __faceting__, __time series plots__, __transformations__,  and _ridge plots_.  
+In this chapter, we will demonstrate how relatively simple __ggplot2__ code can create insightful and aesthetically pleasing plots. As motivation we will create plots that help us better understand trends in world health and economics. We will implement what we learned in Chapters \@ref(ggplot2) and \@ref(other-geometries) and learn how to augment the code to perfect the plots. As we go through our case study, we will describe relevant general data visualization principles and learn concepts such as _faceting_, _time series plots_, _transformations_,  and _ridge plots_.  
 
 
 ## Case study: new insights on poverty
@@ -63,7 +63,7 @@ We see that the European countries on this list have higher child mortality rate
 
 ## Scatterplots
 
-The reason for this stems from the preconceived notion that the world is divided into two groups: the western world (Western Europe and North America), characterized by long life spans and small families, versus the developing world (Africa, Asia, and Latin America) characterized by short life spans and large families. But, does the data support this dichotomous view?
+The reason for this stems from the preconceived notion that the world is divided into two groups: the western world (Western Europe and North America), characterized by long life spans and small families, versus the developing world (Africa, Asia, and Latin America) characterized by short life spans and large families. But do the data support this dichotomous view?
 
 The necessary data to answer this question is also available in our `gapminder` table. Using our newly learned data visualization skills, we will be able to tackle this challenge.
 
@@ -112,7 +112,7 @@ filter(gapminder, year%in%c(1962, 2012)) %>%
   facet_grid(. ~ year)
 ```
 
-This plot clearly shows that the majority of countries have moved from the _developing world_ cluster to the _western world_ one. In 2012, the western versus developing world view no longer makes sense. This is particularly clear when comparing Europe to Asia, the latter which includes several countries that have made great improvements. 
+This plot clearly shows that the majority of countries have moved from the _developing world_ cluster to the _western world_ one. In 2012, the western versus developing world view no longer makes sense. This is particularly clear when comparing Europe to Asia, the latter of which includes several countries that have made great improvements. 
 
 ### `facet_wrap`
 
@@ -133,7 +133,7 @@ This plot clearly shows how most Asian countries have improved at a much faster 
 
 ### Fixed scales for better comparisons
 
-The default choice of the range of the axes is an important one. When not using `facet`, this range is determined by the data shown in the plot. When using `facet`, this range is determined by the data shown in all plots and therefore kept fixed across plots. This makes comparisons across plots much easier. For example, in the above plot, we can see that life expectancy has increased and the fertility has decreased across most countries. We see this because the cloud of points moves. This is not the case if we adjust the scales:
+The default choice of the range of the axes is important. When not using `facet`, this range is determined by the data shown in the plot. When using `facet`, this range is determined by the data shown in all plots and therefore kept fixed across plots. This makes comparisons across plots much easier. For example, in the above plot, we can see that life expectancy has increased and the fertility has decreased across most countries. We see this because the cloud of points moves. This is not the case if we adjust the scales:
 
 ```{r facet-without-fixed-scales, warning=FALSE, , out.width="100%", message = FALSE, echo=FALSE, fig.height=3}
 library(gridExtra)
@@ -164,7 +164,7 @@ gapminder %>%
 
 We see that the trend is not linear at all. Instead there is sharp drop during the 60s and 70s to below 2. Then the trend comes back to 2 and stabilizes during the 90s.
 
-When the points are regularly and densely spaced, as they are here, we create curves by joining the points with lines, to convey that these data are from a single country. To do this, we use the `geom_line` function instead of `geom_point`. 
+When the points are regularly and densely spaced, as they are here, we create curves by joining the points with lines, to convey that these data are from a single series, here a country. To do this, we use the `geom_line` function instead of `geom_point`. 
 
 ```{r fertility-time-series-plot-curve, warning=FALSE}
 gapminder %>% 
@@ -267,13 +267,13 @@ gapminder %>%
   geom_histogram(binwidth = 1, color = "black")
 ```
 
-In a way this provides a _close up_ of the mid to lower income countries.
+In a way this provides a _close-up_ of the mid to lower income countries.
 
 ### Which base? 
 
 In the case above, we used base 2 in the log transformations. Other common choices are base $\mathrm{e}$ (the natural log) and base 10.
 
-In general, we do not recommend using the natural log for data exploration and visualization. This is because while $2^2, 2^3, 2^4, \dots$ or $10^1, 10^2, \dots$ are easy to compute in our heads, the same is not true for  $\mathrm{e}^2, \mathrm{e}^3, \dots$. 
+In general, we do not recommend using the natural log for data exploration and visualization. This is because while $2^2, 2^3, 2^4, \dots$ or $10^2, 10^3, \dots$ are easy to compute in our heads, the same is not true for  $\mathrm{e}^2, \mathrm{e}^3, \dots$, so the scale is not intuitive or easy to interpret.
 
 In the dollars per day example, we used base 2 instead of base 10 because the resulting range is easier to interpret. The range of the values being plotted is `r with(filter(gapminder, year==past_year), range(dollars_per_day, na.rm=TRUE))`. 
 
@@ -322,7 +322,7 @@ gapminder %>%
 
 Note that the log base 10 transformation has its own function: `scale_x_log10()`, but currently base 2 does not, although we could easily define our own.
 
-There are other transformations available through the `trans` argument. As we learn later on, the square root (`sqrt`) transformation, for example, is useful when considering counts. The logistic transformation (`logit`) is useful when plotting proportions between 0 and 1. The `reverse` transformation is useful when we want smaller values to be on the right or on top.
+There are other transformations available through the `trans` argument. As we learn later on, the square root (`sqrt`) transformation is useful when considering counts. The logistic transformation (`logit`) is useful when plotting proportions between 0 and 1. The `reverse` transformation is useful when we want smaller values to be on the right or on top.
 
 ## Visualizing multimodal distributions
 
@@ -332,7 +332,7 @@ The histogram above suggests that the 1970 country income distribution has two m
 
 ## Comparing multiple distributions with boxplots and ridge plots
 
-A histogram showed us that the income distribution values show a dichotomy. However, the histogram does not show us if the two groups of countries are _west_ versus the _developing_ world.  
+A histogram showed us that the 1970 income distribution values show a dichotomy. However, the histogram does not show us if the two groups of countries are _west_ versus the _developing_ world.  
 
 Let's start by quickly examining the data by region.
 
@@ -352,7 +352,7 @@ p + geom_point() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
-In the plot we just made the regions are ordered alphabetically. But there is no practical reason for this to be the case.  In general, we groups **do not order alphabetically**.  Data exploration is often made easier if we order the strata by some interpretable quantity. This can be achieved using the `reorder` function which we covered in Section \@ref(factors).
+In the plot we just made, the regions are ordered alphabetically. But there is no practical reason for this to be the case.  In general, **do not order alphabetically**.  Data exploration is often made easier if we order the strata by some interpretable quantity. This can be achieved using the `reorder` function, which we covered in Section \@ref(factors).
 
 ```{r dollars-per-day-by-region-ordered}
 p <- gapminder %>% 
@@ -372,7 +372,7 @@ p + scale_y_continuous(trans = "log2")
 
 ### Boxplots 
 
-The exploratory data analysis above has revealed two characteristics about average income distribution in 1970. Using a histogram, we found a bimodal distribution with the modes relating to poor and rich countries. Then by examining the data after stratifying by region we noticed that rich countries were mostly in Europe and North America, along with Australia and New Zealand. This fact and the variability observed in the rest of the countries motivates us to define the following give groups:
+The exploratory data analysis above has revealed two characteristics about average income distribution in 1970. Using a histogram, we found a bimodal distribution with the modes relating to poor and rich countries. Then, by examining the data after stratifying by region, we noticed that rich countries were mostly in Europe and North America, along with Australia and New Zealand. This fact and the variability observed in the rest of the countries motivates us to define the following give groups:
 
 ```{r}
 gapminder <- gapminder %>% 
@@ -390,10 +390,10 @@ We turn this `group` variable into a factor to control the order of the levels:
 ```{r}
 gapminder <- gapminder %>% 
   mutate(group = factor(group, 
-                        levels = c("Sub-Saharan Africa", "Others", "Latin America", "East Asia", "West")))
+                        levels = c("Others", "Latin America", "East Asia", "Sub-Saharan Africa", "West")))
 ```
 
-We now want to compare the distribution across these five groups to confirm the "west versus the rest" dichotomy. The number of points in each category is large enough that a summary plot may be useful. We could generate five histograms or five density plot, but it may be more practical to have all the visual summaries in one plot. We therefore start by stacking boxplots next to each other. 
+We now want to compare the distribution across these five groups to confirm the "west versus the rest" dichotomy. The number of points in each category is large enough that a summary plot may be useful. We could generate five histograms or five density plots, but it may be more practical to have all the visual summaries in one plot. We therefore start by stacking boxplots next to each other. 
 
 ```{r dollars-per-day-boxplot}
 p <- gapminder %>% 
@@ -415,7 +415,7 @@ p + geom_point(alpha = 0.5)
 
 ### Ridge plots 
 
-Showing each individual point does not always reveal important characteristics of the distribution. Although not the case here, when the number of data points is so large that there is over-plotting showing the data can be counterproductive. Boxplots help with this by providing a five number summary, but this has limitations too. For example, boxplots will not permit us to discover bimodal distributions. To see this, note that the two plots below are summarizing the same dataset.
+Showing each individual point does not always reveal important characteristics of the distribution. Although not the case here, when the number of data points is so large that there is over-plotting, showing the data can be counterproductive. Boxplots help with this by providing a five-number summary, but this has limitations too. For example, boxplots will not permit us to discover bimodal distributions. To see this, note that the two plots below are summarizing the same dataset:
 
 ```{r boxplot-dont-show-bimodal, warning=FALSE, out.width="100%", message = FALSE, echo=FALSE, fig.height=3}
 set.seed(1987)
@@ -427,7 +427,7 @@ p2 <- qplot("", x, geom="boxplot")
 gridExtra::grid.arrange(p1, p2, nrow = 1)
 ```
 
-In cases in which we are concerned that the boxplot summary is too simplistic, we can show stacked smooth densities or histograms. We refer to these as _ridge plots_. Because we are used to visualizing densities with values in the x-axis we stack them vertically. Also, because more space is needed in this approach, it is convenient to overlay them. The package __ggridges__ provides a convenient function for doing this. Here is the income data shown above with boxplots but with a _ridge plot_. 
+In cases in which we are concerned that the boxplot summary is too simplistic, we can show stacked smooth densities or histograms. We refer to these as _ridge plots_. Because we are used to visualizing densities with values in the x-axis, we stack them vertically. Also, because more space is needed in this approach, it is convenient to overlay them. The package __ggridges__ provides a convenient function for doing this. Here is the income data shown above with boxplots but with a _ridge plot_. 
 
 ```{r ridge-plot, message=FALSE}
 library(ggridges)
@@ -438,7 +438,7 @@ p <- gapminder %>%
 p  + geom_density_ridges() 
 ```
 
-Note that we have to invert the `x` and `y` used for the boxplot. A useful `geom_density_ridges` is `scale` which let's you determine the amount of overlap, with `scale = 1` meaning no overlap and larger values resulting in more overlap. 
+Note that we have to invert the `x` and `y` used for the boxplot. A useful `geom_density_ridges` parameter is `scale`, which lets you determine the amount of overlap, with `scale = 1` meaning no overlap and larger values resulting in more overlap. 
 
 If the number of data points is small enough, we can add them to the ridge plot using the following code:
 
@@ -446,7 +446,7 @@ If the number of data points is small enough, we can add them to the ridge plot 
 p + geom_density_ridges(jittered_points = TRUE)
 ```
 
-By default, the height of the points is jittered and should not be interpreted in anyway. To show data points, but without using jitter we can use the following code to add what is referred to as a _rug representation_ of the data.  
+By default, the height of the points is jittered and should not be interpreted in any way. To show data points, but without using jitter we can use the following code to add what is referred to as a _rug representation_ of the data.  
 ```{r ridge-plot-with-rug, message=FALSE}
 p + geom_density_ridges(jittered_points = TRUE, 
                         position = position_points_jitter(width = 0.05, height = 0),
@@ -456,7 +456,7 @@ p + geom_density_ridges(jittered_points = TRUE,
 
 ### Example: 1970 versus 2010 income distributions
 
-Data exploration clearly showed that in 1970 there was a "west versus the rest" dichotomy. But does this dichotomy persist? Let's use `facet_grid` see how the distributions have changed. To start, we will focus on two groups: the west and the rest. We make four histograms.
+Data exploration clearly shows that in 1970 there was a "west versus the rest" dichotomy. But does this dichotomy persist? Let's use `facet_grid` see how the distributions have changed. To start, we will focus on two groups: the west and the rest. We make four histograms.
 
 ```{r income-hist-west-v-developing-two-years}
 past_year <- 1970
@@ -489,7 +489,7 @@ country_list <- intersect(country_list_1, country_list_2)
 These `r length(country_list)` account for 
 `r round(gapminder %>% filter(year==present_year) %>% summarize(perc=sum(population[country%in%country_list], na.rm=TRUE)/sum(population, na.rm=TRUE)) %>% pull(perc)*100 )`% of the world population, so this subset should be representative.
 
-Let's remake the plot, but only for this subset by simply adding ` country %in% country_list` to the filter function:
+Let's remake the plot, but only for this subset by simply adding ` country %in% country_list` to the `filter` function:
 
 ```{r income-histogram-west-v-devel, echo=FALSE}
 gapminder %>% 
@@ -501,9 +501,9 @@ gapminder %>%
   facet_grid(year ~ west)
 ```
 
-We now see that while the rich countries have become a bit richer, but percentage-wise, the poor countries appear to have improved more. In particular, we see that the proportion of _developing_ countries earning more than $16 a day increases substantially. 
+We now see that the rich countries have become a bit richer, but percentage-wise, the poor countries appear to have improved more. In particular, we see that the proportion of _developing_ countries earning more than $16 a day increased substantially. 
 
-To see which specific regions improved the most, we can remake the boxplots we made above but now adding the year 2010 and then using facet to compare the two years.
+To see which specific regions improved the most, we can remake the boxplots we made above, but now adding the year 2010 and then using facet to compare the two years.
 
 
 ```{r  income-histogram-by-region, out.width="100%"}
@@ -551,7 +551,7 @@ gapminder %>%
 ```
   
 
-The previous data exploration suggest that the income gap between rich and poor countries has narrowed considerably during the last 40 years. 
+The previous data exploration suggested that the income gap between rich and poor countries has narrowed considerably during the last 40 years. 
 We used a series of histograms and boxplots to see this. We suggest a succinct way to convey this message with just one plot. 
 
 Let's start by noting that density plots for income distribution in `r past_year` and `r present_year` deliver the message that the gap is closing:
@@ -626,7 +626,7 @@ p + geom_density(alpha = 0.2, bw = 0.75) + facet_grid(year ~ .)
 
 This plot now shows what is happening very clearly. The developing world distribution is changing. A third mode appears consisting of the countries that most narrowed the gap. 
 
-To visualize if any of the groups defined above are driving this we can quickly make a ridge plot
+To visualize if any of the groups defined above are driving this we can quickly make a ridge plot:
 
 ```{r ridge-plot-income-five-regions, warning=FALSE, message=FALSE}
 gapminder %>% 
@@ -637,7 +637,7 @@ gapminder %>%
   facet_grid(. ~ year)
 ```
 
-Another way to show this ahieved is by stacking the densities on top of each other:
+Another way to achieve this is by stacking the densities on top of each other:
 
 ```{r income-smooth-density-counts-by-region-and-year}
 gapminder %>% 
@@ -716,14 +716,14 @@ surv_income %>% ggplot(aes(income, infant_survival_rate, label = group, color = 
   geom_label(size = 3, show.legend = FALSE)
 ```
 
-In this plot, we introduce the use of the `limit` argument which lets us change the range of the axes. We are making the range larger than the data requires because we will later compare this plot to one with more variability and we want the ranges to be the same. We also introduce the `breaks` argument, which lets us set the location of the axes labels. Finally, we introduce a new transformation, the logistic transformation.
+In this plot we introduce the use of the `limit` argument, which lets us change the range of the axes. We are making the range larger than the data requires because we will later compare this plot to one with more variability and we want the ranges to be the same. We also introduce the `breaks` argument, which lets us set the location of the axes labels. Finally, we introduce a new transformation, the logistic transformation.
 
 ### Logistic transformation {#logit}
 The logistic or logit transformation for a proportion or rate $p$ is defined as: 
 
 $$f(p) = \log \left( \frac{p}{1-p} \right)$$
 
-When $p$ is a proportion or probability, the quantity that is being logged, $p/(1-p)$ is called the _odds_. In this case $p$ is the proportion of infants that survived. The odds tell us how many more infants are expected to survive than to die. The log transformation makes this symmetric. If the rates are the same, then the log odds is 0. Fold increases or decreases turn into positive and negative increments respectively.
+When $p$ is a proportion or probability, the quantity that is being logged, $p/(1-p)$, is called the _odds_. In this case $p$ is the proportion of infants that survived. The odds tell us how many more infants are expected to survive than to die. The log transformation makes this symmetric. If the rates are the same, then the log odds is 0. Fold increases or decreases turn into positive and negative increments respectively.
 
 This scale is useful when we want to highlight differences near 0 or 1. For survival rates this is important because a survival rate of 90% is unacceptable, while a survival of 99% is relatively good. We would much prefer a survival rate closer to 99.9%. We want our scale to highlight these difference and the logit does this. Note that 99.9/0.1 is about 10 times bigger than 99/1 which is about 10 times larger than 90/10. By using the log, these fold changes turn into constant increases.
 
