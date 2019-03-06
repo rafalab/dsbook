@@ -3,13 +3,13 @@
 Vaccines have helped save millions of lives. In the 19th century, before herd immunization was achieved through vaccination programs, deaths from infectious diseases, such as smallpox and polio, were common. However, today vaccination programs have become somewhat controversial despite all the scientific evidence for their importance.
 
 The controversy started with a [paper](http://www.thelancet.com/journals/lancet/article/PIIS0140-6736(97)11096-0/abstract) published in 1988 and lead by [Andrew Wakefield](https://en.wikipedia.org/wiki/Andrew_Wakefield) claiming 
-there was a link between the administration of the measles, mumps and rubella (MMR) vaccine, and the appearance of autism and bowel disease. 
-Despite much scientific evidence contradicting this finding, sensationalist media reports and fear mongering from conspiracy theorists led parts of the public into believing that vaccines were harmful. As a result, many parents ceased to vaccinate their children. This dangerous practice can be potentially disastrous given that the Center for Disease Control (CDC) estimates that vaccinations will prevent more than 21 million hospitalizations and 732,000 deaths among children born in the last 20 years (see [Benefits from Immunization during the Vaccines for Children Program Era — United States, 1994-2013, MMWR](https://www.cdc.gov/mmwr/preview/mmwrhtml/mm6316a4.htm)). 
+there was a link between the administration of the measles, mumps and rubella (MMR) vaccine and the appearance of autism and bowel disease. 
+Despite much scientific evidence contradicting this finding, sensationalist media reports and fear-mongering from conspiracy theorists led parts of the public into believing that vaccines were harmful. As a result, many parents ceased to vaccinate their children. This dangerous practice can be potentially disastrous given that the Center for Disease Control (CDC) estimates that vaccinations will prevent more than 21 million hospitalizations and 732,000 deaths among children born in the last 20 years (see [Benefits from Immunization during the Vaccines for Children Program Era — United States, 1994-2013, MMWR](https://www.cdc.gov/mmwr/preview/mmwrhtml/mm6316a4.htm)). 
 The 1988 paper has since been [retracted](http://www.thelancet.com/journals/lancet/article/PIIS0140-6736(97)11096-0/abstract) and Andrew Wakefield was eventually "struck off the UK medical register, with a statement identifying deliberate falsification in the research published in The Lancet, and was thereby barred from practicing medicine in the UK." ([source: Wikipedia](https://en.wikipedia.org/wiki/Andrew_Wakefield)). Yet misconceptions persist, in part due to self-proclaimed activists who continue to disseminate misinformation about vaccines. 
 
-Effective communication of data is a strong antidote to misinformation and fear mongering. Earlier we used an example provided by a [Wall Street Journal article](http://graphics.wsj.com/infectious-diseases-and-vaccines/) showing data related to the impact of vaccines on battling infectious diseases.  Here, we reconstruct that example.
+Effective communication of data is a strong antidote to misinformation and fear-mongering. Earlier we used an example provided by a [Wall Street Journal article](http://graphics.wsj.com/infectious-diseases-and-vaccines/) showing data related to the impact of vaccines on battling infectious diseases.  Here we reconstruct that example.
 
-The data used for these plots were collected, organized and distributed by the [Tycho Project](http://www.tycho.pitt.edu/). They include weekly reported counts data for seven diseases from 1928 to 2011, from all fifty states. We include the yearly totals in the __dslabs__ package:
+The data used for these plots were collected, organized and distributed by the [Tycho Project](http://www.tycho.pitt.edu/). They include weekly reported counts for seven diseases from 1928 to 2011, from all fifty states. We include the yearly totals in the __dslabs__ package:
 
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -18,7 +18,7 @@ data(us_contagious_diseases)
 str(us_contagious_diseases)
 ```
 
-We create a temporary object `dat` that stores only the measles data, includes a per 100,000 rate, orders states by average value of disease and removes Alaska and Hawaii since they only became states in the late 50s. Note that there is a `weeks_reporting` column that tells us for how many weeks of the year data was reported. So we have to adjust for that when computing the rate.
+We create a temporary object `dat` that stores only the measles data, includes a per 100,000 rate, orders states by average value of disease and removes Alaska and Hawaii since they only became states in the late 50s. Note that there is a `weeks_reporting` column that tells us for how many weeks of the year data was reported. We have to adjust for that value when computing the rate.
 
 ```{r}
 the_disease <- "Measles"
@@ -38,7 +38,7 @@ dat %>% filter(state == "California" & !is.na(rate)) %>%
   geom_vline(xintercept=1963, col = "blue")
 ```
 
-We add a vertical line at 1963 since this is when the vaccine was introduced [Control, Centers for Disease; Prevention (2014). CDC health information for international travel 2014 the yellow book. p. 250. ISBN 9780199948505]. 
+We add a vertical line at 1963 since this is when the vaccine was introduced [Control, Centers for Disease; Prevention (2014). CDC health information for international travel 2014 (the yellow book). p. 250. ISBN 9780199948505]. 
 
 Now can we show data for all states in one plot? We have three variables to show: year, state and rate. In the WSJ figure, they use the x-axis for year, the y-axis for state and color hue to represent rates. However, the color scale they use, which goes from yellow to blue to green to orange to red, can be improved.  
 
@@ -58,7 +58,7 @@ dat %>% ggplot(aes(year, state, fill = rate)) +
   xlab("")
 ```
 
-This plot makes a very striking argument for the contribution of vaccines. However, one limitation of this plot is that it uses color to represent quantity which we earlier explained makes it harder to know exactly how high it is going. Position and lengths are better cues. If we are willing to lose state information, we can make a version of the plot that shows the values with position. We can also show the average for the US, which we compute like this:
+This plot makes a very striking argument for the contribution of vaccines. However, one limitation of this plot is that it uses color to represent quantity, which we earlier explained makes it harder to know exactly how high values are going. Position and lengths are better cues. If we are willing to lose state information, we can make a version of the plot that shows the values with position. We can also show the average for the US, which we compute like this:
 
 ```{r}
 avg <- us_contagious_diseases %>%
@@ -89,11 +89,11 @@ In theory, we could use color to represent the categorical value state, but it i
 ## Exercises
 
 
-1. Reproduce the image plot we previously made but for Smallpox. For this plot, do not include years in which cases were not reported in 10 or more weeks.
+1. Reproduce the image plot we previously made but for smallpox. For this plot, do not include years in which cases were not reported in 10 or more weeks.
 
-2. Now reproduce the time series plot we previously made, but this time following the instructions of the previous question.
+2. Now reproduce the time series plot we previously made, but this time following the instructions of the previous question for smallpox.
 
-3. For the state of California, make a time series plots showing rates for all diseases. Include only years with 10 or more weeks reporting. Use a different color for each disease.
+3. For the state of California, make a time series plot showing rates for all diseases. Include only years with 10 or more weeks reporting. Use a different color for each disease.
 
 4. Now do the same for the rates for the US. Hint: compute the US rate by using summarize: the total divided by total population.
 

@@ -5,23 +5,23 @@ img_path <- "ml/img/"
 
 # Introduction to Machine Learning
 
-Perhaps the most popular data science methodologies come from the field of _Machine Learning_. Machine learning success stories include the hand written zip code readers implemented by the postal service, speech recognition technology, such as Apple's Siri, movie recommendation systems, spam and malware detectors, housing prices predictors, and driver-less cars. Although today Artificial Intelligence and Machine Learning are often used interchangeably, we make the following distinction: while the first artificial intelligence algorithms, such as those used by chess playing machines, implemented decision making based on programmable rules derived from theory or first principles, in Machine Learning decisions are based on algorithms **built with data**. 
+Perhaps the most popular data science methodologies come from the field of _Machine Learning_. Machine learning success stories include the handwritten zip code readers implemented by the postal service, speech recognition technology such as Apple's Siri, movie recommendation systems, spam and malware detectors, housing price predictors, and driverless cars. Although today Artificial Intelligence and Machine Learning are often used interchangeably, we make the following distinction: while the first artificial intelligence algorithms, such as those used by chess playing machines, implemented decision making based on programmable rules derived from theory or first principles, in Machine Learning decisions are based on algorithms **built with data**. 
 
 ## Notation
 
 In Machine Learning, data comes in the form of:
 
 1. the _outcome_ we want to predict and 
-2. the _features_ that we will use to predict the outcome.
+2. the _features_ that we will use to predict the outcome
 
 We want to build an algorithm that takes feature values as input and returns a prediction for the outcome when we don't know the outcome. The machine learning approach is to _train_ an algorithm using a dataset for which we do know the outcome, and then apply this algorithm in the future to make a prediction when we don't know the outcome.
 
-Here, we will use $Y$ to denote the outcome and $X_1, \dots, X_p$ to denote features. Note that features are sometimes referred to as predictors or covariates. We consider all these to be synonyms.
+Here we will use $Y$ to denote the outcome and $X_1, \dots, X_p$ to denote features. Note that features are sometimes referred to as predictors or covariates. We consider all these to be synonyms.
 
 Prediction problems can be divided into categorical and continuous outcomes. For categorical outcomes, $Y$ can be any one of $K$ classes. The number of classes can vary greatly across applications.
-For example, in the digit reader data, $K=10$ with the classes being the digits 0, 1, 2, 3, 4, 5, 6, 7, 8, and 9. In speech recognition, the outcome are all possible words or phrases we are trying to detect. Spam detection has two outcomes: spam or not spam. In this book, we denote the $K$ categories with indexes $k=1,\dots,K$. However, for binary data we will use $k=0,1$ for mathematical conveniences that we demonstrate later.
+For example, in the digit reader data, $K=10$ with the classes being the digits 0, 1, 2, 3, 4, 5, 6, 7, 8, and 9. In speech recognition, the outcomes are all possible words or phrases we are trying to detect. Spam detection has two outcomes: spam or not spam. In this book, we denote the $K$ categories with indexes $k=1,\dots,K$. However, for binary data we will use $k=0,1$ for mathematical conveniences that we demonstrate later.
 
-The general set-up is as follows. We have a series of features and an unknown outcome we want to predict:
+The general setup is as follows. We have a series of features and an unknown outcome we want to predict:
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -49,11 +49,11 @@ tmp <- data.frame(outcome = paste0("$y_{", 1:n,"}$"),
 tmp %>% knitr::kable()
 ```
 
-When the output is continuous we refer to the machine learning task as _prediction_, and the main output of the model is a function $f$ that automatically produces a prediction, denoted with $\hat{y}$, for any set of predictors: $\hat{y} = f(x_1, x_2, \dots, x_p)$.  We use the term _actual outcome_ to denote what we ended up observing. So we want the prediction $\hat{y}$ to match the actual outcome $y$ as best as possible. Becuase our outcome is continuous, our predictions $\hat{y}$ will not be either exctly right or wrong, but instead we will make an _error_ defined as the difference between the prediction and the actual outcome $y - \hat{y}$.
+When the output is continuous we refer to the machine learning task as _prediction_, and the main output of the model is a function $f$ that automatically produces a prediction, denoted with $\hat{y}$, for any set of predictors: $\hat{y} = f(x_1, x_2, \dots, x_p)$.  We use the term _actual outcome_ to denote what we ended up observing. So we want the prediction $\hat{y}$ to match the actual outcome $y$ as best as possible. Becuase our outcome is continuous, our predictions $\hat{y}$ will not be either exctly right or wrong, but instead we will determine an _error_ defined as the difference between the prediction and the actual outcome $y - \hat{y}$.
 
-When the outcome is categorical we refer to the machine learning task as _classification_, and the main output of the model will be a _decision rule_ which prescribes which of the $K$ classes we should predict. In this scenario, most models provide functions of the predictors for each class $k$, $f_k(x_1, x_2, \dots, x_p)$, that are used to make this decision. When the data is binary a typical decision rules looks like this: if $f_1(x_1, x_2, \dots, x_p) > C$, predict category 1, if not the other category, with $C$ a predetermined cutoff. Because the outcomes are categorical, our predictions will be either right or wrong. 
+When the outcome is categorical, we refer to the machine learning task as _classification_, and the main output of the model will be a _decision rule_ which prescribes which of the $K$ classes we should predict. In this scenario, most models provide functions of the predictors for each class $k$, $f_k(x_1, x_2, \dots, x_p)$, that are used to make this decision. When the data is binary a typical decision rules looks like this: if $f_1(x_1, x_2, \dots, x_p) > C$, predict category 1, if not the other category, with $C$ a predetermined cutoff. Because the outcomes are categorical, our predictions will be either right or wrong. 
 
-Notice that these terms vary among courses, text books, and other publications. Often _prediction_ is used for both categorical and continuous outcomes, and _regression_ is used for the continuous case. Here we avoid using _regression_ to avoid confusion with our previous use of the term _linear regression_. In most cases, it will be clear if our outcomes are categorical or continuous so we will avoid using these terms when possible. 
+Notice that these terms vary among courses, text books, and other publications. Often _prediction_ is used for both categorical and continuous outcomes, and the term _regression_ can be used for the continuous case. Here we avoid using _regression_ to avoid confusion with our previous use of the term _linear regression_. In most cases it will be clear if our outcomes are categorical or continuous, so we will avoid using these terms when possible. 
 
 ## An example 
 
@@ -63,7 +63,7 @@ Let's consider the zip code reader example. The first thing that happens to a le
 knitr::include_graphics(file.path(img_path,"how-to-write-a-address-on-an-envelope-how-to-write-the-address-on-an-envelope-write-address-on-envelope-india-finishedenvelope-x69070.png"))
 ```
 
-Originally, humans had to sort these by hand. To do this, they had to read the zip codes on each letter. Today, thanks to machine learning algorithms, a computer can read zip codes and then a robot sorts the letters. In the Machine Learning Part of the book, we will learn how to build algorithms that can read a digit.
+Originally, humans had to sort these by hand. To do this, they had to read the zip codes on each letter. Today, thanks to machine learning algorithms, a computer can read zip codes and then a robot sorts the letters. In this part of the book, we will learn how to build algorithms that can read a digit.
 
 The first step in building an algorithm is to understand 
 what are the outcomes and features. Below are three images of written digits. These have already been read by a human and assigned an outcome $Y$. These are considered known and serve as the training set. 
@@ -93,9 +93,9 @@ tmp %>% ggplot(aes(Row, Column, fill=value)) +
     facet_grid(.~label)
 ```
 
-For each digitized image $i$, we have a categorical outcome $Y_i$ which can be one of 10 values: $0,1,2,3,4,5,6,7,8,9$ and features $X_{i,1}, \dots, X_{i,784}$. We use bold face $\mathbf{X}_i = (X_{i,1}, \dots, X_{i,784})$ to distinguish the vector of predictors from the individual predictors. When referring to an arbitrary set of features, we drop the index $i$ and use $Y$ and $\mathbf{X} = (X_{1}, \dots, X_{784})$. We use upper case variables because, in general, we think of the predictors as random variables. We use lower case, for example $\mathbf{X} = \mathbf{x}$, to denote observed values. When we code we stick to lowercase.
+For each digitized image $i$, we have a categorical outcome $Y_i$ which can be one of 10 values ($0,1,2,3,4,5,6,7,8,9$), and features $X_{i,1}, \dots, X_{i,784}$. We use bold face $\mathbf{X}_i = (X_{i,1}, \dots, X_{i,784})$ to distinguish the vector of predictors from the individual predictors. When referring to an arbitrary set of features rather than a specific image in our dataset, we drop the index $i$ and use $Y$ and $\mathbf{X} = (X_{1}, \dots, X_{784})$. We use upper case variables because, in general, we think of the predictors as random variables. We use lower case, for example $\mathbf{X} = \mathbf{x}$, to denote observed values. When we code we stick to lowercase.
 
-The machine learning tasks is to build an algorithm that returns a prediction for any of the possible values of the features. Here, we will learn several approaches to building these algorithms. Although at this point it might seem impossible to achieve this, we will start with simple examples, and build up our knowledge until we can attack more complex ones. In fact, we start with an artificially simple example with just one predictor and then move on to a slightly more realistic example with two predictors. Once we understand these, we will attack real world machine learning challenges involving many predictors.
+The machine learning tasks is to build an algorithm that returns a prediction for any of the possible values of the features. Here, we will learn several approaches to building these algorithms. Although at this point it might seem impossible to achieve this, we will start with simple examples and build up our knowledge until we can attack more complex ones. In fact, we start with an artificially simple example with just one predictor and then move on to a slightly more realistic example with two predictors. Once we understand these, we will attack real world machine learning challenges involving many predictors.
 
 ## Exercises 
 
@@ -109,7 +109,7 @@ The machine learning tasks is to build an algorithm that returns a prediction fo
     
     D. Hospitalizations
     
-    E. Siri
+    E. Search engine results
 
    
 2. How many features are available to us for prediction in the digits dataset?
@@ -134,7 +134,7 @@ The machine learning tasks is to build an algorithm that returns a prediction fo
     
     B. No, because `y` is not a numeric vector.
     
-    C. No, because 11 is not a digit. It's two digits
+    C. No, because 11 is not a digit. It's two digits.
     
     D. No, because these are labels representing a category not a number. A `9` represents a class not the number 9.
 

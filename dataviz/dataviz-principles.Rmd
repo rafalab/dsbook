@@ -6,7 +6,7 @@ img_path <- "dataviz/img"
 
 We have already provided some rules to follow as we created plots for our examples. Here, we aim to provide some general principles we can use as a guide for effective data visualization. Much of this section is based on a talk by [Karl Broman](http://kbroman.org/) titled ["Creating Effective Figures and Tables"](https://www.biostat.wisc.edu/~kbroman/presentations/graphs2017.pdf) and includes some of the figures which were made with code that Karl makes available on his [GitHub](https://github.com/kbroman/Talk_Graphs) repository, as well as class notes from Peter Aldhous' [Introduction to Data Visualization course](http://paldhous.github.io/ucb/2016/dataviz/index.html). Following Karl's approach, we show some examples of plot styles we should avoid, explain how to improve them, and use these as motivation for a list of principles. We compare and contrast plots that follow these principles to those that don't.
 
-The principles are mostly based on research related to how humans detect patterns and make visual comparisons. The preferred approaches are those that best fit the way our brains process visual information. When deciding on a visualization approach, it is also important to keep our goal in mind. We may be comparing a viewable number of quantities, describing distribution for categories or numeric values, comparing the data from two groups, or describing the relationship between two variables. As a final note, we want to emphasize that for a data scientist it is important to adapt and optimize graphs to the audience. For example, an exploratory plot made for ourselves will be different than a chart intended to communicate a finding to a general audience.
+The principles are mostly based on research related to how humans detect patterns and make visual comparisons. The preferred approaches are those that best fit the way our brains process visual information. When deciding on a visualization approach, it is also important to keep our goal in mind. We may be comparing a viewable number of quantities, describing distributions for categories or numeric values, comparing the data from two groups, or describing the relationship between two variables. As a final note, we want to emphasize that for a data scientist it is important to adapt and optimize graphs to the audience. For example, an exploratory plot made for ourselves will be different than a chart intended to communicate a finding to a general audience.
 
 We will be using these libraries:
 
@@ -47,7 +47,7 @@ p1
 ```
 
 
-Here we are representing quantities with both areas and angles since both the angle and area of each pie slice is proportional to the quantity it represents. This turns out to be a sub-optimal choice since, as demonstrated by perception studies, humans are not good at precisely quantifying angles and are even worse when area is the only available visual cue. The donut chart is an example of a plot that uses only area:
+Here we are representing quantities with both areas and angles, since both the angle and area of each pie slice are proportional to the quantity the slice represents. This turns out to be a sub-optimal choice since, as demonstrated by perception studies, humans are not good at precisely quantifying angles and are even worse when area is the only available visual cue. The donut chart is an example of a plot that uses only area:
 
 ```{r donutchart, echo=FALSE}
 browsers %>% ggplot(aes(x = 2, y = Percentage, fill = Browser)) +
@@ -66,13 +66,13 @@ To see how hard it is to quantify angles and area, note that the rankings and al
 > Pie charts are a very bad way of displaying information. The eye is good at judging linear measures and bad at judging relative areas. A bar chart or dot chart is a preferable way of displaying this type of data.
 
 
-In this case, simply showing the numbers is not only clearer, but would also save on printing costs if printing a paper copy.
+In this case, simply showing the numbers is not only clearer, but would also save on printing costs if printing a paper copy:
 
 ```{r, echo=FALSE}
 browsers %>% spread(Year, Percentage) %>% knitr::kable()
 ```
 
-The preferred way to plot these quantities is to use length and position as visual cues since humans are much better at judging linear measures. The barplot uses this approach by using bars of length proportional to the quantities of interest. By adding horizontal lines at strategically chosen values, in this case at every multiple of 10, we ease the visual burden of quantifying through the position of the top of the bars. Compare and contrast the information we can extract from the two figures.
+The preferred way to plot these quantities is to use length and position as visual cues, since humans are much better at judging linear measures. The barplot uses this approach by using bars of length proportional to the quantities of interest. By adding horizontal lines at strategically chosen values, in this case at every multiple of 10, we ease the visual burden of quantifying through the position of the top of the bars. Compare and contrast the information we can extract from the two figures.
 
 ```{r two-barplots, echo=FALSE}
 p2 <-browsers %>%
@@ -108,7 +108,7 @@ In general, when displaying quantities, position and length are preferred over a
 
 ## Know when to include 0
 
-When using barplots it is misinformative not to start the bars at 0. This is because, by using a barplot, we are implying the length is proportional to the quantities being displayed. By avoiding 0, relatively small differences can be made to look much bigger than they actually are. This approach is often used by politicians or media organizations trying to exaggerate a difference. Below is an illustrative example used by Peter Aldhous in [this course](http://paldhous.github.io/ucb/2016/dataviz/week2.html).
+When using barplots, it is misinformative not to start the bars at 0. This is because, by using a barplot, we are implying the length is proportional to the quantities being displayed. By avoiding 0, relatively small differences can be made to look much bigger than they actually are. This approach is often used by politicians or media organizations trying to exaggerate a difference. Below is an illustrative example used by Peter Aldhous in [this course](http://paldhous.github.io/ucb/2016/dataviz/week2.html).
 
 ```{r echo=FALSE}
 ## http://paldhous.github.io/ucb/2016/dataviz/img/class2_8.jpg
@@ -133,7 +133,7 @@ knitr::include_graphics(file.path(img_path, "Bush-cuts.png"))
 ```
 (Source: Fox News, via [Flowing Data]((http://flowingdata.com/2012/08/06/fox-news-continues-charting-excellence/))
 
-This plot makes a 13% increase look like a five fold change. Here is the appropriate plot:
+This plot makes a 13% increase look like a five-fold change. Here is the appropriate plot:
 
 ```{r barplot-from-zero-2, echo=FALSE}
 data.frame(date = c("Now", "Jan 1, 2013"), tax_rate = c(35, 39.6)) %>%
@@ -144,7 +144,7 @@ data.frame(date = c("Now", "Jan 1, 2013"), tax_rate = c(35, 39.6)) %>%
   ggtitle("Top Tax Rate If Bush Tax Cut Expires")
 ```
 
-Finally, here is an extreme example that makes a very small increase of 3% look like a 10-100 fold increase:
+Finally, here is an extreme example that makes a very small difference of under 2% look like a 10-100 fold change:
 
 ```{r, echo=FALSE}
 ## http://i2.wp.com/flowingdata.com/wp-content/uploads/2012/08/Bush-cuts.png
@@ -216,7 +216,7 @@ gdp_data %>%
 
 ## Order categories by a meaningful value
 
-When one of the axes is used to show categories, as is done in barplots, the default __ggplot2__ behavior is to order the categories alphabetically when they are defined by character strings. If they are defined by factors, they are ordered by the factor levels. We rarely want to use alphabetical order. Instead, we should order by a meaningful quantity. In all the cases above, the barplots where ordered by the values being displayed. The exception was the graph showing barplots comparing browsers. In this case, we kept the order the same across the barplots to ease the comparison. Specifically, instead of ordering the browsers separately in the two years, we ordered both years by the average value of 2000 and 2015. 
+When one of the axes is used to show categories, as is done in barplots, the default __ggplot2__ behavior is to order the categories alphabetically when they are defined by character strings. If they are defined by factors, they are ordered by the factor levels. We rarely want to use alphabetical order. Instead, we should order by a meaningful quantity. In all the cases above, the barplots were ordered by the values being displayed. The exception was the graph showing barplots comparing browsers. In this case, we kept the order the same across the barplots to ease the comparison. Specifically, instead of ordering the browsers separately in the two years, we ordered both years by the average value of 2000 and 2015. 
 
 
 We previously learned how to use the `reorder` function, which helps us achieve this goal.
@@ -302,7 +302,7 @@ p1 <- heights %>%
 p1
 ```
 
-The average of each group is represented by the top of each bar and the antennae extend out from the average to the average plus two standard errors.  If all ET receives is this plot, he will have little information on what to expect if he meets a group of human males and females. The bars go to 0, does this mean there are tiny humans measuring less than one foot? Are all males taller than the tallest females? Is there a range of heights? ET can't answer these questions since we have provided almost no information on the height distribution.
+The average of each group is represented by the top of each bar and the antennae extend out from the average to the average plus two standard errors.  If all ET receives is this plot, he will have little information on what to expect if he meets a group of human males and females. The bars go to 0: does this mean there are tiny humans measuring less than one foot? Are all males taller than the tallest females? Is there a range of heights? ET can't answer these questions since we have provided almost no information on the height distribution.
 
 This brings us to our first principle: show the data. This simple __ggplot2__ code already generates a more informative plot than the barplot by simply showing all the data points:
 
@@ -312,7 +312,7 @@ heights %>%
   geom_point() 
 ```
 
-For example, this plot gives us an idea of the range of the data. However, this plot has limitations as well since we can't really see all the `r sum(heights$sex=="Female")` and `r sum(heights$sex=="Male")` points plotted for females and males respectively, and many points are plotted on top of each other. As we have previously described, visualizing the distribution is much more informative. But before doing this, we point out two ways we can improve a plot showing all the points.
+For example, this plot gives us an idea of the range of the data. However, this plot has limitations as well, since we can't really see all the `r sum(heights$sex=="Female")` and `r sum(heights$sex=="Male")` points plotted for females and males respectively, and many points are plotted on top of each other. As we have previously described, visualizing the distribution is much more informative. But before doing this, we point out two ways we can improve a plot showing all the points.
 
 The first is to add _jitter_, which adds a small random shift to each point. In this case, adding horizontal jitter does not alter the interpretation, since the point heights do not change, but we minimize the number of points that fall on top of each other and, therefore, get a better visual sense of how the data is distributed. A second improvement comes from using _alpha blending_: making the points somewhat transparent. The more points fall on top of each other, the darker the plot, which also helps us get a sense of how the points are distributed. Here is the same plot with jitter and alpha blending:
 
@@ -367,7 +367,7 @@ heights %>%
 
 This plot makes it much easier to notice that men are, on average, taller. 
 
-If instead of histograms, we want the more compact summary provided by boxplots, we then align them horizontally since, by default, boxplots move up and down with changes in height. Following our _show the data_ principle, we then overlay all the data points: 
+If , we want the more compact summary provided by boxplots, we then align them horizontally since, by default, boxplots move up and down with changes in height. Following our _show the data_ principle, we then overlay all the data points: 
 
 ```{r boxplot-with-points-with-jitter, echo=FALSE}
 p3 <- heights %>% 
@@ -439,11 +439,11 @@ grid.arrange(p1, p2, ncol = 2)
 
 With the new plot, we realize that countries in Africa actually have a larger median population size than those in Asia.
 
-Other transformations you should consider are the logistic transformation, useful to better see fold changes in odds, and the square root transformation, useful for count data.
+Other transformations you should consider are the logistic transformation (`logit`), useful to better see fold changes in odds, and the square root transformation (`sqrt`), useful for count data.
 
 ### Visual cues to be compared should be adjacent
 
-When comparing income data across regions between 1970 and 2010, we made a figure similar to the one below. A difference is that here we look at continents instead of regions, but this is not relevant to the point we are making.
+For each continent, let's compare income in 1970 versus 2010. When comparing income data across regions between 1970 and 2010, we made a figure similar to the one below, but this time we investigate continents rather than regions.
 
 ```{r boxplots-not-adjacent, echo=FALSE}
 gapminder %>% 
@@ -458,8 +458,7 @@ gapminder %>%
 ```
 
 
-
-For each continent, we want to compare the distributions from 1970 to 2010. The default in __ggplot2__ is to order labels alphabetically so the labels with 1970 come before the labels with 2010, making the comparisons challenging. But it is much easier to make the comparison when the boxplots are next to each other:
+The default in __ggplot2__ is to order labels alphabetically so the labels with 1970 come before the labels with 2010, making the comparisons challenging because a continent's distribution in 1970 is visually far from its distribution in 2010. It is much easier to make the comparison between 1970 and 2010 for each continent when the boxplots for that continent are next to each other:
 
 ```{r boxplot-adjacent-comps, echo=FALSE}
 gapminder %>% 
@@ -532,7 +531,7 @@ In every single instance in which we have examined the relationship between two 
 
 One exception where another type of plot may be more informative is when you are comparing variables of the same type, but at different time points and for a relatively small number of comparisons. For example, comparing life expectancy between 2010 and 2015. In this case, we might recommend a _slope chart_. 
 
-There is no geometry for slope charts in __ggplot2__, but we can construct one using `geom_lines`. We need to do some tinkering to add labels. Below is an example comparing 2010 to 2015 for large western countries:
+There is no geometry for slope charts in __ggplot2__, but we can construct one using `geom_line`. We need to do some tinkering to add labels. Below is an example comparing 2010 to 2015 for large western countries:
 
 ```{r slope-plot}
 west <- c("Western Europe","Northern Europe","Southern Europe",
@@ -606,7 +605,7 @@ Here, by simply looking at the y-axis, we quickly see which countries have shown
 
 ## Encoding a third variable
 
-An earlier scatterplot showed the relationship between infant survival and average income. Below is a version of this plot that encodes three variables: OPEC membership, region, and population.
+An earlier scatterplot showed the relationship between infant survival and average income. Below is a version of this plot that encodes three variables: OPEC membership, region and population.
 
 ```{r encoding-third-variable, echo=FALSE}
 present_year <- 2010
@@ -656,7 +655,7 @@ geom_text(dat, mapping=aes(x%%9, x%/%9+0.25, label=x), size=4)
 
 For continuous variables, we can use color, intensity or size. We now show an example of how we do this with a case study.
 
-When selecting colors to quantify a numeric variable, we choose between two options: sequential and diverging. Sequential colors are suited for data that goes from high to low.  High values are clearly distinguished from low values. Here are some examples offered by the package `RColorBrewer`
+When selecting colors to quantify a numeric variable, we choose between two options: sequential and diverging. Sequential colors are suited for data that goes from high to low.  High values are clearly distinguished from low values. Here are some examples offered by the package `RColorBrewer`:
 
 ```{r r-color-brewer-seq, fig.height=4.5}
 library(RColorBrewer)
@@ -671,10 +670,10 @@ display.brewer.all(type="div")
 ```
 
 
-## Avoid pseudo three dimensional plots
+## Avoid pseudo-three-dimensional plots
 
 The figure below, taken from [the scientific literature](https://projecteuclid.org/download/pdf_1/euclid.ss/1177010488),
-shows three variables: dose, drug type and survival. Although your screen/book page is flat and two dimensional, the plot tries to imitate three dimensions and assigned a dimension to each variable.
+shows three variables: dose, drug type and survival. Although your screen/book page is flat and two-dimensional, the plot tries to imitate three dimensions and assigned a dimension to each variable.
 
 ```{r, echo=FALSE}
 ## https://raw.githubusercontent.com/kbroman/Talk_Graphs/master/Figs/fig8b.png
@@ -698,9 +697,7 @@ dat %>% gather(drug, survival, -log.dose) %>%
 
 Notice how much easier it is to determine the survival values. 
 
-### Avoid gratuitous three dimensional plots
-
-Pseudo 3D is sometimes used completely gratuitously: plots are made to look 3D even when the 3rd dimension does not represent a quantity. This only adds confusion and makes it harder to relay your message.  Here are two examples:
+Pseudo-3D is sometimes used completely gratuitously: plots are made to look 3D even when the 3rd dimension does not represent a quantity. This only adds confusion and makes it harder to relay your message.  Here are two examples:
 
 ```{r, echo=FALSE}
 ##https://raw.githubusercontent.com/kbroman/Talk_Graphs/master/Figs/fig1e.png
@@ -746,7 +743,7 @@ dat %>%
 Useful ways to change the number of significant digits or to round numbers are `signif` and `round`. You can define the number of significant digits globally by setting options like this: `options(digits = 3)`. 
 
 
-Another principle, related to displaying tables, is to place values being compared on columns rather than rows. Note that our table above is easier to read than this one:
+Another principle related to displaying tables is to place values being compared on columns rather than rows. Note that our table above is easier to read than this one:
 
 ```{r, echo=FALSE}
 dat <- us_contagious_diseases %>%
@@ -763,9 +760,9 @@ dat %>%
 
 ## Know your audience
 
-Graphs can be used for our 1) own exploratory data analysis, 2) to convey a message to experts, or 3) to help tell a story to a general audience. Make sure that the intended audience understands each element of the plot. 
+Graphs can be used for 1) our own exploratory data analysis, 2) to convey a message to experts, or 3) to help tell a story to a general audience. Make sure that the intended audience understands each element of the plot. 
 
-As a simple example, consider that for your own exploration, it may be more useful to log-transform data and then plot it. However, for a general audience that is unfamiliar with converting logged values back to the original measurements, using a log-scale for the axis will be much easier to digest.
+As a simple example, consider that for your own exploration it may be more useful to log-transform data and then plot it. However, for a general audience that is unfamiliar with converting logged values back to the original measurements, using a log-scale for the axis instead of log-transformed values will be much easier to digest.
 
 
 ## Exercises 
@@ -835,7 +832,7 @@ data(us_contagious_diseases)
     ```
     Which plot is easier to read if you are interested in determining which are the best and worst states in terms of rates, and why?
 
-    A. They provide the same information so they are both equally as good.
+    A. They provide the same information, so they are both equally as good.
     
     B. The plot on the right is better because it orders the states alphabetically.
     
@@ -942,9 +939,9 @@ data(us_contagious_diseases)
     
     Why is this happening?
   
-    A. Humans are not good at reading pseudo 3D plots.
+    A. Humans are not good at reading pseudo-3D plots.
   
-    B. There must be an error in the code
+    B. There must be an error in the code.
   
     C. The colors confuse us.
   

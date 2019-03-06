@@ -1,6 +1,6 @@
 ## Conditional probabilities and expectations
 
-In machine learning applications, we rarely can predict outcomes perfectly. For example, spam detectors often miss emails that are clearly spam, Siri often misunderstands the words we are saying, and your bank at times thinks your card was stolen when it was not. The most common reason for not being able to build prefect algorithms is that it is impossible. To see this, note that most datasets will include groups of observations with the same exact observed values for all predictors, but with different outcomes. Because our prediction rules are functions, equal inputs (the predictors) implies equal outputs (the predictions). Therefore, for a challenge in which the same predictors are associated with different outcomes across different individual observations, it is impossible to predict correctly for all these cases. We saw a simple example of this in the previous section: for any given height $x$, you will have both males and females that are $x$ inches tall. However, none of this means that we can't build useful algorithms that are much better than guessing, and in some cases better than expert opinions. To achieve this in an optimal way, we make use of probabilistic representations of the problem based on the ideas presented in Section \@ref(conditional-expectation). Observations with the same observed values for the predictors may not all be the same, but we can assume that they all have the same probability of this class or that class. We will write this idea out mathematically for the case of categorical data. 
+In machine learning applications, we rarely can predict outcomes perfectly. For example, spam detectors often miss emails that are clearly spam, Siri often misunderstands the words we are saying, and your bank at times thinks your card was stolen when it was not. The most common reason for not being able to build perfect algorithms is that it is impossible. To see this, note that most datasets will include groups of observations with the same exact observed values for all predictors, but with different outcomes. Because our prediction rules are functions, equal inputs (the predictors) implies equal outputs (the predictions). Therefore, for a challenge in which the same predictors are associated with different outcomes across different individual observations, it is impossible to predict correctly for all these cases. We saw a simple example of this in the previous section: for any given height $x$, you will have both males and females that are $x$ inches tall. However, none of this means that we can't build useful algorithms that are much better than guessing, and in some cases better than expert opinions. To achieve this in an optimal way, we make use of probabilistic representations of the problem based on the ideas presented in Section \@ref(conditional-expectation). Observations with the same observed values for the predictors may not all be the same, but we can assume that they all have the same probability of this class or that class. We will write this idea out mathematically for the case of categorical data. 
 
 ### Conditional probabilities
 
@@ -10,7 +10,7 @@ $$
 \mbox{Pr}(Y=k \mid X_1 = x_1,\dots,X_p=x_p), \, \mbox{for}\,k=1,\dots,K
 $$
 
-To avoid writing out all the predictors, we will use the bold letters like this: $\mathbf{X} \equiv (X_1,\dots,X_p)$ and $\mathbf{x} \equiv (x_1,\dots,x_p)$. We will also use the following notation for the conditional probability of being class $k$. 
+To avoid writing out all the predictors, we will use the bold letters like this: $\mathbf{X} \equiv (X_1,\dots,X_p)$ and $\mathbf{x} \equiv (x_1,\dots,x_p)$. We will also use the following notation for the conditional probability of being class $k$:
 
 $$
 p_k(\mathbf{x}) = \mbox{Pr}(Y=k \mid \mathbf{X}=\mathbf{x}), \, \mbox{for}\, k=1,\dots,K
@@ -18,16 +18,16 @@ $$
 
 Note: We will be using the $p(x)$ notation to represent conditional probabilities as functions of the predictors. Do not confuse it with the $p$ that represents the number of predictors.
 
-Knowing these probabilities can guide the construction of an algorithm that makes the best prediction: for any given $\mathbf{x}$, we will predict the class $k$ with the largest probability among $p_1(x), p_2(x), \dots p_K(x)$. In mathematical notation, we write it like this: $\hat{Y} = \max_k p_k(\mathbf{x})$.
+These probabilities guide the construction of an algorithm that makes the best prediction: for any given $\mathbf{x}$, we will predict the class $k$ with the largest probability among $p_1(x), p_2(x), \dots p_K(x)$. In mathematical notation, we write it like this: $\hat{Y} = \max_k p_k(\mathbf{x})$.
 
-In machine learning we refer to this as _Bayes' Rule_. But keep in mind that this is a theoretical rule since in practice we don't know $p_k(\mathbf{x}), k=1,\dots,K$. In fact, estimating these conditional probabilities can be thought of as the main challenge of machine learning. The better our estimate $\hat{p}_k(\mathbf{x})$, the better our predictor: 
+In machine learning, we refer to this as _Bayes' Rule_. But keep in mind that this is a theoretical rule since in practice we don't know $p_k(\mathbf{x}), k=1,\dots,K$. In fact, estimating these conditional probabilities can be thought of as the main challenge of machine learning. The better our probability estimates $\hat{p}_k(\mathbf{x})$, the better our predictor: 
 
 $$\hat{Y} = \max_k \hat{p}_k(\mathbf{x})$$
 
-So what we will predict depends on two things 1) how close are the $$\max_k p_k(\mathbf{x})$$ to 1 or 0 (perfect certainty)
+So what we will predict depends on two things: 1) how close are the $\max_k p_k(\mathbf{x})$ to 1 or 0 (perfect certainty)
 and 2) how close our estimates $\hat{p}_k(\mathbf{x})$ are to $p_k(\mathbf{x})$. We can't do anything about the first restriction as it is determined by the nature of the problem, so our energy goes into finding ways to best estimate conditional probabilities. The first restriction does imply that we have limits as to how well even the best possible algorithm can perform. You should get used to the idea that while in some challenges we will be able to achieve almost perfect accuracy, with digit readers for example, in others our success is restricted by the randomness of the process, with movie recommendations for example. 
 
-Before we continue, it is important to remember that defining our prediction by maximizing the probability is not always optimal in practice and depends on the context. As discussed above, sensitivity and specificity may differ in importance. But, even in these cases, having a good estimate of the $p_k(x), k=1,\dots,K$ will suffice for us to build optimal prediction models since we can control the balance between specificity and sensitivity however we wish. For instance, we can simply change the cutoffs used to predict one outcome or the other. In the plane example, we may ground the plane anytime the probability of malfunction is higher than 1 in a million as opposed to the default 1/2 used when error types are equally undesired. 
+Before we continue, it is important to remember that defining our prediction by maximizing the probability is not always optimal in practice and depends on the context. As discussed above, sensitivity and specificity may differ in importance. But even in these cases, having a good estimate of the $p_k(x), k=1,\dots,K$ will suffice for us to build optimal prediction models, since we can control the balance between specificity and sensitivity however we wish. For instance, we can simply change the cutoffs used to predict one outcome or the other. In the plane example, we may ground the plane anytime the probability of malfunction is higher than 1 in a million as opposed to the default 1/2 used when error types are equally undesired. 
 
 ### Conditional expectations
 
@@ -67,7 +67,7 @@ $$
 \mbox{RMSE} = \sqrt{\mbox{MSE}} = \sqrt{\frac{1}{N}\sum_{i=1}^N (\hat{y}_i - y_i)^2}
 $$
 
-But doing the math is often easier with the MSE and is therefore more commonly used in text books, since these usually describe theoretical properties of algorithms.
+But doing the math is often easier with the MSE and it is therefore more commonly used in text books, since these usually describe theoretical properties of algorithms.
 
 If the outcomes are binary, both RMSE and MSE are equivalent to accuracy since $(\hat{y} - y)^2$ is 1 if the prediction was correct and 0 otherwise. In general, our goal is to build an algorithm that minimizes the loss so it is as close to 0 as possible.
 
@@ -83,7 +83,7 @@ $$
 \frac{1}{B} \sum_{b=1}^B \frac{1}{N}\sum_{i=1}^N \left(\hat{y}_i^b - y_i^b\right)^2 
 $$
 
-with $y_{i}^b$ denoting the $i$th observation in the $b$-th random sample and $\hat{y}_i^b$ the resulting prediction obtained from applying the exact same algorithm to the $b$-th random sample. But again, in practice, we only observe one random sample so the expected MSE is only theoretical. However, the Section \@ref(cross-validation), we describe an approach to estimating the MSE that tries to mimic this theoretical quantity.
+with $y_{i}^b$ denoting the $i$th observation in the $b$th random sample and $\hat{y}_i^b$ the resulting prediction obtained from applying the exact same algorithm to the $b$th random sample. But again, in practice we only observe one random sample, so the expected MSE is only theoretical. However, in Section \@ref(cross-validation) we describe an approach to estimating the MSE that tries to mimic this theoretical quantity.
 
 Before we continue, note that the there are loss functions other that the squared loss. For example, the _Mean Absolute Error_  uses absolute values instead of squaring the errors:
 
@@ -97,19 +97,19 @@ However, in this book we focus on minimizing square loss since it is the most wi
 
 ### Conditional expectation minimizes squared loss function
 
-So why do we care about the conditional expectation in machine learning? This is because the expected value has an attractive mathematical property: it minimized the MSE. Specifically, of all possible predictors $\hat{Y}$,
+So why do we care about the conditional expectation in machine learning? This is because the expected value has an attractive mathematical property: it minimizes the MSE. Specifically, of all possible predictors $\hat{Y}$,
 
 $$
 \hat{Y} = \mbox{E}(Y \mid \mathbf{X}=\mathbf{x}) \, \mbox{ minimizes } \, \mbox{E}\{ (\hat{Y} - Y)^2  \mid  \mathbf{X}=\mathbf{x} \}
 $$ 
 
-Due to this property, a succinct description of the main task of Machine Learning is that we use data to estimate:
+Due to this property, a succinct description of the main task of machine learning is that we use data to estimate:
 
 $$
 f(\mathbf{x}) \equiv \mbox{E}( Y  \mid  \mathbf{X}=\mathbf{x} )
 $$
 
-for any set of features $\mathbf{x} = (x_1, \dots, x_p)$. Of course this is easier said than done, since this function can take any shape and $p$ can be very large. Consider a case in which we only have one predictor $x$. The expectation $\mbox{E}\{ Y  \mid  X=x \}$ can be any function of $x$: a line, a parabola, a sine wave, a step function, anything. It gets even more complicated when we consider instances with large $p$, in which case $f(\mathbf{x})$ is a function of a multidimensional vector $\mathbf{x}$. For example, in our digit reader example $p = 784$! **The main way in which competing Machine Learning algorithms differ is in the approach to estimating this expectation.**
+for any set of features $\mathbf{x} = (x_1, \dots, x_p)$. Of course this is easier said than done, since this function can take any shape and $p$ can be very large. Consider a case in which we only have one predictor $x$. The expectation $\mbox{E}\{ Y  \mid  X=x \}$ can be any function of $x$: a line, a parabola, a sine wave, a step function, anything. It gets even more complicated when we consider instances with large $p$, in which case $f(\mathbf{x})$ is a function of a multidimensional vector $\mathbf{x}$. For example, in our digit reader example $p = 784$! **The main way in which competing machine learning algorithms differ is in their approach to estimating this expectation.**
 
 
 ## Exercises
@@ -119,7 +119,7 @@ for any set of features $\mathbf{x} = (x_1, \dots, x_p)$. Of course this is easi
 1. Compute conditional probabilities for being Male for the `heights` dataset.  Round the heights to the closest inch. Plot the estimated conditional probability $P(x) = \mbox{Pr}(\mbox{Male} | \mbox{height}=x)$ for each $x$. 
 
  
-2. In the plot we just made, we see high variability for low values of height. This is because we have few data points in these strata. This time use the quantile $0.1,0.2,\dots,0.9$ and cut function to assure each group has the same number of points. Hint: for any numeric vector `x`, you can create groups based on quantiles like this: 
+2. In the plot we just made, we see high variability for low values of height. This is because we have few data points in these strata. This time use the `quantile` $0.1,0.2,\dots,0.9$ and `cut` functions to assure each group has the same number of points. Hint: for any numeric vector `x`, you can create groups based on quantiles like this: 
 
     ```{r, eval=FALSE}
     cut(x, quantile(x, seq(0, 1, 0.1)), include.lowest = TRUE)

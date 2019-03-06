@@ -21,12 +21,12 @@ y <- heights$sex
 x <- heights$height
 ```
 
-In this case, we have only one predictor, height, and `y` is clearly a categorical outcome since observed values are either`Male` or `Female`.
+In this case, we have only one predictor, height, and `y` is clearly a categorical outcome since observed values are either `Male` or `Female`.
 We know that we will not be able to predict $Y$ very accurately based on $X$ because male and female average heights are not that different relative to within group variability. But can we do better than guessing? To answer this question, we need a quantitative definition of better. 
 
 ### Training and test sets
 
-Ultimately, a machine learning algorithm is evaluated on how it performs in the real world with completely new datasets. However, when developing an algorithm, we usually have a dataset for which we know the outcomes, as we do with the heights: we know the sex of every student in our dataset. Therefore, to mimic the ultimate evaluation process, we typically split the data into two and act as if we don't know the outcome for one of these. We stop pretending we don't know the outcome to evaluate the algorithm, but only *after* we are done constructing it. We refer to the group for which we know the outcome, and use to develop the algorithm, as the _training_ set. We refer to the group for which we pretend we don't know the outcome as the _test_ set. 
+Ultimately, a machine learning algorithm is evaluated on how it performs in the real world with completely new datasets. However, when developing an algorithm, we usually have a dataset for which we know the outcomes, as we do with the heights: we know the sex of every student in our dataset. Therefore, to mimic the ultimate evaluation process, we typically split the data into two parts and act as if we don't know the outcome for one of these. We stop pretending we don't know the outcome to evaluate the algorithm, but only *after* we are done constructing it. We refer to the group for which we know the outcome, and use to develop the algorithm, as the _training_ set. We refer to the group for which we pretend we don't know the outcome as the _test_ set. 
 
 A standard way of generating the training and test sets is by randomly splitting the data. The __caret__ package includes the function `createDataPartition` that helps us generates indexes for randomly splitting the data into training and test sets: 
 
@@ -37,7 +37,7 @@ test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
 ```
 
 The argument `times` is used to define how many random samples of indexes to return, the argument `p` is used to define what proportion of the data is represented by the index, and the argument `list` is used to decide if we want the indexes returned as a list or not.
-We can use the result of the function call to define the training and test sets like this:
+We can use the result of the `createDataPartition` function call to define the training and test sets like this:
 
 ```{r}
 test_set <- heights[test_index, ]
@@ -126,7 +126,7 @@ best_cutoff <- cutoff[which.max(accuracy)]
 best_cutoff
 ```
 
-Now we can now test this cutoff on our test set to make sure our accuracy is not overly optimistic:
+We can now test this cutoff on our test set to make sure our accuracy is not overly optimistic:
 
 ```{r}
 y_hat <- ifelse(test_set$height > best_cutoff, "Male", "Female") %>% 
@@ -135,7 +135,7 @@ y_hat <- factor(y_hat)
 mean(y_hat == test_set$sex)
 ```
 
-We see that it is a bit lower than the accuracy observed for the training set, but it is still better than guessing. And by testing on a dataset that we did not train on, we know it is not due to cherry-picking a good result.
+We see that it is a bit lower than the accuracy observed for the training set, but it is still better than guessing. And by testing on a dataset that we did not train on, we know our result is not due to cherry-picking a good result.
 
 ### The confusion matrix
 
@@ -204,7 +204,7 @@ Sensitivity | True Positive Rate (TPR) | Recall | $\frac{\mbox{TP}}{\mbox{TP} + 
 Specificity | True Negative Rate (TNR) | 1 - False Postive Rate (1-FPR) | $\frac{\mbox{TN}}{\mbox{TN}+\mbox{FP}}$ | $\mbox{Pr}(\hat{Y}=0 \mid Y=0)$ |
 Specificity | Positive Predictive Value (PPV) | Precision | $\frac{\mbox{TP}}{\mbox{TP}+\mbox{FP}}$ | $\mbox{Pr}(Y=1 \mid \hat{Y}=1)$|
 
-The __caret__ function `confusionMatrix` computes all these metrics for us once we define what a positive is. The function expects factors as input and the first level is considered the "positive" outcome or $Y=1$. In our example, `Female` is the first level because it comes before `Male` alphabetically:
+The __caret__ function `confusionMatrix` computes all these metrics for us once we define what category "positive" is. The function expects factors as input, and the first level is considered the positive outcome or $Y=1$. In our example, `Female` is the first level because it comes before `Male` alphabetically:
 
 ```{r}
 confusionMatrix(data = y_hat, reference = test_set$sex)
@@ -215,7 +215,7 @@ We can see that the high overall accuracy is possible despite relatively low sen
 
 ### Balanced accuracy and $F_1$ score
 
-Although, we usually recommend studying both specificity and sensitivity, very often it is useful to have a one number summary, for example for optimization purposes. One metric that is preferred over overall accuracy is the average of specificity and sensitivity, referred to as _balanced accuracy_. Because specificity and sensitivity are rates, it is more appropriate to compute the _harmonic_ average. In fact, the _$F_1$-score_, a widely used one number summary, is the harmonic average of precision and recall:
+Although we usually recommend studying both specificity and sensitivity, very often it is useful to have a one number summary, for example for optimization purposes. One metric that is preferred over overall accuracy is the average of specificity and sensitivity, referred to as _balanced accuracy_. Because specificity and sensitivity are rates, it is more appropriate to compute the _harmonic_ average. In fact, the _$F_1$-score_, a widely used one-number summary, is the harmonic average of precision and recall:
 
 $$
 \frac{1}{\frac{1}{2}\left(\frac{1}{\mbox{recall}} + 
@@ -225,7 +225,7 @@ $$
 Because it is easier to write, you often see this harmonic average rewritten as:
 
 $$
-2\frac{\mbox{precision} \cdot \mbox{recall}}
+2 \times \frac{\mbox{precision} \cdot \mbox{recall}}
 {\mbox{precision} + \mbox{recall}}
 $$
 
@@ -283,7 +283,7 @@ sensitivity(data = y_hat, reference = test_set$sex)
 specificity(data = y_hat, reference = test_set$sex)
 ```
 
-We now see that we do much better than guessing, that both sensitivity and specificity are relatively high, and that we have built our first machine learning algorithm. It takes height as a predictor and predicts female, if you are 66 inches or shorter. 
+We now see that we do much better than guessing, that both sensitivity and specificity are relatively high, and that we have built our first machine learning algorithm. It takes height as a predictor and predicts female if you are 66 inches or shorter. 
 
 
 ### Prevalence matters in practice
@@ -292,12 +292,12 @@ A machine learning algorithm with very high sensitivity and specificity may not 
 
 $$ \mbox{Pr}(Y \mid \hat{Y}=1) = \mbox{Pr}(\hat{Y}=1 \mid Y=1) \frac{\mbox{Pr}(Y=1)}{\mbox{Pr}(\hat{Y}=1)}$$
 
-The doctor knows that the prevalence of the disease is 5 in 1000 which implies that $\mbox{Pr}(Y=1) \, / \,\mbox{Pr}(\hat{Y}=1) = 1/100$ and therefore the precision of your algorithm is less than 0.01. The doctor does not have much use for your algorithm.
+The doctor knows that the prevalence of the disease is 5 in 1000, which implies that $\mbox{Pr}(Y=1) \, / \,\mbox{Pr}(\hat{Y}=1) = 1/100$ and therefore the precision of your algorithm is less than 0.01. The doctor does not have much use for your algorithm.
 
 
 ### ROC and precision-recall curves
 
-When comparing the two methods: guessing versus using a height cutoff, we looked at accuracy and $F_1$. The second method clearly outperformed.  However, while we considered several cutoffs for the second method, for the first we only considered one approach: guessing with equal probability. Note that guessing `Male` with higher probability would give us higher accuracy due to the bias in the sample:
+When comparing the two methods (guessing versus using a height cutoff), we looked at accuracy and $F_1$. The second method clearly outperformed the first.  However, while we considered several cutoffs for the second method, for the first we only considered one approach: guessing with equal probability. Note that guessing `Male` with higher probability would give us higher accuracy due to the bias in the sample:
 
 
 ```{r}
@@ -329,7 +329,7 @@ guessing <- map_df(probs, function(p){
 guessing %>% qplot(FPR, TPR, data =., xlab = "1 - Specificity", ylab = "Sensitivity")
 ```
 
-The ROC curve for guessing always looks like a straight line.  So how does our second approach compare? We can construct an ROC curve for the height based approach:
+The ROC curve for guessing always looks like a straight line.  So how does our second approach compare? We can construct an ROC curve for the height-based approach:
 
 ```{r}
 cutoffs <- c(50, seq(60, 75), 80)
@@ -342,7 +342,7 @@ height_cutoff <- map_df(cutoffs, function(x){
 })
 ```
 
-By plotting both curves together we are able to compare sensitivity for different values of specificity:
+By plotting both curves together, we are able to compare sensitivity for different values of specificity:
 
 ```{r roc-2}
 bind_rows(guessing, height_cutoff) %>%
@@ -355,9 +355,10 @@ bind_rows(guessing, height_cutoff) %>%
 
 We can see that we obtain higher sensitivity with this approach for all values of specificity, which implies it is in fact a better method.
 
-When making ROC curves it is often nice to add the cutoff used to the points:
+When making ROC curves, it is often nice to add the cutoff used to the points:
 
 ```{r roc-3}
+library(ggrepel)
 map_df(cutoffs, function(x){
   y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
     factor(levels = c("Female", "Male"))
@@ -369,7 +370,7 @@ map_df(cutoffs, function(x){
   ggplot(aes(FPR, TPR, label = cutoff)) +
   geom_line() +
   geom_point() +
-  geom_text(nudge_y = 0.01)
+  geom_text_repel(nudge_x = 0.01, nudge_y = -0.01)
 ```
 
 
