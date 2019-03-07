@@ -1,6 +1,6 @@
 # The caret package {#caret}
 
-We have already learned about regression, logistic regression, and kNN as machine learning algorithms. In later sections, we learn several others. And this is just a small subset of all the algorithms out there. Many of these algorithms are implemented in R. However, they are distributed via different packages, developed by different authors, and often use different syntax. The __caret__ package tries to consolidate these differences and provide consistency. It currently includes 237 different methods which are summarized [here](https://topepo.github.io/caret/available-models.html). Keep in mind that caret does not include the needed packages and, to implement a package through caret, you still need to install the library. The required packages for each method are described [here](https://topepo.github.io/caret/train-models-by-tag.html).
+We have already learned about regression, logistic regression, kNN, generative models, and decision trees and random forests as machine learning algorithms. In later sections, we learn several others, and this is just a small subset of all the algorithms out there. Many of these algorithms are implemented in R. However, they are distributed via different packages, developed by different authors, and often use different syntax. The __caret__ package tries to consolidate these differences and provide consistency. It currently includes 237 different methods which are summarized [here](https://topepo.github.io/caret/available-models.html). Keep in mind that caret does not include the needed packages and, to implement a package through caret, you still need to install the library. The required packages for each method are described [by this reference](https://topepo.github.io/caret/train-models-by-tag.html).
 
 The __caret__ package also provides a function that performs cross validation for us. Here we provide some examples showing how we use this incredibly helpful package. We will use the 2 or 7 example to illustrate:
 
@@ -23,7 +23,7 @@ train_knn <- train(y ~ ., method = "knn", data = mnist_27$train)
 
 To make predictions, we can use the output of this function directly without needing to look at the specifics of `predict.glm` and `predict.knn`. Instead, we can learn how to obtain predictions from `predict.train`.
 
-So the code looks the same for both methods:
+The code looks the same for both methods:
 ```{r}
 y_hat_glm <- predict(train_glm, mnist_27$test, type = "raw")
 y_hat_knn <- predict(train_knn, mnist_27$test, type = "raw")
@@ -44,7 +44,7 @@ When an algorithm includes a tuning parameter, `train` automatically uses cross 
 getModelInfo("knn")
 ```
 
-We can also use a quick look up like this:
+We can also use a quick lookup like this:
 
 ```{r, eval=FALSE}
 modelLookup("knn")
@@ -56,7 +56,7 @@ If we run it with default values:
 train_knn <- train(y ~ ., method = "knn", data = mnist_27$train)
 ```
 
-you can quickly see the results of the cross-validation using the `ggplot` function. The argument `highlight` highlights the max:
+you can quickly see the results of the cross validation using the `ggplot` function. The argument `highlight` highlights the max:
 
 ```{r caret-highlight}
 ggplot(train_knn, highlight = TRUE)
@@ -64,7 +64,7 @@ ggplot(train_knn, highlight = TRUE)
 
 By default, the cross validation is performed by taking 25 bootstrap samples comprised of 25% of the observations. For the `kNN` method, the default is to try $k=5,7,9$. To change this we use the `tuneGrid` parameters. The grid of values must be supplied by a data frame with the parameter names as specified in the `modelLookup` output. 
 
-Here, we present an example where we try out 30 values between 9 and 67. To do this with caret, we need to define a column named `k`, so we use this: 
+Here, we present an example where we try out 30 values between 9 and 67. To do this with __caret__, we need to define a column named `k`, so we use this: 
 `data.frame(k = seq(9, 67, 2))`.
 
 Note that when running this code, we are fitting 30 versions of kNN to 25 bootstrapped samples. Since we are fitting $30 \times 25 = 750$ kNN models, running this code will take several seconds:

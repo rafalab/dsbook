@@ -22,9 +22,9 @@ These two are often referred to as the _true error_ and _apparent error_ respect
 
 There are two important characteristics of the apparent error we should always keep in mind:
 
-1. Because our data is random, the apparent error is a random variable. For example, the dataset we have may be a random sample from a larger population. So an algorithm having a lower apparent error than another algorithm, may be due to luck.
+1. Because our data is random, the apparent error is a random variable. For example, the dataset we have may be a random sample from a larger population. An algorithm may have a lower apparent error than another algorithm due to luck.
 
-2. If we train an algorithm on the same dataset that we use to compute the apparent error, we might be overtraining. In general, when we do this, the apparent error will be an underestimate of the true error. We will see an extreme example of this with k nearest neighbor.
+2. If we train an algorithm on the same dataset that we use to compute the apparent error, we might be overtraining. In general, when we do this, the apparent error will be an underestimate of the true error. We will see an extreme example of this with k nearest neighbors.
 
 Cross validation is a technique that permits us to alleviate both these problems. To understand cross validation, it helps to think of the true error, a theoretical quantity, as the average of many apparent errors obtained by applying the algorithm to $B$ new random samples of the data, none of them used to train the algorithm. As shown in a previous chapter, we think of the true error as:
 
@@ -33,7 +33,7 @@ $$
 \frac{1}{B} \sum_{b=1}^B \frac{1}{N}\sum_{i=1}^N \left(\hat{y}_i^b - y_i^b\right)^2 
 $$
 with $B$ a large number that can be thought of as practically infinite. 
-As already mentioned, this is a theoretical quantity because we only have available one set of outcomes: $y_1, \dots, y_n$. Cross validation is based on the idea of imitating the theoretical setup above as best we can with the data we have. To do this, we have to generate a series of different random samples. There are several approaches we can use. But the general idea for all of them is to randomly generate smaller datasets that are not used for training, and instead used to estimate the true error.
+As already mentioned, this is a theoretical quantity because we only have available one set of outcomes: $y_1, \dots, y_n$. Cross validation is based on the idea of imitating the theoretical setup above as best we can with the data we have. To do this, we have to generate a series of different random samples. There are several approaches we can use, but the general idea for all of them is to randomly generate smaller datasets that are not used for training, and instead used to estimate the true error.
 
 ## K-fold cross validation
 
@@ -75,7 +75,7 @@ $$
 
 we want to consider datasets that can be thought of as an independent random sample and we want to do this several times. With K-fold cross validation, we do it $K$ times. In the cartoons, we are showing an example that uses $K=5$. 
 
-We will eventually end up with $K$ samples, but let's start by describing how to construct the first: we simply pick $M=N/K$ (we round if $M$ is not a round number) observations at random and think of these as a random sample $y_1^b, \dots, y_M^b$, with $b=1$. We call this the validation set:
+We will eventually end up with $K$ samples, but let's start by describing how to construct the first: we simply pick $M=N/K$ observations at random (we round if $M$ is not a round number) and think of these as a random sample $y_1^b, \dots, y_M^b$, with $b=1$. We call this the validation set:
 
 
 ```{r, echo=FALSE}
@@ -170,13 +170,16 @@ x_subset <- x[ ,sample(p, 100)]
 4. Re-run the cross-validation but after redefining `x_subset` to be the subset of `x` defined by the columns showing "statistically significant" association with `y`. What is the accuracy now?
 
 
-5. Re-run the cross-validation again, but this time using kNN. Try out the following grid `k = seq(101, 301, 25)` of tuning parameters. Make a plot of the resulting accuracy.
+5. Re-run the cross-validation again, but this time using kNN. Try out the following grid of tuning parameters: `k = seq(101, 301, 25)`. Make a plot of the resulting accuracy.
 
 6. In exercise 3 and 4, we see that despite the fact that `x` and `y` are completely independent, we were able to predict `y` with accuracy higher than 70%. We must be doing something wrong then. What is it?
 
     A. The function `train` estimates accuracy on the same data it uses to train the algorithm.
+    
     B. We are over-fitting the model by including 100 predictors.
-    C. We used the entire dataset to select the columns used in the model. This step needs to be included as part of the algorithm. The cross-validation was done    **after** this selection.
+    
+    C. We used the entire dataset to select the columns used in the model. This step needs to be included as part of the algorithm. The cross-validation was done **after** this selection.
+    
     D. The high accuracy is just due to random variability.
 
 7. Advanced. Re-do the cross validation but this time include the selection step in the cross-validation. The accuracy should now be close to 50%.
@@ -237,7 +240,7 @@ sd(Ms)
 
 The problem here is that, as we have already described, in practice we do not have access to the distribution. In the past, we have used the central limit theorem. But the CLT we studied applies to averages and here we are interested in the median. 
 
-The Bootstrap permits us to approximate a Monte Carlo simulation without access to the entire distribution. The general idea is relatively simple. We act as if the observed sample is the population. We then sample (with replacement) datasets, of the same sample size as the original dataset. Then we compute the summary statistic, in this case median, on this _bootstrap sample_. 
+The bootstrap permits us to approximate a Monte Carlo simulation without access to the entire distribution. The general idea is relatively simple. We act as if the observed sample is the population. We then sample (with replacement) datasets, of the same sample size as the original dataset. Then we compute the summary statistic, in this case median, on this _bootstrap sample_. 
 
 Theory tells us that, in many situations, the distribution of the statistics obtained with bootstrap samples approximate the distribution of our actual statistic. This is how we construct bootstrap samples and an approximate distribution:
 
@@ -279,7 +282,7 @@ mean(Ms) + 1.96 * sd(Ms) * c(-1,1)
 mean(M_stars) + 1.96 * sd(M_stars) * c(-1, 1)
 ```
 
-**Note that we can use ideas similar to those used in the Bootstrap in cross validaion: instead of dividing the data into equal partitions, we simply Boostrap many times.**
+*Note that we can use ideas similar to those used in the bootstrap in cross validation: instead of dividing the data into equal partitions, we simply bootstrap many times.*
 
 
 
@@ -287,7 +290,7 @@ mean(M_stars) + 1.96 * sd(M_stars) * c(-1, 1)
 
 ## Exercises 
 
-1. The `createResample` function can be used to create bootstrap samples. So, for example, we can create 10 bootstrap samples for the `mnist_27` dataset like this:
+1. The `createResample` function can be used to create bootstrap samples. For example, we can create 10 bootstrap samples for the `mnist_27` dataset like this:
 
     ```{r, eval=FALSE}
     set.seed(1995)
@@ -306,7 +309,7 @@ mean(M_stars) + 1.96 * sd(M_stars) * c(-1, 1)
     y <- rnorm(100, 0, 1)
     ```
 
-    Estimate the 75th quantiles, which we know is: 
+    Estimate the 75th quantile, which we know is: 
 
 
     ```{r, eval = FALSE}

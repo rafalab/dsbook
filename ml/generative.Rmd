@@ -136,7 +136,7 @@ qplot(x, p_hat_bayes_unbiased, geom = "line") +
 
 ### Quadratic Discriminant Analysis
 
-Quadratic Discriminant Analysis (QDA) is a version of _Naive Bayes_ in which we assume that the distributions $p_{\mathbf{X}|Y=1}(x)$ and $p_{\mathbf{X}|Y=0}(\mathbf{x})$ are multivariate normal. The simple example we described in the previous section is actually QDA. Let's now look at a slightly more complicated case: the 2 or 7 example.
+Quadratic Discriminant Analysis (QDA) is a version of Naive Bayes in which we assume that the distributions $p_{\mathbf{X}|Y=1}(x)$ and $p_{\mathbf{X}|Y=0}(\mathbf{x})$ are multivariate normal. The simple example we described in the previous section is actually QDA. Let's now look at a slightly more complicated case: the 2 or 7 example.
 
 ```{r}
 data("mnist_27")
@@ -215,7 +215,7 @@ mnist_27$train %>% mutate(y = factor(y)) %>%
 
 
 QDA can work well here, but it becomes harder to use as the number of predictors increases. Here we have 2 predictors and had to compute 4 means, 4 SDs and 2 correlations. How many parameters would we have if instead of 2 predictors, we had 10? 
-The main problem comes from estimating correlations for 10 of predictors. With 10, we have 45 correlations for each class. In general, the formula is $K\times p(p-1)/2$ which gets big fast. Once the number of parameters approaches the size of our data, the method becomes unpractical due to overfitting.
+The main problem comes from estimating correlations for 10 predictors. With 10, we have 45 correlations for each class. In general, the formula is $K\times p(p-1)/2$, which gets big fast. Once the number of parameters approaches the size of our data, the method becomes impractical due to overfitting.
 
 
 ### Linear discriminant analysis
@@ -307,17 +307,17 @@ y <- mnist$train$labels[index_127]
 x <- mnist$train$images[index_127,]
 index_train <- createDataPartition(y, p=0.8, list = FALSE)
 
-# get the quandrants
-#temporary object to help figure out the quandrants
+# get the quadrants
+# temporary object to help figure out the quadrants
 row_column <- expand.grid(row=1:28, col=1:28) 
 upper_left_ind <- which(row_column$col <= 14 & row_column$row <= 14)
 lower_right_ind <- which(row_column$col > 14 & row_column$row > 14)
 
-#binarize the values. Above 200 is ink, below is no ink
+# binarize the values. Above 200 is ink, below is no ink
 x <- x > 200 
 
-#cbind proportion of pixels in upper right quandrant and
-##proportion of pixes in lower rigth quandrant
+# cbind proportion of pixels in upper right quadrant and
+## proportion of pixels in lower right quadrant
 x <- cbind(rowSums(x[ ,upper_left_ind])/rowSums(x), 
            rowSums(x[ ,lower_right_ind])/rowSums(x)) 
 
@@ -332,7 +332,7 @@ test_set <- data.frame(y = factor(y[-index_train]),
 
 Here is the training data:
 
-```{r mnist-27-trainig-data}
+```{r mnist-27-training-data}
 train_set %>% 
   ggplot(aes(x_1, x_2, color=y)) + 
   geom_point()
@@ -357,16 +357,16 @@ And our predictions are one of the three classes:
 predict(train_qda, test_set) %>% head()
 ```
 
-So the confusion matrix has a 3 by 3 table:
+So the confusion matrix is a 3 by 3 table:
 
 ```{r}
 confusionMatrix(predict(train_qda, test_set), test_set$y)$table
 ```
 
-The actuary is:
+The accuracy is:
 
 ```{r}
-confusionMatrix(predict(train_qda, test_set), test_set$y)$overal["Accuracy"]
+confusionMatrix(predict(train_qda, test_set), test_set$y)$overall["Accuracy"]
 ```
 
 For sensitivity and specificity, we have a pair of values for **each** class. To define these terms, we need a binary outcome. We therefore have three columns: one for each class as the positives and the other two as the negatives.
@@ -374,7 +374,7 @@ For sensitivity and specificity, we have a pair of values for **each** class. To
 
 We can visualize what parts of the region are called 1, 2 and 7:
 
-```{r three-classes-plot}
+```{r three-classes-plot, echo=FALSE}
 GS <- 150
 new_x <- expand.grid(x_1 = seq(min(train_set$x_1), max(train_set$x_1), len=GS),
                      x_2 = seq(min(train_set$x_2), max(train_set$x_2), len=GS))
@@ -389,7 +389,7 @@ Here is what it looks like for LDA:
 
 ```{r}
 train_lda <- train(y ~ ., method = "lda", data = train_set)
-confusionMatrix(predict(train_lda, test_set), test_set$y)$overal["Accuracy"]
+confusionMatrix(predict(train_lda, test_set), test_set$y)$overall["Accuracy"]
 ```
 
 The accuracy is much worse because the model is more rigid. This is what the decision rule looks like:
@@ -408,7 +408,7 @@ The results for kNN are much better:
 train_knn <- train(y ~ ., method = "knn", tuneGrid = data.frame(k = seq(15, 51, 2)), 
                    data = train_set)
 
-confusionMatrix(predict(train_knn, test_set), test_set$y)$overal["Accuracy"]
+confusionMatrix(predict(train_knn, test_set), test_set$y)$overall["Accuracy"]
 ```
 
 with much better accuracy now. The decision rule looks like this:
@@ -421,7 +421,7 @@ new_x %>% mutate(y_hat = predict(train_knn, new_x)) %>%
   guides(colour = guide_legend(override.aes = list(size=2)))
 ```
 
-Note that the limitations of LDA are to the lack of fit of the normal assumption, in particular for class 1.
+Note that one of the limitations of LDA here is due to the lack of fit of the normal assumption, in particular for class 1.
 
 ```{r three-classes-lack-of-fit}
 train_set %>% mutate(y = factor(y)) %>% 
@@ -440,7 +440,7 @@ Generative models can be very powerful, but only when we are able to successfull
 We are going to apply LDA and QDA to the `tissue_gene_expression` dataset. We will start with simple examples based on this dataset and then develop a realistic example.
 
 
-1. Create a dataset with just the cerebella and hippocampi, two parts of the brain, and a predictor matrix with 10 randomly selected columns.
+1. Create a dataset with just the classes "cerebellum" and "hippocampus" (two parts of the brain) and a predictor matrix with 10 randomly selected columns.
 
     ```{r, eval=FALSE}
     set.seed(1993)
@@ -463,7 +463,7 @@ We are going to apply LDA and QDA to the `tissue_gene_expression` dataset. We wi
 4. Are the same predictors (genes) driving the algorithm? Make a plot as in exercise 2.
 
 
-5. One thing we see in the previous plot is that the value of predictors correlate in both groups: some predictors are low in both groups while others high in both groups. The mean value of each predictor or `colMeans(x)` is not informative or useful for prediction and often for interpretation purposes it is useful to center or scale each column. This can be achieved with the `preProcessing` argument in train. Re-run LDA with `preProcessing = "scale"`. Note that accuracy does not change but see how it is easier to identify the predictors that differ more between groups in the plot made in exercise 4.
+5. One thing we see in the previous plot is that the value of predictors correlate in both groups: some predictors are low in both groups while others are high in both groups. The mean value of each predictor, `colMeans(x)`, is not informative or useful for prediction, and often for interpretation purposes it is useful to center or scale each column. This can be achieved with the `preProcessing` argument in `train`. Re-run LDA with `preProcessing = "scale"`. Note that accuracy does not change but see how it is easier to identify the predictors that differ more between groups in the plot made in exercise 4.
 
 
 
@@ -487,7 +487,7 @@ We are going to apply LDA and QDA to the `tissue_gene_expression` dataset. We wi
 8. We see that the results are slightly worse. Use the `confusionMatrix` function to learn what type of errors we are making.
 
 
-9. Plot an image of the centers of the seven 10-dimensional normal distributions
+9. Plot an image of the centers of the seven 10-dimensional normal distributions.
 
 
 
