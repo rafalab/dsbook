@@ -46,7 +46,7 @@ confusionMatrix(data = y_hat_knn, reference = mnist_27$test$y)$overall["Accuracy
 
 In Section \@ref(two-or-seven) we used linear regression to generate an estimate. 
 ```{r}
-fit_lm <- mnist_27$train %>% mutate(y = ifelse(y==7, 1, 0)) %>% lm(y ~ x_1 + x_2, data = .)
+fit_lm <- mnist_27$train %>% mutate(y = ifelse(y == 7, 1, 0)) %>% lm(y ~ x_1 + x_2, data = .)
 p_hat_lm <- predict(fit_lm, mnist_27$test)
 y_hat_lm <- factor(ifelse(p_hat_lm > 0.5, 7, 2))
 confusionMatrix(data = y_hat_lm, reference = mnist_27$test$y)$overall["Accuracy"]
@@ -149,7 +149,9 @@ confusionMatrix(data=y_hat_knn_401, reference=mnist_27$test$y)$overall["Accuracy
 
 This turns out to be similar to regression:
 ```{r mnist-27-glm-est, echo=FALSE, out.width="100%"}
-p1 <- plot_cond_prob(predict(fit_lm, mnist_27$true_p)) +
+p_hat <- predict(fit_lm, newdata = mnist_27$true_p)
+p_hat <- pmin(pmax(p_hat, 0), 1)
+p1 <- plot_cond_prob(p_hat) +
   ggtitle("Regression")
 
 p2 <- plot_cond_prob(predict(knn_fit_401, mnist_27$true_p)[,2]) +

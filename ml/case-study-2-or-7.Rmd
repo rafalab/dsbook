@@ -83,7 +83,7 @@ y_hat <- factor(ifelse(p_hat > 0.5, 7, 2))
 confusionMatrix(data = y_hat, reference = mnist_27$test$y)$overall[["Accuracy"]]
 ```
 
-We get an accuracy of `r confusionMatrix(data = y_hat, reference = mnist_27$test$y)$overall[["Accuracy"]]`. Not bad for our first try. But can we do better?
+We get an accuracy well above 50%. Not bad for our first try. But can we do better?
 
 Because we constructed the `mnist_27` example and we had at our disposal 60,000 digits in just the MNIST dataset, we used this to build the _true_ conditional distribution $p(x_1, x_2)$. Keep in mind that this is something we don't have access to in practice, but we include it in this example because it permits the comparison of $\hat{p}(x_1, x_2)$ to the true $p(x_1, x_2)$. This comparison teaches us the limitations of different algorithms. Let's do that here. We have stored the true $p(x_1,x_2)$ in the `mnist_27` object and can plot the image using the __ggplot2__ function `geom_raster()`, like this:
 
@@ -112,8 +112,9 @@ x_2 = (0.5-\hat{\beta}_0)/\hat{\beta}_2 + -\hat{\beta}_1/\hat{\beta}_2 x_1
 $$
 Note that for this boundary, $x_2$ is a linear function of $x_1$. This implies that our logistic regression approach has no chance of capturing the non-linear nature of the true $p(x_1,x_2)$. Here is a visual representation of $\hat{p}(x_1, x_2)$:
 
-```{r regression-p-hat}
+```{r regression-p-hat, echo=FALSE}
 p_hat <- predict(fit, newdata = mnist_27$true_p)
+p_hat <- pmin(pmax(p_hat, 0), 1)
 mnist_27$true_p %>% mutate(p_hat = p_hat) %>%
   ggplot(aes(x_1, x_2,  z=p_hat, fill=p_hat)) +
   geom_raster() +
@@ -123,8 +124,7 @@ mnist_27$true_p %>% mutate(p_hat = p_hat) %>%
 
 We can see where the mistakes were made mainly come from low values $x_1$ that have either high or low value of $x_2$. Regression can't catch this.
 
-```{r regression-p-hat-with-points}
-p_hat <- predict(fit, newdata = mnist_27$true_p)
+```{r regression-p-hat-with-points, echo=FALSE}
 mnist_27$true_p %>% mutate(p_hat = p_hat) %>%
   ggplot() +
   stat_contour(aes(x_1, x_2, z=p_hat), breaks=c(0.5), color="black") + 
