@@ -1,6 +1,7 @@
 ## Evaluation Metrics
 
-In this section, we focus on describing ways in which machine learning algorithms are evaluated. For our first introduction to machine learning concepts, we will start with a boring and simple example: how to predict sex using height. As we explain machine learning step by step, this example will let us set down the first building block. Soon enough, we will be attacking more interesting challenges. We use the __caret__ package, which has several useful functions for building and assessing machine learning methods and we introduce in more detail in Section \@ref(caret).
+Before we start describing approaches to optimizing the way we build algorithms, we first need to define what we mean when we say one approach is better than another. In this section, we focus on describing ways in which machine learning algorithms are evaluated. Specifically, we need to quantify what we mean by "better".
+For our first introduction to machine learning concepts, we will start with a boring and simple example: how to predict sex using height. As we explain machine learning step by step, this example will let us set down the first building block. Soon enough, we will be attacking more interesting challenges. We use the __caret__ package, which has several useful functions for building and assessing machine learning methods and we introduce in more detail in Section \@ref(caret).
 
 ```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -201,7 +202,7 @@ The multiple names can be confusing, so we include a table to help us remember t
 | Measure of | Name 1 | Name 2 | Definition | Probability representation |
 |---------|----------------------|-----------------------|--------|------------------|
 Sensitivity | True Positive Rate (TPR) | Recall | $\frac{\mbox{TP}}{\mbox{TP} + \mbox{FN}}$ | $\mbox{Pr}(\hat{Y}=1 \mid Y=1)$ |
-Specificity | True Negative Rate (TNR) | 1 - False Postive Rate (1-FPR) | $\frac{\mbox{TN}}{\mbox{TN}+\mbox{FP}}$ | $\mbox{Pr}(\hat{Y}=0 \mid Y=0)$ |
+Specificity | True Negative Rate (TNR) | 1 - False Positive Rate (1-FPR) | $\frac{\mbox{TN}}{\mbox{TN}+\mbox{FP}}$ | $\mbox{Pr}(\hat{Y}=0 \mid Y=0)$ |
 Specificity | Positive Predictive Value (PPV) | Precision | $\frac{\mbox{TP}}{\mbox{TP}+\mbox{FP}}$ | $\mbox{Pr}(Y=1 \mid \hat{Y}=1)$|
 
 The __caret__ function `confusionMatrix` computes all these metrics for us once we define what category "positive" is. The function expects factors as input, and the first level is considered the positive outcome or $Y=1$. In our example, `Female` is the first level because it comes before `Male` alphabetically:
@@ -268,7 +269,7 @@ We see that it is maximized at $F_1$ value of:
 max(F_1)
 ```
 
-This maixmum is achieved when we the following cutoff:
+This maximum is achieved when we the following cutoff:
 ```{r}
 best_cutoff <- cutoff[which.max(F_1)]
 best_cutoff
@@ -302,7 +303,8 @@ When comparing the two methods (guessing versus using a height cutoff), we looke
 
 ```{r}
 p <- 0.9
-y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, prob=c(p, 1-p)) %>% 
+n <- length(test_index)
+y_hat <- sample(c("Male", "Female"), n, replace = TRUE, prob=c(p, 1-p)) %>% 
   factor(levels = levels(test_set$sex))
 mean(y_hat == test_set$sex)
 ```
@@ -320,7 +322,7 @@ The ROC curve plots sensitivity (TPR) versus 1 - specificity or the false positi
 probs <- seq(0, 1, length.out = 10)
 guessing <- map_df(probs, function(p){
   y_hat <- 
-    sample(c("Male", "Female"), length(test_index), replace = TRUE, prob=c(p, 1-p)) %>% 
+    sample(c("Male", "Female"), n, replace = TRUE, prob=c(p, 1-p)) %>% 
     factor(levels = c("Female", "Male"))
   list(method = "Guessing",
        FPR = 1 - specificity(y_hat, test_set$sex),
@@ -427,6 +429,57 @@ bind_rows(guessing, height_cutoff) %>%
   geom_line() +
   geom_point()
 ```
+
+### The loss function {#loss-function}
+
+Up to now we have described evaluation metrics that apply exclusively to categorical data. 
+Specifically, for binary outcomes, we have described how sensitivity, specificity, accuracy and $F_1$ can be used as quantification. However, these metrics are not useful for continuous outcomes. In this section we describe the general approach to defining "best" in machine learning is to define a _loss function_, which can be applied to both categorical and continuous data. 
+
+The most commonly used loss function is the squared loss function. If $\hat{y}$ is our predictor and $y$ is the observed outcome, the squared loss function is simply:
+
+$$
+(\hat{y} - y)^2
+$$
+
+Because we often have a test set with many observations, say $N$, we use the mean squared error (MSE):
+
+$$
+\mbox{MSE} = \frac{1}{N} \mbox{RSS} = \frac{1}{N}\sum_{i=1}^N (\hat{y}_i - y_i)^2
+$$
+
+In practice, we often report the root mean squared error 
+because it is in the same units as the outcomes:
+
+
+$$
+\mbox{RMSE} = \sqrt{\mbox{MSE}} = \sqrt{\frac{1}{N}\sum_{i=1}^N (\hat{y}_i - y_i)^2}
+$$
+
+But doing the math is often easier with the MSE and it is therefore more commonly used in text books, since these usually describe theoretical properties of algorithms.
+
+If the outcomes are binary, both RMSE and MSE are equivalent to accuracy since $(\hat{y} - y)^2$ is 1 if the prediction was correct and 0 otherwise. In general, our goal is to build an algorithm that minimizes the loss so it is as close to 0 as possible.
+
+Because our data is usually a random sample, we can think of the MSE as a random variable and the observed MSE can be thought of as an estimate of the expected MSE, which in mathematical notation we write like this:
+
+$$
+\mbox{E}\left\{ \frac{1}{N}\sum_{i=1}^N (\hat{Y}_i - Y_i)^2 \right\}
+$$
+
+This is a theoretical concept because in practice we only have one dataset to work with. But, in theory, we think of having a very, very large number, call it $B$, of random samples, apply our algorithm to each, obtain an MSE for each random sample, and think of the expected MSE as:
+
+$$
+\frac{1}{B} \sum_{b=1}^B \frac{1}{N}\sum_{i=1}^N \left(\hat{y}_i^b - y_i^b\right)^2 
+$$
+
+with $y_{i}^b$ denoting the $i$th observation in the $b$th random sample and $\hat{y}_i^b$ the resulting prediction obtained from applying the exact same algorithm to the $b$th random sample. But again, in practice we only observe one random sample, so the expected MSE is only theoretical. However, in Section \@ref(cross-validation) we describe an approach to estimating the MSE that tries to mimic this theoretical quantity.
+
+Note that the there are loss functions other that the squared loss. For example, the _Mean Absolute Error_  uses absolute values instead of squaring the errors:
+
+$$
+\mbox{E}\left\{ \frac{1}{N}\sum_{i=1}^N |\hat{Y}_i - Y_i|\right\}
+$$
+
+However, in this book we focus on minimizing square loss since it is the most widely used.
 
 
 ## Exercises 

@@ -11,7 +11,7 @@ data("mnist_27")
 ```
 
 
-## The caret `train` functon
+## The caret `train` functon 
 
 The __caret__ `train` function lets us train different algorithms using similar syntax. So, for example, we can type:
 
@@ -36,7 +36,7 @@ confusionMatrix(y_hat_glm, mnist_27$test$y)$overall[["Accuracy"]]
 confusionMatrix(y_hat_knn, mnist_27$test$y)$overall[["Accuracy"]]
 ```
 
-## Cross validation
+## Cross validation {#caret-cv}
 
 When an algorithm includes a tuning parameter, `train` automatically uses cross validation to decide among a few default values. To find out what parameter or parameters are optimized, you can read [this](http://topepo.github.io/caret/available-models.html) or study the output of: 
 
@@ -67,9 +67,10 @@ By default, the cross validation is performed by taking 25 bootstrap samples com
 Here, we present an example where we try out 30 values between 9 and 67. To do this with __caret__, we need to define a column named `k`, so we use this: 
 `data.frame(k = seq(9, 67, 2))`.
 
-Note that when running this code, we are fitting 30 versions of kNN to 25 bootstrapped samples. Since we are fitting $30 \times 25 = 750$ kNN models, running this code will take several seconds:
+Note that when running this code, we are fitting 30 versions of kNN to 25 bootstrapped samples. Since we are fitting $30 \times 25 = 750$ kNN models, running this code will take several seconds. We set the seed becuase cross validation is a random procedure and we want to make sure the result here is reproducible.
 
 ```{r train-knn-plot}
+set.seed(2008)
 train_knn <- train(y ~ ., method = "knn", 
                    data = mnist_27$train,
                    tuneGrid = data.frame(k = seq(9, 71, 2)))

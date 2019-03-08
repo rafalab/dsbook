@@ -26,30 +26,31 @@ The general setup is as follows. We have a series of features and an unknown out
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(dslabs)
-n <- 1
-tmp <- data.frame(outcome=rep("?",n), 
-                  feature_1 = paste0("$X_1$"),
-                  feature_2 = paste0("$X_2$"),
-                  feature_3 = paste0("$X_3$"),
-                  feature_4 = paste0("$X_4$"),
-                  feature_5 = paste0("$X_5$"))
-tmp %>% knitr::kable(align="c")
+tmp <- data_frame(outcome="?", 
+                  'feature 1' = "$X_1$",
+                  'feature 2' = "$X_2$",
+                  'feature 3' = "$X_3$",
+                  'feature 4' = "$X_4$",
+                  'feature 5' = "$X_5$")
+if(knitr::is_html_output()) tmp %>% knitr::kable(align="c") else tmp %>% knitr::kable(align="c",escape = FALSE)
 ```
 
 To _build a model_ that provides a prediction for any set of observed values $X_1=x_1, X_2=x_2, \dots X_5=x_5$, we collect data for which we know the outcome:
 
 ```{r, echo=FALSE}
 n <- 10
-tmp <- data.frame(outcome = paste0("$y_{", 1:n,"}$"), 
-                  feature_1 = paste0("$x_{",1:n,",1}$"),
-                  feature_2 = paste0("$x_{",1:n,",2}$"),
-                  feature_3 = paste0("$x_{",1:n,",3}$"),
-                  feature_4 = paste0("$x_{",1:n,",4}$"),
-                  feature_5 = paste0("$x_{",1:n,",5}$"))
+tmp <- data_frame(outcome = paste0("$y_{", 1:n,"}$"), 
+                  'feature 1' = paste0("$x_{",1:n,",1}$"),
+                  'feature 2' = paste0("$x_{",1:n,",2}$"),
+                  'feature 3' = paste0("$x_{",1:n,",3}$"),
+                  'feature 4' = paste0("$x_{",1:n,",4}$"),
+                  'feature 5' = paste0("$x_{",1:n,",5}$"))
 tmp %>% knitr::kable()
+if(knitr::is_html_output()) tmp %>% knitr::kable() else tmp %>% knitr::kable(escape = FALSE)
+
 ```
 
-When the output is continuous we refer to the machine learning task as _prediction_, and the main output of the model is a function $f$ that automatically produces a prediction, denoted with $\hat{y}$, for any set of predictors: $\hat{y} = f(x_1, x_2, \dots, x_p)$.  We use the term _actual outcome_ to denote what we ended up observing. So we want the prediction $\hat{y}$ to match the actual outcome $y$ as best as possible. Becuase our outcome is continuous, our predictions $\hat{y}$ will not be either exctly right or wrong, but instead we will determine an _error_ defined as the difference between the prediction and the actual outcome $y - \hat{y}$.
+When the output is continuous we refer to the machine learning task as _prediction_, and the main output of the model is a function $f$ that automatically produces a prediction, denoted with $\hat{y}$, for any set of predictors: $\hat{y} = f(x_1, x_2, \dots, x_p)$.  We use the term _actual outcome_ to denote what we ended up observing. So we want the prediction $\hat{y}$ to match the actual outcome $y$ as best as possible. Because our outcome is continuous, our predictions $\hat{y}$ will not be either exactly right or wrong, but instead we will determine an _error_ defined as the difference between the prediction and the actual outcome $y - \hat{y}$.
 
 When the outcome is categorical, we refer to the machine learning task as _classification_, and the main output of the model will be a _decision rule_ which prescribes which of the $K$ classes we should predict. In this scenario, most models provide functions of the predictors for each class $k$, $f_k(x_1, x_2, \dots, x_p)$, that are used to make this decision. When the data is binary a typical decision rules looks like this: if $f_1(x_1, x_2, \dots, x_p) > C$, predict category 1, if not the other category, with $C$ a predetermined cutoff. Because the outcomes are categorical, our predictions will be either right or wrong. 
 

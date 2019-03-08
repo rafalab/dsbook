@@ -413,7 +413,7 @@ data.frame(x = seq(min(polls_2008$day), max(polls_2008$day), length.out = 100)) 
     
 3. `loess` has the option of fitting the local model _robustly_. An iterative algorithm is implemented in which, after fitting a model in one iteration, outliers are detected and down-weighted for the next iteration. To use this option, we use the argument `family="symmetric"`.
 
-## Fitting parabolas
+### Fitting parabolas
 
 Taylor's Theorem also tells us that if you look at any mathematical function closely enough, it looks like a parabola. The theorem also states that you don't have to look as closely when approximating with parabolas as you do when approximating with lines. This means we can make our windows even larger and fit parabolas instead of lines. 
 
@@ -442,7 +442,7 @@ polls_2008 %>% mutate(smooth_1 = fit_1$fitted, smooth_2 = fit_2$fitted) %>%
 The `degree = 2` gives us more wiggly results. We actually prefer `degree = 1` as it is less prone to this kind of noise.
 
 
-## Beware of default smoothing parameters 
+### Beware of default smoothing parameters 
 
 `ggplot` uses loess in its `geom_smooth` function. 
 
@@ -462,7 +462,16 @@ polls_2008 %>% ggplot(aes(day, margin)) +
               method.args = list(degree=1))
 ```
 
+## Connecting smoothing to Machine Learning {#smoothing-ml-connection}
 
+To see how smoothing relates to machine learning with a concrete example, consider our \@ref(two-or-seven) example. If we define the outcome $Y = 1$ for digits that are seven and $Y=0$ for digits that are 2, then we are interested in 
+ estimating the conditional probability: 
+
+$$
+p(x_1, x_2) = \mbox{Pr}(Y=1 \mid X_1=x_1 , X_2 = x_2).
+$$
+with $X_1$ and $X_2$ the two predictos defined in Section \@ref(two-or-seven).
+In this example, the 0s and 1s we observe are "noisy" because for some regions the probabilities $p(x_1, x_2)$ are not that close to 0 or 1. So we need to estimate $p(x_1, x_2)$. Smoothing is an alternative to accomplishing this. In  Section \@ref(two-or-seven) we saw that linear regression was not flexible enough to capture the non-linear nature of $p(x_1, x_2)$, thus smoothing approaches may provide an improvemenet. In the next Chapter we describe a popular machine learning algorightm, k-Nearest Neighbors, which is based on bin smoothing.
 
 ## Exercises
 

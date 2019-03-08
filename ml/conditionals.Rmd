@@ -43,57 +43,6 @@ As a result, we often only use the expectation to denote both the conditional pr
 
 Just like with categorical outcomes, in most applications the same observed predictors do not guarantee the same continuous outcomes. Instead, we assume that the outcome follows the same conditional distribution. We will now explain why we use the conditional expectation to define our predictors. 
 
-### The loss function
-
-Before we start describing approaches to optimizing the way we build algorithms for continuous data, we first need to define what we mean when we say one approach is better than another. Specifically, we need to quantify what we mean by "better".
-
-With binary outcomes, we have already described how sensitivity, specificity, accuracy and $F_1$ can be used as quantification. However, these metrics are not useful for continuous outcomes. The general approach to defining "best" in machine learning is to define a _loss function_. The most commonly used loss function is the squared loss function. If $\hat{y}$ is our predictor and $y$ is the observed outcome, the squared loss function is simply:
-
-$$
-(\hat{y} - y)^2
-$$
-
-Because we often have a test set with many observations, say $N$, we use the mean squared error (MSE):
-
-$$
-\mbox{MSE} = \frac{1}{N} \mbox{RSS} = \frac{1}{N}\sum_{i=1}^N (\hat{y}_i - y_i)^2
-$$
-
-In practice, we often report the root mean squared error 
-because it is in the same units as the outcomes:
-
-
-$$
-\mbox{RMSE} = \sqrt{\mbox{MSE}} = \sqrt{\frac{1}{N}\sum_{i=1}^N (\hat{y}_i - y_i)^2}
-$$
-
-But doing the math is often easier with the MSE and it is therefore more commonly used in text books, since these usually describe theoretical properties of algorithms.
-
-If the outcomes are binary, both RMSE and MSE are equivalent to accuracy since $(\hat{y} - y)^2$ is 1 if the prediction was correct and 0 otherwise. In general, our goal is to build an algorithm that minimizes the loss so it is as close to 0 as possible.
-
-Because our data is usually a random sample, we can think of the MSE as a random variable and the observed MSE can be thought of as an estimate of the expected MSE, which in mathematical notation we write like this:
-
-$$
-\mbox{E}\left\{ \frac{1}{N}\sum_{i=1}^N (\hat{Y}_i - Y_i)^2 \right\}
-$$
-
-This is a theoretical concept because in practice we only have one dataset to work with. But, in theory, we think of having a very, very large number, call it $B$, of random samples, apply our algorithm to each, obtain an MSE for each random sample, and think of the expected MSE as:
-
-$$
-\frac{1}{B} \sum_{b=1}^B \frac{1}{N}\sum_{i=1}^N \left(\hat{y}_i^b - y_i^b\right)^2 
-$$
-
-with $y_{i}^b$ denoting the $i$th observation in the $b$th random sample and $\hat{y}_i^b$ the resulting prediction obtained from applying the exact same algorithm to the $b$th random sample. But again, in practice we only observe one random sample, so the expected MSE is only theoretical. However, in Section \@ref(cross-validation) we describe an approach to estimating the MSE that tries to mimic this theoretical quantity.
-
-Before we continue, note that the there are loss functions other that the squared loss. For example, the _Mean Absolute Error_  uses absolute values instead of squaring the errors:
-
-
-
-$$
-\mbox{E}\left\{ \frac{1}{N}\sum_{i=1}^N |\hat{Y}_i - Y_i|\right\}
-$$
-
-However, in this book we focus on minimizing square loss since it is the most widely used.
 
 ### Conditional expectation minimizes squared loss function
 

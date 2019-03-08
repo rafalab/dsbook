@@ -1,70 +1,10 @@
-## K-nearest neighbors
+## k-nearest neighbors
 
-Let's get back to our digits data with the two predictors. 
-
-```{r mnist-27-data, warning=FALSE, message=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+set.seed(2008)
 library(tidyverse)
 library(dslabs)
 data("mnist_27")
-mnist_27$test%>% ggplot(aes(x_1, x_2, color = y)) +  geom_point()
-```
-
-To see how this relates to smoothing, we can think of how we would estimate the conditional probability: 
-
-$$
-p(x_1, x_2) = \mbox{Pr}(Y=1 \mid X_1=x_1 , X_2 = x_2).
-$$
-
-The 0s and 1s we observe are "noisy" because for some regions the probabilities $p(x_1, x_2)$ are not that close to 0 or 1. So we need to estimate $p(x_1, x_2)$. How do we do this? We can try smoothing. 
-
-K-nearest neighbors (kNN) is similar to bin smoothing, but it is easier to adapt to multiple dimensions. We first define the distance between all observations based on the features. Basically, for any point $(x_1,x_2)$ for which we want an estimate of $p(x_1, x_2)$, we look for the $k$ nearest points and then take an average of these 0s and 1s associated with these points. We refer to the set of points used to compute the average as the _neighborhood_. Due to the connection we described earlier between conditional expectations and conditional probabilities, this gives us a $\hat{p}(x_1,x_2)$, just like the bin smoother gave us an estimate of a trend.
-
-We can now control the flexibility of our estimate through $k$: larger $k$s result in smoother estimates, while smaller $k$s result in more flexible and more wiggly estimates.
-
-As an example, let's use logistic regression as the standard we need to beat.
-
-```{r}
-library(caret)
-fit_glm <- glm(y ~ x_1 + x_2, data=mnist_27$train, family="binomial")
-p_hat_logistic <- predict(fit_glm, mnist_27$test)
-y_hat_logistic <- factor(ifelse(p_hat_logistic > 0.5, 7, 2))
-confusionMatrix(data = y_hat_logistic, reference = mnist_27$test$y)$overall["Accuracy"]
-```
-
-Now compare to kNN. We will use the `knn3` function from the __caret__ package. Looking at the help file of this package, we can see that we can call it in one of two ways. In the first, we specify a _formula_ and a data frame. The data frame contains all the data to be used. The formula has the from `outcome ~ predictor_1 + predictor_2 + predictor_3` and so on. Therefore, we would type `y ~ x_1 + x_2`. If we are going to use all the predictors, we can use the `.` like this `y ~ .`. The final call looks like this:
-
-
-```{r, eval=FALSE}
-knn_fit <- knn3(y ~ ., data = mnist_27$train)
-```
-
-The second way to call this function is with the first argument being the matrix of predictors and the second a vector of outcomes. The code would look like this: 
-
-```{r, eval=FALSE}
-x <- as.matrix(mnist_27$train[,2:3])
-y <- mnist_27$train$y
-knn_fit <- knn3(x, y)
-```
-
-For this function, we also need to pick a parameter: the number of neighbors to include. Let's start with the default $k=5$. 
-
-```{r}
-knn_fit <- knn3(y ~ ., data = mnist_27$train, k = 5)
-```
-
-In this case, since our dataset is balanced and we care just as much about sensitivity as we do about specificity, we will use accuracy to quantify performance.
-
-The `predict` function for `knn` produces a probability for each class. We keep the probability of being a 7 as the estimate $\hat{p}(x_1, x_2)$
-
-```{r}
-y_hat_knn <- predict(knn_fit, mnist_27$test, type = "class")
-confusionMatrix(data = y_hat_knn, reference = mnist_27$test$y)$overall["Accuracy"]
-```
-
-This already beats the logistic model. To see why this is case, we will plot $\hat{p}(x_1, x_2)$ and compare it to the the true conditional probability $p(x_1, x_2)$:
-
-
-```{r, echo=FALSE}
 # We use this function to plot the estimated conditional probabilities
 plot_cond_prob <- function(p_hat=NULL){
   tmp <- mnist_27$true_p
@@ -78,161 +18,37 @@ plot_cond_prob <- function(p_hat=NULL){
 }
 ```
 
+We introduced the kNN algorithm in Section \@ref(knn-cv-intro) and demonstrated how we use cross validation to pick $k$ in Section \@ref(caret-cv). Here we quickly review how we fit a kNN model using the __caret__ package. In Section \@ref(caret-cv) we introduced the following code to fit a kNN model.
 
-```{r knn-fit, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+```{r}
+train_knn <- train(y ~ ., method = "knn", 
+                   data = mnist_27$train,
+                   tuneGrid = data.frame(k = seq(9, 71, 2)))
+```
+
+We saw that the parameter that maximized the estimated accuracy was:
+
+```{r}
+train_knn$bestTune
+```
+
+This model results improves the accuracy over regression and logistic regression.
+
+```{r}
+confusionMatrix(predict(train_knn, mnist_27$test, type = "raw"),
+                mnist_27$test$y)$overall["Accuracy"]
+```
+
+A plot of the estimated conditional probability shows that the kNN estimate is flexible enough and does indeed capture the shape of the true conditional probability. 
+
+```{r best-knn-fit}
 p1 <- plot_cond_prob() + ggtitle("True conditional probability")
 
-p2 <- plot_cond_prob(predict(knn_fit, mnist_27$true_p)[,2]) +
-  ggtitle("kNN-5 estimate")
-library(gridExtra)
+p2 <- plot_cond_prob(predict(train_knn, newdata = mnist_27$true_p, type = "prob")[,2]) +
+  ggtitle("kNN")
 
 grid.arrange(p2, p1, nrow=1)
-``` 
-
-
-In the estimate, we see some islands of blue in the red area. Intuitively, this does not make much sense. This is due to what we call _over-training_. We describe over-training in detail below, but note that we have higher accuracy in the train set compared to the test set:
-
-```{r}
-y_hat_knn <- predict(knn_fit, mnist_27$train, type = "class")
-confusionMatrix(data = y_hat_knn, reference = mnist_27$train$y)$overall["Accuracy"]
-
-y_hat_knn <- predict(knn_fit, mnist_27$test, type = "class")
-confusionMatrix(data = y_hat_knn, reference = mnist_27$test$y)$overall["Accuracy"]
 ```
-
-
-### Over-training 
-
-Over-training is at its worst when we set $k=1$. With $k=1$, the estimate for each $(x_1, x_2)$ in the training set is obtained with just the $y$ corresponding to that point. So, in this case, if the $(x_1, x_2)$ are unique, we will obtain perfect accuracy in the training set because each point is used to predict itself. Remember that if the predictors are not unique and have different outcomes for at least one set of predictors, then it is impossible to predict perfectly. 
-
-Here we fit a kNN model with $k=1$:
-
-```{r}
-knn_fit_1 <- knn3(y ~ ., data = mnist_27$train, k = 1)
-y_hat_knn_1 <- predict(knn_fit_1, mnist_27$train, type = "class")
-confusionMatrix(data=y_hat_knn_1, reference=mnist_27$train$y)$overall[["Accuracy"]]
-```
-
-However, the test set accuracy is actually worse than logistic regression:
-
-```{r}
-y_hat_knn_1 <- predict(knn_fit_1, mnist_27$test, type = "class")
-confusionMatrix(data=y_hat_knn_1, reference=mnist_27$test$y)$overall["Accuracy"]
-```
-
-We can see the over-fitting problem in this figure. 
-```{r knn-1-overfit, echo=FALSE, out.width="100%"}
-p1 <- mnist_27$true_p %>% 
-  mutate(knn = predict(knn_fit_1, newdata = .)[,2]) %>%
-  ggplot() +
-  geom_point(data = mnist_27$train, aes(x_1, x_2, color= y),
-             pch=21, show.legend = FALSE) +
-  scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
-  stat_contour(aes(x_1, x_2, z = knn), breaks=c(0.5), color="black") +
-  ggtitle("Train set")
-
-p2 <- mnist_27$true_p %>% 
-  mutate(knn = predict(knn_fit_1, newdata = .)[,2]) %>%
-  ggplot() +
-  geom_point(data = mnist_27$test, aes(x_1, x_2, color= y), 
-             pch=21, show.legend = FALSE) +
-  scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
-  stat_contour(aes(x_1, x_2, z = knn), breaks=c(0.5), color="black") +
-  ggtitle("Test set")
-
-grid.arrange(p1, p2, nrow=1)
-``` 
-
-The black curves denote the decision rule boundaries.  
-
-The estimate $\hat{p}(x_1, x_2)$ follows the training data too closely (left). You can see that in the training set, boundaries have been drawn to perfectly surround a single red point in a sea of blue. Because most points $(x_1, x_2)$ are unique, the prediction is either 1 or 0 and the prediction for that point is the associated label. However, once we introduce the training set (right), we see that many of these small islands now have the opposite color and we end up making several incorrect predictions.
-
-### Over-smoothing
-
-Although not as badly as with the previous examples, we saw that with $k=5$ we also over-trained. Hence, we should consider a larger $k$. Let's try, as an example, a much larger number: $k=401$. 
-
-```{r}
-knn_fit_401 <- knn3(y ~ ., data = mnist_27$train, k = 401)
-y_hat_knn_401 <- predict(knn_fit_401, mnist_27$test, type = "class")
-confusionMatrix(data=y_hat_knn_401, reference=mnist_27$test$y)$overall["Accuracy"]
-```
-
-This turns out to be similar to logistic regression:
-```{r mnist-27-glm-est, echo=FALSE, out.width="100%"}
-p1 <- plot_cond_prob(predict(fit_glm, mnist_27$true_p)) +
-  ggtitle("Logistic regression")
-
-p2 <- plot_cond_prob(predict(knn_fit_401, mnist_27$true_p)[,2]) +
-  ggtitle("kNN-401")
-  
-grid.arrange(p1, p2, nrow=1)
-```
-
-This size of $k$ is so large that it does not permit enough flexibility. We call this _over-smoothing_. 
-
-
-### Picking the $k$ in kNN
-
-
-So how do we pick $k$? 
-
-Let's repeat what we did above but for different values of $k$:
-
-```{r}
-ks <- seq(3, 251, 2)
-```
-
-Now we use the `map_df` function to repeat the above for each one. For comparative purposes, we will compute the accuracy by using both the training set (incorrect) and the test set (correct):
-
-```{r, warning=FALSE, message=FALSE}
-library(purrr)
-accuracy <- map_df(ks, function(k){
-  fit <- knn3(y ~ ., data = mnist_27$train, k = k)
-  
-  y_hat <- predict(fit, mnist_27$train, type = "class")
-  cm_train <- confusionMatrix(data = y_hat, reference = mnist_27$train$y)
-  train_error <- cm_train$overall["Accuracy"]
-  
-  y_hat <- predict(fit, mnist_27$test, type = "class")
-  cm_test <- confusionMatrix(data = y_hat, reference = mnist_27$test$y)
-  test_error <- cm_test$overall["Accuracy"]
-  
-  tibble(train = train_error, test = test_error)
-})
-```
-
-We can now plot the accuracy against the value of $k$:
-
-```{r accuracy-vs-k-knn, echo=FALSE}
-accuracy %>% mutate(k = ks) %>%
-  gather(set, accuracy, -k) %>%
-  mutate(set = factor(set, levels = c("train", "test"))) %>%
-  ggplot(aes(k, accuracy, color = set)) + 
-  geom_line() +
-  geom_point() 
-```
-
-First, note that the accuracy versus $k$ plot is quite jagged. We do not expect this because small changes in $k$ should not affect the algorithm's performance too much. The jaggedness is explained by the fact that the accuracy is computed on a sample and therefore is a random variable. This demonstrates why we prefer to minimize the expected loss rather than the loss we observe with one dataset. We will soon learn a better way of estimating this expected loss. Despite the noise present in the plot above, we still see a general pattern. Low values of $k$ give low test set accuracy but high train set accuracy, which is evidence of over-training. Large values of $k$ result in low accuracy, which is evidence of over-smoothing. 
-The maximum is achieved somewhere between 25 and 41 with a maximum accuracy of 0.85. In fact, the resulting estimate with $k=41$ looks quite similar to the true conditional probability:
-
-```{r knn-41, out.width="100%", echo=FALSE}
-p1 <- plot_cond_prob() + ggtitle("True conditional probability")
-
-knn_fit <- knn3(y ~ ., data = mnist_27$train, k = 41)
-p2 <- plot_cond_prob(predict(knn_fit, newdata = mnist_27$true_p)[,2]) +
-  ggtitle("kNN-41 estimate")
-grid.arrange(p2, p1, nrow=1)
-``` 
-
-
-The final accuracy for this value of $k$ is:
-
-```{r}
-max(accuracy$test)
-```
-
-**So is this what we should expect if we apply this algorithm in the real world? The answer is "no" because we broke a golden rule of machine learning: we selected the $k$ using the test set. ** So how do we select the $k$ in the real world? In the next section, we introduce the important concept of cross validation, which provides a way to estimate the expected loss for any given method using only the training set.
-
 
 ## Exercises 
 

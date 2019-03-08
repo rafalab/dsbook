@@ -1,13 +1,20 @@
 # Examples of algorithms
 
-There are dozens of machine learning algorithms. Here we were provide a few examples spanning rather different approaches.
+There are dozens of machine learning algorithms. Here we were provide a few examples spanning rather different approaches. Throughout the chapter we will be using the two predictor digits data introduced in Section \@ref(two-or-seven) to demonstrate how the algorithms work.
+
+```{r warning=FALSE, message=FALSE}
+library(tidyverse)
+library(dslabs)
+library(caret)
+data("mnist_27")
+```
+
 
 ## Linear regression 
 
-Linear regression can be considered a machine learning algorithm. As we will see, it is too rigid to be useful in general, but for some challenges it works rather well. It also serves as a baseline approach: if you can't beat it with a more complex approach, you probably want to stick to linear regression. To quickly make the connection between regression and machine learning, we will reformulate Galton's study with heights: a continuous outcome.
+Linear regression can be considered a machine learning algorithm. In Section \@ref(two-or-seven) we demonstrate how linear regression can be too rigid. This in generally true, but for some challenges it works rather well. It also serves as a baseline approach: if you can't beat it with a more complex approach, you probably want to stick to linear regression. To quickly make the connection between regression and machine learning, we will reformulate Galton's study with heights: a continuous outcome.
 
 ```{r, message=FALSE, warning=FALSE}
-library(tidyverse)
 library(HistData)
 
 set.seed(1983)
@@ -23,7 +30,6 @@ galton_heights <- GaltonFamilies %>%
 Suppose you are tasked with building a machine learning algorithm that predicts the son's height $Y$ using the father's height $X$. Let's generate testing and training sets:
 
 ```{r, message=FALSE, warning=FALSE}
-library(caret)
 y <- galton_heights$son
 test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
 
@@ -205,7 +211,7 @@ There are many other versions of `predict` and many machine learning algorithms 
 
 ## Logistic regression
 
-The regression approach can be extended to categorical data. In this section we first illustrate how, for binary data, one can simply assign numeric values of 0 and 1 to the outcomes $y$, and apply regression as if the data were continuous. We will then point out a limitation with this approach and introduce _logistic regression_ as a solution. Logistic regression is a specific case of a set of _generalized linear models_. To illustrate this, we will apply it to our previous predicting sex example:
+The regression approach can be extended to categorical data. In this section we first illustrate how, for binary data, one can simply assign numeric values of 0 and 1 to the outcomes $y$, and apply regression as if the data were continuous. We will then point out a limitation with this approach and introduce _logistic regression_ as a solution. Logistic regression is a specific case of a set of _generalized linear models_. To illustrate logistics regression, we will apply it to our previous predicting sex example:
 
 ```{r, echo=FALSE}
 library(dslabs)
@@ -248,7 +254,7 @@ Since the results from the plot above look close to linear, and it is the only a
 
 $$p(x) = \mbox{Pr}( Y = 1 | X=x)  = \beta_0 + \beta_1 x$$
 
-Note: because $p_0(x) = 1 - p_1(x)$, we will only estimate $p_1(x)$ and drop the index.
+Note: because $p_0(x) = 1 - p_1(x)$, we will only estimate $p_1(x)$ and drop the $1$ index.
 
 If we convert the factors to 0s and 1s, we can we can estimate $\beta_0$ and $\beta_1$ with least squares. 
 
@@ -381,8 +387,59 @@ $$
 \mbox{Pr}(Y = 1 \mid X = x)
 $$
 
-Once we move on to more complex examples, we will see that linear regression and generalized linear regression are limited and not flexible enough to be useful for most machine learning challenges. The techniques we learn are essentially approaches to estimating the conditional probability in a way that is more flexible.
 
+### Logistic regression with more than one predictors
+
+In this section we apply logistic regression to the two or seven data introduced in Section \@ref(two-or-seven). In this case, we are interested in estimating a conditional probability that depends on two variables. The standard logistic regression model in this case will assume that 
+
+$$
+g\{p(x_1, x_2)\}= g\{\mbox{Pr}(Y=1 \mid X_1=x_1 , X_2 = x_2)\} = 
+\beta_0 + \beta_1 x_1 + \beta_2 x_2
+$$
+with $g(p) = \log \frac{p}{1-p}$ the logistic link function described in the previous section. To fit the model we use the following code:
+
+```{r}
+fit_glm <- glm(y ~ x_1 + x_2, data=mnist_27$train, family = "binomial")
+p_hat_glm <- predict(fit_glm, mnist_27$test)
+y_hat_glm <- factor(ifelse(p_hat_glm > 0.5, 7, 2))
+confusionMatrix(data = y_hat_glm, reference = mnist_27$test$y)$overall["Accuracy"]
+```
+
+Comparing to the results we obtained in Section \@ref(two-or-seven) we see that logistic regression performs similarly to regression. 
+This not surprising, given that the estimate of  $\hat{p}(x_1, x_2)$ looks similar as well:
+
+```{r, echo=FALSE}
+# We use this function to plot the estimated conditional probabilities
+plot_cond_prob <- function(p_hat=NULL){
+  tmp <- mnist_27$true_p
+  if(!is.null(p_hat)){
+    tmp <- mutate(tmp, p=p_hat)
+  }
+  tmp %>% ggplot(aes(x_1, x_2, z=p, fill=p)) +
+  geom_raster(show.legend = FALSE) +
+  scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
+  stat_contour(breaks=c(0.5),color="black")
+}
+```
+
+```{r logistic-p-hat}
+p_hat <- predict(fit_glm, newdata = mnist_27$true_p)
+mnist_27$true_p %>% mutate(p_hat = p_hat) %>%
+  ggplot(aes(x_1, x_2,  z=p_hat, fill=p_hat)) +
+  geom_raster() +
+  scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
+  stat_contour(breaks=c(0.5), color="black") 
+```
+
+Just like regression the decision rule is a line, a fact that can be corroborated mathematically since 
+
+$$
+g^{-1}(\hat{\beta}_0 + \hat{\beta}_1 x_1 + \hat{\beta}_2 x_2) = 0.5 \implies
+\hat{\beta}_0 + \hat{\beta}_1 x_1 + \hat{\beta}_2 x_2 = g(0.5) = 0 \implies
+x_2 = -\hat{\beta}_0/\hat{\beta}_2 + -\hat{\beta}_1/\hat{\beta}_2 x_1
+$$
+
+Thus $x_2$ is a linear function of $x_1$. This implies that, just like regression, our logistic regression approach has no chance of capturing the non-linear nature of the true $p(x_1,x_2)$. Once we move on to more complex examples, we will see that linear regression and generalized linear regression are limited and not flexible enough to be useful for most machine learning challenges. The new techniques we learn are essentially approaches to estimating the conditional probability in a way that is more flexible. 
 
 ## Exercises 
 
