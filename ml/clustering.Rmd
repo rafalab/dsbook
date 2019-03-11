@@ -48,7 +48,7 @@ d <- dist(x)
 
 ## Hierarchical clustering
 
-With the distance between each pair of movies computed, we need  an algorithms to define groups from these. Hierarchical clustering starts by defining each observation as a separate group, then the two closest groups are joined into a group iteratively until there is just one group including all the observations. The `hclust` function that implements this algorithm and it takes a distance as input.
+With the distance between each pair of movies computed, we need  an algorithms to define groups from these. Hierarchical clustering starts by defining each observation as a separate group, then the two closest groups are joined into a group iteratively until there is just one group including all the observations. The `hclust` function implements this algorithm and it takes a distance as input.
 
 ```{r}
 h <- hclust(d)
@@ -86,7 +86,7 @@ plot(h_2, cex = 0.35)
 To use the k-means clustering algorithm we have to pre-define $k$, the number of clusters we want to define. The k-means algorithm is iterative.
 The first step is to define $k$ centers. Then each observation is assigned to the cluster with the closest center to that observation. In a second step the centers are redefined using the observation in each cluster: the column means are used to define a _centroid_. We repeat these two steps until the centers converge.
 
-The `kemans` function included in R-base does not handle NAs. For illustrative purposes we will fill out the NAs with 0s. In general, the choice of how to fill in missing data, or if one should do it at all, should be made with care.
+The `kmeans` function included in R-base does not handle NAs. For illustrative purposes we will fill out the NAs with 0s. In general, the choice of how to fill in missing data, or if one should do it at all, should be made with care.
 
 ```{r}
 x_0 <- x
@@ -114,7 +114,7 @@ split(names(groups), groups)
 
 A powerful visualization tool for discovering clusters or patterns in your data is the heatmap. The idea is simple: plot an image of your data matrix with colors used as the visual cue and both the columns and rows ordered according to the results of clustering algorithm. We will demonstrate this with the `tissue_gene_expression` dataset. We will scale the rows of the gene expression matrix.
 
-The first step is compute 
+The first step is compute: 
 ```{r}
 data("tissue_gene_expression")
 x <- sweep(tissue_gene_expression$x, 2, colMeans(tissue_gene_expression$x))
@@ -130,7 +130,7 @@ image(x[h_1$order, h_2$order],
       col = RColorBrewer::brewer.pal(11, "Spectral"))
 ```
 
-There is also `heatmap` function that you can use on the original matrix
+There is also `heatmap` function that you can use on the original matrix:
 
 ```{r heatmap-2, out.width="100%", fig.height=7, eval=FALSE}
 heatmap(x, col = RColorBrewer::brewer.pal(11, "Spectral"))

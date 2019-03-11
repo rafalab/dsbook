@@ -26,7 +26,7 @@ movielens %>% as_tibble()
 
 Each row represents a rating given by one user to one movie. 
 
-We can see the number of unique users that provided ratings and for how many unique movies they provided them for:
+We can see the number of unique users that provided ratings and how many unique movies were rated:
 
 
 ```{r}
@@ -35,7 +35,7 @@ movielens %>%
             n_movies = n_distinct(movieId))
 ```
 
-If we multiply those two numbers, we get a number larger than 5 million, yet our data table has about 100,000 rows. This implies that not every user rated every movie. So we can think of these data as a very large matrix, with users on the rows and movies on the columns, with many empty cells. The `gather` function permits us to convert it to this format, but if we try it for the entire matrix, it will crash R. Let's show the matrix for a seven users and five movies.
+If we multiply those two numbers, we get a number larger than 5 million, yet our data table has about 100,000 rows. This implies that not every user rated every movie. So we can think of these data as a very large matrix, with users on the rows and movies on the columns, with many empty cells. The `gather` function permits us to convert it to this format, but if we try it for the entire matrix, it will crash R. Let's show the matrix for seven users and five movies.
 
 ```{r, echo=FALSE}
 keep <- movielens %>% 
@@ -68,7 +68,7 @@ movielens %>% filter(userId %in% users) %>%
   abline(h=0:100+0.5, v=0:100+0.5, col = "grey")
 ```
 
-This machine learning challenge is more complicated than what we have studied up to now because each outcome $Y$ has a different set of predictors. To see this, note that if we are predicting the rating for movie $i$ by user $u$, in principle, all other ratings related to movie $i$ and by user $u$ may used as predictors, but different users rate a different number of movies and different movies. Furthermore, we may be able to use information from other movies that we have determined are similar to movie $i$ or from users determined to be similar to user $u$. So, in essence, the entire matrix can be used as predictors for each cell. 
+This machine learning challenge is more complicated than what we have studied up to now because each outcome $Y$ has a different set of predictors. To see this, note that if we are predicting the rating for movie $i$ by user $u$, in principle, all other ratings related to movie $i$ and by user $u$ may used as predictors, but different users rate different movies and a different number of movies. Furthermore, we may be able to use information from other movies that we have determined are similar to movie $i$ or from users determined to be similar to user $u$. In essence, the entire matrix can be used as predictors for each cell. 
 
 Let's look at some of the general properties of the data to better understand the challenges.
 
@@ -120,7 +120,7 @@ test_set <- test_set %>%
 
 ### Loss function 
 
-The Netflix challenge used the typical error loss. They decided on a winner based on the residual mean squared error (RMSE) on a test set. We define $y_{u,i}$ as the rating for movie $i$ by user $u$ and denote our prediction with $\hat{y}_{u,i}$. The RMSE is then defined as: 
+The Netflix challenge used the typical error loss: they decided on a winner based on the residual mean squared error (RMSE) on a test set. We define $y_{u,i}$ as the rating for movie $i$ by user $u$ and denote our prediction with $\hat{y}_{u,i}$. The RMSE is then defined as: 
 
 $$
 \mbox{RMSE} = \sqrt{\frac{1}{N} \sum_{u,i}^{} \left( \hat{y}_{u,i} - y_{u,i} \right)^2 }
@@ -139,7 +139,7 @@ RMSE <- function(true_ratings, predicted_ratings){
 
 ### A first model
 
-Let's start by building the simplest possible recommendation system: we predict the same rating for all movies regardless of user. So what number should this prediction be? We can use a model based approach to answer this. A model that assumes the same rating for all movies and users with all the differences explained by random variation would look like this:
+Let's start by building the simplest possible recommendation system: we predict the same rating for all movies regardless of user. What number should this prediction be? We can use a model based approach to answer this. A model that assumes the same rating for all movies and users with all the differences explained by random variation would look like this:
 
 
 $$
@@ -153,7 +153,7 @@ mu_hat <- mean(train_set$rating)
 mu_hat
 ```
 
-If we predict all unknown ratings with $\hat{\mu}$we obtain the following RMSE: 
+If we predict all unknown ratings with $\hat{\mu}$ we obtain the following RMSE: 
 
 ```{r}
 naive_rmse <- RMSE(test_set$rating, mu_hat)
@@ -187,13 +187,13 @@ $$
 
 Statistics textbooks refer to to the $b$s as effects. However, in the Netflix challenge papers, they refer to them as "bias", thus the $b$ notation.
 
-We can again use least squared to estimate the $b_i$ in the following way:
+We can again use least squares to estimate the $b_i$ in the following way:
 
 ```{r, eval=FALSE}
 fit <- lm(rating ~ as.factor(movieId), data = movielens)
 ```
 
-Because there are thousands of $b_i$, each movie gets one, the `lm()` function will be very slow here. We therefore don't recommend running the code above. But in this particular situation, we know that the least square estimate $\hat{b}_i$ is just the average of $Y_{u,i} - \hat{\mu}$ for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
+Because there are thousands of $b_i$ as each movie gets one, the `lm()` function will be very slow here. We therefore don't recommend running the code above. But in this particular situation, we know that the least square estimate $\hat{b}_i$ is just the average of $Y_{u,i} - \hat{\mu}$ for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
 
 ```{r}
 mu <- mean(train_set$rating) 
@@ -228,7 +228,7 @@ We already see an improvement. But can we make it better?
 
 ### User effects
 
-Let's compute the average rating for user $u$, for those that have rated over 100 movies. 
+Let's compute the average rating for user $u$ for those that have rated over 100 movies: 
 
 ```{r user-effect-hist}
 train_set %>% 
@@ -247,7 +247,7 @@ $$
 Y_{u,i} = \mu + b_i + b_u + \varepsilon_{u,i}
 $$
 
-where $b_u$ is a user-specific effect. So now if a cranky user (negative $b_u$) rates a great movie (positive $b_i$), the effects counter each other and we may be able to correctly predict that this user gave this great movie a 3 rather than a 5. 
+where $b_u$ is a user-specific effect. Now if a cranky user (negative $b_u$) rates a great movie (positive $b_i$), the effects counter each other and we may be able to correctly predict that this user gave this great movie a 3 rather than a 5. 
 
 To fit this model, we could again use `lm` like this:
 
@@ -255,7 +255,7 @@ To fit this model, we could again use `lm` like this:
 lm(rating ~ as.factor(movieId) + as.factor(userId))
 ```
 
-but, for the reasons described earlier, we won't. Instead, we will compute an approximation but computing $\hat{\mu}$ and $\hat{b}_i$ and estimating $\hat{b}_u$ as the average of $y_{u,i} - \hat{\mu} - \hat{b}_i$
+but, for the reasons described earlier, we won't. Instead, we will compute an approximation by computing $\hat{\mu}$ and $\hat{b}_i$ and estimating $\hat{b}_u$ as the average of $y_{u,i} - \hat{\mu} - \hat{b}_i$:
 
 ```{r}
 user_avgs <- train_set %>% 
@@ -352,7 +352,7 @@ rmse_results
 
 ### Motivation
 
-Despite the large movie to movie variation our improvement in RMSE was only about 5%. Let's explore where we made mistakes in our first model, using only movie effects $b_i$. Here are the 10 largest mistakes:
+Despite the large movie to movie variation, our improvement in RMSE was only about 5%. Let's explore where we made mistakes in our first model, using only movie effects $b_i$. Here are the 10 largest mistakes:
 
 
 ```{r}
@@ -417,7 +417,7 @@ when unsure.
 In previous sections, we computed standard error and constructed confidence intervals to account for different levels of uncertainty. However, when making predictions, we need one number, one prediction, not an interval. For this, we introduce the concept of regularization.
 
 Regularization permits us to penalize large estimates that 
-formed using small sample sizes. It has commonalities with the 
+are formed using small sample sizes. It has commonalities with the 
 Bayesian approach that shrunk predictions described in Section \@ref(bayesian-statistics). 
 
 ### Penalized Least Squares
@@ -428,7 +428,7 @@ $$
 Y_{u,i} = \mu + b_i + \varepsilon_{u,i}
 $$
 
-Suppose we know the average rating is, say, $\mu = 3$. If we use least squares, the estimate for the first movie effect $b_1$ is the average of the 100 user ratings, $1/100 \sum_{i=1}^{100} (Y_{i,1} - \mu)$, which we expect to be a quite precise. However the estimate for movies 2,3,4 and 5 will simply be the observed deviation from the average rating $\hat{b}_i = Y_{u,i} - \hat{\mu}$ which is an estimate based on just one number so it won't be precise at all. Note these estimate  makes the error $Y_{u,i} - \mu + \hat{b}_i$ equal to 0 for $i=2,3,4,5$, but this is a case of over-training. In fact, ignoring the one user and guessing that movies 2,3,4, and 5 are just average movies, $b_i = 0$, might provide a better prediction. The general idea of penalized regression is to control the total variability of the movie effects: $\sum_{i=1}^5 b_i^2$. Specifically, instead of minimizing the least square equation, we minimize an equation that adds a penalty:
+Suppose we know the average rating is, say, $\mu = 3$. If we use least squares, the estimate for the first movie effect $b_1$ is the average of the 100 user ratings, $1/100 \sum_{i=1}^{100} (Y_{i,1} - \mu)$, which we expect to be a quite precise. However, the estimate for movies 2,3,4 and 5 will simply be the observed deviation from the average rating $\hat{b}_i = Y_{u,i} - \hat{\mu}$ which is an estimate based on just one number so it won't be precise at all. Note these estimate  makes the error $Y_{u,i} - \mu + \hat{b}_i$ equal to 0 for $i=2,3,4,5$, but this is a case of over-training. In fact, ignoring the one user and guessing that movies 2,3,4, and 5 are just average movies ($b_i = 0$) might provide a better prediction. The general idea of penalized regression is to control the total variability of the movie effects: $\sum_{i=1}^5 b_i^2$. Specifically, instead of minimizing the least square equation, we minimize an equation that adds a penalty:
 
 $$\frac{1}{N} \sum_{u,i} \left(y_{u,i} - \mu - b_i\right)^2 + \lambda \sum_{i} b_i^2$$
 The first term is just least squares and the second is a penalty that gets larger when many $b_i$ are large. Using calculus we can actually show that the values of $b_i$ that minimize this equation are:
@@ -437,7 +437,7 @@ $$
 \hat{b}_i(\lambda) = \frac{1}{\lambda + n_i} \sum_{u=1}^{n_i} \left(Y_{u,i} - \hat{\mu}\right)
 $$
 
-where $n_i$ is the number of ratings made for movie $i$. This approach will have our desired effect: when our sample size $n_i$ is very large, which will give us a stable estimate, then the penalty $\lambda$ is effectively ignored since $n_i+\lambda \approx n_i$. However, when the $n_i$ is small, then the estimate $\hat{b}_i(\lambda)$ is shrunken towards 0. The larger $\lambda$, the more we shrink.
+where $n_i$ is the number of ratings made for movie $i$. This approach will have our desired effect: when our sample size $n_i$ is very large, a case which will give us a stable estimate, then the penalty $\lambda$ is effectively ignored since $n_i+\lambda \approx n_i$. However, when the $n_i$ is small, then the estimate $\hat{b}_i(\lambda)$ is shrunken towards 0. The larger $\lambda$, the more we shrink.
 
 Let's compute these regularized estimates of $b_i$ using 
 $\lambda=3$. Later, we will see why we picked 3. 
@@ -499,7 +499,7 @@ rmse_results <- bind_rows(rmse_results,
 rmse_results 
 ```
 
-The penalized estimates provide a large improvement over the least squares estimated.
+The penalized estimates provide a large improvement over the least squares estimates.
 
 ### Choosing the penalty terms
 
@@ -525,7 +525,7 @@ qplot(lambdas, rmses)
 lambdas[which.min(rmses)]
 ```
 
-However, while we show this as an illustration, in practice we should be using full cross validation just on the train set, without using the test set until the final assessment.
+However, while we show this as an illustration, in practice we should be using full cross validation just on the train set, without using the test set until the final assessment. The test set should never be used for tuning.
 
 We can use regularization for the estimate user effects as well. We are minimizing:
 
@@ -625,7 +625,7 @@ schools <- schools %>% mutate(score = sapply(avg_score, mean))
 2. Compare the median school size to the median school size of the top 10 schools based on the score.
 
 
-3. So according to this test, it appears small schools are better than large schools. Five out of the top 10 schools have 100 or fewer students. But how can this be? We constructed the simulation so that quality and size are independent. Repeat the exercise for the worst 10 schools.
+3. According to this test, it appears small schools are better than large schools. Five out of the top 10 schools have 100 or fewer students. But how can this be? We constructed the simulation so that quality and size are independent. Repeat the exercise for the worst 10 schools.
 
 
 4. The same is true for the worst schools! They are small as well. Plot the average score versus school size to see what's going on. Highlight the top 10 schools based on the _true_ quality. Use the log scale transform for the size.
@@ -639,9 +639,9 @@ schools <- schools %>% mutate(score = sapply(avg_score, mean))
     overall <- mean(sapply(scores, mean))
     ```
     
-    and then define, for each school, how it deviates from that average. Write code that estimates the score above the average for each school but dividing by $n + \lambda$ instead of $n$, with $n$ the schools size and $\lambda$ a regularization parameters. Try $\lambda = 3$
+    and then define, for each school, how it deviates from that average. Write code that estimates the score above the average for each school but dividing by $n + \lambda$ instead of $n$, with $n$ the schools size and $\lambda$ a regularization parameters. Try $\lambda = 3$.
 
-6. Notice that this improves things a bit. The number of small schools that are not highly ranked is now 4.  Is there a better $\lambda$? Find the $\lambda$ that minimizes the RMSE = $1/100 \sum_{i=1}^{100} (\mbox{quality} - \mbox{estimate})^2$
+6. Notice that this improves things a bit. The number of small schools that are not highly ranked is now 4.  Is there a better $\lambda$? Find the $\lambda$ that minimizes the RMSE = $1/100 \sum_{i=1}^{100} (\mbox{quality} - \mbox{estimate})^2$.
 
 
 7. Rank the schools based on the average obtained with the best $\alpha$. Note that no small school is incorrectly included.
@@ -772,7 +772,7 @@ and it narrows down movies to two groups: gangster (coded with 1) and romance (c
 p
 ```
 
-those that like gangster movies and dislike romance movies (coded as 2), those that like romance movies and dislike gangster movies (coded as -2), and those that don't care (coded as 0). The main point here is that we can almost reconstruct $r$ which has 60 values, with a couple of vectors totaling 17 values. If $r$ contains the residuals for users $u=1,\dots,12$ for movies $i=1,\dots,5$ we can write the following mathematical formula for our residuals $r_{u,i}$.
+those that like gangster movies and dislike romance movies (coded as 2), those that like romance movies and dislike gangster movies (coded as -2), and those that don't care (coded as 0). The main point here is that we can almost reconstruct $r$, which has 60 values, with a couple of vectors totaling 17 values. If $r$ contains the residuals for users $u=1,\dots,12$ for movies $i=1,\dots,5$ we can write the following mathematical formula for our residuals $r_{u,i}$.
 
 
 $$
@@ -837,7 +837,7 @@ $$
 Y_{u,i} = \mu + b_i + b_u + p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \varepsilon_{u,i}
 $$
 
-Note that in an actual data application, we need to fit this model to data. To explain the complex correlation we observe in real data, we usually permit the entries of $p$ and $q$ to be continuous values, rather than discrete ones as we used in the simulation. So, for example, rather than dividing movies into gangster or romance, we define a continuum. Also note that  this is not a linear model and to fit it we need to use an algorithm other than the one used by `lm` to find the parameters that minimize the least squares. The winning algorithms for the Netflix challenge fit a model similar to the above and used regularization to penalize for large values of $p$ and $q$, rather than using least squares. Implementing this 
+Note that in an actual data application, we need to fit this model to data. To explain the complex correlation we observe in real data, we usually permit the entries of $p$ and $q$ to be continuous values, rather than discrete ones as we used in the simulation. For example, rather than dividing movies into gangster or romance, we define a continuum. Also note that this is not a linear model and to fit it we need to use an algorithm other than the one used by `lm` to find the parameters that minimize the least squares. The winning algorithms for the Netflix challenge fit a model similar to the above and used regularization to penalize for large values of $p$ and $q$, rather than using least squares. Implementing this 
 approach is beyond the scope of this book.
 
 ### Connection to SVD and PCA
@@ -980,7 +980,7 @@ my_image(y)
 
     A. The test scores are all independent of each other.
     
-    B. The students that test well are at the top of the image and there seems to be three groupings by subject.
+    B. The students that test well are at the top of the image and there seem to be three groupings by subject.
     
     C. The students that are good at math are not good at science.
     
@@ -998,7 +998,7 @@ my_image(y)
 
     A. The test scores are independent.
     
-    B. Math and Science are highly correlated but the humanities are not.
+    B. Math and science are highly correlated but the humanities are not.
     
     C. There is high correlation between tests in the same subject but no correlation across subjects.
     
@@ -1009,7 +1009,7 @@ my_image(y)
 
     $$ Y V = U D \mbox{ or } U^{\top}Y = D V^{\top}$$ 
 
-    We can think of $YV$ and $U^{\top}V$ as two transformation of Y that preserve the total variability of $Y$ since $U$ and $V$ are orthogonal. 
+    We can think of $YV$ and $U^{\top}V$ as two transformations of Y that preserve the total variability of $Y$ since $U$ and $V$ are orthogonal. 
 
     Use the function `svd` to compute the SVD of `y`. This function will return $U$, $V$ and the diagonal entries of $D$. 
 
@@ -1025,16 +1025,16 @@ my_image(y)
     max(abs(y - y_svd))
     ```
 
-    Compute the sum of squares of the columns of $Y$ and store them in `ss_y`. Then the sum of squares of columns of the transformed $YV$ and store them in `ss_yv`. Confirm that `sum(ss_y)` is equal to `sum(ss_yv)`
+    Compute the sum of squares of the columns of $Y$ and store them in `ss_y`. Then compute the sum of squares of columns of the transformed $YV$ and store them in `ss_yv`. Confirm that `sum(ss_y)` is equal to `sum(ss_yv)`.
 
  
-4. We see that the total sum of squares is preserved. This is because $V$ is orthogonal. Now to start understanding how $YV$ is useful 
+4. We see that the total sum of squares is preserved. This is because $V$ is orthogonal. Now to start understanding how $YV$ is useful, 
 plot `ss_y` against the column number and then do the same for `ss_yv`. What do you observe?
 
-5. We see that the variability of the columns of $YV$ is decreasing. Furthermore, we see that, relative to the first three, the variability of the columns beyond the third is almost 0. Now notice that we didn't have to compute `ss_yv` because we already have the answer. How? Remember that $YV = UD$ and because $U$ is orthogonal, we know that the sum of squares of the columns of $UD$ are the diagonal entries of $D$ squared. Confirm this by plotting the square root of `ss_yv` versus the diagonal entries of $D$
+5. We see that the variability of the columns of $YV$ is decreasing. Furthermore, we see that, relative to the first three, the variability of the columns beyond the third is almost 0. Now notice that we didn't have to compute `ss_yv` because we already have the answer. How? Remember that $YV = UD$ and because $U$ is orthogonal, we know that the sum of squares of the columns of $UD$ are the diagonal entries of $D$ squared. Confirm this by plotting the square root of `ss_yv` versus the diagonal entries of $D$.
 
  
-6. So from the above we know that the sum of squares of the columns of $Y$ (the total sum of squares) add up to the sum of `s$d^2` and that the transformation $YV$ gives us columns with sums of squares equal to `s$d^2`. Now compute what percent of the total variability is explained by just the first three columns of $YV$.
+6. From the above we know that the sum of squares of the columns of $Y$ (the total sum of squares) add up to the sum of `s$d^2` and that the transformation $YV$ gives us columns with sums of squares equal to `s$d^2`. Now compute what percent of the total variability is explained by just the first three columns of $YV$.
 
     
 7. We see that almost 99% of the variability is explained by the first three columns of $YV  = UD$. So we get the sense that we should be able to explain much of the variability and structure we found while exploring the data with a few columns. Before we continue, let's show a useful computational trick to avoid creating the matrix `diag(s$d)`. To motivate this, we note that if we write $U$ out in its columns $[U_1, U_2, \dots, U_p]$ then $UD$ is equal to 
@@ -1045,7 +1045,7 @@ plot `ss_y` against the column number and then do the same for `ss_yv`. What do 
 
     
 
-8. We know that $U_1 d_{1,1}$, the first column of $UD$, has the most variability of all the columns of $UD$. Earlier we saw an image of $Y$ 
+8. We know that $U_1 d_{1,1}$, the first column of $UD$, has the most variability of all the columns of $UD$. Earlier we saw an image of $Y$: 
 
     ```{r, eval=FALSE}
     my_image(y)
@@ -1137,7 +1137,9 @@ plot `ss_y` against the column number and then do the same for `ss_yv`. What do 
 
     $$ Y =  d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top} + \varepsilon$$
 
-    with $\varepsilon$ a matrix of independent identically distributed errors. This model is useful because we summarize of $100 \times 24$ observations with $3 \times (100+24+1) = 375$ numbers. Furthermore, the three components of the model have useful interpretations: 1) the overall ability of a student, 2) the difference in ability between the math/sciences and arts and 3) the remaining differences between the three subjects. The sizes $d_{1,1}, d_{2,2}$ and $d_{3,3}$ tells us the variability explained by each component. Finally, note that the components $d_{j,j} U_j V_j^{\top}$ are equivalent to the jth principal component. Finish the exercise by plotting an image of  $Y$, an image of $d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$ and an image of the residuals, all with the same `zlim`.
+    with $\varepsilon$ a matrix of independent identically distributed errors. This model is useful because we summarize of $100 \times 24$ observations with $3 \times (100+24+1) = 375$ numbers. Furthermore, the three components of the model have useful interpretations: 1) the overall ability of a student, 2) the difference in ability between the math/sciences and arts and 3) the remaining differences between the three subjects. The sizes $d_{1,1}, d_{2,2}$ and $d_{3,3}$ tells us the variability explained by each component. Finally, note that the components $d_{j,j} U_j V_j^{\top}$ are equivalent to the jth principal component.
+    
+    Finish the exercise by plotting an image of  $Y$, an image of $d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$ and an image of the residuals, all with the same `zlim`.
 
   
 
