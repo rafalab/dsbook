@@ -1,6 +1,6 @@
 # Cross validation {#cross-validation}
 
-In this chapter we introduce cross validation, one of the most important ideas in Machine Learning. To motivate the concept we will use the two predictor digits data presented in Section \@ref(two-or-seven) and introduce, for the first time, an actual machine learning algorithm, k-nearest neighbors (kNN).
+In this chapter we introduce cross validation, one of the most important ideas in machine learning. To motivate the concept we will use the two predictor digits data presented in Section \@ref(two-or-seven) and introduce, for the first time, an actual machine learning algorithm: k-nearest neighbors (kNN).
 
 ## Motivation with k-nearest neighbors {#knn-cv-intro}
 
@@ -18,7 +18,7 @@ We will use these data to estimate the conditional probability function
 $$
 p(x_1, x_2) = \mbox{Pr}(Y=1 \mid X_1=x_1 , X_2 = x_2).
 $$
-as defined in Section \@ref(smoothing-ml-connection). With k-nearest neighbors (kNN) we estimate $p(x_1, x_2)$ in a similar way to bin smoothing. However, as we will see, kNN is easier to adapt to multiple dimensions. First define the distance between all observations based on the features. Then for any point $(x_1,x_2)$ for which we want an estimate of $p(x_1, x_2)$, we look for the $k$ nearest points to $(x_1,x_2)$ and then take an average of the 0s and 1s associated with these points. We refer to the set of points used to compute the average as the _neighborhood_. Due to the connection we described earlier between conditional expectations and conditional probabilities, this gives us a $\hat{p}(x_1,x_2)$, just like the bin smoother gave us an estimate of a trend. As with bin smoothers, we can control the flexibility of our estimate, in this case through the $k$ parameter: larger $k$s result in smoother estimates, while smaller $k$s result in more flexible and more wiggly estimates. 
+as defined in Section \@ref(smoothing-ml-connection). With k-nearest neighbors (kNN) we estimate $p(x_1, x_2)$ in a similar way to bin smoothing. However, as we will see, kNN is easier to adapt to multiple dimensions. First we define the distance between all observations based on the features. Then, for any point $(x_1,x_2)$ for which we want an estimate of $p(x_1, x_2)$, we look for the $k$ nearest points to $(x_1,x_2)$ and then take an average of the 0s and 1s associated with these points. We refer to the set of points used to compute the average as the _neighborhood_. Due to the connection we described earlier between conditional expectations and conditional probabilities, this gives us a $\hat{p}(x_1,x_2)$, just like the bin smoother gave us an estimate of a trend. As with bin smoothers, we can control the flexibility of our estimate, in this case through the $k$ parameter: larger $k$s result in smoother estimates, while smaller $k$s result in more flexible and more wiggly estimates. 
 
 
 To implement the algorithm, we can use the `knn3` function from the __caret__ package. Looking at the help file for this package, we see that we can call it in one of two ways. We will use the first in which we specify a _formula_ and a data frame. The data frame contains all the data to be used. The formula has the from `outcome ~ predictor_1 + predictor_2 + predictor_3` and so on. Therefore, we would type `y ~ x_1 + x_2`. If we are going to use all the predictors, we can use the `.` like this `y ~ .`. The final call looks like this:
@@ -345,7 +345,7 @@ Now how do we pick the cross validation $K$? Large values of $K$ are preferable 
 
 One way we can improve the variance of our final estimate is to take more samples. To do this, we would no longer require the training set to be partitioned into non-overlapping sets. Instead, we would just pick $K$ sets of some size at random.
 
-One popular version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages (not discussed here) and is generally referred to as the _Bootstrap_. In fact, this is the default approach in the __caret__ package.  We describe how to implement cross validation with the __caret__ package in the next chapter. In the next section we include an explanation of how the bootstrap works in general.
+One popular version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages (not discussed here) and is generally referred to as the _Bootstrap_. In fact, this is the default approach in the __caret__ package.  We describe how to implement cross validation with the __caret__ package in the next chapter. In the next section, we include an explanation of how the bootstrap works in general.
 
 
 ## Exercises 
