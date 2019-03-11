@@ -267,34 +267,44 @@ admissions %>%  group_by(gender) %>% summarize(average = mean(admitted))
 
 ## Simpson's paradox 
 
-The case we have just covered is an example of Simpson's Paradox. It is called a paradox because we see the sign of the correlation  flip when comparing the entire publication and specific strata. As an illustrative example, suppose you have three variables $X$, $Y$ and $Z$. Here is a scatterplot of $Y$ versus $X$:
+The case we have just covered is an example of Simpson's Paradox. It is called a paradox because we see the sign of the correlation  flip when comparing the entire publication and specific strata. As an illustrative example, suppose you have three random variables $X$, $Y$ and $Z$ and that we observe realizations of these. Here is plot of simulated observations for $X$ and $Y$ along we the sample correlation:
 
 ```{r simpsons-paradox, echo=FALSE}
 N <- 100
 Sigma <- matrix(c(1,0.75,0.75, 1), 2, 2)*1.5
-means <- list(c(11,3), c(9,5), c(7,7), c(5,9), c(3,11))
-dat <- lapply(means, function(mu) 
-  MASS::mvrnorm(N, mu, Sigma))
-dat <- as_tibble(Reduce(rbind, dat)) %>% 
-  mutate(Z = as.character(rep(seq_along(means), each = N)))
-names(dat) <- c("X", "Y", "Z")
-dat %>% ggplot(aes(X,Y)) + geom_point(alpha = .5) +
-  ggtitle(paste("correlation = ", round(cor(dat$X, dat$Y), 2)))
+means <- list(c(x = 11, y = 3), 
+              c(x = 9, y = 5), 
+              c(x = 7, y = 7), 
+              c(x = 5, y = 9), 
+              c(x = 3, y = 11))
+dat <- lapply(means, function(mu){
+  res <- MASS::mvrnorm(N, mu, Sigma)
+  colnames(res) <- c("x", "y")
+  res
+})
+
+dat <- do.call(rbind, dat) %>% 
+  as_tibble() %>%
+  mutate(z = as.character(rep(seq_along(means), each = N)))
+
+dat %>% ggplot(aes(x, y)) + geom_point(alpha = .5) +
+  ggtitle(paste("Correlation = ", round(cor(dat$x, dat$y), 2)))
 ```
 
-You can see that $X$ and $Y$ are negatively correlated. However, once we stratify by $Z$ (shown in different colors), which we have not yet shown, another pattern emerges:
+You can see that $X$ and $Y$ are negatively correlated. However, once we stratify by $Z$ (shown in different colors below) another pattern emerges:
 
 
 ```{r simpsons-paradox-explained, echo=FALSE}
-means <- as_tibble(Reduce(rbind, means)) %>% setNames(c("x","y")) %>%
+means <- do.call(rbind, means) %>% 
+  as_tibble() %>%
   mutate(z = as.character(seq_along(means)))
   
-corrs <- dat %>% group_by(Z) %>% summarize(cor = cor(X,Y)) %>% pull(cor)
+corrs <- dat %>% group_by(z) %>% summarize(cor = cor(x, y)) %>% pull(cor)
 
-dat %>% ggplot(aes(X, Y, color = Z)) + 
+dat %>% ggplot(aes(x, y, color = z)) + 
   geom_point(show.legend = FALSE, alpha = 0.5) +
-  ggtitle(paste("correlations =",  paste(signif(corrs,2), collapse=" "))) +
-  annotate("text", x = means$x, y = means$y, label = paste("Z=", means$z), cex = 5)  
+  ggtitle(paste("Correlations =",  paste(signif(corrs,2), collapse=" "))) +
+  annotate("text", x = means$x, y = means$y, label = paste("z =", means$z), cex = 5)  
 ```
 
 It is really $Z$ that is negatively correlated with $X$. If we stratify by $Z$, the $X$ and $Y$ are actually positively correlated as seen in the plot above.
