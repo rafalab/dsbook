@@ -37,9 +37,9 @@ index <- sample(nrow(mnist$train$images), 10000)
 x <- mnist$train$images[index,]
 y <- factor(mnist$train$labels[index])
 
-index <- sample(nrow(mnist$train$images), 1000)
-x_test <- mnist$train$images[index,]
-y_test <- factor(mnist$train$labels[index])
+index <- sample(nrow(mnist$test$images), 1000)
+x_test <- mnist$test$images[index,]
+y_test <- factor(mnist$test$labels[index])
 ```
 
 ## Preprocessing
@@ -97,6 +97,7 @@ train_knn <- train(x[,col_index], y,
                    method = "knn", 
                    tuneGrid = data.frame(k = c(3,5,7)),
                    trControl = control)
+train_knn
 ```
 
 In general, it is a good idea to try a test run with a subset of the data to get an idea of timing before we start running code that might take hours to complete. We can do this as follows:
@@ -106,7 +107,7 @@ n <- 1000
 b <- 2
 index <- sample(nrow(x), n)
 control <- trainControl(method = "cv", number = b, p = .9)
-train_knn <- train(x[index ,col_index], y[index,] 
+train_knn <- train(x[index, col_index], y[index], 
                    method = "knn", 
                    tuneGrid = data.frame(k = c(3,5,7)),
                    trControl = control)
@@ -118,7 +119,7 @@ to get an idea of how long the fitting process will take for larger values of `n
 Once we optimize our algorithm, we can fit it to the entire dataset:
 
 ```{r}
-fit_knn <- knn3(x[ ,col_index], y,  k = 5)
+fit_knn <- knn3(x[, col_index], y,  k = 3)
 ```
 
 The accuracy is almost 0.95!
