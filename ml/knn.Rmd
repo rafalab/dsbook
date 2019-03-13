@@ -18,7 +18,7 @@ plot_cond_prob <- function(p_hat=NULL){
 }
 ```
 
-We introduced the kNN algorithm in Section \@ref(knn-cv-intro) and demonstrated how we use cross validation to pick $k$ in Section \@ref(caret-cv). Here we quickly review how we fit a kNN model using the __caret__ package. In Section \@ref(caret-cv) we introduced the following code to fit a kNN model.
+We introduced the kNN algorithm in Section \@ref(knn-cv-intro) and demonstrated how we use cross validation to pick $k$ in Section \@ref(caret-cv). Here we quickly review how we fit a kNN model using the __caret__ package. In Section \@ref(caret-cv) we introduced the following code to fit a kNN model:
 
 ```{r}
 train_knn <- train(y ~ ., method = "knn", 
@@ -32,7 +32,7 @@ We saw that the parameter that maximized the estimated accuracy was:
 train_knn$bestTune
 ```
 
-This model improves the accuracy over regression and logistic regression.
+This model improves the accuracy over regression and logistic regression:
 
 ```{r}
 confusionMatrix(predict(train_knn, mnist_27$test, type = "raw"),
@@ -41,7 +41,7 @@ confusionMatrix(predict(train_knn, mnist_27$test, type = "raw"),
 
 A plot of the estimated conditional probability shows that the kNN estimate is flexible enough and does indeed capture the shape of the true conditional probability. 
 
-```{r best-knn-fit}
+```{r best-knn-fit, echo=FALSE}
 p1 <- plot_cond_prob() + ggtitle("True conditional probability")
 
 p2 <- plot_cond_prob(predict(train_knn, newdata = mnist_27$true_p, type = "prob")[,2]) +
@@ -52,13 +52,25 @@ grid.arrange(p2, p1, nrow=1)
 
 ## Exercises 
 
-1. Earlier, we used logistic regression to predict sex from height. Use kNN to do the same. Use the code described in this chapter to select the $F_1$ measure and plot it against $k$. Compare to the $F_1$ of about 0.6 we obtained with regression.
+1. Earlier we used logistic regression to predict sex from height. Use kNN to do the same. Use the code described in this chapter to select the $F_1$ measure and plot it against $k$. Compare to the $F_1$ of about 0.6 we obtained with regression.
 
-2. Here we will use the same gene expression example used in the Distance Chapter exercises. You can load it like this:
+2. Load the following dataset:
 
     ```{r, eval=FALSE}
     data("tissue_gene_expression")
-    ```   
+    ```
 
-    Split the data in training and test sets, then see what accuracy you obtain. Try it for  $k = 1, 3, \dots, 11$.
+    This dataset includes a matrix `x`: 
+
+    ```{r, eval=FALSE}
+    dim(tissue_gene_expression$x)
+    ```
+
+    with the gene expression measured on 500 genes for 189 biological samples representing seven different tissues. The tissue type is stored in `y`:
+
+    ```{r, eval=FALSE}
+    table(tissue_gene_expression$y)
+    ```
+
+    Split the data in training and test sets, then use kNN to predict tissue type and see what accuracy you obtain. Try it for  $k = 1, 3, \dots, 11$.
 
