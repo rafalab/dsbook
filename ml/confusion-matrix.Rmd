@@ -158,7 +158,7 @@ test_set %>%
   summarize(accuracy = mean(y_hat == sex))
 ```
 
-There is an imbalance in the accuracy for males and females: too many females are predicted to be male. We are calling almost half of the females, males! How can our overall accuracy be so high then?  This is because the _prevalence_ of males in this dataset is high. These heights were collected from three data sciences courses, two of which had more males enrolled:
+There is an imbalance in the accuracy for males and females: too many females are predicted to be male. We are calling almost half of the females male! How can our overall accuracy be so high then?  This is because the _prevalence_ of males in this dataset is high. These heights were collected from three data sciences courses, two of which had more males enrolled:
 
 
 ```{r}
@@ -166,7 +166,7 @@ prev <- mean(y == "Male")
 prev
 ```
 
-So when computing overall accuracy, the high percentage of mistakes made for females is outweighed by the gains in correct calls for men. **This can actually be a big problem in machine learning.** If your training data is biased in some way, you are likely to develop algorithms that are biased as well. The fact that we used a test set does not matter because it is also derived from the original, biased dataset. This is one of the reasons we look at metrics other than overall accuracy when evaluating a machine learning algorithm.
+So when computing overall accuracy, the high percentage of mistakes made for females is outweighed by the gains in correct calls for men. **This can actually be a big problem in machine learning.** If your training data is biased in some way, you are likely to develop algorithms that are biased as well. The fact that we used a test set does not matter because it is also derived from the original biased dataset. This is one of the reasons we look at metrics other than overall accuracy when evaluating a machine learning algorithm.
 
 There are several metrics that we can use to evaluate an algorithm in a way that prevalence does not cloud our assessment, and these can all be derived from the confusion matrix. A general improvement to using overall accuracy is to study _sensitivity_ and _specificity_ separately. 
 
@@ -193,9 +193,9 @@ rownames(mat) <- c("Predicted positve", "Predicted negative")
 as.data.frame(mat) %>% knitr::kable()
 ```
 
-Sensitivity is typically quantified by $TP/(TP+FN)$, the proportion of actual positives (the first column = $TP+FN$) that are called positives `TP`. This quantity is referred to as the _true positive rate_ (TPR) or _recall_. 
+Sensitivity is typically quantified by $TP/(TP+FN)$, the proportion of actual positives (the first column = $TP+FN$) that are called positives ($TP$). This quantity is referred to as the _true positive rate_ (TPR) or _recall_. 
 
-Specificity is typically quantified as $TN/(TN+FP)$ or the proportion of negatives (the second column = $FP+TN$) that are called negatives `TN`. This quantity is also called the true negative rate (TNR). There is another way of quantifying specificity which is $TP/(TP+FP)$ or the proportion of outcomes called positives (the first row or $TP+FP$) that are actually positives $TP$. This quantity is referred to as _precision_ and also as _positive predictive value (PPV)_. Note that, unlike TPR and TNR, precision depends on prevalence since higher prevalence implies you can get higher precision even when guessing. 
+Specificity is typically quantified as $TN/(TN+FP)$ or the proportion of negatives (the second column = $FP+TN$) that are called negatives ($TN$). This quantity is also called the true negative rate (TNR). There is another way of quantifying specificity which is $TP/(TP+FP)$ or the proportion of outcomes called positives (the first row or $TP+FP$) that are actually positives ($TP$). This quantity is referred to as _precision_ and also as _positive predictive value (PPV)_. Note that, unlike TPR and TNR, precision depends on prevalence since higher prevalence implies you can get higher precision even when guessing. 
 
 The multiple names can be confusing, so we include a table to help us remember the terms. The table includes a column that shows the definition if we think of the proportions as probabilities.
 
@@ -276,7 +276,7 @@ best_cutoff <- cutoff[which.max(F_1)]
 best_cutoff
 ```
 
-A cutoff of 66 makes much more sense than 64. Furthermore, it balances the specificity and sensitivity of our confusion matrix:
+A cutoff of 65 makes more sense than 64. Furthermore, it balances the specificity and sensitivity of our confusion matrix:
 
 ```{r}
 y_hat <- ifelse(test_set$height > best_cutoff, "Male", "Female") %>% 
@@ -285,7 +285,7 @@ sensitivity(data = y_hat, reference = test_set$sex)
 specificity(data = y_hat, reference = test_set$sex)
 ```
 
-We now see that we do much better than guessing, that both sensitivity and specificity are relatively high, and that we have built our first machine learning algorithm. It takes height as a predictor and predicts female if you are 66 inches or shorter. 
+We now see that we do much better than guessing, that both sensitivity and specificity are relatively high, and that we have built our first machine learning algorithm. It takes height as a predictor and predicts female if you are 65 inches or shorter. 
 
 
 ### Prevalence matters in practice
@@ -466,7 +466,7 @@ $$
 \mbox{E}\left\{ \frac{1}{N}\sum_{i=1}^N (\hat{Y}_i - Y_i)^2 \right\}
 $$
 
-This is a theoretical concept because in practice we only have one dataset to work with. But in theory, we think of having a very, very large number of random samples (call it $B$), apply our algorithm to each, obtain an MSE for each random sample, and think of the expected MSE as:
+This is a theoretical concept because in practice we only have one dataset to work with. But in theory, we think of having a very large number of random samples (call it $B$), apply our algorithm to each, obtain an MSE for each random sample, and think of the expected MSE as:
 
 $$
 \frac{1}{B} \sum_{b=1}^B \frac{1}{N}\sum_{i=1}^N \left(\hat{y}_i^b - y_i^b\right)^2 

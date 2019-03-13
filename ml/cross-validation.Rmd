@@ -80,7 +80,7 @@ library(gridExtra)
 grid.arrange(p2, p1, nrow=1)
 ``` 
 
-We see that kNN better adapts to the non-linear shape of $p(x_1, x_2)$. However, our estimate has some islands of blue in the red area which intuitively, does not make much sense. This is due to what we call _over-training_. We describe over-training in detail below. Over-training is the reason that we have higher accuracy in the train set compared to the test set:
+We see that kNN better adapts to the non-linear shape of $p(x_1, x_2)$. However, our estimate has some islands of blue in the red area, which intuitively does not make much sense. This is due to what we call _over-training_. We describe over-training in detail below. Over-training is the reason that we have higher accuracy in the train set compared to the test set:
 
 ```{r}
 y_hat_knn <- predict(knn_fit, mnist_27$train, type = "class")
@@ -93,7 +93,7 @@ confusionMatrix(data = y_hat_knn, reference = mnist_27$test$y)$overall["Accuracy
 
 ### Over-training 
 
-Over-training is at its worst when we set $k=1$. With $k=1$, the estimate for each $(x_1, x_2)$ in the training set is obtained with just the $y$ corresponding to that point. So, in this case, if the $(x_1, x_2)$ are unique, we will obtain perfect accuracy in the training set because each point is used to predict itself. Remember that if the predictors are not unique and have different outcomes for at least one set of predictors, then it is impossible to predict perfectly. 
+Over-training is at its worst when we set $k=1$. With $k=1$, the estimate for each $(x_1, x_2)$ in the training set is obtained with just the $y$ corresponding to that point. In this case, if the $(x_1, x_2)$ are unique, we will obtain perfect accuracy in the training set because each point is used to predict itself. Remember that if the predictors are not unique and have different outcomes for at least one set of predictors, then it is impossible to predict perfectly. 
 
 Here we fit a kNN model with $k=1$:
 
@@ -210,9 +210,9 @@ ks[which.max(accuracy$test)]
 max(accuracy$test)
 ```
 
-Another reason we need a better estimate of accuracy is that even if we use the test set to pick this $k$ we we not should expect the accompanying accuracy estimate to extrapolate to the real world. This is because even here we broke a golden rule of machine learning: we selected the $k$ using the test set. Cross validation also provides an estimate that takes this into account.
+Another reason we need a better estimate of accuracy is that if we use the test set to pick this $k$, we we not should expect the accompanying accuracy estimate to extrapolate to the real world. This is because even here we broke a golden rule of machine learning: we selected the $k$ using the test set. Cross validation also provides an estimate that takes this into account.
 
-## Mathematical description of cross-validation
+## Mathematical description of cross validation
 
 ```{r, include=FALSE}
 if(knitr::is_html_output()){
