@@ -1,0 +1,533 @@
+```{r, include=FALSE}
+if(knitr::is_html_output()){
+  knitr::opts_chunk$set(out.width = "500px", 
+                        out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"')
+} else{
+  knitr::opts_chunk$set(out.width = "5in")
+}
+```
+
+# Reproducible projects with RStudio and R markdown
+
+The final product of a data analysis project is often a report. Many scientific publications can be thought of as a final report of a data analysis. The same is true for news articles based on data, an analysis report for your company, or lecture notes for a class on how to analyze data. The reports are often on paper or in a PDF that includes a textual description of the findings along with some figures and tables resulting from the analysis. 
+
+Imagine that after you finish the analysis and the report, you are told that you were given the wrong dataset, you are sent a new one and you are asked run the same analysis with this new dataset. Or what if you realize that a mistake was made and need to re-examine the code, fix the error and re-run the analysis? Or imagine that someone you are training wants to see the code and be able to reproduce the results to learn about your approach? 
+
+Situations like the ones just described are actually quite common for a data scientist. Here, we describe how you can keep your data science projects organized with RStudio so that re-running an analysis is straight-forward. We then demonstrate how to generate reproducible reports with R markdown and the __knitR__ package in a way that will greatly help with recreating reports with minimal work. This is possible due to the fact that R markdown documents permit code and textual descriptions to be combined into the same document, and the figures and tables produced by the code are automatically added to the document. 
+
+```{r, echo=FALSE}
+img_path <- "productivity/img/"
+screenshots <- list.files(file.path(img_path, "windows-screenshots"))
+screenshots <- file.path(img_path, "windows-screenshots", screenshots)
+mac_screenshots <- list.files(file.path(img_path, "mac-screenshots"))
+mac_screenshots <- file.path(img_path,"mac-screenshots", mac_screenshots)
+```
+
+## RStudio projects
+
+RStudio provides a way to keep all the components of data analysis project organized into one folder and to keep track of information about this project, such as the Git status of files, in one file. In Section \@ref(rstudio-git) we demonstrate how RStudio facilitates the use of Git and GitHub through RStudio projects. In this section we quickly demonstrate how to start a new a project and some recommendations on how to keep these organized. RStudio projects also permit you to have several RStudio seesions open and keep track of which is which.
+
+To start a project, click on _File_ and then _New Project_.
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[49]) 
+```
+
+Often we have already created a folder to save the work, as we did in Section \@ref(prep-project) and we select _Existing Directory_. Here we show an example 
+in which we have not yet created a folder and select the _New Directory_ option. 
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[50]) 
+```
+
+Then, for a data analysis project, you usually select the  _New Project_ option:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[51]) 
+```
+
+Now you will have to decide on the location of the folder that will be associated with your project, as well as the name of the folder. When choosing a folder name, just like with file names, make sure it is a meaningful name that will help you remember what the project is about. As with files, we recommend using lower case letters, no spaces, and hyphens to separate words. We will call the folder for this project _my-first-project_. This will then generate a _Rproj_ file called _my-first-project.Rproj_ in the folder associated with the project. We will see how this is useful a few lines below.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[52]) 
+```
+
+You will be given options on where this folder should be on your file system. In this example, we will place it in our home folder, but this is generally not good practice. As we described in Section \@ref(prep-project) in the Unix Chapter, you want to organize your file system following a hierarchical approach and with a folder called _projects_ where you keep a folder for each project.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[53]) 
+```
+
+When you start using RStudio with a project, you will see the project name in the upper left corner. This will remind you what project this particular RStudio session belongs to. When you open an RStudio session with no project, it will say _Project: (None)_. 
+
+When working on a project, all files will be saved and searched for in the folder associated with the project. Below, we show an example of a script that we wrote and saved with the name _code.R_. Because we used a meaningful name for the project, we can be a bit less informative when we name the files. Although we do not do it here, you can have several scripts open at once. You simply need to click _File_, then _New File_ and pick the type of file you want to edit.
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[54]) 
+```
+
+One of the main advantages of using Projects is that after closing RStudio, if we wish to continue where we left off on the project, we simply double click or open the file saved when we first created the RStudio project. In this case, the file is called _my-first-project.Rproj_. 
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[55]) 
+```
+
+If we open this file, RStudio will start up and open the scripts we were editing.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[56]) 
+```
+
+Another advantage is that if you click on two or more different Rproj files,  you start new RStudio and R sessions for each. 
+
+## Using Git and GitHub in RStudio {#rstudio-git}
+
+In Section \@ref(git) we introduced Git and GitHub as powerful tools to orgnanize and share your code. We showed how to do this in the command line. RStudio provides a graphical interface that faciliates the use of Git in the context of a data analysis project. We describe how to use this RStudio feature to do this here.
+
+A first step is to let Git know who we are. This will make it easier to connect with GitHub. We start by opening a terminal window in RStudio (remember you can get one through _Tools_ in the menu bar). Now we use the `git config` command to tell Git who we are. We will type the following two commands in our terminal window:
+
+```{bash, eval=FALSE, echo=TRUE}
+git config --global user.name "Your Name"
+git config --global user.mail "your@email.com"
+```
+
+You need to use the email account that you used to open your GitHub account. The RStudio session should look something like this:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[85]) 
+```
+
+Now we are ready to start an RStudio project that uses version control and stores the code on a GitHub repo. To do this, we start a project but, instead of _New Directory_, we will select _Version Control_:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[86]) 
+```
+
+Then we will select _Git_ as our version control system:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[87]) 
+```
+
+The repository URL is the link you used to clone. In Section , we used `https://github.com/username/homework-0.git` as an example. In the project directory name, you need to put the name of the folder that was generated, which in our example will be the name of the repo `homework-0`. This will create a folder called `homework-0` on your local system.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[88]) 
+```
+
+Once you do this, the project is created and it is aware of the connection to a GitHub repo. You will see on the top right corner the name and type of project as well as a new tab on the upper right pane titled _Git_. 
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[89]) 
+```
+
+If you select this tab, it will show you the files on your project with some icons that give you information about these files and their relationship to the repo. In the example below, we already added a file to the folder, called _code.R_ which you can see in the editing pane.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[90]) 
+```
+
+We now need to pay attention to the Git pane. It is important to know that **your local files and the GitHub repo will not be synced automatically**.  As described in Section \@ref(git-overview), you have to sync using git push when you are ready. We show you can do this through RStudio rather than the temrinal below. 
+
+Before we start working on a collaborative project, usually the first thing we do is _pull_ in the changes from the remote repo, in our case the one on GitHub. However, for the example shown here, since we are starting with an empty repo and we are the only ones making changes, we don't need to start by pulling.
+
+In RStudio, the status of the file as it relates to the remote and local repos are represented in the status symbols with colors. A yellow square means that Git knows nothing about this file. To sync with the GitHub repo, we need to _add_ the file, then _commit_ the change to our local Git repo, then _push_ the change to the GitHub repo. Right now, the file is just on our computer. To add the file using RStudio, we click the _Stage_ box. You will see that the status icon now changes to a green A. 
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[91]) 
+```
+
+Note: we are only adding the _code.R_ file. We don't necessarily need to add all the files in our local repo to the GitHub repo, only the ones we want to keep track of or the ones we want to share. If our work is producing files of a certain type that we do not want to keep track of, we can add the suffix that defines these files to the .gitignore file. More details on using .gitignore are included [here](https://git-scm.com/docs/gitignore). These files will stop appearing in your RStudio Git pane. For the example shown here, we will only be adding _code.R_. But, in general, for an RStudio project, we recommend adding both the .gitignore and .Rproj files.
+
+Now we are ready to commit the file to our local repo. In RStudio, we can use the _Commit_ button. This will open a new dialog window. With Git, whenever we commit a change, we are required to enter a comment describing the changes being _committed_. 
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[92]) 
+```
+
+In this case, we will simply describe that we are adding a new script. In this dialog box, RStudio also gives you a summary of what you are changing to the GitHub repo. In this case, because it is a new file, the entire file is highlighted as green, which highlights the changes.
+
+Once we hit the commit button, we should see a message from Git with a summary of the changes that were committed.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[93]) 
+```
+
+Now we are ready to _push_ these changes to the GitHub repo. We can do this by clicking on the _Push_ button on the top right corner:
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[94]) 
+```
+
+We now see a message from Git letting us know that the push has succeeded.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[95]) 
+```
+
+In the pop-up window we no longer see the `code.R` file. This is because no new changes have been performed since we last pushed. We can exit this pop-up window now and continue working on our code.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[96]) 
+```
+
+If we now visit our repo on the web, we will see that it matches our local copy. 
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[97]) 
+```
+
+Congratulations, you have successfully shared code on a GitHub repository!
+
+## R markdown
+
+R markdown is a format for _literate programming_ documents. It is based on _markdown_, a markup language that is widely used to generate html pages. You can learn more about markdown [here](https://www.markdowntutorial.com/). Literate programming weaves instructions, documentation and detailed comments in between machine executable code, producing a document that describes the program that is best for human understanding (Knuth 1984). Unlike a word processor, such as Microsoft Word, where what you see is what you get, with R markdown, you need to _compile_ the document into the final report. The R markdown document looks different than the final product. This seems like a disadvantage at first, but it is not because, for example, instead of producing plots and inserting them one by one into the word processing document, the plots are automatically added. 
+
+In RStudio, you can start an R markdown document by clicking on _File_, _New File_, the _R Markdown_, like this:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[104]) 
+```
+
+You will then be asked to enter a title and author for your document. We are going to prepare a report on gun murders so we will give it an appropriate name. You can also decide what format you would like the final report to be in: HTML, PDF, or Microsoft Word. Later, we can easily change this, but here we select html as it is the preferred format for debugging purposes:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[105]) 
+```
+
+This will generate a template file:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[106]) 
+```
+
+As a convention, we use the `Rmd` suffix for these files.
+
+Once you gain experience with R Markdown, you will be able to do this without the template and can simply start from a blank template.
+
+In the template, you will see several things to note.
+
+
+### The header
+
+At the top you see:
+
+```
+---
+title: "Report on Gun Murders"
+author: "Rafael Irizarry"
+date: "April 16, 2018"
+output: html_document
+---
+```
+
+The things between the `---` is the header. We actually don't need a header, but it is often useful. You can define many other things in the header than what is included in the template. We don't discuss those here, but much information is available online. The one parameter that we will highlight is `output`. By changing this to, say, `pdf_document`, we can control the type of output that is produced when we compile. 
+
+### R code chunks
+
+In various places in the document, we see something like this:
+
+
+
+
+
+````
+```{r}`r ''`
+summary(pressure)
+```
+````
+
+These are the code chunks. When you compile the document, the R code inside the chunk, in this case `summary(pressure)`, will be evaluated and the result included in that position in the final document. 
+
+To add your own R chunks, you can type the characters above quickly with the key binding command-option-I on the Mac and Ctrl-Alt-I on Windows.
+
+This applies to plots as well; the plot will be placed in that position. We can write something like this:
+
+
+
+
+````
+```{r}`r ''`
+plot(pressure)
+```
+````
+
+By default, the code will show up as well. To avoid having the code show up, you can use an argument. To avoid this, you can use the argument `echo=FALSE`. For example:
+
+
+
+
+````
+```{r echo=FALSE}`r ''`
+summary(pressure)
+```
+````
+
+
+We recommend getting into the habit of adding a label to the R code chunks. This will be very useful when debugging, among other situations. You do this by adding a descriptive word like this:
+
+
+
+````
+```{r pressure-summary}`r ''`
+summary(pressure)
+```
+````
+
+
+### Global options
+
+One of the R chunks contains a complex looking call:
+
+
+
+````
+```{r setup, include=FALSE}`r ''`
+knitr::opts_chunk$set(echo = TRUE)
+```
+````
+
+
+We will not cover this here, but as you become more experienced with R Markdown, you will learn the advantages of setting global options for the compilation process.
+
+
+### knitR
+
+We use the __knitR__ package to compile R markdown documents. The specific function used to compile is the `knit` function, which takes a filename as input.  RStudio provides a button that makes it easier to compile the document. For the screenshot below, we have edited the document so that a report on gun murders is produced. You can see the file [here](https://raw.githubusercontent.com/rairizarry/murders/master/report.Rmd). You can now click on the `Knit` button:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[107]) 
+```
+
+
+The first time you click on the _Knit_ button, a dialog box may appear asking you to install packages you need:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[108]) 
+```
+
+
+Once you have installed the packages, clicking the _Knit_ will compile your R markdown file and the resulting document will pop-up:
+
+
+This produces an html document which you can see in your working directory. To view it, open a terminal and list the files. You can open the file in a browser and use this to present your analysis. You can also produce a PDF or Microsoft document by changing: 
+
+`output: html_document` to `output: pdf_document` or `output: word_document`. 
+
+We can also produce documents that render on GitHub using `output: github_document` like this:
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[110]) 
+```
+
+This will produce a markdown file, with suffix `md`, that renders in GitHub. Because we have uploaded these files to GitHub, you can click on the `md` file:
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[124]) 
+```
+
+and you will see the report as a webpage:
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[125]) 
+```
+
+This is a convenient way to share your reports.
+
+### More on R markdown
+
+There is a lot more you can do with R markdown. We highly recommend you continue learning as you gain more experience writing reports in R. There are many free resources on the internet including:
+
+* [RStudio's tutorial](https://rmarkdown.rstudio.com)
+* [The cheat sheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)
+* [The knitR book](https://yihui.name/knitr/)
+
+
+## Organizing a data science project {#organizing}
+
+In this section we put it all together to create the US murders project and share it on GitHub.
+
+### Create directories in Unix
+
+In Section \@ref(prep-project) we demonstrated how to use Unix to prepare for a data science project using an exmaple. Here we continue this example and show how to use RStudio. In  Section \@ref(prep-project) we created the following directories using Unix:
+
+```{bash, eval=FALSE}
+cd ~
+cd projects
+mkdir murders
+cd murders
+mkdir data rdas 
+```
+
+
+### Create an RStudio project
+
+In the next we will use create an RStudio project. In RStudio we go to _File_ and then _New Project..._ and when given the options we pick _Existing Directory_.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[101])
+```
+
+We then write the full path of the `murders` directory created above.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[102]) 
+```
+
+Once you do this, you will see the `rdas` and `data` directories you created in the RStudio _Files_ tab.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[103])
+```
+
+Keep in mind that when we are in this project, our default working directory will be `~/projects/murders`. You can confirm this by typing `getwd()` into your R session. This is important because it will help us organize the code when we need to write file paths. 
+**Pro tip: always use relative paths in code for data science projects. These should be relative to the default working directory.** The problem with using full paths is that your code is unlikely to work on filesystems other than yours since the directory structures will be different. This includes using the home directory `~` as part of your path.
+
+
+### Edit some R Scripts
+
+Let's now write a script that downloads a file into the data directory. We will call this file `download-data.R`. 
+
+The content of this file will be:
+
+```{r, eval=FALSE}
+url <- "https://raw.githubusercontent.com/rafalab/dslabs/master/inst/extdata/murders.csv"
+dest_file <- "data/murders.csv"
+download.file(url, destfile = dest_file)
+```
+
+Notice that we are using the relative path `data/murders.csv`. 
+
+Run this code in R and you will see that a file is added to the `data` directory. 
+
+Now we are ready to write a script to read this data and prepare a table that we can use for analysis. Call the file `wrangle-data.R`. The content of this file will be:
+
+```{r, eval=FALSE}
+library(tidyverse)
+murders <- read_csv("data/murders.csv")
+murders <-murders %>% mutate(region = factor(region),
+                             rate = total / population * 10^5)
+save(murders, file = "rdas/murders.rda")
+```
+
+Again note that we use relative paths exclusively. 
+
+In this file, we introduce an R command we have not seen: `save`. The `save` command in R saves objects into what is called an _rda file_: _rda_ is short for R data. We recommend using the `.rda` suffix on files saving R objects. You will see that `.RData` is also used. 
+
+If you run this code above, the processed data object will be saved in a file in the `rda` directory. Although not the case here, this approach is often practical because generating the data object we use for final analyses and plots can be a complex and time consuming process. So we run this process once and save the file. But we still want to be able to generate the entire analysis from the raw data.
+
+Now we are ready to write the analysis file. Let's call it `analysis.R`. The content should be the following:
+
+```{r, eval=FALSE}
+library(tidyverse)
+load("rdas/murders.rda")
+
+murders %>% mutate(abb = reorder(abb, rate)) %>%
+  ggplot(aes(abb, rate)) +
+  geom_bar(width = 0.5, stat = "identity", color = "black") +
+  coord_flip()
+```
+
+If you run this analysis, you will see that it generates a plot. 
+
+### Create some more directories using Unix
+
+Now suppose we want to save the generated plot for use in a report or presentation. We can do this with the __ggplot__ command `ggsave`. But where do we put the graph? We should be systematically organized so we will save plots to a directory called `figs`. Start by creating a directory by typing the following in the terminal:
+
+
+```{bash, eval=FALSE}
+mkdir figs
+```
+
+and then you can add the line: 
+
+```{r, eval=FALSE}
+ggsave("figs/barplot.png")
+```
+
+to your R script. If you run the script now, a png file will be saved into the `figs` directory. If we wanted to copy that file to some other directory where we are developing a presentation, we can avoid using the mouse by using the `cp` command in our terminal.
+
+### Add a README file
+
+You now have a self-contained analysis in one directory. One final recommendation is to create a `README.txt` file describing what each of these files does for the benefit of others reading your code, including your future self. This would not be a script but just some notes. One of the options provided when opening a new file in RStudio is a text file. You can save something like this into the text file:
+
+```
+We analyze US gun murder data collected by the FBI.
+
+download-data.R - Downloads csv file to data directory
+
+wrangle-data.R - Creates a derived dataset and saves as R object in rdas directory
+
+analysis.R - A plot is generated and saved in the figs directory.
+```
+
+### Initilazing a Git directory
+
+
+In Section \@ref(init) we demonstrated how to initialize a Git directory and connect it to the upstream repository on GitHub, which we already created in that section.
+
+We can do this in the Unix terminal:
+
+```{bash, eval=FALSE}
+cd ~/projects/murders
+git init
+git add README.txt
+git commit -m "First commit. Adding README.txt file just to get started"
+git remote add origin `https://github.com/rairizarry/murders.git`
+git push
+```
+
+
+### Add, commit and push files using RStudio
+
+
+
+We can continue adding and committing each file, but it might be easier to use RStudio. To do this, start the project by opening the Rproj file. The git icons should appear:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[119]) 
+```
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[120]) 
+```
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[121]) 
+```
+
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[122]) 
+```
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[123]) 
+```
+
+We can now go to GitHub and confirm that our files are there.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[124]) 
+```
+
+
+You can see a version of this project, organized with Unix directories, on [GitHub](https://github.com/rairizarry/murders).
+You can download a copy to your computer by using the `git clone` command on your terminal, which we cover further in the next chapter. This command will create a directory called `murders` in your working directory, so be careful where you call it from. 
+
+```{r, eval=FALSE}
+git clone https://github.com/rairizarry/murders.git
+```
+
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(out.width = NULL, out.extra = NULL)
+```

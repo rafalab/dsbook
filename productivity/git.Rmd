@@ -3,12 +3,11 @@ if(knitr::is_html_output()){
   knitr::opts_chunk$set(out.width = "500px", 
                         out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"')
 } else{
-  knitr::opts_chunk$set(out.width = "8in")
+  knitr::opts_chunk$set(out.width = "6in")
 }
 ```
 
-# Git {#git}
-
+# Git and GitHub {#git}
 
 ```{r, echo=FALSE}
 img_path <- "productivity/img/"
@@ -18,8 +17,7 @@ mac_screenshots <- list.files(file.path(img_path, "mac-screenshots"))
 mac_screenshots <- file.path(img_path,"mac-screenshots", mac_screenshots)
 ```
 
-
-Here we provide some more details on Git and GitHub. However, we are only scratching the surface. To learn more about this topic, we highly recommend the following resources:
+Here we provide some details on Git and GitHub. However, we are only scratching the surface. To learn more about this topic, we highly recommend the following resources:
 
 * [Codeacademy](https://www.codecademy.com/learn/learn-git)
 * [GitHub Guides](https://guides.github.com/activities/hello-world/)
@@ -39,12 +37,121 @@ There are three main reasons to use Git and GitHub.
 
 Here we focus on the sharing aspects of Git and GitHub and refer the reader to the links above to learn more about this powerful tool.
 
-## Overview of Git
+## GitHub accounts
+
+The first step is to get a GitHub account. Basic GitHub accounts are free. To do this, go to [GitHub](github.com) where you will see a box in which you can sign up. 
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[71]) 
+```
+
+You want to pick a name carefully. It should be short, easy to remember and to spell, somehow related to your name, and professional. This last one is important since you might be sending potential employers a link to your GitHub account. In the example below, I am sacrificing on the ease of spelling to incorporate my name. Your initials and last name are usually a good choice. If you have a very common name, then this may have to be taken into account. A simple solution would be to add numbers or spell out part of your name. 
+
+The account I use for my research, _rafalab_, is the same one I use for my [webpage](http://rafalab.org) and [Twitter](http://twitter.com/rafalab), which makes it easy to remember for those that follow my work. 
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[72]) 
+```
+
+Once you have a GitHub account, you are ready to connect RStudio to this account. You start by going to the _Global Options_ and selecting _Git/SVN_:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[73]) 
+```
+
+You then need to enter a path for the Git executable we just installed.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[74]) 
+```
+
+On the Windows default installation, this will be _C:/Program File/Git/bin/git.exe_, but you should find it by browsing your system as this can change from system to system. Now to avoid entering our GitHub password every time we try to access our repository, we will create what is called an _SSH RSA Key_. RStudio can do this for us automatically if we click on the _Create RSA Key_ button:
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[75]) 
+```
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[76]) 
+```
+
+You can follow the default instructions as shown below: 
+
+```{r, echo=FALSE, out.width = "3.5in",  out.extra=""}
+knitr::include_graphics(screenshots[77:78]) 
+```
+
+RStudio and GitHub should now be able to connect and we are ready to create a first GitHub code repository.
+
+## GitHub repositories
+
+You are now ready to create a GitHub repository (repo). The general idea is that you will have at least two copies of your code: one on your computer and one on GitHub. If you add collaborators to this project, then each will have a copy on their computer. The GitHub copy is usually considered the _master_ copy that each collaborator syncs to. Git will help you keep all the different copies synced.
+
+As mentioned, one of the advantages of keeping code on a GitHub repository is that you can easily share it with potential employers interested in seeing examples of your work. Because many data science companies use version control systems, like Git, to collaborate on projects, they might also be impressed that you already know at least the basics.
+
+The first step in creating a repo for your code is to initialize on GitHub. Because you already created an account, you will have a page on GitHub with the URL _http://github.com/username_.
+
+To create a repo, first log in to your account by clicking the _Sign In_ button on [https://github.com](http://github.com). You might already be signed in, in which case the _Sign In_ button will not show up:
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[79]) 
+```
+
+If signing in, you will have to enter your username and password. We recommend you set up your browser to remember this to avoid typing it in each time.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[80]) 
+```
+
+Once on your account, you can click on _Repositories_:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[81]) 
+```
+
+Then you click on _New_ to create a new repo:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[82]) 
+```
+
+You will then want to choose a good descriptive name for the project. In the future, you might have dozens of repos so keep that in mind when choosing a name. Here we will use _homerwork-0_. We recommend you make the repo public. If you want to keep it private, you will have to pay a monthly charge.
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[83]) 
+```
+
+You now have your first repo on GitHub. The next step will be to _clone it_ on your computer and start editing and syncing using Git. 
+
+To do this, it is convenient to copy the link provided by GitHub specifically to connect to this repo, using Git as shown below. We will later need to copy and paste this so make sure to remember this step.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[84]) 
+```
+
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(out.width = NULL, out.extra = NULL)
+```
+
+## Overview of Git {git-overview}
+
+
+The main actions in Git are to: 
+
+1. **pull** changes from the remote repo, in this case the GitHub repo,
+2. **add** files, or as we say in the Git lingo _stage_ files, 
+3. **commit** changes to the local repo and 
+4. **push** changes to the _remote_ repo, in our case the GitHub repo.
 
 To effectively permit version control and collaboration in Git, files move across four different areas: 
 
 ```{r, echo=FALSE}
-knitr::include_graphics("productivity/img/git/git-layout.png") 
+knitr::include_graphics(file.path(img_path,"git/git-layout.png"))
 ```
 
 But how does it all get started? There are two ways. We can clone an existing repo or initialize one. We will explore cloning first.
@@ -85,7 +192,7 @@ ls
 ```
 
 ```{r, echo=FALSE}
-knitr::include_graphics("productivity/img/git/git-clone.png") 
+knitr::include_graphics(file.path(img_path,"git/git-clone.png"))
 ```
 
 
@@ -93,7 +200,7 @@ The _Working Directory_ is the same as your Unix working directory. When you edi
 
 
 ```{r, echo=FALSE}
-knitr::include_graphics("productivity/img/git/git-status.png") 
+knitr::include_graphics(file.path(img_path, "git/git-status.png"))
 ```
 
 If you check the status now, you will see that nothing has changed and you get the following message:
@@ -130,7 +237,7 @@ git status
 
 
 ```{r, echo=FALSE}
-knitr::include_graphics("productivity/img/git/git-add.png") 
+knitr::include_graphics(file.path(img_path,"git/git-add.png"))
 ```
 
 Because `new-file.txt` is staged, the current version of the file will get added to the local repository next time we commit, which we do as follows:
@@ -147,7 +254,7 @@ git status
 
 
 ```{r, echo=FALSE}
-knitr::include_graphics("productivity/img/git/git-commit.png") 
+knitr::include_graphics(file.path(img_path,"/git/git-commit.png"))
 ```
 
 However, if we edit that file again, it changes only in the working directory. To add to the local repo, we need to stage it and commit the changes that are added to the local repo:
@@ -184,7 +291,7 @@ knitr::opts_knit$set(root.dir = wd)
 ```
 
 ```{r, echo=FALSE}
-knitr::include_graphics("productivity/img/git/git-push.png") 
+knitr::include_graphics(file.path(img_path,"git/git-push.png"))
 ```
 
 However, in this particular example, you will not be able to do this because you do not have permission to edit the upstream repo. If this was your repo, you could.
@@ -197,7 +304,7 @@ git fetch
 
 
 ```{r, echo=FALSE}
-knitr::include_graphics("productivity/img/git/git-fetch.png") 
+knitr::include_graphics(file.path(img_path,"git/git-fetch.png"))
 ```
 
 
@@ -209,7 +316,7 @@ git merge
 
 
 ```{r, echo=FALSE}
-knitr::include_graphics("productivity/img/git/git-merge.png") 
+knitr::include_graphics(file.path(img_path,"git/git-merge.png"))
 ```
 
 However, we often just want to change both with one command. For this, we use: 
@@ -220,18 +327,20 @@ git pull
 
 
 ```{r, echo=FALSE}
-knitr::include_graphics("productivity/img/git/git-pull.png") 
+knitr::include_graphics(file.path(img_path,"git/git-pull.png"))
 ```
 
 
 We earlier learned how RStudio has buttons to do all this. The details provided here should help you understand what happens in the background.
 
 
-## Initilazing a Git directory
+## Initilazing a Git directory {#init}
 
 Now let's learn the second way we can get started: by initializing a directory on our own computer rather than cloning.
 
-We will show how we created the GitHub for our gun murders project. We first created a project on our computer so we already had all the files and directory ready. But we did not yet have a Git local repo or GitHub upstream repo.
+Suppose we already have a populated local directory and we want to turn this directory into a collaborative GitHub repository. The most efficient way of achieving this is by  _initializing_ the local directory.
+
+To demonstrate how to do this we will intitialize the gun murders dirctory we created in Section \@ref(prep-project). Note that we already created a directory with several subdirectories on our computer but we have not yet have a Git local repo or GitHub upstream repo.
 
 We start by creating a new repo on our GitHub page:
 
@@ -293,37 +402,7 @@ We can now use `git push` since there is a connection to an upstream repo:
 git push
 ```
 
-We can continue adding and committing each file, but it might be easier to use RStudio. To do this, start the project by opening the Rproj file. The git icons should appear:
-
-```{r, echo=FALSE}
-knitr::include_graphics(screenshots[119]) 
-```
-
-
-```{r, echo=FALSE}
-knitr::include_graphics(screenshots[120]) 
-```
-
-
-```{r, echo=FALSE}
-knitr::include_graphics(screenshots[121]) 
-```
-
-
-
-```{r, echo=FALSE}
-knitr::include_graphics(screenshots[122]) 
-```
-
-```{r, echo=FALSE}
-knitr::include_graphics(screenshots[123]) 
-```
-
-We can now go to GitHub and confirm that our files are there.
-
-```{r, echo=FALSE}
-knitr::include_graphics(screenshots[124]) 
-```
+In Section \@ref(organizing) we continue to work with this example, as we demonstrate how we can use RStudio to work with Git and keep a project synched on GitHub.
 
 
 ```{r, echo=FALSE}

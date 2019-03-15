@@ -27,26 +27,31 @@ There are many [reference books](https://www.quora.com/Which-are-the-best-Unix-L
 
 When searching for Unix resources, keep in mind that other terms used to describe what we will learn here are _Linux_, _the shell_ and _the command line_. Basically, what we are learning is a series of commands and a way of thinking that facilitates the organization of files without using the mouse. 
 
+
 To serve as motivation, we are going to start constructing a directory using Unix tools and RStudio. 
 
-## The terminal
+## Naming convention
 
-_The terminal_ is our window into the Unix world. Instead of clicking, dragging and dropping to organize our files and folders, we will be typing commands into the terminal. The way we do this is similar to how we type commands into the R console, but instead of generating plots and statistical summaries, we will be organizing files on our system. 
+Before you start organizing projects with Unix you want to pick a name convention that you will use systematically name your files and directories. This will help you find files and know what is in them.
 
-We have already described how we can access a terminal using RStudio, namely by going to _Tools_, then _Terminal_, then _New Terminal_. But often we want access to the terminal, but do not need RStudio. We already described how to access the terminal on the Mac by opening the application in the Utilities folder:
+In general you want to name your files in a way that is related to 
+their contents and specifies how they relate to other files. The [Smithsonian Data Management Best Practices](https://library.si.edu/sites/default/files/tutorial/pdf/filenamingorganizing20180227.pdf) has "five precepts of file naming and organization" and they are:
 
-```{r, echo=FALSE, out.width = "3.5in",  out.extra=""}
-knitr::include_graphics(mac_screenshots[1:3]) 
-```
+>> * Have a distinctive, human-readable name that gives an indication of the content.
+>> * Follow a consistent pattern that is machine-friendly.
+>> * Organize files into directories (when necessary) that follow a consistent pattern.
+>> * Avoid repetition of semantic elements among file and directory names.
+>> * Have a file extension that matches the file format (no changing extensions!)
 
-You can also use the Spotlight feature on the Mac by typing command-spacebar, then type _Terminal_.
+For specific recommendations you highly recommend you follow [the tidyverse style guide](https://style.tidyverse.org/).
 
-On Windows, assuming you've installed Git Bash, we can also access a terminal without RStudio by running the Git Bash program:
 
-```{r, echo=FALSE, out.width = "3.5in",  out.extra=""}
-knitr::include_graphics(screenshots[98:99]) 
-```
+ 
+## The terminal {#the-terminal}
 
+Instead of clicking, dragging and dropping to organize our files and folders, we will be typing Unix commands into the terminal. The way we do this is similar to how we type commands into the R console, but instead of generating plots and statistical summaries, we will be organizing files on our system. 
+
+We have already described how we can access a terminal on a Mac (Section \@ref(terminal-on-mac)) and Windows (Section \@ref(terminal-on-windows)).
 Once you have a terminal open, you can start typing commands. You should see a blinking cursor at the spot where what you type will show up. This position is called the _command line_. Once you type something and hit enter on Windows or return on the Mac, Unix will try to execute this command. If you want to try out an example, type this command into your command line:
 
 
@@ -434,9 +439,11 @@ less cv.tex
 
 To exit the viewer, you type `q`. If the files are long, you can use the arrow keys to move up and down. There are many other keyboard commands you can use within `less` to, for example, search or jump pages. You will learn more about this in a later section. If you are wondering why the command is called `less`, it is because the original was called `more`, as in "show me more of this file". The second version was called `less` because of the saying "less is more".
 
-## Preparing for a data science project
+## Preparing for a data science project {#prep-project}
 
-We are now ready to prepare a directory for a project. You should start by creating a directory where you will keep all your projects. We recommend a directory called _projects_ in your home directory. To do this you would type:
+We are now ready to prepare a directory for a project. We will use the [US murders project](https://github.com/rairizarry/murders) as an example. 
+
+You should start by creating a directory where you will keep all your projects. We recommend a directory called _projects_ in your home directory. To do this you would type:
 
 ```{bash, eval=FALSE}
 cd ~
@@ -470,109 +477,8 @@ So if we open a new terminal and want to navigate into that directory we type:
 cd projects/murders
 ```
 
-In RStudio, when you start a new project, you can pick _Existing Directory_ instead of _New Directory_:
+In Section \@ref(organizing) we will describe how we can use RStudio to organize a data analysis project, once these directories have been created.
 
-```{r, echo=FALSE}
-knitr::include_graphics(screenshots[101])
-```
-
-and write the full path of the `murders` directory:
-
-```{r, echo=FALSE}
-knitr::include_graphics(screenshots[102]) 
-```
-
-Once you do this, you will see the `rdas` and `data` directories you created in the _Files_ tab.
-
-```{r, echo=FALSE}
-knitr::include_graphics(screenshots[103])
-```
-
-Keep in mind that when we are in this project, our default working directory will be `~/projects/murders`. You can confirm this by typing `getwd()` into your R session. This is important because it will help us organize the code when we need to write file paths. 
-
-**Pro tip: always use relative paths in code for data science projects. These should be relative to the default working directory.** The problem with using full paths is that your code is unlikely to work on filesystems other than yours since the directory structures will be different. This includes using the home directory `~` as part of your path.
-
-Let's now write a script that downloads a file into the data directory. We will call this file `download-data.R`. 
-
-The content of this file will be:
-
-```{r, eval=FALSE}
-url <- "https://raw.githubusercontent.com/rafalab/dslabs/master/inst/extdata/murders.csv"
-dest_file <- "data/murders.csv"
-download.file(url, destfile = dest_file)
-```
-
-Notice that we are using the relative path `data/murders.csv`. 
-
-Run this code in R and you will see that a file is added to the `data` directory. 
-
-Now we are ready to write a script to read this data and prepare a table that we can use for analysis. Call the file `wrangle-data.R`. The content of this file will be:
-
-```{r, eval=FALSE}
-library(tidyverse)
-murders <- read_csv("data/murders.csv")
-murders <-murders %>% mutate(region = factor(region),
-                             rate = total / population * 10^5)
-save(murders, file = "rdas/murders.rda")
-```
-
-Again note that we use relative paths exclusively. 
-
-In this file, we introduce an R command we have not seen: `save`. The `save` command in R saves objects into what is called an _rda file_: _rda_ is short for R data. We recommend using the `.rda` suffix on files saving R objects. You will see that `.RData` is also used. 
-
-If you run this code above, the processed data object will be saved in a file in the `rda` directory. Although not the case here, this approach is often practical because generating the data object we use for final analyses and plots can be a complex and time consuming process. So we run this process once and save the file. But we still want to be able to generate the entire analysis from the raw data.
-
-Now we are ready to write the analysis file. Let's call it `analysis.R`. The content should be the following:
-
-```{r, eval=FALSE}
-library(tidyverse)
-load("rdas/murders.rda")
-
-murders %>% mutate(abb = reorder(abb, rate)) %>%
-  ggplot(aes(abb, rate)) +
-  geom_bar(width = 0.5, stat = "identity", color = "black") +
-  coord_flip()
-```
-
-If you run this analysis, you will see that it generates a plot. 
-
-Now suppose we want to save the generated plot for use in a report or presentation. We can do this with the ggplot command `ggsave`. But where do we put the graph? We should be systematically organized so we will save plots to a directory called `figs`. Start by creating a directory by typing the following in the terminal:
-
-
-```{bash, eval=FALSE}
-mkdir figs
-```
-
-and then you can add the line: 
-
-```{r, eval=FALSE}
-ggsave("figs/barplot.png")
-```
-
-to your R script. If you run the script now, a png file will be saved into the `figs` directory. If we wanted to copy that file to some other directory where we are developing a presentation, we can avoid using the mouse by using the `cp` command in our terminal.
-
-You now have a self-contained analysis in one directory. One final recommendation is to create a `README.txt` file describing what each of these files does for the benefit of others reading your code, including your future self. This would not be a script but just some notes. One of the options provided when opening a new file in RStudio is a text file. You can save something like this into the text file:
-
-```
-We analyze US gun murder data collected by the FBI.
-
-download-data.R - Downloads csv file to data directory
-
-wrangle-data.R - Creates a derived dataset and saves as R object in rdas directory
-
-analysis.R - A plot is generated and saved in the figs directory.
-```
-
-If you now type `pwd`, you will see you are in `~/projects/murders` with `~` representing the home directory.
-
-You have now successfully used Unix and RStudio to create a directory for a project. When a new project comes your way, you can simply `cd` back to `project` directory, create a new directory and start a new project.
-
-You can see a version of this project, organized with Unix directories, on [GitHub](https://github.com/rairizarry/murders).
-You can download a copy to your computer by using the `git clone` command on your terminal, which we cover further in the next chapter. This command will create a directory called `murders` in your working directory, so be careful where you call it from. 
-
-```{r, eval=FALSE}
-git clone https://github.com/rairizarry/murders.git
-```
 
 ## Advanced Unix
 
