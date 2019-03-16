@@ -1,6 +1,6 @@
 # Statistical models {#models}
 
-"All models are wrong, but some are useful" -George E. P. Box
+>>"All models are wrong, but some are useful" -George E. P. Box
 
 The day before the 2008 presidential election, Nate Silver's FiveThirtyEight stated that "Barack Obama appears poised for a decisive electoral victory". They went further and predicted that Obama would win the election with 349 electoral votes to 189, and the popular vote by a margin of 6.1%. FiveThirtyEight also attached a probabilistic statement to their prediction claiming that Obama had a 91% chance of winning the election. The predictions were quite accurate since, in the final results, Obama won the electoral college 365 to 173 and the popular vote by a 7.2% difference. Their performance in the 2008 election brought FiveThirtyEight to the attention of political pundits and TV personalities. Four years later, the week before the 2012 presidential election, FiveThirtyEight's Nate Silver was giving Obama a 90% chance of winning despite many of the experts thinking the final results would be closer. Political commentator Joe Scarborough said [during his show](https://www.youtube.com/watch?v=TbKkjm-gheY):
 
@@ -12,16 +12,12 @@ To which Nate Silver responded via Twitter:
 
 In 2016, Silver was not as certain and gave Hillary Clinton only a 71% of winning. In contrast, most other forecasters were almost certain she would win. She lost. But 71% is still more than 50%, so was Mr. Silver wrong? And what does probability mean in this context anyway? Are dice being tossed somewhere? 
 
-In this chapter we will demonstrate how _poll aggregators_, such as FiveThirtyEight, collected and combined data reported by different experts to produce improved predictions. Statistical models, the main statistical tool used by the aggregators are the topic of this chapter. We build on the statistical inference concepts we learned in Chapter \@ref(inference). We start with relatively simple models, realizing that the actual data science exercise of forecasting elections involves rather complex ones, which we introduce later in Section \@ref(election-forecasting).
-
+In this chapter we will demonstrate how _poll aggregators_, such as FiveThirtyEight, collected and combined data reported by different experts to produce improved predictions. Ww will introduce ideas behind the _statistical models_, also known as _probability models_, that were used by poll aggregators to improve election forecasts beyond the power of individual polls. In this chapter, we motivate the models, building on the statistical inference concepts we learned in Chapter \@ref(inference).  We start with relatively simple models, realizing that the actual data science exercise of forecasting elections involves rather complex ones, which we introduce later in Section \@ref(election-forecasting).
 
 ```{r, echo=FALSE, message=FALSE}
 set.seed(2)
 img_path <- "inference/img/"
 ```
-
-
-In this section we will introduce ideas behind the _statistical models_, also known as _probability models_, that were used by Fivethirtyeight, and other poll aggregators, to improve the election forecasts power of individual polls. In this chapter we motivate the models. These models are written out mathematically in Section \@ref(election-forecasting).
 
 ## Poll aggregators
  
@@ -123,7 +119,7 @@ knitr::include_graphics(file.path(img_path, "popular-vote-538.png"))
 
 (Source: [FiveThirtyEight](https://projects.fivethirtyeight.com/2016-election-forecast/))
 
-We introduce actual data from the 2016 US presidential election to show how models are motivated and built to produce these predictions. To understand the "81.4% chance" statement we need to describe Bayes Statistics, which we do in Sections \@ref(bayesian-statistics) and \@ref(bayesian-approach). 
+We introduce actual data from the 2016 US presidential election to show how models are motivated and built to produce these predictions. To understand the "81.4% chance" statement we need to describe Bayesian statistics, which we do in Sections \@ref(bayesian-statistics) and \@ref(bayesian-approach). 
 
 ### Poll data
 
@@ -230,7 +226,7 @@ In the previous section, we saw that using the urn model theory to combine these
 
 The new model can also be thought of as an urn model, although the connection is not as direct. Rather than 0s (Republicans) and 1s (Democrats), our urn now contains poll results from all possible pollsters. We _assume_ that the expected value of our urn is the actual spread $d=2p-1$. 
 
-Because instead of 0s and 1s, our urn contains continuous numbers between -1 and 1, the standard deviation of the urn is no longer $\sqrt{p(1-p)}$. Rather than voter sampling variability, the standard error now includes the pollster to pollster variability. Our new urn, also includes the sampling variability from the polling. Regardless, this standard deviation is now an unknown parameter. In statistics textbooks, the Greek symbol $\sigma$ is used to represent this parameter. 
+Because instead of 0s and 1s, our urn contains continuous numbers between -1 and 1, the standard deviation of the urn is no longer $\sqrt{p(1-p)}$. Rather than voter sampling variability, the standard error now includes the pollster to pollster variability. Our new urn also includes the sampling variability from the polling. Regardless, this standard deviation is now an unknown parameter. In statistics textbooks, the Greek symbol $\sigma$ is used to represent this parameter. 
 
 In summary, we have two unknown parameters: the expected value $d$ and the standard deviation $\sigma$.
 
@@ -268,18 +264,18 @@ Are we now ready to declare a probability of Clinton winning the popular vote? N
 
 ## Exercises 
 
-1. We have been using urn models to motivate the use of probability models. Most data science applications are not related to data obtained from urns. More common are data that come from individuals. The reason probability plays a role here is because the data come from a random sample. The random sample is taken from a population and the urn serves as an analogy for the population. 
+We have been using urn models to motivate the use of probability models. Most data science applications are not related to data obtained from urns. More common are data that come from individuals. The reason probability plays a role here is because the data come from a random sample. The random sample is taken from a population and the urn serves as an analogy for the population. 
 
 Let's revisit the heights dataset. Suppose we consider the males in our course the population.
 
-    ```{r, eval=FALSE}
+```{r, eval=FALSE}
     library(dslabs)
     data(heights)
     x <- heights %>% filter(sex == "Male") %>%
       pull(height)
-    ```
+```
     
-    Mathematically speaking, `x` is our population. Using the urn analogy, we have an urn with the values of  `x` in it. What are the average and standard deviation of our population?
+1. Mathematically speaking, `x` is our population. Using the urn analogy, we have an urn with the values of  `x` in it. What are the average and standard deviation of our population?
 
 
 2.  Call the population average computed above $\mu$ and the standard deviation $\sigma$. Now take a sample of size 50, with replacement, and construct an estimate for $\mu$ and $\sigma$. 
