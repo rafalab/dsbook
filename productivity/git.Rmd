@@ -53,7 +53,22 @@ The account I use for my research, _rafalab_, is the same one I use for my [webp
 knitr::include_graphics(screenshots[72]) 
 ```
 
-Once you have a GitHub account, you are ready to connect RStudio to this account. You start by going to the _Global Options_ and selecting _Git/SVN_:
+Once you have a GitHub account, you are ready to connect Git and RStudio to this account. 
+
+A first step is to let Git know who we are. This will make it easier to connect with GitHub. We start by opening a terminal window in RStudio (remember you can get one through _Tools_ in the menu bar). Now we use the `git config` command to tell Git who we are. We will type the following two commands in our terminal window:
+
+```{bash, eval=FALSE, echo=TRUE}
+git config --global user.name "Your Name"
+git config --global user.mail "your@email.com"
+```
+
+You need to use the email account that you used to open your GitHub account. The RStudio session should look something like this:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[85]) 
+```
+
+You start by going to the _Global Options_ and selecting _Git/SVN_:
 
 ```{r, echo=FALSE}
 knitr::include_graphics(screenshots[73]) 
@@ -79,11 +94,11 @@ knitr::include_graphics(screenshots[76])
 
 You can follow the default instructions as shown below: 
 
-```{r, echo=FALSE, out.width = "3.5in",  out.extra=""}
+```{r, echo=FALSE, out.width = "50%",  out.extra=""}
 knitr::include_graphics(screenshots[77:78]) 
 ```
 
-RStudio and GitHub should now be able to connect and we are ready to create a first GitHub code repository.
+Git, RStudio and GitHub should now be able to connect and we are ready to create a first GitHub code repository.
 
 ## GitHub repositories {#github-repos}
 
@@ -410,6 +425,93 @@ if(file.exists("git-example")) unlink("git-example", recursive=TRUE, force = TRU
 ```
 
 
+## Using Git and GitHub in RStudio {#rstudio-git}
+
+While command line Git is a powerful and flexible tool, it can be somewhat daunting when we are getting started. RStudio provides a graphical interface that facilitates the use of Git in the context of a data analysis project. We describe how to use this RStudio feature to do this here.
+
+Now we are ready to start an RStudio project that uses version control and stores the code on a GitHub repo. To do this, we start a project but, instead of _New Directory_, we will select _Version Control_:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[86]) 
+```
+
+Then we will select _Git_ as our version control system:
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[87]) 
+```
+
+The repository URL is the link you used to clone. In Section \@ref(github-repos), we used `https://github.com/username/homework-0.git` as an example. In the project directory name, you need to put the name of the folder that was generated, which in our example will be the name of the repo `homework-0`. This will create a folder called `homework-0` on your local system.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[88]) 
+```
+
+Once you do this, the project is created and it is aware of the connection to a GitHub repo. You will see on the top right corner the name and type of project as well as a new tab on the upper right pane titled _Git_. 
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[89]) 
+```
+
+If you select this tab, it will show you the files on your project with some icons that give you information about these files and their relationship to the repo. In the example below, we already added a file to the folder, called _code.R_ which you can see in the editing pane.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[90]) 
+```
+
+We now need to pay attention to the Git pane. It is important to know that **your local files and the GitHub repo will not be synced automatically**.  As described in Section \@ref(git-overview), you have to sync using git push when you are ready. We show you can do this through RStudio rather than the terminal below. 
+
+Before we start working on a collaborative project, usually the first thing we do is _pull_ in the changes from the remote repo, in our case the one on GitHub. However, for the example shown here, since we are starting with an empty repo and we are the only ones making changes, we don't need to start by pulling.
+
+In RStudio, the status of the file as it relates to the remote and local ropes are represented in the status symbols with colors. A yellow square means that Git knows nothing about this file. To sync with the GitHub repo, we need to _add_ the file, then _commit_ the change to our local Git repo, then _push_ the change to the GitHub repo. Right now, the file is just on our computer. To add the file using RStudio, we click the _Stage_ box. You will see that the status icon now changes to a green A. 
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[91]) 
+```
+
+Note: we are only adding the _code.R_ file. We don't necessarily need to add all the files in our local repo to the GitHub repo, only the ones we want to keep track of or the ones we want to share. If our work is producing files of a certain type that we do not want to keep track of, we can add the suffix that defines these files to the .gitignore file. More details on using .gitignore are included [here](https://git-scm.com/docs/gitignore). These files will stop appearing in your RStudio Git pane. For the example shown here, we will only be adding _code.R_. But, in general, for an RStudio project, we recommend adding both the .gitignore and .Rproj files.
+
+Now we are ready to commit the file to our local repo. In RStudio, we can use the _Commit_ button. This will open a new dialog window. With Git, whenever we commit a change, we are required to enter a comment describing the changes being _committed_. 
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[92]) 
+```
+
+In this case, we will simply describe that we are adding a new script. In this dialog box, RStudio also gives you a summary of what you are changing to the GitHub repo. In this case, because it is a new file, the entire file is highlighted as green, which highlights the changes.
+
+Once we hit the commit button, we should see a message from Git with a summary of the changes that were committed.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[93]) 
+```
+
+Now we are ready to _push_ these changes to the GitHub repo. We can do this by clicking on the _Push_ button on the top right corner:
+
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[94]) 
+```
+
+We now see a message from Git letting us know that the push has succeeded.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[95]) 
+```
+
+In the pop-up window we no longer see the `code.R` file. This is because no new changes have been performed since we last pushed. We can exit this pop-up window now and continue working on our code.
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[96]) 
+```
+
+If we now visit our repo on the web, we will see that it matches our local copy. 
+
+```{r, echo=FALSE}
+knitr::include_graphics(screenshots[97]) 
+```
+
+Congratulations, you have successfully shared code on a GitHub repository!
 
 ```{r, include=FALSE}
 knitr::opts_chunk$set(out.width = NULL, out.extra = NULL)
