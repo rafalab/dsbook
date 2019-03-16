@@ -2,11 +2,11 @@
 
 In data science, we often deal with data that is affected by chance in some way: the data comes from a random sample, the data is affected by measurement error or the data measures some outcome that is random in nature. Being able to quantify the uncertainty introduced by randomness is one of the most important jobs of a data analysts. Statistical inference offers a framework, as well as several practical tools, for doing this. The first step is to learn how to mathematically describe random variables. 
 
-In this chapter, we introduce random variables and their properties starting with their application to games of chance. We then describe some of the events surrounding the [financial crisis of 2007-2008](https://en.wikipedia.org/wiki/Financial_crisis_of_2007%E2%80%9308) using probability theory. This financial crisis was in part caused by underestimating the risk of certain [securities](https://en.wikipedia.org/wiki/Security_(finance)) sold by financial institutions. Specifically, the risk of mortgage-backed securities (MBS) and collateralized debt obligations (CDO) were grossly underestimated. These assets were sold at prices that assumed most homeowners would make their monthly payments, and the probability of this not occurring was calculated as being low. A combination of factors resulted in many more defaults than were expected, which led to a price crash of these securities. As a consequence, banks lost so much money that they needed government bailouts to avoid closing down completely.
+In this chapter, we introduce random variables and their properties starting with their application to games of chance. We then describe some of the events surrounding the [financial crisis of 2007-2008](https://en.wikipedia.org/wiki/Financial_crisis_of_2007%E2%80%9308) using probability theory. This financial crisis was in part caused by underestimating the risk of certain [securities](https://en.wikipedia.org/wiki/Security_(finance)) sold by financial institutions. Specifically, the risks of mortgage-backed securities (MBS) and collateralized debt obligations (CDO) were grossly underestimated. These assets were sold at prices that assumed most homeowners would make their monthly payments, and the probability of this not occurring was calculated as being low. A combination of factors resulted in many more defaults than were expected, which led to a price crash of these securities. As a consequence, banks lost so much money that they needed government bailouts to avoid closing down completely.
 
 ## Random variables
 
-Random variables are numeric outcomes resulting from random processes. We can easily generate random variables using some of the simple examples we have shown. For example, define `X` to be 1 if a bead is blue and red otherwise.
+Random variables are numeric outcomes resulting from random processes. We can easily generate random variables using some of the simple examples we have shown. For example, define `X` to be 1 if a bead is blue and red otherwise:
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -125,7 +125,7 @@ data.frame(S=S) %>% ggplot(aes(S, ..density..)) +
 
 This average and this standard deviation have special names. They are referred to as the _expected value_ and _standard error_ of the random variable $S$. We will say more about these in the next section. 
 
-It turns out that statistical theory provides a way to derive the distribution of random variables defined as independent random draws from an urn. Specifically, in our example above, we can show that $(S+n)/2$ follows a binomial distribution. We therefore do not need to run for Monte Carlo simulations to know the probability distribution of $S$. We did this for illustrative purposes. 
+Statistical theory provides a way to derive the distribution of random variables defined as independent random draws from an urn. Specifically, in our example above, we can show that $(S+n)/2$ follows a binomial distribution. We therefore do not need to run for Monte Carlo simulations to know the probability distribution of $S$. We did this for illustrative purposes. 
 
 We can use the function `dbinom` and `pbinom` to compute the probabilities exactly. For example, to compute $\mbox{Pr}(S < 0)$ we note that:
 
@@ -182,7 +182,7 @@ to denote the expected value of the random variable $X$.
 
 A random variable will vary around its expected value in a way that if you take the average of many, many draws, the average of the draws will approximate the expected value, getting closer and closer the more draws you take.
 
-Theoretical statistics provides techniques that facilitate the calculation of expected values in different circumstances. For example, a useful formula tells us that the expected value of a random variable defined by one draw is the average of the numbers in the urn. In the urn used to model betting on red in roulette, we have 20 one dollars and 18 negative one dollars. The expected value is thus:
+Theoretical statistics provides techniques that facilitate the calculation of expected values in different circumstances. For example, a useful formula tells us that the *expected value of a random variable defined by one draw is the average of the numbers in the urn*. In the urn used to model betting on red in roulette, we have 20 one dollars and 18 negative one dollars. The expected value is thus:
 
 $$
 \mbox{E}[X] = (20 + -18)/38
@@ -198,14 +198,14 @@ mean(x)
 
 In general, if the urn has two possible outcomes, say $a$ and $b$, with proportions $p$ and $1-p$ respectively, the average is: 
 
-$$ap + b(1-p).$$ 
+$$\mbox{E}[X] = ap + b(1-p)$$ 
 
 To see this, notice that if there are $n$ beads in the urn, then we have $np$ $a$s and $n(1-p)$ $b$s and because the average is the sum, $n\times a \times p + n\times b \times (1-p)$, divided by the total $n$, we get that the average is $ap + b(1-p)$.
 
-Now the reason we define the expected value is because this mathematical definition turns out to be useful for approximating the probability distributions of sum, which then is useful for describing the distribution of averages and proportions. The first useful fact is that the expected value of the sum of the draws is:
+Now the reason we define the expected value is because this mathematical definition turns out to be useful for approximating the probability distributions of sum, which then is useful for describing the distribution of averages and proportions. The first useful fact is that the *expected value of the sum of the draws* is:
 
 $$
-\mbox{number of draws } \times \mbox{ average of the numbers in the urn}
+\mbox{}\mbox{number of draws } \times \mbox{ average of the numbers in the urn}
 $$
 
 So if 1,000 people play roulette, the casino expects to win, on average, about 1,000 $\times$ \$0.05  = \$50.  But this is an expected value. How different can one observation be from the expected value? The casino really needs to know this. What is the range of possibilities? If negative numbers are too likely, they will not install roulette wheels. Statistical theory once again answers this question. The _standard error_  (SE) gives us an idea of the size of the variation around the expected value. In statistics books, it's common to use: 
@@ -214,7 +214,7 @@ $$\mbox{SE}[X]$$
 
 to denote the standard error of a random variable.
 
-**If our draws are independent**, then the standard error of the sum is given by the equation:
+**If our draws are independent**, then the *standard error of the sum* is given by the equation:
 
 $$
 \sqrt{\mbox{number of draws }} \times \mbox{ standard deviation of the numbers in the urn}
@@ -242,7 +242,7 @@ sqrt(n) * 2 * sqrt(90)/19
 
 As a result, when 1,000 people bet on red, the casino is expected to win \$50 with a standard error of \$32. It therefore seems like a safe bet. But we still haven't answered the question: how likely is it to lose money? Here the CLT will help.
 
-**Advanced note**: Before continuing we should point out that exact probability calculations for the casino winnings can be performed with the binomial distribution. However, here we focus on the CLT which can be generally applied to sums of random variables in a way that the binomial distribution can't.
+**Advanced note**: Before continuing we should point out that exact probability calculations for the casino winnings can be performed with the binomial distribution. However, here we focus on the CLT, which can be generally applied to sums of random variables in a way that the binomial distribution can't.
 
 ### Population SD versus the sample SD
 
@@ -342,9 +342,9 @@ mean(S < 0)
 
 ### How large is large in the Central Limit Theorem
 
-The CLT works when the number of draws is large. But large is a relative term. In many circumstances as few as 30 draws is enough to make the CLT useful. In some specific instances, as few as 10 is enough. However, these should not be considered general rules. Note, for example, that when the probability of success is very small, we need larger sample sizes. 
+The CLT works when the number of draws is large. But large is a relative term. In many circumstances as few as 30 draws is enough to make the CLT useful. In some specific instances, as few as 10 is enough. However, these should not be considered general rules. Note, for example, that when the probability of success is very small, we need much larger sample sizes. 
 
-By way of illustration, let's consider the lottery. In the lottery, the chances of winning are less than 1 in a million. Thousands of people play so the number of draws is very large. Yet the number of winners, the sum of the draws, range between 0 and 4. This sum is certainly not well approximated by a normal distribution so the CLT does not apply, even with the very large sample size. This is generally true when the probability of a success is very low. In these cases, the Poisson distribution is more appropriate. 
+By way of illustration, let's consider the lottery. In the lottery, the chances of winning are less than 1 in a million. Thousands of people play so the number of draws is very large. Yet the number of winners, the sum of the draws, range between 0 and 4. This sum is certainly not well approximated by a normal distribution, so the CLT does not apply, even with the very large sample size. This is generally true when the probability of a success is very low. In these cases, the Poisson distribution is more appropriate. 
 
 You can examine the properties of the Poisson distribution using `dpois` and `ppois`. You can generate random variables following this distribution with `rpois`. However, we do not cover the theory here. You can learn about the Poisson distribution in any probability textbook and even [Wikipedia](https://en.wikipedia.org/wiki/Poisson_distribution).
 

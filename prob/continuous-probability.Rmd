@@ -1,10 +1,10 @@
 ## Continuous probability
 
-Earlier, we explained why when summarizing a list of numeric values, such as heights, it is not useful to construct a distribution that defines a proportion to each possible outcome. For example, if we measure every single person in a very large population of size $n$ with extremely high precision, since no two people are exactly the same height, we need to assign the proportion $1/n$ to each observed value and attain no useful summary at all. Similarly, when defining probability distributions, it is not useful to assign a very small probability to every single height.
+In Section \@ref(cdf-intro), we explained why when summarizing a list of numeric values, such as heights, it is not useful to construct a distribution that defines a proportion to each possible outcome. For example, if we measure every single person in a very large population of size $n$ with extremely high precision, since no two people are exactly the same height, we need to assign the proportion $1/n$ to each observed value and attain no useful summary at all. Similarly, when defining probability distributions, it is not useful to assign a very small probability to every single height.
 
 Just as when using distributions to summarize numeric data, it is much more practical to define a function that operates on intervals rather than single values. The standard way of doing this is using the _cumulative distribution function_ (CDF).
 
-We previously described empirical cumulative distribution function (eCDF) as a basic summary of a list of numeric values. As an example, we earlier defined the height distribution for adult male students. Here, we define the vector $x$ to contain these heights:
+We described empirical cumulative distribution function (eCDF) in Section \@ref(cdf-intro) as a basic summary of a list of numeric values. As an example, we earlier defined the height distribution for adult male students. Here, we define the vector $x$ to contain these heights:
 
 ```{r,  message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -21,7 +21,7 @@ F <- function(a) mean(x<=a)
 
 which, for any value `a`, gives the proportion of values in the list `x` that are smaller or equal than `a`. 
 
-Keep in mind that we have not yet introduced probability. Let's do this by asking the following: if I pick one of the male students at random, what is the chance that he is taller than 70.5 inches? Because every student has the same chance of being picked, the answer to this is equivalent to the proportion of students that are taller than 70.5 inches. Using the CDF we obtain an answer by typing:
+Keep in mind that we have not yet introduced probability in the context of CDFs. Let's do this by asking the following: if I pick one of the male students at random, what is the chance that he is taller than 70.5 inches? Because every student has the same chance of being picked, the answer to this is equivalent to the proportion of students that are taller than 70.5 inches. Using the CDF we obtain an answer by typing:
 
 ```{r}
 1 - F(70)
@@ -38,7 +38,7 @@ Because we can compute the probability for any possible event this way, the cumu
 
 ## Theoretical continuous distributions
 
-In Section \@ref(normal-distribution) we introduced the normal distribution as a useful approximation to many naturally occurring distributions, including that of height. The cumulative distribution for the normal distribution is defined by a mathematical formula which in R can be obtained with the function `pnorm`. We say that a random quantity is normally distributed with average `m` and standard deviation `s`, if its probability distribution is defined by:
+In Section \@ref(normal-distribution) we introduced the normal distribution as a useful approximation to many naturally occurring distributions, including that of height. The cumulative distribution for the normal distribution is defined by a mathematical formula which in R can be obtained with the function `pnorm`. We say that a random quantity is normally distributed with average `m` and standard deviation `s` if its probability distribution is defined by:
 
 ```{r, eval=FALSE}
 F(a) = rnorm(a, m, s)
@@ -60,7 +60,7 @@ The normal distribution is derived mathematically: we do not need data to define
 plot(prop.table(table(x)), xlab = "a = Height in inches", ylab = "Pr(X = a)")
 ```
 
-While most students rounded up their heights to the nearest inch, others reported values with more precision. One student reported his height to be 69.6850393700787 which is 177 centimeters. The probability assigned to this height is `r 1/length(x)` or 1 in `r length(x)`. The probability for 70 inches is much higher `r mean(x==70)`, but does it really make sense to think of the probability of being exactly 70 inches as being the same as 69.6850393700787? Clearly it is much more useful for data analytic purposes to treat this outcome as a continuous numeric variable, keeping in mind that very few people, or perhaps none, are exactly 70 inches, and that the reason we get more values at 70 is because people round to the nearest inch. 
+While most students rounded up their heights to the nearest inch, others reported values with more precision. One student reported his height to be 69.6850393700787, which is 177 centimeters. The probability assigned to this height is `r 1/length(x)` or 1 in `r length(x)`. The probability for 70 inches is much higher at `r mean(x==70)`, but does it really make sense to think of the probability of being exactly 70 inches as being different than 69.6850393700787? Clearly it is much more useful for data analytic purposes to treat this outcome as a continuous numeric variable, keeping in mind that very few people, or perhaps none, are exactly 70 inches, and that the reason we get more values at 70 is because people round to the nearest inch. 
 
 With continuous distributions, the probability of a singular value is not even defined. For example, it does not make sense to ask what is the probability that a normally distributed value is 70. Instead, we define probabilities for intervals. We thus could ask what is the probability that someone is between 69.5 and 70.5.
 
@@ -102,7 +102,7 @@ $$
 \mbox{Pr}(X=4) = 1/6
 $$
 
-The CFD can then easily be defined:
+The CDF can then easily be defined:
 $$
 F(4) = \mbox{Pr}(X\leq 4) =  \mbox{Pr}(X = 4) +  \mbox{Pr}(X = 3) +  \mbox{Pr}(X = 2) +  \mbox{Pr}(X = 1) 
 $$
@@ -207,7 +207,7 @@ For example, for the student-t, described later in Section \@ref(t-dist), the sh
 2. Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is 6 feet or taller? 
 
 
-3. Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random what is the probability that she is between 61 and 67 inches.
+3. Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is between 61 and 67 inches?
 
 
 4. Repeat the exercise above, but convert everything to centimeters. That is, multiply every height, including the standard deviation, by 2.54. What is the answer now?

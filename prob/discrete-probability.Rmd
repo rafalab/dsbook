@@ -23,15 +23,13 @@ If we know the relative frequency of the different categories, defining a distri
 
 If we are randomly calling likely voters from a population that is 44% Democrat, 44% Republican, 10% undecided and 2% Green Party, these proportions define the probability for each group. The probability distribution is:
 
-$$
-\mbox{Pr}(\mbox{picking a Republican})=0.44\\ 
+$$\mbox{Pr}(\mbox{picking a Republican})=0.44\\   $$
 
-\mbox{Pr}(\mbox{picking a Democrat})=0.44\\
+$$\mbox{Pr}(\mbox{picking a Democrat})=0.44\\$$
 
-\mbox{Pr}(\mbox{picking an undecided})=0.10\\
+$$\mbox{Pr}(\mbox{picking an undecided})=0.10\\$$
 
-\mbox{Pr}(\mbox{picking a Green})=0.02
-$$
+$$\mbox{Pr}(\mbox{picking a Green})=0.02$$
 
 
 ## Monte Carlo simulations for categorical data
@@ -51,7 +49,7 @@ and then use `sample` to pick a bead at random:
 sample(beads, 1)
 ```
 
-This line of code produces one random outcome. We want to repeat this experiment an infinite number of times, but it is impossible to repeat forever. Instead, we repeat the experiment a large enough number of times to make the results practically equivalent to repeating for ever. **This is an example of a _Monte Carlo_ simulation**. 
+This line of code produces one random outcome. We want to repeat this experiment an infinite number of times, but it is impossible to repeat forever. Instead, we repeat the experiment a large enough number of times to make the results practically equivalent to repeating forever. **This is an example of a _Monte Carlo_ simulation**. 
 
 Much of what mathematical and theoretical statisticians study, which we do not cover in this book, relates to providing rigorous definitions of "practically equivalent" as well as studying how close a large number of experiments gets us to what happens in the limit. Later in this section, we provide a practical approach to deciding what is "large enough".
 
@@ -75,7 +73,7 @@ and `prop.table` gives us the proportions:
 prop.table(tab)
 ```
 
-The numbers above are the estimated probabilities provided by this Monte Carlo simulation. Statistical theory, not covered here, tells us that $B$ gets larger as the estimates get closer to 3/5=.6 and 2/5=.4. 
+The numbers above are the estimated probabilities provided by this Monte Carlo simulation. Statistical theory, not covered here, tells us that as $B$ gets larger, the estimates get closer to 3/5=.6 and 2/5=.4. 
 
 Although this is a simple and not very useful example, we will use Monte Carlo simulations to estimate probabilities in cases in which it is harder to compute the exact ones. Before delving into more complex examples, we use simple ones to demonstrate the computing tools available in R.
 
@@ -87,7 +85,9 @@ Before we continue, we will briefly explain the following important line of code
 set.seed(1986) 
 ```
 
-Throughout this book, we use random number generators. This implies that many of the results presented can actually change by chance, which then suggests that a frozen version of the book may show a different result than what you obtain when you try to code as shown in the book. This is actually fine since the results are random and change from time to time. However, if you want to to ensure that results are exactly the same every time you run them, you can set R's random number generation seed to a specific number. Above we set it to 1986. We want to avoid using the same seed everytime. A popular way to pick the seed is the year - month - day. For example, we picked 1986 on December 20, 2018: $2018 - 12 - 20 = 1986$. 
+Throughout this book, we use random number generators. This implies that many of the results presented can actually change by chance, which then suggests that a frozen version of the book may show a different result than what you obtain when you try to code as shown in the book. This is actually fine since the results are random and change from time to time. However, if you want to to ensure that results are exactly the same every time you run them, you can set R's random number generation seed to a specific number. Above we set it to 1986. We want to avoid using the same seed everytime. A popular way to pick the seed is the year - month - day. For example, we picked 1986 on December 20, 2018: $2018 - 12 - 20 = 1986$.
+
+You can learn more about setting the seed by looking at the documentation:
 
 ```{r,eval=FALSE}
 ?set.seed
@@ -115,7 +115,7 @@ sample(beads, 6)
   cannot take a sample larger than the population when 'replace = FALSE'`
 
 However, the `sample` function can be used directly, without the use of `replicate`, to repeat the same experiment of picking 1 out of the 5 beads, continually, under the same conditions. To do this, we sample _with replacement_: return the bead back to the urn after selecting it. 
-We can tell `sample` to do this changing the `replace` argument, which defaults to `FALSE`, to `replace = TRUE`:
+We can tell `sample` to do this by changing the `replace` argument, which defaults to `FALSE`, to `replace = TRUE`:
 
 ```{r}
 events <- sample(beads, B, replace = TRUE)
@@ -146,7 +146,7 @@ If you have to guess the color of the first bead, you will predict blue since bl
 x[2:5]
 ```
 
-would you still guess blue? Of course not. Now you know that the probability of red is 1 since the only beed left is red. The events are not independent so the probabilities change.
+would you still guess blue? Of course not. Now you know that the probability of red is 1 since the only bead left is red. The events are not independent, so the probabilities change.
 
 ## Conditional probabilities
 
@@ -195,9 +195,9 @@ $$
 
 But we have to be very careful before using this since assuming independence can result in very different and incorrect probability calculations when we don't actually have independence.
 
-As an example, imagine a court case in which the suspect was described as having a mustache and a beard. The defendant has a mustache and a beard and the prosecution brings in an "expert" to testify that 1/10 men have beards and 1/5 have mustaches so using the multiplication rule we conclude that only $1/10 \times 1/5$ or 0.02 have both. 
+As an example, imagine a court case in which the suspect was described as having a mustache and a beard. The defendant has a mustache and a beard and the prosecution brings in an "expert" to testify that 1/10 men have beards and 1/5 have mustaches, so using the multiplication rule we conclude that only $1/10 \times 1/5$ or 0.02 have both. 
 
-But to multiply like this we need to assume independence! The conditional probability of a man having a mustache conditional on him having a beard is .95. So the correct calculation probability is much higher: $1/10 \times 95/100 = 0.095$.
+But to multiply like this we need to assume independence! Say the conditional probability of a man having a mustache conditional on him having a beard is .95. So the correct calculation probability is much higher: $1/10 \times 95/100 = 0.095$.
 
 The multiplication rule also gives us a general formula for computing conditional probabilities:
 
@@ -230,7 +230,7 @@ tmp <- draw.pairwise.venn(22, 20, 11, category = c("A", "B"),
 
 ## Combinations and permutations
 
-In our very first example we imagined an urn with five beads. As a reminder, to compute the probability distribution of one draw, we simply listed out all the possibilities. There were 5 and so then, for each event, we counted how many of these possibilities were associated with the event. The resulting probability of choosing a blue bead is 3/5 because out of the five possible outcomes, three were blue.
+In our very first example, we imagined an urn with five beads. As a reminder, to compute the probability distribution of one draw, we simply listed out all the possibilities. There were 5 and so then, for each event, we counted how many of these possibilities were associated with the event. The resulting probability of choosing a blue bead is 3/5 because out of the five possible outcomes, three were blue.
 
 For more complicated cases, the computations are not as straightforward. For instance, what is the probability that if I draw five cards without replacement, I get all cards of the same suit, what is known as a "flush" in Poker? In a Discrete Probability course you learn theory on how to make these computations. Here we focus on how to use R code to compute the answers.
 
@@ -284,7 +284,7 @@ permutations(3, 2)
 
 Notice that the order matters here: 3,1 is different than 1,3. Also, note that (1,1), (2,2) and (3,3) do not appear because once we pick a number, it can't appear again.
 
-Optionally, we can add a vector. If you want to see five random seven digit phone numbers out of all possible phone numbers, you can type:
+Optionally, we can add a vector. If you want to see five random seven digit phone numbers out of all possible phone numbers (without repeats), you can type:
 
 ```{r}
 all_phone_numbers <- permutations(10, 7, v = 0:9)
@@ -357,7 +357,7 @@ hands <- combinations(52, 2, v = deck)
 mean(hands[,1] %in% aces & hands[,2] %in% facecard)
 ```
 
-In the last line, we assume the Ace comes first. This is only because we know the way `combination` generates enumerates possibilities and it will list this case first. But to be safe, we could have written this and produced the same answer:
+In the last line, we assume the Ace comes first. This is only because we know the way `combination` enumerates possibilities and it will list this case first. But to be safe, we could have written this and produced the same answer:
 
 ```{r}
 mean((hands[,1] %in% aces & hands[,2] %in% facecard) |
@@ -408,11 +408,11 @@ mean(results)
 
 ## Examples 
 
-In this Section we described two popular examples related to discrete probability: the Monty Hall problem and the Birthday problem. We use R code to help illustrate the mathematical concepts.
+In this section, we describe two popular examples related to discrete probability: the Monty Hall problem and the birthday problem. We use R code to help illustrate the mathematical concepts.
 
 ### Monty Hall problem
 
-In the 1970s, there was a game show called "Let's Make a Deal" and Monty Hall was the host. At some point in the game, contestants were asked to pick one of three doors. Behind one door there was a prize. The other doors had a goat behind them to show the contestant they had lost. If the contestant did not pick the prize door on his or her first try, Monty Hall would open one of the two remaining doors and show the contestant there was no prize. Then he would ask "Do you want to switch doors?" What would you do?
+In the 1970s, there was a game show called "Let's Make a Deal" and Monty Hall was the host. At some point in the game, contestants were asked to pick one of three doors. Behind one door there was a prize. The other doors had a goat behind them to show the contestant they had lost. After the contestant picked a door, before revealing whether the chosen door contained a prize, Monty Hall would open one of the two remaining doors and show the contestant there was no prize behind that door. Then he would ask "Do you want to switch doors?" What would you do?
 
 We can use probability to show that if you stick with the original door choice, your chances of winning a prize remain 1 in 3. However, if you switch to the other door, your chances of winning double to 2 in 3! This seems counterintuitive. Many people incorrectly think both chances are 1 in 2 since you are choosing between 2 options. You can watch a detailed mathematical explanation of why this is [here](https://www.khanacademy.org/math/precalculus/prob-comb/dependent-events-precalc/v/monty-hall-problem) or read one [here](https://en.wikipedia.org/wiki/Monty_Hall_problem). Below we use a Monte Carlo simulation to see which strategy is better. Note that this code is written longer than it should be for pedagogical purposes. 
 
@@ -468,7 +468,7 @@ n <- 50
 bdays <- sample(1:365, n, replace = TRUE)
 ```
 
-To check if in this particular set of 50 people we have at least two with the same birthday, we can use the function `duplicated` which returns `TRUE` whenever an element of a vector is a duplicate. Here is an example:
+To check if in this particular set of 50 people we have at least two with the same birthday, we can use the function `duplicated`, which returns `TRUE` whenever an element of a vector is a duplicate. Here is an example:
 
 ```{r}
 duplicated(c(1,2,3,1,4,3,5))
@@ -482,7 +482,7 @@ any(duplicated(bdays))
 
 In this case, we see that it did happen. At least two people had the same birthday.
 
-To estimate the probability, we repeat this experiment by sampling sets of 50 birthdays over and over:
+To estimate the probability of a shared birthday in the group, we repeat this experiment by sampling sets of 50 birthdays over and over:
 
 ```{r birthday-problem}
 same_birthday <- function(n){
@@ -495,7 +495,7 @@ results <- replicate(B, same_birthday(50))
 mean(results)
 ```
 
-Where you expecting the probability to be this high?
+Were you expecting the probability to be this high?
 
 People tend to underestimate these probabilities. To get an intuition as to why it is so high, think about what happens when the group size is close to 365. At this stage, we run out of days and the probability is one. 
 
@@ -556,7 +556,7 @@ This plot shows that the Monte Carlo simulation provided a very good estimate of
 ## Infinity in practice
 
 The theory described here requires repeating experiments over and over for ever. In practice we can't do this. 
-In the examples above, we used $B=10,000$ Monte Carlo experiments and it turned out that this provided accurate estimates. The larger this number, the more accurate the estimate becomes until the approximaton is so good that your computer can't tell the difference. But in more complex calculations, 10,000 may not nearly enough. Also, for some calculations, 10,000 experiments might not be computationally feasible. In practice, we won't know what the answer is so we won't know if our Monte Carlo estimate is accurate. We know that the larger $B$, the better the approximation. But how big do we need it to be? This is actually a challenging question and answering it often requires advanced theoretical statistics training. 
+In the examples above, we used $B=10,000$ Monte Carlo experiments and it turned out that this provided accurate estimates. The larger this number, the more accurate the estimate becomes until the approximaton is so good that your computer can't tell the difference. But in more complex calculations, 10,000 may not be nearly enough. Also, for some calculations, 10,000 experiments might not be computationally feasible. In practice, we won't know what the answer is, so we won't know if our Monte Carlo estimate is accurate. We know that the larger $B$, the better the approximation. But how big do we need it to be? This is actually a challenging question and answering it often requires advanced theoretical statistics training. 
 
 One practical approach we will describe here is to check for the stability of the estimate. The following is an example with the birthday problem for a group of 22 people. 
 
@@ -570,7 +570,7 @@ prob <- sapply(B, compute_prob)
 qplot(log10(B), prob, geom = "line")
 ```
 
-In this plot, we can see that the values start to stabilize; that is, they vary less than .01, around 1000. Note that the exact probability, which we know in this case, is `r eprob[25]`. 
+In this plot, we can see that the values start to stabilize (that is, they vary less than .01) around 1000. Note that the exact probability, which we know in this case, is `r eprob[25]`. 
 
 
 
