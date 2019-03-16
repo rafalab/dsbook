@@ -1,10 +1,10 @@
 # Regression 
 
-Up to this point, this book has focused mainly on _univariate_ variables. However, in data science applications, it is very common to be interested in the relationship between two or more variables. For instance, in Chapter \@ref(linear-models) we will use a data driven approach that examines the relationship between player statistics and success to guide the building of a baseball team with a limited budget.  Before delving into this more complex example, we introduce necessary concepts needed to understand regression using a simpler illustration. We actually use the dataset from which regression was born.
+Up to this point, this book has focused mainly on single variables. However, in data science applications, it is very common to be interested in the relationship between two or more variables. For instance, in Chapter \@ref(linear-models) we will use a data driven approach that examines the relationship between player statistics and success to guide the building of a baseball team with a limited budget.  Before delving into this more complex example, we introduce necessary concepts needed to understand regression using a simpler illustration. We actually use the dataset from which regression was born.
 
 The example is from genetics. [Francis Galton](https://en.wikipedia.org/wiki/Francis_Galton) studied the variation and heredity of human traits. Among many other traits, Galton collected and studied height data from families to try to understand heredity. While doing this, he developed the concepts of correlation and regression, as well as a connection to pairs of data that follow a normal distribution. Of course, at the time this data was collected our knowledge of genetics was quite limited compared to what we know today. A very specific question Galton tried to answer was: how well can we predict a child's height based on the parents' height? The technique he developed to answer this question, regression, can also be applied to our baseball question.  Regression can be applied in many other circumstances as well.
 
-__Historical note__: Galton made important contributions to statistics and genetics but he was also one of the first proponents of eugenics, a scientifically flawed philosophical movement favored by many biologists of Galton's time but with horrific historical consequences. You can read more about it [here](https://pged.org/history-eugenics-and-genetics/).
+__Historical note__: Galton made important contributions to statistics and genetics, but he was also one of the first proponents of eugenics, a scientifically flawed philosophical movement favored by many biologists of Galton's time but with horrific historical consequences. You can read more about it [here](https://pged.org/history-eugenics-and-genetics/).
 
 ## Case study: is height hereditary?
 
@@ -98,7 +98,7 @@ as.data.frame(sim_data) %>%
 
 Before we continue connecting correlation to regression, let's remind ourselves about random variability.
 
-In most data science applications, we observe data that includes random variation. For example, in many cases, we do not observe data for the entire population of interest but rather for a random sample. As with the average and standard deviation, the **sample** correlation is the most commonly used estimate of the population correlation. This implies that the correlation we compute and use as a summary is a random variable.
+In most data science applications, we observe data that includes random variation. For example, in many cases, we do not observe data for the entire population of interest but rather for a random sample. As with the average and standard deviation, the *sample correlation* is the most commonly used estimate of the population correlation. This implies that the correlation we compute and use as a summary is a random variable.
 
 By way of illustration, let's assume that the `r nrow(galton_heights)` pairs of fathers and sons is our entire population. A less fortunate geneticist can only afford measurements from a random sample of 25 pairs. The sample correlation can be computed with:
 
@@ -173,13 +173,13 @@ Suppose we are asked to guess the height of a randomly selected son and we don't
 It turns out that if we were able to collect data from a very large number of fathers that are 72 inches, the distribution of their sons' heights would be normally distributed. This implies that the average of the distribution computed on this subset would be our best prediction. 
 
 In general, we call this approach _conditioning_. 
-To provide a mathematical description, consider we have a population of paris of values $(x_1,y_1),\dots,(x_n,y_n)$, for example all father and son heights in England. In the previous chapter we learned that if you take a random pair $(X,Y)$, the expected value and best predictor of $Y$ is $\mbox{E}(Y) = \mu_y$, the population average $1/n\sum_{i=1}^n y_i$. However, we are no longer interested in the general population, instead we are interesed in only the subset of a population with a specific $x_i$ value, 72 inches in our example. This subset of the population, is also a population and thus the same priciples and properties we have learned apply. The $y_i$ in the subpopulation have a distribution, referred to as the _conditional distribution_ and this distribution has an expected value referred to as the _conditional expectation_. In our example the conditional expectation is the average height of all sons in England with fathers that are 72 inches. The statistical notation is for the conditional expectation is
+To provide a mathematical description, consider we have a population of paris of values $(x_1,y_1),\dots,(x_n,y_n)$, for example all father and son heights in England. In the previous chapter we learned that if you take a random pair $(X,Y)$, the expected value and best predictor of $Y$ is $\mbox{E}(Y) = \mu_y$, the population average $1/n\sum_{i=1}^n y_i$. However, we are no longer interested in the general population, instead we are interesed in only the subset of a population with a specific $x_i$ value, 72 inches in our example. This subset of the population, is also a population and thus the same priciples and properties we have learned apply. The $y_i$ in the subpopulation have a distribution, referred to as the _conditional distribution_ and this distribution has an expected value referred to as the _conditional expectation_. In our example, the conditional expectation is the average height of all sons in England with fathers that are 72 inches. The statistical notation is for the conditional expectation is
 
 $$
 \mbox{E}(Y \mid X = x)
 $$
 
-with $x$ reprenting the fixed value that defines that subset, for example 72 inches. Similarly we denote the standard deviation of the strata with
+with $x$ reprenting the fixed value that defines that subset, for example 72 inches. Similarly, we denote the standard deviation of the strata with
 
 $$
 \mbox{SD}(Y \mid X = x) = \sqrt{\mbox{Var}(Y \mid X = x)}
@@ -212,7 +212,7 @@ conditional_avg
 ```
 
 
-Note that a 72 inch father is taller than average. Specifically, (72 - `r round( mean(galton_heights$father),1)`/`r round(sd(galton_heights$father),1)` =
+Note that a 72 inch father is taller than average - specifically, 72 - `r round( mean(galton_heights$father),1)`/`r round(sd(galton_heights$father),1)` =
 `r round((72 -mean(galton_heights$father))/sd(galton_heights$father), 1)` standard deviations taller than the average father. Our prediction `r conditional_avg` is also taller than average, but only `r round((conditional_avg - mean(galton_heights$son)) /sd(galton_heights$son),2)` standard deviations larger than the average son. The sons of 72 inch fathers have _regressed_ some to the average height. We notice that the reduction in how many SDs taller is about 0.5, which happens to be the correlation. As we will see in a later section, this is not a coincidence.
 
 If we want to make a prediction of any height, not just 72, we could apply the same approach to each strata. Stratification followed by boxplots lets us see the distribution of each group:

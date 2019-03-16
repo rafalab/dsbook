@@ -4,7 +4,7 @@
 img_path <- "wrangling/img"
 ```
 
-The information we need for a given analysis may not be just on one table. For example, when forecasting elections we used the function `left_join` to combine the information from two tables. Here we use a simpler example to illustrate the general challenge of combining tables.
+The information we need for a given analysis may not be just in one table. For example, when forecasting elections we used the function `left_join` to combine the information from two tables. Here we use a simpler example to illustrate the general challenge of combining tables.
 
 Suppose we want to explore the relationship between population size for US states and electoral votes. We have the population size in this table:
 
@@ -22,7 +22,7 @@ data(polls_us_election_2016)
 head(results_us_election_2016)
 ```
 
-Just joining these two tables together will not work since the order of the states is not the same.
+Just concatenating these two tables together will not work since the order of the states is not the same.
 
 ```{r}
 identical(results_us_election_2016$state, murders$state)
@@ -72,7 +72,7 @@ We will use these two tables as examples in the next sections.
 
 ### Left join
 
-Suppose we want a table like `tab_1`, but adding electoral votes to whatever states we have available. For this, we use left join with `tab_1` as the first argument. We specify which column to use to match with the `by` argument.
+Suppose we want a table like `tab_1`, but adding electoral votes to whatever states we have available. For this, we use `left_join` with `tab_1` as the first argument. We specify which column to use to match with the `by` argument.
 
 ```{r}
 left_join(tab_1, tab_2, by = "state")
@@ -97,7 +97,7 @@ Now the NAs are in the column coming from `tab_1`.
 
 ### Inner join
 
-If we want to keep only the rows that have information in both tables, we use inner join. You can think of this as an intersection:
+If we want to keep only the rows that have information in both tables, we use `inner_join`. You can think of this as an intersection:
 
 ```{r}
 inner_join(tab_1, tab_2, by = "state")
@@ -105,7 +105,7 @@ inner_join(tab_1, tab_2, by = "state")
 
 ### Full join
 
-If we want to keep all the rows and fill the missing parts with NAs, we can use a full join. You can think of this as a union:
+If we want to keep all the rows and fill the missing parts with NAs, we can use `full_join`. You can think of this as a union:
 
 ```{r}
 full_join(tab_1, tab_2, by = "state")
@@ -113,7 +113,7 @@ full_join(tab_1, tab_2, by = "state")
 
 ### Semi join
 
-The `semi_join` function lets us keep the part of first table, for which we have information, in the second. It does not add the columns of the second:
+The `semi_join` function lets us keep the part of first table for which we have information in the second. It does not add the columns of the second:
 
 ```{r}
 semi_join(tab_1, tab_2, by = "state")
@@ -122,7 +122,7 @@ semi_join(tab_1, tab_2, by = "state")
 
 ### Anti join
 
-The function `anti_join` is the opposite of `semi_join`. It keeps the elements of the first table, for which there is no information, in the second:
+The function `anti_join` is the opposite of `semi_join`. It keeps the elements of the first table for which there is no information in the second:
 
 ```{r}
 anti_join(tab_1, tab_2, by = "state")
@@ -178,7 +178,7 @@ This is based on an R-base function `rbind`.
 
 ## Set operators
 
-Another set of commands useful for combing datasets are the set operators. When applied to vectors, these behave as their names suggest. Examples are`intersect`, `union`, `setdiff`, and `setequal`. However, if the __tidyverse__ or, more specifically, __dplyr__ is loaded, these functions can be used on data frames as opposed to just on vectors.
+Another set of commands useful for combining datasets are the set operators. When applied to vectors, these behave as their names suggest. Examples are `intersect`, `union`, `setdiff`, and `setequal`. However, if the __tidyverse__, or  more specifically __dplyr__, is loaded, these functions can be used on data frames as opposed to just on vectors.
 
 ### Intersect
 
@@ -193,7 +193,7 @@ or characters:
 intersect(c("a","b","c"), c("b","c","d"))
 ```
 
-The function __dplyr__ includes an `intersect` function that can be applied to tables with the same column names. This function returns the rows in common between two tables. To make sure we use the __dplyr__ version of interesect rather than the base package version we can use `dplyr::intersect` like this:
+The __dplyr__ package includes an `intersect` function that can be applied to tables with the same column names. This function returns the rows in common between two tables. To make sure we use the __dplyr__ version of `intersect` rather than the base package version, we can use `dplyr::intersect` like this:
 
 
 ```{r}
@@ -212,7 +212,7 @@ union(1:10, 6:15)
 union(c("a","b","c"), c("b","c","d"))
 ```
 
-The __dplyr__ package includes a version of union that combines all the rows of two tables with the same column names.
+The __dplyr__ package includes a version of `union` that combines all the rows of two tables with the same column names.
 
 ```{r}
 tab_1 <- tab[1:5,]
@@ -223,7 +223,7 @@ dplyr::union(tab_1, tab_2)
 
 ### `setdiff`
 
-The set difference between a first and second argument can be obtained with `setdiff`. Unlike `instersect` and `union`, this function is not symmetric:
+The set difference between a first and second argument can be obtained with `setdiff`. Unlike `intersect` and `union`, this function is not symmetric:
 
 
 ```{r}
@@ -231,7 +231,7 @@ setdiff(1:10, 6:15)
 setdiff(6:15, 1:10)
 ```
 
-As for the function shown above, __dplyr__ has a version for data frames:
+As with the functions shown above, __dplyr__ has a version for data frames:
 
 ```{r}
 tab_1 <- tab[1:5,]
@@ -241,7 +241,7 @@ dplyr::setdiff(tab_1, tab_2)
 
 ### `setequal`
 
-Finally, the function `set_equal` tells us if two sets are the same, regardless of order. So notice that:
+Finally, the function `setequal` tells us if two sets are the same, regardless of order. So notice that:
 
 ```{r}
 setequal(1:5, 1:6)
@@ -253,7 +253,7 @@ but:
 setequal(1:5, 5:1)
 ```
 
-When applied to data frames that are not equal, regardless of order, the __dplyr__ version  provides a useful message letting us know how the sets are different:
+When applied to data frames that are not equal, regardless of order, the __dplyr__ version provides a useful message letting us know how the sets are different:
 
 ```{r}
 dplyr::setequal(tab_1, tab_2)
@@ -262,7 +262,7 @@ dplyr::setequal(tab_1, tab_2)
 ## Exercises 
 
 
-1. Install and load the __Lahman__ library. This database includes data related to Baseball teams. It includes summary statistics about how the players performed on offense and defense for several years. It also includes personal information about the players.
+1. Install and load the __Lahman__ library. This database includes data related to baseball teams. It includes summary statistics about how the players performed on offense and defense for several years. It also includes personal information about the players.
 
     The `Batting` data frame contains the offensive statistics for all players for many years. You can see, for example, the top 10 hitters by running this code:
     

@@ -1,12 +1,12 @@
 # Text mining
 
-With the exception of labels used to represent categorical data, we have focused on numerical data. But in many applications, data starts as text. Well known examples are spam filtering, cyber-crime prevention, counter-terrorism and sentiment analysis. In all these cases, the raw data is composed of free form texts. Our task is to extract insights from these data. In this section, we learn how to generate useful numerical summaries from text data to which we can apply some of the powerful data visualization and analysis techniques we have learned.  
+With the exception of labels used to represent categorical data, we have focused on numerical data. But in many applications, data starts as text. Well known examples are spam filtering, cyber-crime prevention, counter-terrorism and sentiment analysis. In all these cases, the raw data is composed of free form text. Our task is to extract insights from these data. In this section, we learn how to generate useful numerical summaries from text data to which we can apply some of the powerful data visualization and analysis techniques we have learned.  
 
 
 ## Case study: Trump tweets
 
 During the 2016 US presidential election, then candidate Donald J. Trump used his twitter account as a way to communicate with potential voters. On August 6, 2016, Todd Vaziri [tweeted](https://twitter.com/tvaziri/status/762005541388378112/photo/1) about Trump that "Every non-hyperbolic tweet is from iPhone (his staff). Every hyperbolic tweet is from Android (from him)." 
-Data scientist David Robinson conducted an [analysis](http://varianceexplained.org/r/trump-tweets/) to determine if data supported this assertion. Here, we go through David's analysis to learn some of the basics of text mining. To learn more about text mining in R, we recommend [this Tidy Text Minig book](https://www.tidytextmining.com/) by Julia Silge and David Robinson.
+Data scientist David Robinson conducted an [analysis](http://varianceexplained.org/r/trump-tweets/) to determine if data supported this assertion. Here, we go through David's analysis to learn some of the basics of text mining. To learn more about text mining in R, we recommend [this Tidy Text Mining book](https://www.tidytextmining.com/) by Julia Silge and David Robinson.
 
 ```{r,echo=FALSE}
 set.seed(2002)
@@ -19,7 +19,7 @@ library(lubridate)
 library(scales)
 ```
 
-In general, we can extract data directly from twitter using the __rtweet__ package. However, in this case, a group has already compiled data for us and made it available at [http://www.trumptwitterarchive.com](http://www.trumptwitterarchive.com). We can get the data from their JSON API using a script like this:
+In general, we can extract data directly from Twitter using the __rtweet__ package. However, in this case, a group has already compiled data for us and made it available at [http://www.trumptwitterarchive.com](http://www.trumptwitterarchive.com). We can get the data from their JSON API using a script like this:
 
 ```{r, eval=FALSE}
 url <- 'http://www.trumptwitterarchive.com/data/realdonaldtrump/%s.json'
@@ -105,7 +105,7 @@ The __tidytext__ package helps us convert free form text into a tidy table. Havi
 library(tidytext)
 ```
 
-The main function needed to achieve this is `unnest_tokens`. A _token_ refers to the units that we are considering to be a data point. The most common _token_ will be words, but they can also be single characters, ngrams, sentences, lines or a pattern defined by a regex. The functions will take a vector of strings and extract the tokens so that each one gets a row in the new table. Here is a simple example:
+The main function needed to achieve this is `unnest_tokens`. A _token_ refers to a unit that we are considering to be a data point. The most common _token_ will be words, but they can also be single characters, ngrams, sentences, lines or a pattern defined by a regex. The functions will take a vector of strings and extract the tokens so that each one gets a row in the new table. Here is a simple example:
 
 ```{r}
 poem <- c("Roses are red,", "Violets are blue,", 
@@ -126,7 +126,7 @@ campaign_tweets[i,] %>%
   pull(word) 
 ```
 
-Note that the function tries to convert tokens into words. To do this, however, it strips characters that are important in the context of twitter. Namely, the function removes all the `#` and `@`. A _token_ in the context of twitter is not the same as in the context of spoken or written English. For this reason, instead of using the default, words, we define a regex that captures twitter characters. This may appear complex, but all we are defining is a pattern that starts with @, # or neither, and is followed by any combination of letters or digits:
+Note that the function tries to convert tokens into words. To do this, however, it strips characters that are important in the context of twitter. Namely, the function removes all the `#` and `@`. A _token_ in the context of Twitter is not the same as in the context of spoken or written English. For this reason, instead of using the default, words, we define a regex that captures Twitter characters. This may appear complex, but all we are defining is a pattern that starts with @, # or neither, and is followed by any combination of letters or digits:
 
 ```{r}
 pattern <- "([^A-Za-z\\d#@']|'(?![A-Za-z\\d#@]))"
@@ -205,7 +205,7 @@ tweet_words <- campaign_tweets %>%
 
 Now that we have all our words in a table, along with information about what device was used to compose the tweet they came from, we can start exploring which words are more common when comparing Android to iPhone. 
 
-For each word, we want to know if it is more likely to come from an Android tweet or an iPhone tweet. In Section \@ref(association-test) we will introduce the odds ratio as a summary statistic useful for quantifying these differences. For each device and a given word, let's call it `y`, we compute the odds or the ratio between the proportion of words that are `y` and not `y` and compute the ratio of those odds. Here we will have many proportions that are 0, so we use the 0.5 correction described in Section \@ref(association-test).
+For each word, we want to know if it is more likely to come from an Android tweet or an iPhone tweet. In Section \@ref(association-tests) we introduced the odds ratio as a summary statistic useful for quantifying these differences. For each device and a given word, let's call it `y`, we compute the odds or the ratio between the proportion of words that are `y` and not `y` and compute the ratio of those odds. Here we will have many proportions that are 0, so we use the 0.5 correction described in Section \@ref(association-tests).
 
 ```{r}
 android_iphone_or <- tweet_words %>%
@@ -389,7 +389,7 @@ gutenberg_metadata
 1. Use `str_detect` to find the ID of the novel _Pride and Prejudice_. 
 
       
-2. We notice that there are several versions. The `gutenberg_works()` function filters this table to remove replicates and include only English language works. Read the help file and use this function to find the ID for _Pride and Prejudice_
+2. We notice that there are several versions. The `gutenberg_works()` function filters this table to remove replicates and include only English language works. Read the help file and use this function to find the ID for _Pride and Prejudice_.
 
     
 

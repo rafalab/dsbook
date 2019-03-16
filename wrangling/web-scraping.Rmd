@@ -21,7 +21,7 @@ knitr::include_graphics(file.path(img_path,"murders-data-wiki-page.png"))
 
 Unfortunately, there is no link to a data file. To make the data frame that is loaded when we type `data(murders)`, we had to do some _web scraping_. 
 
-_Web scraping_, or _web harvesting_, are the terms we use to describe the process of extracting data from a website. The reason we can do this is because the information used by a browser to render webpages is received as a text file from a server. The text is code written in hyper text markup language (HTML). Every browser has a way to show the html source code for a page, each one different. On Chrome, you can use Control-U on a PC and command+alt+U on a Mac. You will see something like this:
+_Web scraping_, or _web harvesting_, is the term we use to describe the process of extracting data from a website. The reason we can do this is because the information used by a browser to render webpages is received as a text file from a server. The text is code written in hyper text markup language (HTML). Every browser has a way to show the html source code for a page, each one different. On Chrome, you can use Control-U on a PC and command+alt+U on a Mac. You will see something like this:
 
 ```{r, echo=FALSE}
 knitr::include_graphics(file.path(img_path,"html-code.png"))
@@ -69,7 +69,7 @@ title="List of U.S. states and territories by population">Population</a><br />
 
 You can actually see the data, except data values are surrounded by html code such as `<td>`. We can also see a pattern of how it is stored. If you know HTML, you can write programs that leverage knowledge of these patterns to extract what we want. We also take advantage of a language widely used to make webpages look "pretty" called Cascading Style Sheets (CSS). We say more about this in the CSS Selector Section. 
 
-Although we provide tools that make it possible to scrape data without knowing HTML, for data scientists, it is quite useful to learn some HTML and CSS. Not only does this improve your scraping skills, but it might come in handy if you are creating a webpage to showcase you work. There are plenty of online courses and tutorials for learning these. Two examples are [Codeacademy](https://www.codecademy.com/learn/learn-html) and [W3schools](https://www.w3schools.com/).
+Although we provide tools that make it possible to scrape data without knowing HTML, as a data scientists it is quite useful to learn some HTML and CSS. Not only does this improve your scraping skills, but it might come in handy if you are creating a webpage to showcase you work. There are plenty of online courses and tutorials for learning these. Two examples are [Codeacademy](https://www.codecademy.com/learn/learn-html) and [W3schools](https://www.w3schools.com/).
 
 ## The rvest package
 
@@ -88,7 +88,7 @@ Note that the entire Murders in the US Wikipedia webpage is now contained in `h`
 class(h)
 ```
 
-The __rvest__ package is actually more general; it handles XML documents. XML is a general markup language, that's what the ML stand for, that can be used to represent any kind of data. HTML is a specific type of XML specifically developed for representing webpages. Here we focus on HTML documents.
+The __rvest__ package is actually more general; it handles XML documents. XML is a general markup language (that's what the ML stands for) that can be used to represent any kind of data. HTML is a specific type of XML specifically developed for representing webpages. Here we focus on HTML documents.
 
 Now, how do we extract the table from the object `h`? If we print `h`, we don't really see much:
 
@@ -96,13 +96,13 @@ Now, how do we extract the table from the object `h`? If we print `h`, we don't 
 h
 ```
 
-We can see all the code the defines the downloaded webpage using the `html_text` function like this:
+We can see all the code that defines the downloaded webpage using the `html_text` function like this:
 
 ```{r, eval=FALSE}
 html_text(h)
 ```
 
-We don't show the output here becuase it includes thousands of characters but if we look at it, we can see the data we are after are stored in an HTML table: you can see this in this line of the HTML code above `<table class="wikitable sortable">`. The different parts of an HTML document, often defined with a message in between  `<` and `>`  are referred to as _nodes_. The __rvest__ package includes functions to extract nodes of an HTML document: `html_nodes` extracts all nodes of different types and `html_node` extracts the first one. To extract the tables from the html code we use:
+We don't show the output here becuase it includes thousands of characters, but if we look at it, we can see the data we are after are stored in an HTML table: you can see this in this line of the HTML code above `<table class="wikitable sortable">`. The different parts of an HTML document, often defined with a message in between  `<` and `>`  are referred to as _nodes_. The __rvest__ package includes functions to extract nodes of an HTML document: `html_nodes` extracts all nodes of different types and `html_node` extracts the first one. To extract the tables from the html code we use:
  
 
 ```{r} 
@@ -145,14 +145,14 @@ We still have some wrangling to do. For example, we need to remove the commas an
 The default look of a webpage made with the most basic HTML is quite unattractive. The aesthetically pleasing pages we see today are made using CSS to define the look and style of webpages. The fact that all pages for a company have the same style usually results from their use of the same CSS file to define the style. The general way these CSS files work is by defining how each of the elements of a webpage will look. The title, headings, itemized lists, tables, and links, for example, each receive their own style including font, color, size, and distance from the margin. CSS does this by leveraging patterns used to define these elements, referred to as _selectors_. An example of such a pattern, which we used above, is `table`, but there are many, many more. 
 
 If we want to grab data from a webpage and we happen to know a selector that is unique to the part of the page containing this data, we can use the `html_nodes` function. However, knowing which selector can be quite complicated. 
-In fact, the complexity of webpages has been increasing as they become more sophisticated. For some of the more advanced ones, it seems almost impossible to find the notes that define a particular piece of data. However, selector gadgets actually make this possible.
+In fact, the complexity of webpages has been increasing as they become more sophisticated. For some of the more advanced ones, it seems almost impossible to find the nodes that define a particular piece of data. However, selector gadgets actually make this possible.
 
-[SelectorGadget](http://selectorgadget.com/) is piece of software that allows you to interactively determine what CSS selector you need to extract specific components from the webpage. If you plan on scraping data other than tables, we highly recommend you install it if you are interested in scraping html pages. A Chrome extension is available which permits you to turn on the gadget and then, as you click through the page, it highlights parts and shows you the selector you need to extract these parts. There are various demos of how to do this including __rvest__ author Hadley Wickham's
+[SelectorGadget](http://selectorgadget.com/) is piece of software that allows you to interactively determine what CSS selector you need to extract specific components from the webpage. If you plan on scraping data other than tables from html pages, we highly recommend you install it. A Chrome extension is available which permits you to turn on the gadget and then, as you click through the page, it highlights parts and shows you the selector you need to extract these parts. There are various demos of how to do this including __rvest__ author Hadley Wickham's
 [vignette](https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html), and  [these ](https://stat4701.github.io/edav/2015/04/02/rvest_tutorial/) [two](https://www.analyticsvidhya.com/blog/2017/03/beginners-guide-on-web-scraping-in-r-using-rvest-with-hands-on-knowledge/) tutorials based on the package vignette. 
 
 ## JSON
 
-Sharing data on the internet has become more and more common. Unfortunately, providers use different formats which makes it harder for data scientists to wrangle data into R. Yet there are some standards that are also becoming more common. Currently, a format that is widely being adopted is the JavaScript Object Notation or JSON. Because this format is very general, it is nothing like a spreadsheet. This JSON files look more like the code you use to define a list. Here is an example of information stored in a JSON format:
+Sharing data on the internet has become more and more common. Unfortunately, providers use different formats, which makes it harder for data scientists to wrangle data into R. Yet there are some standards that are also becoming more common. Currently, a format that is widely being adopted is the JavaScript Object Notation or JSON. Because this format is very general, it is nothing like a spreadsheet. This JSON files look more like the code you use to define a list. Here is an example of information stored in a JSON format:
 
 ```{r, echo=FALSE}
 library(jsonlite)

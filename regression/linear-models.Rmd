@@ -75,7 +75,7 @@ dat %>%
 ```
 
 The slopes are reduced, but they are not 0, which indicates that BB are helpful for producing runs, just not as much as previously thought.
-In fact, the values above are closer to the slope we obtained from singles `r round(singles_slope, 2)`, which is more consistent with our intuition. Since both singles and BB get us to first base, they should have about the same predictive power.
+In fact, the values above are closer to the slope we obtained from singles, `r round(singles_slope, 2)`, which is more consistent with our intuition. Since both singles and BB get us to first base, they should have about the same predictive power.
 
 Although our understanding of the application tells us that HR cause BB but not the other way around, we can still check if stratifying by BB makes the effect of BB go down. To do this, we use the same code except that we swap HR and BBs to get this plot:
 
@@ -191,7 +191,7 @@ galton_heights <- GaltonFamilies %>%
   rename(son = childHeight)
 ```
 
-Now Let's write a function that computes the RSS for any pair of values $\beta_0$ and $\beta_1$.
+Let's write a function that computes the RSS for any pair of values $\beta_0$ and $\beta_1$.
 
 ```{r}
 rss <- function(beta0, beta1, data){
@@ -285,7 +285,7 @@ You can see that the standard errors estimates reported by the `summary` are clo
 lse %>% summarize(se_0 = sd(beta_0), se_1 = sd(beta_1))
 ```
 
-The `summary` function also reports t-statistics (`t value`) and p-values (`Pr(>|t|)`). The t-statistic is not actually based on the central limit theorem but rather on the assumption that the $\varepsilon$s follow a normal distribution. Under this assumption, mathematical theory tells us that the LSE divided by their standard error, $\hat{\beta}_0 / \hat{\mbox{SE}}(\hat{\beta}_0 )$ and $\hat{\beta}_1 / \hat{\mbox{SE}}(\hat{\beta}_1 )$ follow a t-distribution with $N-p$ degrees of freedom and with $p$ the number of parameters in our model. In the case of height $p=2$, the two p-values are testing the null hypothesis that $\beta_0 = 0$ and $\beta_1=0$ respectively. 
+The `summary` function also reports t-statistics (`t value`) and p-values (`Pr(>|t|)`). The t-statistic is not actually based on the central limit theorem but rather on the assumption that the $\varepsilon$s follow a normal distribution. Under this assumption, mathematical theory tells us that the LSE divided by their standard error, $\hat{\beta}_0 / \hat{\mbox{SE}}(\hat{\beta}_0 )$ and $\hat{\beta}_1 / \hat{\mbox{SE}}(\hat{\beta}_1 )$, follow a t-distribution with $N-p$ degrees of freedom, with $p$ the number of parameters in our model. In the case of height $p=2$, the two p-values are testing the null hypothesis that $\beta_0 = 0$ and $\beta_1=0$ respectively. 
 
 Remember that, as we described in Section \@ref(t-dist) for large enough $N$, the CLT works and the t-distribution becomes almost the same as the normal distribution. Also, notice that we can construct confidence intervals, but we will soon learn about __broom__, an add-on package that makes this easy.
 
@@ -300,7 +300,7 @@ $$\hat{Y} = \hat{\beta}_0 + \hat{\beta}_1 x$$
 
 When we plot $\hat{Y}$ versus $x$, we see the regression line.
 
-Keep in mind that the prediction $\hat{Y}$ is also a random variable and mathematical theory tells us what the standard errors are. If we assume the errors are normal, or have a large enough sample size, we can use theory to construct confidence intervals as well. In fact, the __ggplot2__ layer `geom_smooth(method = "lm")` that we previously used, plots $\hat{Y}$ and surrounds it by confidence intervals:
+Keep in mind that the prediction $\hat{Y}$ is also a random variable and mathematical theory tells us what the standard errors are. If we assume the errors are normal, or have a large enough sample size, we can use theory to construct confidence intervals as well. In fact, the __ggplot2__ layer `geom_smooth(method = "lm")` that we previously used plots $\hat{Y}$ and surrounds it by confidence intervals:
 
 ```{r father-son-regression}
 galton_heights %>% ggplot(aes(son, father)) +
@@ -382,10 +382,10 @@ dat %>%
   .$coef
 ```
 
-we don't get the result we want. The `lm` function ignores the `group_by`. This is expected because `lm` is not part of the tidyverse and does not know how to handle the outcome of\ a grouped tibble.
+we don't get the result we want. The `lm` function ignores the `group_by`. This is expected because `lm` is not part of the __tidyverse__ and does not know how to handle the outcome of a grouped tibble.
 
-The tidyverse functions know how to interpret grouped tibbles. Furthermore, to facilitate stringing commands through the pipe `%>%`, tidyverse functions consistently return data frames, since this assures that the output of a function is accepted as the input of another. 
-But most R functions do not recognize grouped tibbles nor do they return data frames. The `lm` function is an example. The `do` functions serves as a bridge between R functions, such as `lm` and the tidyverse. The `do` function understands grouped tibbles and always returns a data frame.
+The __tidyverse__ functions know how to interpret grouped tibbles. Furthermore, to facilitate stringing commands through the pipe `%>%`, __tidyverse__ functions consistently return data frames, since this assures that the output of a function is accepted as the input of another. 
+But most R functions do not recognize grouped tibbles nor do they return data frames. The `lm` function is an example. The `do` functions serves as a bridge between R functions, such as `lm`, and the __tidyverse__. The `do` function understands grouped tibbles and always returns a data frame.
 
 So, let's try to use the `do` function to fit a regression line to each HR strata:
 
@@ -451,13 +451,13 @@ dat %>%
   do(get_lse(.))
 ```
 
-If you think this is all a bit too complicated, you are not alone. To simplify things, we introduce the __broom__ package which was designed to facilitate the use of model fitting functions, such as `lm`, with the tidyverse.
+If you think this is all a bit too complicated, you are not alone. To simplify things, we introduce the __broom__ package which was designed to facilitate the use of model fitting functions, such as `lm`, with the __tidyverse__.
 
 ### The broom package
 
 Our original task was to provide an estimate and confidence interval for the slope estimates of each strata. The __broom__ package will make this quite easy.
 
-The __broom__ package has three main functions, all of which extract information from the object returned by `lm` and return it in a tidyverse friendly data frame. These functions are `tidy`, `glance` and `augment`. The `tidy` function returns estimates and related information as a data frame:
+The __broom__ package has three main functions, all of which extract information from the object returned by `lm` and return it in a __tidyverse__ friendly data frame. These functions are `tidy`, `glance` and `augment`. The `tidy` function returns estimates and related information as a data frame:
 
 ```{r}
 library(broom)
@@ -496,7 +496,7 @@ dat %>%
 
 Now we return to discussing our original task of determining if slopes changed. The plot we just made, using `do` and `tidy`, shows that the confidence intervals overlap, which provides a nice visual confirmation that our assumption that the slope does not change is safe.
 
-The other functions provided by __broom__, `glance` and `augment` relate to model specific and observation specific outcomes respectively. Here, we can see the model fit summaries `glance` returns:
+The other functions provided by __broom__, `glance` and `augment`, relate to model specific and observation specific outcomes respectively. Here, we can see the model fit summaries `glance` returns:
 
 ```{r}
 glance(fit)
@@ -642,9 +642,9 @@ So instead of using batting average, or just number of HR, as a measure of picki
 `r coefs$estimate[3]` $\times$ singles +
 `r coefs$estimate[4]` $\times$ doubles +
 `r coefs$estimate[5]` $\times$ triples +
-`r coefs$estimate[6]` $\times$ HR +
+`r coefs$estimate[6]` $\times$ HR.
 
-To define a player specific metric, we have a bit more work to do. A challenge here is that we derived the metric for teams, based on team-level summary statistics. For example, the HR value that is entered into the equation is HR per game for the entire team. If we compute the HR per game for a player, it will be much lower since the total is accumulated by 9 batters. Furthermore, if a player only plays part of the game and gets less opportunities than average, it is still considered a game played. For players, a rate that takes into account opportunities is the per-plate-appearance rate. 
+To define a player-specific metric, we have a bit more work to do. A challenge here is that we derived the metric for teams, based on team-level summary statistics. For example, the HR value that is entered into the equation is HR per game for the entire team. If we compute the HR per game for a player, it will be much lower since the total is accumulated by 9 batters. Furthermore, if a player only plays part of the game and gets less opportunities than average, it is still considered a game played. For players, a rate that takes into account opportunities is the per-plate-appearance rate. 
 
 To make the per-game team rate comparable to the per-plate-appearance player rate, we compute the average number of team plate appearances per game:
 
@@ -675,7 +675,7 @@ players <- Batting %>% filter(yearID %in% 1999:2001) %>%
   mutate(R_hat = predict(fit, newdata = .))
 ```
 
-The player specific predicted runs computed here can be interpreted as the number of runs we predict a team will score if all batters are exactly like that player. The distribution shows that there is wide variability across players:
+The player-specific predicted runs computed here can be interpreted as the number of runs we predict a team will score if all batters are exactly like that player. The distribution shows that there is wide variability across players:
 
 ```{r r-hat-hist}
 qplot(R_hat, data = players, geom = "histogram", binwidth = 0.5, color = I("black"))
@@ -694,10 +694,8 @@ players <- Salaries %>%
   right_join(players, by="playerID")
 ```
 
-Next, we add their defensive position. This is a somewhat complicated task because players play more than one position each year. The __Lahman__ package table `Appearances` tells how many games each player played in each position so we can pick the position that was most played using `which.max` on each row. We use `apply` to do this. However, because some players are traded, they appear more than once on the table so we first add 
-H
-ere, 
-we pick the one position the player most played using the `top_n` function. To make sure we only pick one position, in the case of ties, we pick the first row of the resulting data frame. We also remove the `OF` position which stands for outfielder, a generalization of three positions left field (LF), center field (CF), and right field (RF). We also remove pitchers since they don't bat in the league in which the A's play.
+Next, we add their defensive position. This is a somewhat complicated task because players play more than one position each year. The __Lahman__ package table `Appearances` tells how many games each player played in each position, so we can pick the position that was most played using `which.max` on each row. We use `apply` to do this. However, because some players are traded, they appear more than once on the table, so we first sum their appearances across teams.
+Here, we pick the one position the player most played using the `top_n` function. To make sure we only pick one position, in the case of ties, we pick the first row of the resulting data frame. We also remove the `OF` position which stands for outfielder, a generalization of three positions left field (LF), center field (CF), and right field (RF). We also remove pitchers since they don't bat in the league in which the A's play.
 
 ```{r}
 position_names <- c("G_p","G_c","G_1b","G_2b","G_3b","G_ss","G_lf","G_cf","G_rf")
@@ -747,7 +745,7 @@ players %>% ggplot(aes(salary, R_hat, color = POS)) +
   scale_x_log10()
 ```
 
-We do see some low cost players with very high metrics. These will be great for our team. Unfortunately, many of these are likely young players that have not yet been able to negotiate a salary and are unavailable. For example, the lowest earner in our top 10 list, Albert Pujols, was a rookie in 2001 and could not negotiate with other teams. Here we remake plot without players that debuted before 1997. We use the __lubridate__, introduced in Section \@ref(lubridate), function `year`.
+We do see some low cost players with very high metrics. These will be great for our team. Unfortunately, many of these are likely young players that have not yet been able to negotiate a salary and are unavailable. For example, the lowest earner in our top 10 list, Albert Pujols, was a rookie in 2001 and could not negotiate with other teams. Here we remake plot without players that debuted before 1998. We use the __lubridate__ function `year`, introduced in Section \@ref(lubridate).
 
 ```{r predicted-runs-vs-salary-no-rookies, message=FALSE, warning=FALSE}
 library(lubridate)
@@ -846,13 +844,13 @@ ROY <- ROY %>%
   select(playerID, rookie_year, rookie, nameFirst, nameLast, AVG) 
 ```
 
-Finally, we will use the spread function to have one column for the rookie and sophomore years batting averages:
+Finally, we will use the `spread` function to have one column for the rookie and sophomore years batting averages:
 
 ```{r}
 ROY <- ROY %>% spread(rookie, AVG) %>% arrange(desc(rookie))
 ```
 
-We can see the top performs in their first year:
+We can see the top performers in their first year:
 
 ```{r}
 ROY
@@ -906,7 +904,7 @@ The correlation is:
 summarize(two_years, cor(`2013`,`2014`))
 ```
 
-The data look very much like a bivariate normal distribution which means we predict a 2014 batting average $Y$ for any given player that had a 2013 batting average $X$ with:
+The data look very much like a bivariate normal distribution, which means we predict a 2014 batting average $Y$ for any given player that had a 2013 batting average $X$ with:
 
 $$ \frac{Y - .255}{.032} = 0.46 \left( \frac{X - .261}{.023}\right) $$
 

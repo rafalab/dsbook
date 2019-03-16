@@ -21,7 +21,7 @@ wide_data <- read_csv(filename)
 
 One of the most used functions in the __tidyr__ package is `gather`, which, is useful for converting wide data into tidy data. 
 
-As with most tidyverse functions, the `gather`'s first argument is the data frame that will be converted. Here we want to reshape the `wide_data` dataset so that each row represents an fertility observation which implies we need three columns to store the year, country and the observed value. In it's current form, data from different years are in different columns with the year values stored in the column names. Throught the second and third argument we will tell `gather` the column names we want to assign to the columns containin the current column names and observations repsectively. In this a good choice for these two arguments would be `year` and `fertility`. Note that nowhere in the data file does it tell us this is fertility data. Instead, we deciphered this from the file name. Through the fourth argument we specify the columns containing observed values; these are the columns that that will be _gathered_. The default is to gather all columns so, in most cases, we have to specify the columns. In our example we want columns `1960`, `1961` up to `2015`. 
+As with most tidyverse functions, the `gather` function's first argument is the data frame that will be converted. Here we want to reshape the `wide_data` dataset so that each row represents an fertility observation which implies we need three columns to store the year, country and the observed value. In it's current form, data from different years are in different columns with the year values stored in the column names. Throught the second and third argument we will tell `gather` the column names we want to assign to the columns containin the current column names and observations repsectively. In this a good choice for these two arguments would be `year` and `fertility`. Note that nowhere in the data file does it tell us this is fertility data. Instead, we deciphered this from the file name. Through the fourth argument we specify the columns containing observed values; these are the columns that that will be _gathered_. The default is to gather all columns so, in most cases, we have to specify the columns. In our example we want columns `1960`, `1961` up to `2015`. 
 
 The code to gather the fertility data therefore looks like this:
 
@@ -137,7 +137,7 @@ Because "_" is the default separator assumed by `separate`, we do not have to in
 dat %>% separate(key, c("year", "variable_name"))
 ```
 
-The function does separate the values, but we run into a new problem. We receive the warning `Too many values at 112 locations:` and that the `life_expectancy` variable is truncated to `life`. This is because the `_` is used to separate `life` and `expectancy` not just year and variable name! We could add a third column to catch this and let the `separate` function know which column to _fill in_ with missing values, `NA`, when there is no third value. Here we tell it to fill the column on the right:
+The function does separate the values, but we run into a new problem. We receive the warning `Too many values at 112 locations:` and that the `life_expectancy` variable is truncated to `life`. This is because the `_` is used to separate `life` and `expectancy`, not just year and variable name! We could add a third column to catch this and let the `separate` function know which column to _fill in_ with missing values, `NA`, when there is no third value. Here we tell it to fill the column on the right:
 
 ```{r}
 dat %>% separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right")
@@ -168,7 +168,7 @@ dat %>%
   separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right")
 ```
 
-We can achieve the same final result by uniting the second and third columns, then spreading the columns and renaming `fertlity_NA` to `fertility`:
+We can achieve the same final result by uniting the second and third columns, then spreading the columns and renaming `fertility_NA` to `fertility`:
 
 ```{r}
 dat %>% 
@@ -189,7 +189,7 @@ dat %>%
       mutate(year = as.character(1959:1997))
     ```
 
-    Use the gather function to wrangle this into a tidy dataset. Call the column with the CO2 measurements `co2` and call the month column `month`. Call the     resulting object `co2_tidy`.
+    Use the gather function to wrangle this into a tidy dataset. Call the column with the CO2 measurements `co2` and call the month column `month`. Call the resulting object `co2_tidy`.
 
 
 2. Plot CO2 versus month with a different curve for each year using this code:
@@ -219,14 +219,14 @@ dat %>%
     D. CO2 measures do not have a seasonal trend.
 
 
-4. Now load the `admissions` data set which contains admission information for men and women across six majors and keep only the admitted percentage column:
+4. Now load the `admissions` data set, which contains admission information for men and women across six majors and keep only the admitted percentage column:
 
     ```{r, eval=FALSE}
     load(admissions)
     dat <- admissions %>% select(-applicants)
     ```
 
-    If we think of an observation as a major, and that each observation has two variables, men admitted percentage and women admitted percentage, then this is not tidy. Use the `spread` function to wrangle into tidy shape: one row for each major.
+    If we think of an observation as a major, and that each observation has two variables (men admitted percentage and women admitted percentage) then this is not tidy. Use the `spread` function to wrangle into tidy shape: one row for each major.
 
 
 5. Now we will try a more advanced wrangling challenge. We want to wrangle the admissions data so that for each major we have 4 observations: `admitted_men`, `admitted_women`, `applicants_men` and `applicants_women`.  The _trick_ we perform here is actually quite common: first gather to generate an intermediate data frame and then spread to obtain the tidy data we want. We will go step by step in this and the next two exercises.
@@ -241,7 +241,7 @@ dat %>%
 7. Now use the `spread` function to generate the tidy data with four variables for each major.
     
 
-8. Now use the pipe to write a line of code that turns admission to the table  produced in the previous exercise.
+8. Now use the pipe to write a line of code that turns `admissions` to the table  produced in the previous exercise.
     
 
 
