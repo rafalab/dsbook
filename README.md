@@ -1,7 +1,9 @@
 This is the code for the [Introduction to Data Science](https://rafalab.github.io/dsbook/) class notes used in the
  [HarvardX Data Science Series](https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x).
 
-We will be adding chapters during the next few months.
+[Book web page](https://rafalab.github.io/dsbook/)
+
+[PDF version](https://leanpub.com/datasciencebook)
 
 For updates follow
 <a class="twitter-follow-button"
