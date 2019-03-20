@@ -407,12 +407,10 @@ x_subset <- x[ ,sample(p, 100)]
 
 Suppose the income distribution of your population is as follows:
 
-```{r, echo = FALSE}
-n <- 10^6
-income <- 10^(rnorm(n, 4.656786, 0.4394738))
-```
 
 ```{r income-distribution}
+n <- 10^6
+income <- 10^(rnorm(n, log10(45000), log10(3)))
 qplot(log10(income), bins = 30, color = I("black"))
 ```
 
@@ -440,16 +438,16 @@ From a Monte Carlo simulation, we see that the distribution of $M$ is approximat
 ```{r median-is-normal, message=FALSE, warning=FALSE, out.width="100%"}
 library(gridExtra)
 B <- 10^4
-Ms <- replicate(B, {
+M <- replicate(B, {
   X <- sample(income, N)
-  M <- median(X)
+  median(X)
 })
-p1 <- qplot(Ms, bins = 30, color = I("black"))
-p2 <- qplot(sample = scale(Ms)) + geom_abline()
+p1 <- qplot(M, bins = 30, color = I("black"))
+p2 <- qplot(sample = scale(M)) + geom_abline()
 grid.arrange(p1, p2, ncol = 2)
 
-mean(Ms)
-sd(Ms)
+mean(M)
+sd(M)
 ```
 
 The problem here is that, as we have already described, in practice we do not have access to the distribution. In the past, we have used the central limit theorem. But the CLT we studied applies to averages and here we are interested in the median. 
@@ -461,16 +459,16 @@ Theory tells us that, in many situations, the distribution of the statistics obt
 
 ```{r}
 B <- 10^4
-M_stars <- replicate(B, {
+M_star <- replicate(B, {
   X_star <- sample(X, N, replace = TRUE)
-  M_star <- median(X_star)
+  median(X_star)
 })
 ```
 
 Now we can check how close it is to the actual distribution:
 
 ```{r boostram-versus-monte-carlo}
-tibble(monte_carlo = sort(Ms), bootstrap = sort(M_stars)) %>% 
+tibble(monte_carlo = sort(M), bootstrap = sort(M_star)) %>% 
   qplot(monte_carlo, bootstrap, data = .) + 
   geom_abline()
 ```
@@ -478,8 +476,8 @@ tibble(monte_carlo = sort(Ms), bootstrap = sort(M_stars)) %>%
 We see it is not perfect, but it provides a decent approximation:
 
 ```{r}
-quantile(Ms, c(0.05, 0.95))
-quantile(M_stars, c(0.05, 0.95))
+quantile(M, c(0.05, 0.95))
+quantile(M_star, c(0.05, 0.95))
 ```
 
 This is much better than what we get if we mindlessly use the CLT:
@@ -492,15 +490,11 @@ median(X) + 1.96 * sd(X) / sqrt(N) * c(-1, 1)
 If we know the distribution is normal, we can use the bootstrap to estimate the mean:
 
 ```{r}
-mean(Ms) + 1.96 * sd(Ms) * c(-1,1)
-mean(M_stars) + 1.96 * sd(M_stars) * c(-1, 1)
+mean(M) + 1.96 * sd(M) * c(-1,1)
+mean(M_star) + 1.96 * sd(M_star) * c(-1, 1)
 ```
 
 *Note that we can use ideas similar to those used in the bootstrap in cross validation: instead of dividing the data into equal partitions, we simply bootstrap many times.*
-
-
-
-
 
 ## Exercises 
 

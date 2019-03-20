@@ -1068,64 +1068,66 @@ tt &lt;-<span class="st"> </span><span class="kw">colttests</span>(x, y)</code><
 <div id="bootstrap" class="section level2">
 <h2><span class="header-section-number">30.5</span> Bootstrap</h2>
 <p>Suppose the income distribution of your population is as follows:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">qplot</span>(<span class="kw">log10</span>(income), <span class="dt">bins =</span> <span class="dv">30</span>, <span class="dt">color =</span> <span class="kw">I</span>(<span class="st">&quot;black&quot;</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="dv">10</span><span class="op">^</span><span class="dv">6</span>
+income &lt;-<span class="st"> </span><span class="dv">10</span><span class="op">^</span>(<span class="kw">rnorm</span>(n, <span class="kw">log10</span>(<span class="dv">45000</span>), <span class="kw">log10</span>(<span class="dv">3</span>)))
+<span class="kw">qplot</span>(<span class="kw">log10</span>(income), <span class="dt">bins =</span> <span class="dv">30</span>, <span class="dt">color =</span> <span class="kw">I</span>(<span class="st">&quot;black&quot;</span>))</code></pre></div>
 <p><img src="book_files/figure-html/income-distribution-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>The population median is:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">m &lt;-<span class="st"> </span><span class="kw">median</span>(income)
 m
-<span class="co">#&gt; [1] 45248</span></code></pre></div>
+<span class="co">#&gt; [1] 44867</span></code></pre></div>
 <p>Suppose we don’t have access to the entire population, but want to estimate the median <span class="math inline">\(m\)</span>. We take a sample of 250 and estimate the population median <span class="math inline">\(m\)</span> with the sample median <span class="math inline">\(M\)</span>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">1995</span>)
 N &lt;-<span class="st"> </span><span class="dv">250</span>
 X &lt;-<span class="st"> </span><span class="kw">sample</span>(income, N)
 M &lt;-<span class="st"> </span><span class="kw">median</span>(X)
 M
-<span class="co">#&gt; [1] 43867</span></code></pre></div>
+<span class="co">#&gt; [1] 43382</span></code></pre></div>
 <p>Can we construct a confidence interval? What is the distribution of <span class="math inline">\(M\)</span> ?</p>
 <p>From a Monte Carlo simulation, we see that the distribution of <span class="math inline">\(M\)</span> is approximately normal with the following expected value and standard error:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(gridExtra)
 B &lt;-<span class="st"> </span><span class="dv">10</span><span class="op">^</span><span class="dv">4</span>
-Ms &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
+M &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
   X &lt;-<span class="st"> </span><span class="kw">sample</span>(income, N)
-  M &lt;-<span class="st"> </span><span class="kw">median</span>(X)
+  <span class="kw">median</span>(X)
 })
-p1 &lt;-<span class="st"> </span><span class="kw">qplot</span>(Ms, <span class="dt">bins =</span> <span class="dv">30</span>, <span class="dt">color =</span> <span class="kw">I</span>(<span class="st">&quot;black&quot;</span>))
-p2 &lt;-<span class="st"> </span><span class="kw">qplot</span>(<span class="dt">sample =</span> <span class="kw">scale</span>(Ms)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_abline</span>()
+p1 &lt;-<span class="st"> </span><span class="kw">qplot</span>(M, <span class="dt">bins =</span> <span class="dv">30</span>, <span class="dt">color =</span> <span class="kw">I</span>(<span class="st">&quot;black&quot;</span>))
+p2 &lt;-<span class="st"> </span><span class="kw">qplot</span>(<span class="dt">sample =</span> <span class="kw">scale</span>(M)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_abline</span>()
 <span class="kw">grid.arrange</span>(p1, p2, <span class="dt">ncol =</span> <span class="dv">2</span>)
 
-<span class="kw">mean</span>(Ms)
-<span class="co">#&gt; [1] 45381</span>
-<span class="kw">sd</span>(Ms)
-<span class="co">#&gt; [1] 3621</span></code></pre></div>
+<span class="kw">mean</span>(M)
+<span class="co">#&gt; [1] 45023</span>
+<span class="kw">sd</span>(M)
+<span class="co">#&gt; [1] 3902</span></code></pre></div>
 <p><img src="book_files/figure-html/median-is-normal-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>The problem here is that, as we have already described, in practice we do not have access to the distribution. In the past, we have used the central limit theorem. But the CLT we studied applies to averages and here we are interested in the median.</p>
 <p>The bootstrap permits us to approximate a Monte Carlo simulation without access to the entire distribution. The general idea is relatively simple. We act as if the observed sample is the population. We then sample (with replacement) datasets, of the same sample size as the original dataset. Then we compute the summary statistic, in this case median, on this <em>bootstrap sample</em>.</p>
 <p>Theory tells us that, in many situations, the distribution of the statistics obtained with bootstrap samples approximate the distribution of our actual statistic. This is how we construct bootstrap samples and an approximate distribution:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">B &lt;-<span class="st"> </span><span class="dv">10</span><span class="op">^</span><span class="dv">4</span>
-M_stars &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
+M_star &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
   X_star &lt;-<span class="st"> </span><span class="kw">sample</span>(X, N, <span class="dt">replace =</span> <span class="ot">TRUE</span>)
-  M_star &lt;-<span class="st"> </span><span class="kw">median</span>(X_star)
+  <span class="kw">median</span>(X_star)
 })</code></pre></div>
 <p>Now we can check how close it is to the actual distribution:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tibble</span>(<span class="dt">monte_carlo =</span> <span class="kw">sort</span>(Ms), <span class="dt">bootstrap =</span> <span class="kw">sort</span>(M_stars)) <span class="op">%&gt;%</span><span class="st"> </span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tibble</span>(<span class="dt">monte_carlo =</span> <span class="kw">sort</span>(M), <span class="dt">bootstrap =</span> <span class="kw">sort</span>(M_star)) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">qplot</span>(monte_carlo, bootstrap, <span class="dt">data =</span> .) <span class="op">+</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">geom_abline</span>()</code></pre></div>
 <p><img src="book_files/figure-html/boostram-versus-monte-carlo-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>We see it is not perfect, but it provides a decent approximation:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">quantile</span>(Ms, <span class="kw">c</span>(<span class="fl">0.05</span>, <span class="fl">0.95</span>))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">quantile</span>(M, <span class="kw">c</span>(<span class="fl">0.05</span>, <span class="fl">0.95</span>))
 <span class="co">#&gt;    5%   95% </span>
-<span class="co">#&gt; 39716 51511</span>
-<span class="kw">quantile</span>(M_stars, <span class="kw">c</span>(<span class="fl">0.05</span>, <span class="fl">0.95</span>))
+<span class="co">#&gt; 38944 51647</span>
+<span class="kw">quantile</span>(M_star, <span class="kw">c</span>(<span class="fl">0.05</span>, <span class="fl">0.95</span>))
 <span class="co">#&gt;    5%   95% </span>
-<span class="co">#&gt; 40342 48935</span></code></pre></div>
+<span class="co">#&gt; 39611 48849</span></code></pre></div>
 <p>This is much better than what we get if we mindlessly use the CLT:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(X) <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span><span class="kw">sd</span>(X) <span class="op">/</span><span class="st"> </span><span class="kw">sqrt</span>(N) <span class="op">*</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>)
-<span class="co">#&gt; [1] 33968 53766</span></code></pre></div>
+<span class="co">#&gt; [1] 31507 55257</span></code></pre></div>
 <p>If we know the distribution is normal, we can use the bootstrap to estimate the mean:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(Ms) <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span><span class="kw">sd</span>(Ms) <span class="op">*</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>)
-<span class="co">#&gt; [1] 38284 52478</span>
-<span class="kw">mean</span>(M_stars) <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span><span class="kw">sd</span>(M_stars) <span class="op">*</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>)
-<span class="co">#&gt; [1] 38220 49939</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(M) <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span><span class="kw">sd</span>(M) <span class="op">*</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>)
+<span class="co">#&gt; [1] 37375 52670</span>
+<span class="kw">mean</span>(M_star) <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span><span class="kw">sd</span>(M_star) <span class="op">*</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>)
+<span class="co">#&gt; [1] 37323 49916</span></code></pre></div>
 <p><em>Note that we can use ideas similar to those used in the bootstrap in cross validation: instead of dividing the data into equal partitions, we simply bootstrap many times.</em></p>
 </div>
 <div id="exercises-47" class="section level2">
