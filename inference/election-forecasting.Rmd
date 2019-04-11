@@ -73,7 +73,7 @@ Although we know this bias term affects our polls, we have no way of knowing wha
 
 ### Mathematical representations of models
 
-Suppose we are collecting data from one pollster and we assume there is no general bias. The pollster collects several polls with a sample size of $N$, so we observe several measurements of the spread $X_1, \dots, X_J$. The theory tells us that these random variables have expected value $d$ and $2 \sqrt{p(1-p)/N}$. Let's start by using the following model to describe the observed variability:
+Suppose we are collecting data from one pollster and we assume there is no general bias. The pollster collects several polls with a sample size of $N$, so we observe several measurements of the spread $X_1, \dots, X_J$. The theory tells us that these random variables have expected value $d$ and standard error $2 \sqrt{p(1-p)/N}$. Let's start by using the following model to describe the observed variability:
 
 $$
 X_j = d + \varepsilon_j.
@@ -94,7 +94,7 @@ Now suppose we have $J=6$ data points from $I=5$ different pollsters. To represe
 
 
 $$
-X_{i,j} = d + h_i + \varepsilon_{i,j}
+X_{i,j} = d + \varepsilon_{i,j}
 $$
 
 To simulate data, we now have to loop through the pollsters:
@@ -129,7 +129,7 @@ polls %>% group_by(pollster) %>%
   scale_y_continuous(limit = c(-0.056,0.092))
 ```
 
-The model above does not account for pollster to pollster variability. To fix this, we add a new term for the pollster effect. We will use $\theta_i$ to represent the house effect of the $i$-th pollster. The model is now augmented to: 
+The model above does not account for pollster to pollster variability. To fix this, we add a new term for the pollster effect. We will use $h_i$ to represent the house effect of the $i$-th pollster. The model is now augmented to: 
 
 $$
 X_{i,j} = d + h_i + \varepsilon_{i,j}
@@ -308,7 +308,7 @@ data.frame(clinton_EV) %>%
 
 A similar prediction was made by the Princeton Election Consortium. We now know it was quite off. What happened?
 
-The model above ignores the general bias. After the election, we realized that the general bias in 2016 was not that big: it was between 1 and 2%. But because the election was close in several big states and these states had a large number of polls, pollsters that ignored the general bias greatly underestimated the standard error. Using the notation we instroduce, they assumed the standard error was $\sqrt{\sigma^2/N}$ which with large N is quite smaller than the more accurate estimate 
+The model above ignores the general bias. After the election, we realized that the general bias in 2016 was not that big: it was between 1 and 2%. But because the election was close in several big states and these states had a large number of polls, pollsters that ignored the general bias greatly underestimated the standard error. Using the notation we introduce, they assumed the standard error was $\sqrt{\sigma^2/N}$ which with large N is quite smaller than the more accurate estimate 
 $\sqrt{\sigma^2/N + \sigma_b^2}$. FiveThirtyEight, which models the general bias in a rather sophisticated way, reported a closer result. We can simulate the results now with a bias term. For the state level, the general bias can be larger so we set it at $\sigma_b = 0.03$:
 
 
