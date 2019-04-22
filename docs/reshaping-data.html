@@ -25,7 +25,7 @@
 <meta name="author" content="Rafael A. Irizarry">
 
 
-<meta name="date" content="2019-04-21">
+<meta name="date" content="2019-04-22">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -882,8 +882,8 @@ filename &lt;-<span class="st"> </span><span class="kw">file.path</span>(path,  
 wide_data &lt;-<span class="st"> </span><span class="kw">read_csv</span>(filename)</code></pre></div>
 <div id="gather" class="section level2">
 <h2><span class="header-section-number">22.1</span> <code>gather</code></h2>
-<p>One of the most used functions in the <strong>tidyr</strong> package is <code>gather</code>, which, is useful for converting wide data into tidy data.</p>
-<p>As with most tidyverse functions, the <code>gather</code> function’s first argument is the data frame that will be converted. Here we want to reshape the <code>wide_data</code> dataset so that each row represents an fertility observation which implies we need three columns to store the year, country and the observed value. In it’s current form, data from different years are in different columns with the year values stored in the column names. Throught the second and third argument we will tell <code>gather</code> the column names we want to assign to the columns containin the current column names and observations repsectively. In this a good choice for these two arguments would be <code>year</code> and <code>fertility</code>. Note that nowhere in the data file does it tell us this is fertility data. Instead, we deciphered this from the file name. Through the fourth argument we specify the columns containing observed values; these are the columns that that will be <em>gathered</em>. The default is to gather all columns so, in most cases, we have to specify the columns. In our example we want columns <code>1960</code>, <code>1961</code> up to <code>2015</code>.</p>
+<p>One of the most used functions in the <strong>tidyr</strong> package is <code>gather</code>, which is useful for converting wide data into tidy data.</p>
+<p>As with most tidyverse functions, the <code>gather</code> function’s first argument is the data frame that will be converted. Here we want to reshape the <code>wide_data</code> dataset so that each row represents an fertility observation which implies we need three columns to store the year, country and the observed value. In its current form, data from different years are in different columns with the year values stored in the column names. Throught the second and third argument we will tell <code>gather</code> the column names we want to assign to the columns containing the current column names and observations respectively. In this case a good choice for these two arguments would be <code>year</code> and <code>fertility</code>. Note that nowhere in the data file does it tell us this is fertility data. Instead, we deciphered this from the file name. Through the fourth argument we specify the columns containing observed values; these are the columns that that will be <em>gathered</em>. The default is to gather all columns so, in most cases, we have to specify the columns. In our example we want columns <code>1960</code>, <code>1961</code> up to <code>2015</code>.</p>
 <p>The code to gather the fertility data therefore looks like this:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">new_tidy_data &lt;-<span class="st"> </span><span class="kw">gather</span>(wide_data, year, fertility, <span class="st">`</span><span class="dt">1960</span><span class="st">`</span><span class="op">:</span><span class="st">`</span><span class="dt">2015</span><span class="st">`</span>)</code></pre></div>
 <p>We can also use the pipe like this:</p>
@@ -918,7 +918,7 @@ tidy_data &lt;-<span class="st"> </span>gapminder <span class="op">%&gt;%</span>
 <span class="kw">class</span>(new_tidy_data<span class="op">$</span>year)
 <span class="co">#&gt; [1] &quot;integer&quot;</span></code></pre></div>
 <p>Note that we could have also used the <code>mutate</code> and <code>as.numeric</code>.</p>
-<p>Now that the data is tidy, we can use relatively simple ggplot code:</p>
+<p>Now that the data is tidy, we can use this relatively simple ggplot code:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">new_tidy_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(year, fertility, <span class="dt">color =</span> country)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>()</code></pre></div>
 </div>
 <div id="spread" class="section level2">
@@ -949,7 +949,7 @@ raw_dat &lt;-<span class="st"> </span><span class="kw">read_csv</span>(filename)
 <span class="co">#&gt; 1 Germany             2.41             69.3             2.44</span>
 <span class="co">#&gt; 2 South …             6.16             53.0             5.99</span>
 <span class="co">#&gt; # ... with 1 more variable: `1961_life_expectancy` &lt;dbl&gt;</span></code></pre></div>
-<p>First, note that the data is in wide format. Second, notice that this table includes values for two variables, fertility and life expectancy, with the column name encoding which column represents which variable. Encoding information in the column names is not a recommended but, unfortunately, it is quite common. We will put our wrangling skills to work to extract this information and store it in a tidy fashion.</p>
+<p>First, note that the data is in wide format. Second, notice that this table includes values for two variables, fertility and life expectancy, with the column name encoding which column represents which variable. Encoding information in the column names is not recommended but, unfortunately, it is quite common. We will put our wrangling skills to work to extract this information and store it in a tidy fashion.</p>
 <p>We can start the data wrangling with the <code>gather</code> function, but we should no longer use the column name <code>year</code> for the new column since it also contains the variable type. We will call it <code>key</code>, the default, for now:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dat &lt;-<span class="st"> </span>raw_dat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">gather</span>(key, value, <span class="op">-</span>country)
 <span class="kw">head</span>(dat)
@@ -1042,17 +1042,17 @@ raw_dat &lt;-<span class="st"> </span><span class="kw">read_csv</span>(filename)
 <span class="st">  </span><span class="kw">separate</span>(key, <span class="kw">c</span>(<span class="st">&quot;year&quot;</span>, <span class="st">&quot;first_variable_name&quot;</span>, <span class="st">&quot;second_variable_name&quot;</span>), <span class="dt">fill =</span> <span class="st">&quot;right&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">unite</span>(variable_name, first_variable_name, second_variable_name, <span class="dt">sep=</span><span class="st">&quot;_&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">spread</span>(variable_name, value) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">rename</span>(<span class="dt">fertlity =</span> fertility_NA)
+<span class="st">  </span><span class="kw">rename</span>(<span class="dt">fertility =</span> fertility_NA)
 <span class="co">#&gt; # A tibble: 112 x 4</span>
-<span class="co">#&gt;   country year  fertlity life_expectancy</span>
-<span class="co">#&gt;   &lt;chr&gt;   &lt;chr&gt;    &lt;dbl&gt;           &lt;dbl&gt;</span>
-<span class="co">#&gt; 1 Germany 1960      2.41            69.3</span>
-<span class="co">#&gt; 2 Germany 1961      2.44            69.8</span>
-<span class="co">#&gt; 3 Germany 1962      2.47            70.0</span>
-<span class="co">#&gt; 4 Germany 1963      2.49            70.1</span>
-<span class="co">#&gt; 5 Germany 1964      2.49            70.7</span>
-<span class="co">#&gt; 6 Germany 1965      2.48            70.6</span>
-<span class="co">#&gt; # ... with 106 more rows</span></code></pre></div>
+<span class="co">#&gt;   country year  fertility life_expectancy</span>
+<span class="co">#&gt;   &lt;chr&gt;   &lt;chr&gt;     &lt;dbl&gt;           &lt;dbl&gt;</span>
+<span class="co">#&gt; 1 Germany 1960       2.41            69.3</span>
+<span class="co">#&gt; 2 Germany 1961       2.44            69.8</span>
+<span class="co">#&gt; 3 Germany 1962       2.47            70.0</span>
+<span class="co">#&gt; 4 Germany 1963       2.49            70.1</span>
+<span class="co">#&gt; 5 Germany 1964       2.49            70.7</span>
+<span class="co">#&gt; 6 Germany 1965       2.48            70.6</span>
+<span class="co">#&gt; # … with 106 more rows</span></code></pre></div>
 </div>
 <div id="exercises-36" class="section level2">
 <h2><span class="header-section-number">22.5</span> Exercises</h2>
