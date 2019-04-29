@@ -67,7 +67,7 @@ This says we are 100\% sure Clinton will win the popular vote, which seems too o
 
 ### The general bias 
 
-After elections are over, one can look at the difference between pollster predictions and actual result. An important observation that our model does not take into account is that it is common to see a general bias that affects many pollsters in the same way. There is no good explanation for this, but we do observe it in historical data: in one election, the average of polls favors Democrats by 2%, then in the following election they favor Republicans by 1%, then in the next election there is no bias, then in the following one Republicans are favored by 3%, and so on. In 2016, the polls were biased in favor of the Democrats by 1-2%. 
+After elections are over, one can look at the difference between pollster predictions and actual result. An important observation that our model does not take into account is that it is common to see a general bias that affects many pollsters in the same way making the observed data correlated. There is no good explanation for this, but we do observe it in historical data: in one election, the average of polls favors Democrats by 2%, then in the following election they favor Republicans by 1%, then in the next election there is no bias, then in the following one Republicans are favored by 3%, and so on. In 2016, the polls were biased in favor of the Democrats by 1-2%. 
 
 Although we know this bias term affects our polls, we have no way of knowing what this bias is until election night. So we can't correct our polls accordingly. What we can do is include a term in our model that accounts for this variability.
 
@@ -160,14 +160,17 @@ data.frame(Spread = as.vector(X) , Pollster = as.factor(rep(1:I, each=J))) %>%
 
 Note that $h_i$ is common to all the observed spreads from a specific pollster. Different pollsters have a different $h_i$, which explains why we can see the groups of points shift up and down from pollster to pollster.
 
-Now, in the model above, we assume the average house effect is 0. We think that for every pollster biased in favor of our party, there is another one in favor of the other and assume the standard deviation is $\sigma_h$. But historically we see that every election has a general bias affecting all polls. We can observe this with the 2016 data, but if we collect historical data, we see that the average of polls misses by more than models like the one above predict. To see this, we would take the average of polls for each election year and compare it to the actual value. If we did this, we would see a difference with a standard deviation of between 2-3%. To incorporate this into the model, we can add another term to account for this variability:
+Now, in the model above, we assume the average house effect is 0. We think that for every pollster biased in favor of our party, there is another one in favor of the other and assume the standard deviation is $\sigma_h$. But historically we see that every election has a general bias affecting all polls. 
+We can observe this with the 2016 data, but if we collect historical data, we see that the average of polls misses by more than models like the one above predict. To see this, we would take the average of polls for each election year and compare it to the actual value. If we did this, we would see a difference with a standard deviation of between 2-3%. To incorporate this into the model, we can add another term to account for this variability:
 $$
-X_{ij} = d + b + h_i + \varepsilon_{i,j}.
+X_{i,j} = d + b + h_i + \varepsilon_{i,j}.
 $$
 
-Here $b$ is a random variable that accounts for the election-to-election variability. This random variable changes from election to election, but for any given election, it is the same for all pollsters and polls within on election. This is why it does not have indexes. One way to interpret $b$ is as the difference between the average of all polls from all pollsters and the actual result of the election. However, because we don't know the actual result until after the election, we can't estimate $b$ until after the election. However, we can estimate $b$ from previous elections and study the distribution of these values. Based on this approach we assume $b$ has expected value 0 and the standard error is about $\sigma_b = 0.025$. 
+Here $b$ is a random variable that accounts for the election-to-election variability. This random variable changes from election to election, but for any given election, it is the same for all pollsters and polls within on election. This is why it does not have indexes. This implies that all the random variables $X_{i,j}$ for on election year are correlated since they all have $b$ in common.
 
-An implication of adding this term to the model is that the standard deviation for $X_{ij}$ is actually higher than what we earlier called $\sigma$, which combines the pollster variability and the sample in variability, and was estimated with:
+One way to interpret $b$ is as the difference between the average of all polls from all pollsters and the actual result of the election. Because we don't know the actual result until after the election, we can't estimate $b$ until after the election. However, we can estimate $b$ from previous elections and study the distribution of these values. Based on this approach we assume that, across election years, $b$ has expected value 0 and the standard error is about $\sigma_b = 0.025$. 
+
+An implication of adding this term to the model is that the standard deviation for $X_{i,j}$ is actually higher than what we earlier called $\sigma$, which combines the pollster variability and the sample in variability, and was estimated with:
 
 ```{r}
 sd(one_poll_per_pollster$spread)
@@ -176,15 +179,15 @@ sd(one_poll_per_pollster$spread)
 This estimate does not include the variability introduced by $b$. Note that because
 
 $$
-\bar{X} = d + b + \frac{1}{N}\sum_{i=1}^N X_i
+\bar{X} = d + b + \frac{1}{N}\sum_{i=1}^N X_i,
 $$
 
-then the standard deviation of $\bar{X}$ is:
+the standard deviation of $\bar{X}$ is:
 
 $$
 \sqrt{\sigma^2/N + \sigma_b^2}.
 $$
-Since the same $b$ is in every measurement, the average does not reduce its variance. This is an important point: it does not matter how many polls you take, this bias does not get reduced.
+Since the same $b$ is in every measurement, the average does not reduce the variability introduced by the $b$ term. This is an important point: it does not matter how many polls you take, this bias does not get reduced.
 
 If we redo the Bayesian calculation taking this variability into account, we get a result much closer to FiveThirtyEight's:
 
@@ -253,7 +256,7 @@ results <- results %>%
   mutate(sd = ifelse(is.na(sd), median(results$sd, na.rm = TRUE), sd))
 ```
 
-To make probabilistic arguments, we will use a Monte Carlo simulation. For each state, we apply the Bayesian approach to generate an election day $d$. We could construct the priors for each state based on recent history. However, to keep it simple, we assign a prior to each state that assumes we know nothing about what will happen. Since from election year to election year the results from a specific state don't change that much, we will assign a standard deviation of 2% or $\tau=0.02$. The Bayesian calculation looks like this:
+To make probabilistic arguments, we will use a Monte Carlo simulation. For each state, we apply the Bayesian approach to generate an election day $d$. We could construct the priors for each state based on recent history. However, to keep it simple, we assign a prior to each state that assumes we know nothing about what will happen. Since from election year to election year the results from a specific state don't change that much, we will assign a standard deviation of 2% or $\tau=0.02$. For now, we will assume, incorrectly, that the poll results from each state are independent. The code for the Bayesian calculation under these assmuption looks like this:
 
 ```{r}
 mu <- 0
@@ -308,7 +311,7 @@ data.frame(clinton_EV) %>%
 
 A similar prediction was made by the Princeton Election Consortium. We now know it was quite off. What happened?
 
-The model above ignores the general bias. After the election, we realized that the general bias in 2016 was not that big: it was between 1 and 2%. But because the election was close in several big states and these states had a large number of polls, pollsters that ignored the general bias greatly underestimated the standard error. Using the notation we introduce, they assumed the standard error was $\sqrt{\sigma^2/N}$ which with large N is quite smaller than the more accurate estimate 
+The model above ignores the general bias and assumes the results from different states are independent. After the election, we realized that the general bias in 2016 was not that big: it was between 1 and 2%. But because the election was close in several big states and these states had a large number of polls, pollsters that ignored the general bias greatly underestimated the standard error. Using the notation we introduce, they assumed the standard error was $\sqrt{\sigma^2/N}$ which with large N is quite smaller than the more accurate estimate 
 $\sqrt{\sigma^2/N + \sigma_b^2}$. FiveThirtyEight, which models the general bias in a rather sophisticated way, reported a closer result. We can simulate the results now with a bias term. For the state level, the general bias can be larger so we set it at $\sigma_b = 0.03$:
 
 
