@@ -60,7 +60,7 @@ This is expected because there are parts of the image that rarely contain writin
 
 The __caret__ packages includes a function that recommends features to be removed due to _near zero variance_:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(caret)
 nzv <- nearZeroVar(x)
 ```
@@ -82,7 +82,7 @@ Now we are ready to fit some models. Before we start, we need to add column name
 
 ```{r}
 colnames(x) <- 1:ncol(mnist$train$images)
-colnames(x_test) <- colnames(mnist$train$images)
+colnames(x_test) <- colnames(x)
 ```
 
 ## k-Nearest Neighbor and Random Forest
@@ -93,7 +93,7 @@ If we run the following code, the computing time on a standard laptop will be se
 
 ```{r mnist-knn-fit, eval=FALSE}
 control <- trainControl(method = "cv", number = 10, p = .9)
-train_knn <- train(x[,col_index], y, 
+train_knn <- train(x[ ,col_index], y, 
                    method = "knn", 
                    tuneGrid = data.frame(k = c(3,5,7)),
                    trControl = control)
@@ -138,22 +138,20 @@ cm$byClass[,1:2]
 Now let's see if we can do even better with the Random Forest algorithm. 
 
 With random forest, computation time is a challenge. For each forest, we need to build hundreds of trees. We also have several parameters we can tune. 
-We use the random forest implementation in the __Rborist__ package, which is faster than the one in the __randomForest__ package.
 
 Because with random forest the fitting is the slowest part of the procedure rather than the predicting (as with kNN), we will use only 5-fold cross validation. We will also reduce the number of trees that are fit since we are not yet building our final model. 
 
 Finally, to compute on a smaller dataset, we will take a random sample of the observations when constructing each tree. We can change this number with the `nSamp` argument.
 
 
-```{r mnist-rf, message=FALSE, warning=FALSE}
-library(Rborist)
-control <- trainControl(method="cv", number = 5, p = 0.8)
-grid <- expand.grid(minNode = c(1) , predFixed = c(10, 15, 35))
+```{r mnist-rf, message=FALSE, warning=FALSE, cache=TRUE}
+library(randomForest)
+control <- trainControl(method="cv", number = 5)
+grid <- data.frame(mtry = c(1, 5, 10, 25, 50, 100))
 
-train_rf <-  train(x[, col_index], 
-                   y, 
-                   method = "Rborist", 
-                   nTree = 50,
+train_rf <-  train(x[, col_index], y, 
+                   method = "rf", 
+                   ntree = 150,
                    trControl = control,
                    tuneGrid = grid,
                    nSamp = 5000)
@@ -162,19 +160,24 @@ ggplot(train_rf)
 train_rf$bestTune
 ```
 
-Now that we have optimized our tree, we are ready to fit our final model:
+Now that we have optimized our algorithm, we are ready to fit our final model:
 
-```{r}
-fit_rf <- Rborist(x[, col_index], y, 
-                  nTree = 1000,
-                  minNode = train_rf$bestTune$minNode,
-                  predFixed = train_rf$bestTune$predFixed)
+```{r, cache=TRUE}
+fit_rf <- randomForest(x[, col_index], y, 
+                       minNode = train_rf$bestTune$mtry)
+```
+
+To check that we ran enough trees we can use the plot function:
+
+```{r, eval=FALSE}
+plot(fit_rf)
 ```
 
 
+We see that we achieve high accuracy:
 
 ```{r}
-y_hat_rf <- factor(levels(y)[predict(fit_rf, x_test[ ,col_index])$yPred])
+y_hat_rf <- predict(fit_rf, x_test[ ,col_index])
 cm <- confusionMatrix(y_hat_rf, y_test)
 cm$overall["Accuracy"]
 ```
@@ -193,28 +196,23 @@ With some further tuning, we can get even higher accuracy.
 
 ## Variable importance 
 
-Unfortunately, the Rborist implementation of random forest does not yet support importance calculations, so we demonstrate with a quick fit using the __randomForest__ package.
-
-```{r, message=FALSE, warning=FALSE}
-library(randomForest)
-rf <- randomForest(x, y,  ntree = 50)
-```
-
 The following function computes the importance of each feature:
 
 ```{r}
-imp <- importance(rf)
+imp <- importance(fit_rf)
 ```
 
 We can see which features are most being used by plotting an image:
 
 ```{r importance-image, fig.width = 4, fig.height = 4}
-image(matrix(imp, 28, 28))
+mat <- rep(0, ncol(x))
+mat[col_index] <- imp
+image(matrix(mat, 28, 28))
 ```
 
 ## Visual assessments
 
-An important part of data science is visualizing results to determine why we are failing. How we do this depends on the application. Below we show the images of digits for which we made an incorrect prediction.
+An important part of data analysis is visualizing results to determine why we are failing. How we do this depends on the application. Below we show the images of digits for which we made an incorrect prediction.
 We can compare what we get with kNN to random forest.
 
 Here are the errors for kNN:
@@ -236,7 +234,7 @@ for(i in ind[1:12]){
 And here are the errors for the random forest:
 
 ```{r rf-images, echo=FALSE, out.width="100%"}
-p_max <- predict(fit_rf, x_test[,col_index])$census  
+p_max <- predict(fit_rf, x_test[,col_index], type = "prob") 
 p_max <- p_max / rowSums(p_max)
 p_max <- apply(p_max, 1, max)
 
@@ -260,7 +258,7 @@ In machine learning, one can usually greatly improve the final results by combin
 Here is a simple example where we compute new class probabilities by taking the average of random forest and kNN. We can see that the accuracy improves to 0.96:
 
 ```{r}
-p_rf <- predict(fit_rf, x_test[,col_index])$census  
+p_rf <- predict(fit_rf, x_test[,col_index], type = "prob")  
 p_rf<- p_rf / rowSums(p_rf)
 p_knn  <- predict(fit_knn, x_test[,col_index])
 p <- (p_rf + p_knn)/2

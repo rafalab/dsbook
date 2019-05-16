@@ -110,7 +110,7 @@ The main function needed to achieve this is `unnest_tokens`. A _token_ refers to
 ```{r}
 poem <- c("Roses are red,", "Violets are blue,", 
           "Sugar is sweet,", "And so are you.")
-example <- data_frame(line = c(1, 2, 3, 4),
+example <- tibble(line = c(1, 2, 3, 4),
                       text = poem)
 example
 example %>% unnest_tokens(word, text)
@@ -143,8 +143,9 @@ campaign_tweets[i,] %>%
 Another minor adjustment we want to make is to remove the links to pictures:
 
 ```{r}
+links <- "https://t.co/[A-Za-z\\d]+|&amp;"
 campaign_tweets[i,] %>% 
-  mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", ""))  %>%
+  mutate(text = str_replace_all(text, links, ""))  %>%
   unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
   pull(word)
 ```
@@ -153,7 +154,7 @@ Now we are now ready to extract the words for all our tweets.
 
 ```{r}
 tweet_words <- campaign_tweets %>% 
-  mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", ""))  %>%
+  mutate(text = str_replace_all(text, links, ""))  %>%
   unnest_tokens(word, text, token = "regex", pattern = pattern) 
 ```
 
@@ -176,7 +177,7 @@ If we filter out rows representing stop words with `filter(!word %in% stop_words
 
 ```{r}
 tweet_words <- campaign_tweets %>% 
-  mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", ""))  %>%
+  mutate(text = str_replace_all(text, links, ""))  %>%
   unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
   filter(!word %in% stop_words$word ) 
 ```
@@ -196,7 +197,7 @@ Some exploration of the resulting words (not shown here) reveals a couple of unw
 
 ```{r}
 tweet_words <- campaign_tweets %>% 
-  mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", ""))  %>%
+  mutate(text = str_replace_all(text, links, ""))  %>%
   unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
   filter(!word %in% stop_words$word &
            !str_detect(word, "^\\d+$")) %>%

@@ -265,8 +265,10 @@ We can see the variability of the estimates by plotting their distributions:
 
 ```{r lse-distributions}
 library(gridExtra)
-p1 <- lse %>% ggplot(aes(beta_0)) + geom_histogram(binwidth = 5, color = "black") 
-p2 <- lse %>% ggplot(aes(beta_1)) + geom_histogram(binwidth = 0.1, color = "black") 
+p1 <- lse %>% ggplot(aes(beta_0)) + 
+  geom_histogram(binwidth = 5, color = "black") 
+p2 <- lse %>% ggplot(aes(beta_1)) + 
+  geom_histogram(binwidth = 0.1, color = "black") 
 grid.arrange(p1, p2, ncol = 2)
 ```
 
@@ -328,7 +330,8 @@ We have shown how BB and singles have similar predictive power for scoring runs.
     ```{r, eval=FALSE}
     library(Lahman)
     dat <- Batting %>% filter(yearID == 2002) %>%
-      mutate(pa = AB + BB, singles = (H - X2B - X3B - HR)/pa, bb = BB/pa) %>%
+      mutate(pa = AB + BB, 
+             singles = (H - X2B - X3B - HR) / pa, bb = BB / pa) %>%
       filter(pa >= 100) %>%
       select(playerID, singles, bb)
     ```
@@ -678,7 +681,8 @@ players <- Batting %>% filter(yearID %in% 1999:2001) %>%
 The player-specific predicted runs computed here can be interpreted as the number of runs we predict a team will score if all batters are exactly like that player. The distribution shows that there is wide variability across players:
 
 ```{r r-hat-hist}
-qplot(R_hat, data = players, geom = "histogram", binwidth = 0.5, color = I("black"))
+qplot(R_hat, data = players, geom = "histogram", binwidth = 0.5, 
+      color = I("black"))
 ```
 
 ### Adding salary and position information
@@ -698,7 +702,8 @@ Next, we add their defensive position. This is a somewhat complicated task becau
 Here, we pick the one position the player most played using the `top_n` function. To make sure we only pick one position, in the case of ties, we pick the first row of the resulting data frame. We also remove the `OF` position which stands for outfielder, a generalization of three positions left field (LF), center field (CF), and right field (RF). We also remove pitchers since they don't bat in the league in which the A's play.
 
 ```{r}
-position_names <- c("G_p","G_c","G_1b","G_2b","G_3b","G_ss","G_lf","G_cf","G_rf")
+position_names <- 
+  paste0("G_", c("p","c","1b","2b","3b","ss","lf","cf","rf"))
 
 tmp_tab <- Appearances %>% 
   filter(yearID == 2002) %>% 
@@ -710,7 +715,7 @@ pos <- tmp_tab %>%
   select(position_names) %>%
   apply(., 1, which.max) 
 
-players <- data_frame(playerID = tmp_tab$playerID, POS = position_names[pos]) %>%
+players <- tibble(playerID = tmp_tab$playerID, POS = position_names[pos]) %>%
   mutate(POS = str_to_upper(str_remove(POS, "G_"))) %>%
   filter(POS != "P") %>%
   right_join(players, by="playerID") %>%
@@ -793,7 +798,7 @@ players %>% mutate(BB = my_scale(BB),
                    AVG = my_scale(AVG),
                    R_hat = my_scale(R_hat)) %>%
   filter(playerID %in% our_team$playerID) %>%
-  select(nameFirst, nameLast, BB, singles, doubles, triples, HR, AVG, R_hat) %>%
+  select(nameLast, BB, singles, doubles, triples, HR, AVG, R_hat) %>%
   arrange(desc(R_hat))
 ```
 

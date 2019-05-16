@@ -326,7 +326,7 @@ Different spans give us different estimates. We can see how different window siz
 ```{r loess-multi-span-animation, echo=FALSE, warning=FALSE, fig.height=6, out.width="100%"} 
 spans <- c(.66, 0.25, 0.15, 0.10)
 
-fits <- data_frame(span = spans) %>% 
+fits <- tibble(span = spans) %>% 
   group_by(span) %>% 
   do(broom::augment(loess(margin ~ day, degree=1, span = .$span, data=polls_2008)))
 
@@ -489,13 +489,14 @@ with $X_1$ and $X_2$ the two predictors defined in Section \@ref(two-or-seven). 
       header <- tmp[-1]
       tail_index  <- str_which(s, "Total")
       n <- str_count(s, "\\d+")
-      out <- c(1:header_index, which(n==1), which(n>=28), tail_index:length(s))
+      out <- c(1:header_index, which(n == 1), 
+               which(n >= 28), tail_index:length(s))
       s[-out] %>%
         str_remove_all("[^\\d\\s]") %>%
         str_trim() %>%
         str_split_fixed("\\s+", n = 6) %>%
         .[,1:5] %>%
-        as_data_frame() %>% 
+        as_tibble() %>% 
         setNames(c("day", header)) %>%
         mutate(month = month,
                day = as.numeric(day)) %>%
@@ -524,7 +525,9 @@ with $X_1$ and $X_2$ the two predictors defined in Section \@ref(two-or-seven). 
     library(broom)
     library(dslabs)
     data("mnist_27")
-    mnist_27$train %>% glm(y ~ x_2, family = "binomial", data = .) %>% tidy()
+    mnist_27$train %>% 
+      glm(y ~ x_2, family = "binomial", data = .) %>% 
+      tidy()
     ```
 
     Plotting a scatterplot here is not useful since `y` is binary:

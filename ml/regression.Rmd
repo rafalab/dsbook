@@ -174,7 +174,7 @@ There are many other versions of `predict` and many machine learning algorithms 
 
     ```{r, eval=FALSE}
     n <- 1000
-    Sigma <- matrix(c(1.0, 0.75, 0.75, 0.75, 1.0, 0, 0.75, 0, 1.0), 3, 3)
+    Sigma <- matrix(c(1, 3/4, 3/4, 3/4, 1, 0, 3/4, 0, 1), 3, 3)
     dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) %>%
       data.frame() %>% setNames(c("y", "x_1", "x_2"))
     ```
@@ -259,7 +259,8 @@ Note: because $p_0(x) = 1 - p_1(x)$, we will only estimate $p_1(x)$ and drop the
 If we convert the factors to 0s and 1s, we can we can estimate $\beta_0$ and $\beta_1$ with least squares. 
 
 ```{r}
-lm_fit <- mutate(train_set, y = as.numeric(sex == "Female")) %>% lm(y ~ height, data = .)
+lm_fit <- mutate(train_set, y = as.numeric(sex == "Female")) %>% 
+  lm(y ~ height, data = .)
 ```
 
 
@@ -402,7 +403,7 @@ with $g(p) = \log \frac{p}{1-p}$ the logistic function described in the previous
 fit_glm <- glm(y ~ x_1 + x_2, data=mnist_27$train, family = "binomial")
 p_hat_glm <- predict(fit_glm, mnist_27$test)
 y_hat_glm <- factor(ifelse(p_hat_glm > 0.5, 7, 2))
-confusionMatrix(data = y_hat_glm, reference = mnist_27$test$y)$overall["Accuracy"]
+confusionMatrix(y_hat_glm, mnist_27$test$y)$overall["Accuracy"]
 ```
 
 Comparing to the results we obtained in Section \@ref(two-or-seven), we see that logistic regression performs similarly to regression. 
@@ -423,7 +424,7 @@ plot_cond_prob <- function(p_hat=NULL){
 ```
 
 ```{r logistic-p-hat}
-p_hat <- predict(fit_glm, newdata = mnist_27$true_p)
+p_hat <- predict(fit_glm, newdata = mnist_27$true_p, type = "response")
 mnist_27$true_p %>% mutate(p_hat = p_hat) %>%
   ggplot(aes(x_1, x_2,  z=p_hat, fill=p_hat)) +
   geom_raster() +
@@ -457,8 +458,10 @@ Thus $x_2$ is a linear function of $x_1$. This implies that, just like regressio
       
       test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
       
-      list(train = data.frame(x = x, y = as.factor(y)) %>% slice(-test_index),
-           test = data.frame(x = x, y = as.factor(y)) %>% slice(test_index))
+      list(train = data.frame(x = x, y = as.factor(y)) %>% 
+             slice(-test_index),
+           test = data.frame(x = x, y = as.factor(y)) %>% 
+             slice(test_index))
     }
     dat <- make_data()
     ```

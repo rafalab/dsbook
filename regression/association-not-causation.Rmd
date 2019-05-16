@@ -35,7 +35,9 @@ A Monte Carlo simulation can be used to show how data dredging can result in fin
 ```{r, cache=TRUE}
 N <- 25
 g <- 1000000
-sim_data <- tibble(group = rep(1:g, each = N), x = rnorm(N * g), y = rnorm(N * g))
+sim_data <- tibble(group = rep(1:g, each=N), 
+                   x = rnorm(N * g), 
+                   y = rnorm(N * g))
 ```
 
 The first column denotes group. We created `r cat(prettyNum(g, big.mark=",",scientific=FALSE))` groups and for each one we generated a pair of independent vectors, $X$ and $Y$, with `r N` observations each, stored in the second and third columns. Because we constructed the simulation, we know that $X$ and $Y$ are not correlated.
@@ -214,7 +216,7 @@ One way to see this is to plot the total percent admitted to a major versus the 
 ```{r uc-berkeley-majors}
 admissions %>% 
   group_by(major) %>% 
-  summarize(major_selectivity = sum(admitted * applicants) / sum(applicants),
+  summarize(major_selectivity = sum(admitted * applicants)/sum(applicants),
             percent_women_applicants = sum(applicants * (gender=="women")) /
                                              sum(applicants) * 100) %>%
   ggplot(aes(major_selectivity, percent_women_applicants, label = major)) +

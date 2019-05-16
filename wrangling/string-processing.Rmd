@@ -19,7 +19,7 @@ By going over these cases studies, we will cover some of the most common tasks i
 
 Base R includes functions to perform all these tasks. However, they don't follow a unifying convention, which makes them a bit hard to memorize and use. The __stringr__ package basically repackages this functionality, but uses a more consistent approach of naming functions and ordering their arguments. For example, in __stringr__, all the string processing functions start with `str_`. This means that if you type `str_` and hit tab, R will auto-complete and show all the available functions. As a result, we don't necessarily have to memorize all the function names. Another advantage is that in the functions in this package the string being processed is always the first argument, which means we can more easily use the pipe. Therefore, we will be start by describing how to use the functions in the  __stringr__ package. 
 
-Most of the examples will come from the second case study which deals with self reported heights by students and most of the chapter is dedicated to learning regular expressions and functions in the __lubridate__ package.
+Most of the examples will come from the second case study which deals with self reported heights by students and most of the chapter is dedicated to learning regular expressions. and functions in the __stringr__ package.
 
 
 ## The stringr package {#stringr}
@@ -78,7 +78,8 @@ In this section we introduce some of the more simple string processing challenge
 ```{r,message=FALSE, warning=FALSE}
 library(rvest)
 url <- paste0("https://en.wikipedia.org/w/index.php?title=",
-              "Gun_violence_in_the_United_States_by_state&direction=prev&oldid=810166167")
+              "Gun_violence_in_the_United_States_by_state",
+              "&direction=prev&oldid=810166167")
 murders_raw <- read_html(url) %>%
   html_nodes("table") %>%
   html_table() %>%
@@ -858,12 +859,18 @@ We now put all of what we have learned together into a function that takes a str
 ```{r}
 convert_format <- function(s){
   s %>%
-    str_replace("feet|foot|ft", "'") %>% #convert feet symbols to '
-    str_replace_all("inches|in|''|\"|cm|and", "") %>%  #remove inches and other symbols
-    str_replace("^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$", "\\1'\\2") %>% #change x.y, x,y x y
-    str_replace("^([56])'?$", "\\1'0") %>% #add 0 when to 5 or 6
-    str_replace("^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2") %>% #change european decimal
-    str_trim() #remove extra space
+    #convert feet, foor and ft to '
+    str_replace("feet|foot|ft", "'") %>% 
+    #remove inches and other symbols
+    str_replace_all("inches|in|''|\"|cm|and", "") %>%  
+    #change x.y, x,y, and x y to x'y"
+    str_replace("^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$", "\\1'\\2") %>% 
+    #add '0 to 5 or 6
+    str_replace("^([56])'?$", "\\1'0") %>% 
+    #change european decimal
+    str_replace("^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2") %>%  
+    #remove extra space
+    str_trim() 
 }
 ```
 
@@ -957,16 +964,20 @@ pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
 smallest <- 50
 tallest <- 84
 new_heights <- reported_heights %>% 
-  mutate(original = height, height = words_to_numbers(height) %>% convert_format()) %>%
+  mutate(original = height, 
+         height = words_to_numbers(height) %>% convert_format()) %>%
   extract(height, c("feet", "inches"), regex = pattern, remove = FALSE) %>% 
   mutate_at(c("height", "feet", "inches"), as.numeric) %>%
-  mutate(guess = 12*feet + inches) %>%
+  mutate(guess = 12 * feet + inches) %>%
   mutate(height = case_when(
-    !is.na(height) & between(height, smallest, tallest) ~ height, #inches 
-    !is.na(height) & between(height/2.54, smallest, tallest) ~ height/2.54, #centimeters
-    !is.na(height) & between(height*100/2.54, smallest, tallest) ~ height*100/2.54,#meters
-    !is.na(guess) & inches < 12 & between(guess, smallest, tallest) ~ guess, #feet'inches
+    is.na(height) ~ as.numeric(NA),
+    between(height, smallest, tallest) ~ height,  #inches
+    between(height/2.54, smallest, tallest) ~ height/2.54, #cm
+    between(height*100/2.54, smallest, tallest) ~ height*100/2.54, #meters
     TRUE ~ as.numeric(NA))) %>%
+  mutate(height = ifelse(is.na(height) & 
+                           inches < 12 & between(guess, smallest, tallest),
+                         guess, height)) %>%
   select(-guess)
 ```
 
@@ -1034,11 +1045,11 @@ map(x, 1)
 To force `map` to return a character vector instead of a list, we can use `map_chr`. Similarly, `map_int` returns integers. So to create our data frame, we can use:
 
 ```{r}
-dat <- data_frame(map_chr(x, 1),  
-                  map_chr(x, 2),
-                  map_chr(x, 3),
-                  map_chr(x, 4),
-                  map_chr(x, 5)) %>%
+dat <- tibble(map_chr(x, 1),  
+              map_chr(x, 2),
+              map_chr(x, 3),
+              map_chr(x, 4),
+              map_chr(x, 5)) %>%
   mutate_all(parse_guess) %>%
   setNames(col_names)
 dat %>% head
@@ -1061,8 +1072,8 @@ It turns out that we can avoid all the work shown above after the call to `str_s
 x <- str_split(lines, ",", simplify = TRUE) 
 col_names <- x[1,]
 x <- x[-1,]
-x %>% as_data_frame() %>%
-  setNames(col_names) %>%
+colnames(x) <- col_names
+x %>% as_tibble() %>%
   mutate_all(parse_guess) %>%
   head(5)
 ```

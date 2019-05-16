@@ -312,7 +312,8 @@ plot(train_rpart)
 The accuracy achieved by this approach is better than what we got with regression, but is not as good as what we achieved with kernel methods:
 
 ```{r}
-confusionMatrix(predict(train_rpart, mnist_27$test), mnist_27$test$y)$overall["Accuracy"]
+y_hat <- predict(train_rpart, mnist_27$test)
+confusionMatrix(y_hat, mnist_27$test$y)$overall["Accuracy"]
 ```
 
 The plot of the estimated conditional probability shows us the limitations of classification trees:
@@ -399,7 +400,7 @@ if(!file.exists(file.path(img_path,"rf.gif"))){
         tmp <- polls_2008[ind,]
         fit <- rpart(margin~day, data = tmp)
         pred <- predict(fit, newdata = tmp)
-        res[[i]] <- data_frame(day = tmp$day, margin=pred)
+        res[[i]] <- tibble(day = tmp$day, margin=pred)
         pred <- predict(fit, newdata = polls_2008)
         sum <- sum+pred
         avg <- sum/i
@@ -441,7 +442,7 @@ if(knitr::is_html_output()){
         tmp <- polls_2008[ind,]
         fit <- rpart(margin~day, data = tmp)
         pred <- predict(fit, newdata = tmp)
-        res[[i]] <- data_frame(day = tmp$day, margin=pred)
+        res[[i]] <- tibble(day = tmp$day, margin=pred)
         pred <- predict(fit, newdata = polls_2008)
         sum <- sum+pred
         avg <- sum/i
@@ -485,13 +486,24 @@ p2 <- plot_cond_prob(predict(train_rf, newdata = mnist_27$true_p, type = "prob")
 grid.arrange(p2, p1, nrow=1)
 ```
 
-Visualizing the estimate shows that, although we obtain high accuracy, it appears that there is room for improvement by making the estimate smoother. This could be achieved by changing the parameter that controls the minimum number of data points in the nodes of the tree. The larger this minimum, the smoother the final estimate will be. We can train the parameters of the random forest. Below, we use the __caret__ package to optimize over the minimum node size. To do this with the __caret__ package, we need to use another implementation random that permits us to optimize for this parameter. The function `Rborist` of the __Rborist__ package permits this. We can run cross validation to choose this parameter using this code:
+Visualizing the estimate shows that, although we obtain high accuracy, it appears that there is room for improvement by making the estimate smoother. This could be achieved by changing the parameter that controls the minimum number of data points in the nodes of the tree. The larger this minimum, the smoother the final estimate will be. We can train the parameters of the random forest. Below, we use the __caret__ package to optimize over the minimum node size. Because, this is not one of the parameters that the __caret__ package optimizes by default we will write our own code:
 
 ```{r, cache=TRUE}
-train_rf_2 <- train(y ~ .,
-      method = "Rborist",
-      tuneGrid = data.frame(predFixed = 2, minNode = c(3, 50)),
-      data = mnist_27$train)
+nodesize <- seq(1, 51, 10)
+acc <- sapply(nodesize, function(ns){
+  train(y ~ ., method = "rf", data = mnist_27$train,
+               tuneGrid = data.frame(mtry = 2),
+               nodesize = ns)$results$Accuracy
+})
+qplot(nodesize, acc)
+```
+
+We can now fit the random forrest with the optimized minimun node size to the entire training data and evaluate performance on the test data.
+
+```{r}
+train_rf_2 <- randomForest(y ~ ., data=mnist_27$train,
+                           nodesize = nodesize[which.max(acc)])
+
 confusionMatrix(predict(train_rf_2, mnist_27$test), mnist_27$test$y)$overall["Accuracy"]
 ```
 
@@ -505,6 +517,10 @@ p2 <- plot_cond_prob(predict(train_rf_2, newdata = mnist_27$true_p, type="prob")
 
 grid.arrange(p2, p1, nrow=1)
 ```
+
+
+Note that we can avoid writing our own code by using other Random Forest implementions as described [here](http://topepo.github.io/caret/available-models.html).
+
 
 Random forest performs better in all the examples we have considered. However, a disadvantage of random forests is that we lose interpretability. An approach that helps with interpretability is to examine _variable importance_.
 To define _variable importance_ we count how often a predictor is used in the individual trees. You can learn more about _variable importance_ in an advanced [machine learning book](https://web.stanford.edu/~hastie/Papers/ESLII.pdf). The __caret__ package includes the function `varImp` that extracts variable importance from any model in which the calculation is implemented. We give an example on how we use variable importance in the next section.

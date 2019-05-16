@@ -63,7 +63,7 @@ Note that we are completely ignoring the predictor and simply guessing the sex.
 In machine learning applications, it is useful to use factors to represent the categorical outcomes because R functions developed for machine learning, such as those in the __caret__ package, require or recommend that categorical outcomes be coded as factors. So convert `y_hat` to factors using the `factor` function:
 
 ```{r}
-y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE) %>% 
+y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE) %>%
   factor(levels = levels(test_set$sex))
 ```
 
@@ -84,7 +84,8 @@ heights %>% group_by(sex) %>% summarize(mean(height), sd(height))
 But how do we make use of this insight? Let's try another simple approach: predict `Male` if height is within two standard deviations from the average male:
 
 ```{r}
-y_hat <- ifelse(x > 62, "Male", "Female") %>% factor(levels = levels(test_set$sex))
+y_hat <- ifelse(x > 62, "Male", "Female") %>% 
+  factor(levels = levels(test_set$sex))
 ```
 
 The accuracy goes up from 0.50 to about 0.80:
@@ -329,7 +330,8 @@ guessing <- map_df(probs, function(p){
        FPR = 1 - specificity(y_hat, test_set$sex),
        TPR = sensitivity(y_hat, test_set$sex))
 })
-guessing %>% qplot(FPR, TPR, data =., xlab = "1 - Specificity", ylab = "Sensitivity")
+guessing %>% 
+  qplot(FPR, TPR, data =., xlab = "1 - Specificity", ylab = "Sensitivity")
 ```
 
 The ROC curve for guessing always looks like a straight line.  So how does our second approach compare? We can construct an ROC curve for the height-based approach:
@@ -495,7 +497,8 @@ dat <- mutate(reported_heights, date_time = ymd_hms(time_stamp)) %>%
   filter(date_time >= make_date(2016, 01, 25) & 
            date_time < make_date(2016, 02, 1)) %>%
   mutate(type = ifelse(day(date_time) == 25 & 
-                         hour(date_time) == 8 & between(minute(date_time), 15, 30),
+                         hour(date_time) == 8 & 
+                         between(minute(date_time), 15, 30),
                        "inclass", "online")) %>%
   select(sex, type)
 
