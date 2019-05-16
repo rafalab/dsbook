@@ -290,9 +290,9 @@ clinton_EV <- replicate(B, {
                    B = sigma^2 / (sigma^2 + tau^2),
                    posterior_mean = B * mu + (1 - B) * avg,
                    posterior_se = sqrt(1 / (1/sigma^2 + 1/tau^2)),
-                   simulated_result = rnorm(length(posterior_mean), 
-                                            posterior_mean, posterior_se),
-                   clinton = ifelse(simulated_result>0, electoral_votes, 0)) %>% 
+                   result = rnorm(length(posterior_mean), 
+                                  posterior_mean, posterior_se),
+                   clinton = ifelse(result > 0, electoral_votes, 0)) %>% 
     summarize(clinton = sum(clinton)) %>% 
     pull(clinton) + 7
 })
@@ -323,9 +323,9 @@ clinton_EV_2 <- replicate(1000, {
                    B = sigma^2 / (sigma^2 + tau^2),
                    posterior_mean = B*mu + (1-B)*avg,
                    posterior_se = sqrt( 1/ (1/sigma^2 + 1/tau^2)),
-                   simulated_result = rnorm(length(posterior_mean), 
-                                            posterior_mean, posterior_se),
-                   clinton = ifelse(simulated_result>0, electoral_votes, 0)) %>% 
+                   result = rnorm(length(posterior_mean), 
+                                  posterior_mean, posterior_se),
+                   clinton = ifelse(result>0, electoral_votes, 0)) %>% 
     summarize(clinton = sum(clinton) + 7) %>% 
     pull(clinton)
 })
@@ -363,13 +363,14 @@ Since there is no pollster effect, then perhaps the theoretical standard error m
 ```{r}
 se <- one_pollster %>% 
   summarize(empirical = sd(spread), 
-            theoretical = 2*sqrt(mean(spread)*(1-mean(spread))/min(samplesize)))
+            theoretical = 2 * sqrt(mean(spread) * (1 - mean(spread)) /
+                                     min(samplesize)))
 se
 ```
 
 But the empirical standard deviation is higher than the highest possible theoretical estimate. Furthermore, the spread data does not look normal as the theory would predict:
 
-```{r time-trend-variability}
+```{r time-trend-variability, echo=FALSE}
 qplot(spread, geom = "histogram", binwidth = 0.01, data = one_pollster, color = I("black"))
 ```
 
