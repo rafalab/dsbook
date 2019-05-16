@@ -4,7 +4,7 @@
 img_path <- "wrangling/img/"
 ```
 
-As we have seen throught the book, having data in _tidy_ format is what makes the tidyverse flow. After the first step in the data analysis process, importing data, a common next step is to reshape the data into a form that facilitates the rest of the analysis. The __tidyr__ package includes several functions that are useful for tidying data. 
+As we have seen through the book, having data in _tidy_ format is what makes the tidyverse flow. After the first step in the data analysis process, importing data, a common next step is to reshape the data into a form that facilitates the rest of the analysis. The __tidyr__ package includes several functions that are useful for tidying data. 
 
 We will use the fertility wide format dataset described in Section \@ref(tidy-data) as an example in this section. 
 
@@ -12,7 +12,7 @@ We will use the fertility wide format dataset described in Section \@ref(tidy-da
 library(tidyverse) 
 library(dslabs)
 path <- system.file("extdata", package="dslabs")
-filename <- file.path(path,  "fertility-two-countries-example.csv")
+filename <- file.path(path, "fertility-two-countries-example.csv")
 wide_data <- read_csv(filename)
 ```
 
@@ -96,7 +96,7 @@ The following diagram can help remind you how these two functions work:
 knitr::include_graphics(file.path(img_path,"gather-spread.png"))
 ```
 
-(Source: RStudio)
+(Source: RStudio. The image is a section of this [cheat sheet](https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf).)
 
 ## `separate` {#separate}
 
@@ -104,7 +104,8 @@ The data wrangling shown above was simple compared to what is usually required. 
 
 ```{r, message=FALSE}
 path <- system.file("extdata", package = "dslabs")
-filename <- file.path(path, "life-expectancy-and-fertility-two-countries-example.csv")
+filename <- file.path(path, 
+                      "life-expectancy-and-fertility-two-countries-example.csv")
 
 raw_dat <- read_csv(filename)
 select(raw_dat, 1:5)
@@ -140,7 +141,8 @@ dat %>% separate(key, c("year", "variable_name"))
 The function does separate the values, but we run into a new problem. We receive the warning `Too many values at 112 locations:` and that the `life_expectancy` variable is truncated to `life`. This is because the `_` is used to separate `life` and `expectancy`, not just year and variable name! We could add a third column to catch this and let the `separate` function know which column to _fill in_ with missing values, `NA`, when there is no third value. Here we tell it to fill the column on the right:
 
 ```{r}
-dat %>% separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right")
+var_names <- c("year", "first_variable_name", "second_variable_name")
+dat %>% separate(key, var_names, fill = "right")
 ```
 
 However, if we read the `separate` help file, we find that a better approach is to merge the last two variables when there is an extra separation:
@@ -165,15 +167,15 @@ It is sometimes useful to do the inverse of `separate`, unite two columns into o
 
 ```{r}
 dat %>% 
-  separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right")
+  separate(key, var_names, fill = "right")
 ```
 
 We can achieve the same final result by uniting the second and third columns, then spreading the columns and renaming `fertility_NA` to `fertility`:
 
 ```{r}
 dat %>% 
-  separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
-  unite(variable_name, first_variable_name, second_variable_name, sep="_") %>%
+  separate(key, var_names, fill = "right") %>%
+  unite(variable_name, first_variable_name, second_variable_name) %>%
   spread(variable_name, value) %>%
   rename(fertility = fertility_NA)
 ```
