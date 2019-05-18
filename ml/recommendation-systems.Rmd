@@ -574,9 +574,10 @@ lambda
 
 
 ```{r}
-rmse_results <- bind_rows(rmse_results,
-                          tibble(method="Regularized Movie + User Effect Model",  
-                                 RMSE = min(rmses)))
+rmse_results <- bind_rows(
+  rmse_results,
+  tibble(method="Regularized Movie + User Effect Model",  
+         RMSE = min(rmses)))
 rmse_results %>% knitr::kable()
 
 ```
@@ -952,7 +953,8 @@ k <- 8
 Sigma <- 64  * matrix(c(1, .75, .5, .75, 1, .5, .5, .5, 1), 3, 3) 
 m <- MASS::mvrnorm(n, rep(0, 3), Sigma)
 m <- m[order(rowMeans(m), decreasing = TRUE),]
-y <- m %x% matrix(rep(1, k), nrow = 1) + matrix(rnorm(matrix(n*k*3)), n, k*3)
+y <- m %x% matrix(rep(1, k), nrow = 1) +
+  matrix(rnorm(matrix(n * k * 3)), n, k * 3)
 colnames(y) <- c(paste(rep("Math",k), 1:k, sep="_"),
                  paste(rep("Science",k), 1:k, sep="_"),
                  paste(rep("Arts",k), 1:k, sep="_"))
@@ -1084,7 +1086,7 @@ plot `ss_y` against the column number and then do the same for `ss_yv`. What do 
     We know it explains `s$d[1]^2/sum(s$d^2) * 100` percent of the total variability.  Our approximation only explains the observation that good students tend to be good in all subjects. But another aspect of the original data that our approximation does not explain was the higher similarity we observed within subjects. We can see this by computing the difference between our approximation and original data and then computing the correlations. You can see this by running this code:
 
     ```{r, eval=FALSE}
-    resid <- y - with(s,(u[, 1, drop=FALSE]*d[1]) %*% t(v[, 1, drop=FALSE]))
+    resid <- y - with(s,(u[,1, drop=FALSE]*d[1]) %*% t(v[,1, drop=FALSE]))
     my_image(cor(resid), zlim = c(-1,1))
     axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
     ```
@@ -1105,7 +1107,7 @@ plot `ss_y` against the column number and then do the same for `ss_yv`. What do 
     percent of the total variability. We can compute new residuals like this:
     
     ```{r,eval=FALSE}
-    resid <- y - with(s,sweep(u[, 1:2], 2, d[1:2], FUN="*") %*% t(v[, 1:2]))
+    resid <- y - with(s,sweep(u[,1:2], 2, d[1:2], FUN="*") %*% t(v[,1:2]))
     my_image(cor(resid), zlim = c(-1,1))
     axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
     ```
@@ -1128,7 +1130,7 @@ plot `ss_y` against the column number and then do the same for `ss_yv`. What do 
     percent of the total variability. We can compute new residuals like this:
 
     ```{r,eval=FALSE}
-    resid <- y - with(s,sweep(u[, 1:3], 2, d[1:3], FUN="*") %*% t(v[, 1:3]))
+    resid <- y - with(s,sweep(u[,1:3], 2, d[1:3], FUN="*") %*% t(v[,1:3]))
     my_image(cor(resid), zlim = c(-1,1))
     axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
     ```

@@ -23,6 +23,14 @@ Although typically the results of these polls are kept private, similar polls ar
 url <- "https://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html"
 library(rvest)
 tab <- read_html(url) %>% html_node("table") %>% html_table()
+tab <- tab %>% mutate(Poll = stringr::str_remove(Poll, "\\/.*")) %>%
+  mutate(Poll = case_when(
+    Poll == "BloombergBloomberg" ~ "Bloomberg",
+    Poll == "FOX NewsFOX News" ~ "FOX News",
+    Poll == "MonmouthMonmouth"  ~ "Monmouth",  
+    Poll == "CBS NewsCBS News" ~ "CBS News",
+    TRUE ~ Poll))
+names(tab) <- stringr::str_remove_all(names(tab), "\\s(.*)")    
 tab %>% knitr::kable()
 ```
 
