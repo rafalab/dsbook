@@ -1,6 +1,6 @@
 # The tidyverse  {#tidyverse}
 
-Up to now we have been manipulating vectors by reordering and subsetting them through indexing. However, once we start more advanced analyses, the preferred unit for data storage is not the vector but the data frame.  In this chapter we learn to work directly with data frames, which greatly facilitate the organization of information.. We will be using data frames for the majority of this book. We will focus on a specific data format referred to as _tidy_ and on specific collection of packages that are particularly helpful for working with _tidy_ data referred to as the _tidyverse_.
+Up to now we have been manipulating vectors by reordering and subsetting them through indexing. However, once we start more advanced analyses, the preferred unit for data storage is not the vector but the data frame.  In this chapter we learn to work directly with data frames, which greatly facilitate the organization of information. We will be using data frames for the majority of this book. We will focus on a specific data format referred to as _tidy_ and on specific collection of packages that are particularly helpful for working with _tidy_ data referred to as the _tidyverse_.
 
 We can load all the tidyverse packages at once by installing and loading the __tidyverse__ package:
 
@@ -267,12 +267,14 @@ Note that the pipe works well with functions where the first argument is the inp
 1. The pipe `%>%` can be used to perform operations sequentially without having to define intermediate objects. Start by redefining murder to include rate and rank.
 
     ```{r, eval=FALSE}
-    murders <- mutate(murders, rate =  total / population * 100000, rank = rank(-rate))
+    murders <- mutate(murders, rate =  total / population * 100000, 
+                      rank = rank(-rate))
     ```
 
     In the solution to the previous exercise, we did the following:
     ```{r, eval=FALSE}
-    my_states <- filter(murders, region %in% c("Northeast", "West") & rate < 1)
+    my_states <- filter(murders, region %in% c("Northeast", "West") & 
+                          rate < 1)
 
     select(my_states, state, rate, rank)
     ```
@@ -280,7 +282,8 @@ Note that the pipe works well with functions where the first argument is the inp
     The pipe `%>%` permits us to perform both operations sequentially without having to define an intermediate variable `my_states`. We therefore could have mutated and selected in the same line like this:
 
     ```{r, eval=FALSE}
-    mutate(murders, rate =  total / population * 100000, rank = rank(-rate)) %>%
+    mutate(murders, rate =  total / population * 100000, 
+           rank = rank(-rate)) %>%
       select(state, rate, rank)
     ```
 
@@ -338,7 +341,8 @@ As with most other __dplyr__ functions, `summarize` is aware of the variable nam
 ```{r}
 heights %>% 
   filter(sex == "Female") %>%
-  summarize(median = median(height), minimum = min(height), maximum = max(height))
+  summarize(median = median(height), minimum = min(height), 
+            maximum = max(height))
 ```
 
 We can obtain these three values with just one line using the `quantile` function: for example, `quantile(x, c(0,0.5,1))` returns the min (0th percentile), median (50th percentile), and max (100th percentile) of the vector `x`. However, if we attempt to use a function like this that returns two or more values inside `summarize`:
@@ -611,12 +615,12 @@ tibble(id = c(1, 2, 3), func = c(mean, median, sd))
 
 The function `group_by` returns a special kind of tibble: a grouped tibble. This class stores information that lets you know which rows are in which groups. The tidyverse functions, in particular the `summarize` function, are aware of the group information. 
 
-### Create a tibble using `data_frame` instead of `data.frame`
+### Create a tibble using `tibble` instead of `data.frame`
 
-It is sometimes useful for us to create our own data frames. To create a data frame in the tibble format, you can do this by using the `data_frame` function.   
+It is sometimes useful for us to create our own data frames. To create a data frame in the tibble format, you can do this by using the `tibble` function.   
 
 ```{r}
-grades <- data_frame(names = c("John", "Juan", "Jean", "Yao"), 
+grades <- tibble(names = c("John", "Juan", "Jean", "Yao"), 
                      exam_1 = c(95, 80, 90, 85), 
                      exam_2 = c(90, 85, 85, 90))
 grades
@@ -700,7 +704,7 @@ First we have to write a function that fits into the tidyverse approach: that is
 ```{r}
 my_summary <- function(dat){
   x <- quantile(dat$height, c(0, 0.5, 1))
-  data_frame(min = x[1], median = x[2], max = x[3])
+  tibble(min = x[1], median = x[2], max = x[3])
 }
 ```
 
@@ -785,7 +789,7 @@ We need to change the function to make this work:
 ```{r}
 compute_s_n <- function(n){
   x <- 1:n
-  data_frame(sum = sum(x))
+  tibble(sum = sum(x))
 }
 s_n <- map_df(n, compute_s_n)
 head(s_n)

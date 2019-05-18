@@ -18,11 +18,15 @@ Although typically the results of these polls are kept private, similar polls ar
 
 [Real Clear Politics](http://www.realclearpolitics.com) is an example of a news aggregator that organizes and publishes poll results. For example, [here](http://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html) are examples of polls reporting estimates of the popular vote for the 2016 presidential election:
 
-```{r, echo=FALSE}
-knitr::include_graphics(file.path(img_path,"rcp-polls.png"))
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#knitr::include_graphics(file.path(img_path,"rcp-polls.png"))
+url <- "https://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html"
+library(rvest)
+tab <- read_html(url) %>% html_node("table") %>% html_table()
+tab %>% knitr::kable()
 ```
 
-(Source: [Real Clear Politics](https://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html))
+<!-- (Source: [Real Clear Politics](https://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html)) -->
 
 Although in the United States the popular vote does not determine the result of the presidential election, we will use it as an illustrative and simple example of how well polls work. Forecasting the election is a more complex process since it involves combining results from 50 states and DC and we describe it in Section \@ref(election-forecasting).
 
@@ -38,7 +42,7 @@ We start by connecting probability theory to the task of using polls to learn ab
 To help us understand the connection between polls and what we have learned, let's construct a similar situation to the one pollsters face. To mimic the challenge real pollsters face in terms of competing with other pollsters for media attention, we will use an urn full of beads to represent  voters and pretend we are competing for a \$25 dollar prize. The challenge is to guess the spread between the proportion of blue and red beads in this urn (in this case, a pickle jar):
 
 
-```{r, echo=FALSE, out.width="3in"}
+```{r, echo=FALSE, out.width="1.5in"}
 knitr::include_graphics(file.path(img_path, "urn.jpg"))
 ```
 

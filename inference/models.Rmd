@@ -98,26 +98,85 @@ ggplot(polls2, aes(poll, estimate, ymin=low, ymax=high, color=col)) +
 
 Of course, this was just a simulation to illustrate the idea. The actual data science exercise of forecasting elections is much more complicated and it involves modeling. Below we explain how pollsters fit multilevel models to the data and use this to forecast election results. In the 2008 and 2012 US presidential elections, Nate Silver used this approach to make an almost perfect prediction and silence the pundits.
 
-Since the 2008 elections, other organizations have started their own election forecasting group that, like Nate Silver's, aggregates polling data and uses statistical models to make predictions. In 2016, forecasters underestimated Trump's chances of winning greatly. 
+Since the 2008 elections, other organizations have started their own election forecasting group that, like Nate Silver's, aggregates polling data and uses statistical models to make predictions. In 2016, forecasters underestimated Trump's chances of winning greatly. The day before the election the  [New York Times reported](https://www.nytimes.com/interactive/2016/upshot/presidential-polls-forecast.html) the following probabilities for Hilary Clinton:
 
 
 ```{r, echo=FALSE, out.width="100%"}
-knitr::include_graphics(file.path(img_path, "pollster-2016-predictions.png"))
+#knitr::include_graphics(file.path(img_path, "pollster-2016-predictions.png"))
+tmp <- data.frame(NYT = "  85%", `538` = "  71%", HuffPost = "  98%", PW = "  89%", PEC = " >99%", DK = "  92%", Cook = " Lean Dem", Roth = " Lean Dem", check.names = FALSE, row.names = "Win presidency:")
+tmp
 ```
 
-(Source: [New York Times](https://www.nytimes.com/interactive/2016/upshot/presidential-polls-forecast.html))
+<!--(Source: [New York Times](https://www.nytimes.com/interactive/2016/upshot/presidential-polls-forecast.html))-->
 
-For example, the Princeton Election Consortium gave Trump less than 1% chance of winning, while the Huffington Post gave him a 2% chance. In contrast, FiveThirtyEight had Trump's probability of winning at 29%, higher than tossing two coins and getting two heads. In fact, four days before the election FiveThirtyEight published an article titled [_Trump Is Just A Normal Polling Error Behind Clinton_](https://fivethirtyeight.com/features/trump-is-just-a-normal-polling-error-behind-clinton/). 
+For example, the Princeton Election Consortium (PEC) gave Trump less than 1% chance of winning, while the Huffington Post gave him a 2% chance. In contrast, FiveThirtyEight had Trump's probability of winning at 29%, higher than tossing two coins and getting two heads. In fact, four days before the election FiveThirtyEight published an article titled [_Trump Is Just A Normal Polling Error Behind Clinton_](https://fivethirtyeight.com/features/trump-is-just-a-normal-polling-error-behind-clinton/). 
 By understanding statistical models and how these forecasters use them, we will start to understand how this happened.
 
-Although not nearly as interesting as predicting the electoral college, for illustrative purposes we will start by looking at predictions for the popular vote. FiveThirtyEight predicted a 3.6% advantage for Clinton, included the actual result of 2.1% (48.2% to 46.1%) in their interval, and was much more confident about Clinton winning the election, giving her a 81.4% chance.
+Although not nearly as interesting as predicting the electoral college, for illustrative purposes we will start by looking at predictions for the popular vote. FiveThirtyEight [predicted a 3.6% advantage for Clinton]([FiveThirtyEight](https://projects.fivethirtyeight.com/2016-election-forecast/)), included the actual result of 2.1% (48.2% to 46.1%) in their interval, and was much more confident about Clinton winning the election, giving her a 81.4% chance. Their prediction was summarized with a chart like this: 
 
 
-```{r, echo=FALSE}
-knitr::include_graphics(file.path(img_path, "popular-vote-538.png"))
+```{r, echo=FALSE, out.width="100%", fig.height=2}
+## knitr::include_graphics(file.path(img_path, "popular-vote-538.png"))
+
+my_dgamma <- function(x, mean = 1, sd = 1){
+  shape = mean^2/sd^2
+  scale = sd^2 / mean
+  dgamma(x, shape = shape, scale = scale)
+}
+
+my_qgamma <- function(mean = 1, sd = 1){
+  shape = mean^2/sd^2
+  scale = sd^2 / mean
+  qgamma(c(0.1,0.9), shape = shape, scale = scale)
+}
+
+tmp <- tibble(candidate = c("Clinton", "Trump", "Johnson"), avg = c(48.5, 44.9, 5.0), avg_txt = c("48.5%", "44.9%", "5.0%"), sd = rep(2, 3), m = my_dgamma(avg, avg, sd)) %>%
+  mutate(candidate = reorder(candidate, -avg))
+
+xx <- seq(0, 75, len = 300)
+tmp_2 <- map_df(1:3, function(i){
+  tibble(candidate = tmp$candidate[i],
+         avg = tmp$avg[i],
+         sd = tmp$sd[i],
+         x = xx,
+         y = my_dgamma(xx, tmp$avg[i], tmp$sd[i]))
+})
+
+tmp_3 <- map_df(1:3, function(i){
+  qq <- my_qgamma(tmp$avg[i], tmp$sd[i])
+  xx <- seq(qq[1], qq[2], len = 200)
+  tibble(candidate = tmp$candidate[i],
+         avg = tmp$avg[i],
+         sd = tmp$sd[i],
+         x = xx,
+         y = my_dgamma(xx, tmp$avg[i], tmp$sd[i]))
+})
+         
+tmp_2 %>% 
+  ggplot(aes(x, ymax = y, ymin = 0)) +
+  geom_ribbon(fill = "grey") + 
+  facet_grid(candidate~., switch="y") +
+  scale_x_continuous(breaks = seq(0, 75, 25), position = "top",
+                     label= paste0(seq(0, 75, 25), "%")) +
+  geom_abline(intercept = 0, slope = 0) +
+  xlab("") + ylab("") + 
+  theme_minimal() + 
+  theme(panel.grid.major.y = element_blank(), 
+        panel.grid.minor.y = element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        strip.text.y = element_text(angle = 180, size = 11, vjust = 0.2)) + 
+  geom_ribbon(data = tmp_3, mapping = aes(x = x, ymax = y, ymin = 0, fill = candidate), inherit.aes = FALSE, show.legend = FALSE) +
+  scale_fill_manual(values = c("#3cace4", "#fc5c34", "#fccc2c")) +
+  geom_point(data = tmp, mapping = aes(x = avg, y = m), inherit.aes = FALSE) + 
+  geom_text(data = tmp, mapping = aes(x = avg, y = m, label = avg_txt), inherit.aes = FALSE, hjust = 0, nudge_x = 1) 
+  
+  
 ```
 
-(Source: [FiveThirtyEight](https://projects.fivethirtyeight.com/2016-election-forecast/))
+The colored areas represent values with an 80% chance of including the actual result, according to the FiveThirtyEight model.
+<!--(Source: [FiveThirtyEight](https://projects.fivethirtyeight.com/2016-election-forecast/))-->
 
 We introduce actual data from the 2016 US presidential election to show how models are motivated and built to produce these predictions. To understand the "81.4% chance" statement we need to describe Bayesian statistics, which we do in Sections \@ref(bayesian-statistics) and \@ref(bayesian-approach). 
 
