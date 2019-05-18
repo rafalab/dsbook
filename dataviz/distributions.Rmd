@@ -1,6 +1,6 @@
 # Visualizing data distributions {#distributions}
 
-You may have noticed that numerical data is often summarized with the _average_ value. For example, the quality of a high school is sometimes summarized with one number: the average score on a standardized test. Occasionally, a second number is reported: the _standard deviation_. For example, you might read a report stating that scores were 680 plus or minus 50 (the standard deviation). The report has summarized an entire vector of scores with with just two numbers. Is this appropriate? Is there any important piece of information that we are missing by only looking at this summary rather than the entire list? 
+You may have noticed that numerical data is often summarized with the _average_ value. For example, the quality of a high school is sometimes summarized with one number: the average score on a standardized test. Occasionally, a second number is reported: the _standard deviation_. For example, you might read a report stating that scores were 680 plus or minus 50 (the standard deviation). The report has summarized an entire vector of scores with just two numbers. Is this appropriate? Is there any important piece of information that we are missing by only looking at this summary rather than the entire list? 
 
 Our first data visualization building block is learning to summarize lists of factors or numeric vectors. More often than not, the best way to share or explore this summary is through data visualization. The most basic statistical summary of a list of objects or numbers is its distribution. Once a vector has been summarized as a distribution, there are several data visualization techniques to effectively relay this information.
 
@@ -129,7 +129,7 @@ x %>% ggplot(aes(height)) + geom_histogram(binwidth = 1, color = "black")
 
 The smaller we make the bins, the smoother the histogram gets. Here are the histograms with bin width of 1, 0.5 and 0.1:
 
-```{r simulated-data-histogram-2, fig.width=10, fig.height=3.708,  out.width = "100%",echo=FALSE, message=FALSE}
+```{r simulated-data-histogram-2, fig.width=9, fig.height=3,  out.width = "100%",echo=FALSE, message=FALSE}
 p1 <- x %>% ggplot(aes(height)) + geom_histogram(binwidth = 1, color = "black") + ggtitle("binwidth=1")
 p2 <- x %>% ggplot(aes(height)) + geom_histogram(binwidth = 0.5, color="black") + ggtitle("binwidth=0.5") 
 p3 <- x %>% ggplot(aes(height)) + geom_histogram(binwidth = 0.1) + ggtitle("binwidth=0.1")
@@ -171,7 +171,7 @@ grid.arrange(hist1, hist3, hist4, hist5, hist2, hist6, nrow=2)
 However, remember that _smooth_ is a relative term. We can actually control the _smoothness_ of the curve that defines the smooth density through an option in the function that computes the smooth density curve. Here are two examples using different degrees of smoothness on the same histogram:
 
 
-```{r densities-different-smoothness, echo = FALSE, out.width = "100%"}
+```{r densities-different-smoothness, echo = FALSE, out.width = "100%", fig.width = 6, fig.height = 3}
 p1 <- heights %>% 
   filter(sex=="Male")%>% ggplot(aes(height)) +
   geom_histogram(aes(y=..density..), binwidth = 1) + 
@@ -570,7 +570,7 @@ Another special case that receives a name are the _quartiles_, which are obtaine
 To introduce boxplots we will go back to the US murder data. 
 Suppose we want to summarize the murder rate distribution. Using the data visualization technique we have learned, we can quickly see that the normal approximation does not apply here:
 
-```{r hist-qqplot-non-normal-data, out.width = "100%", echo=FALSE}
+```{r hist-qqplot-non-normal-data, out.width = "100%",  fig.width = 6, fig.height = 3, echo=FALSE}
 data(murders)
 murders <- murders %>% mutate(rate = total/population*100000)
 library(gridExtra)
@@ -620,7 +620,7 @@ heights %>% ggplot(aes(x=sex, y=height, fill=sex)) +
 The plot immediately reveals that males are, on average, taller than females. The standard deviations appear to be similar. But does the normal approximation also work for the female height data collected by the survey. We expect that they will follow a normal distribution, just like males. However, exploratory plots reveal that the approximation is not as useful:
  
 
-```{r histogram-qqplot-female-heights, echo=FALSE, out.width="100%"}
+```{r histogram-qqplot-female-heights, echo=FALSE, out.width="100%",  fig.width = 6, fig.height = 3}
 p1 <- heights %>% filter(sex=="Female") %>%
   ggplot(aes(height)) +
   geom_density(fill="#F8766D") 
@@ -636,7 +636,9 @@ However, go back and read Tukey's quote. We have noticed what we didn't expect t
 
 Regarding the five smallest values, note that these values are:
 ```{r}
-heights %>% filter(sex=="Female") %>% top_n(5, desc(height)) %>% pull(height)
+heights %>% filter(sex=="Female") %>% 
+  top_n(5, desc(height)) %>%
+  pull(height)
 ```
 
 Because these are reported heights, a possibility is that the student meant to enter 5'1", 5'2", 5'3" or 5'5". 

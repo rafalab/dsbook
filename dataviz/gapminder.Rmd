@@ -46,7 +46,7 @@ Turkey has the higher infant mortality rate.
 
 We can use this code on all comparisons and find the following:
 ```{r, echo = FALSE}
-comp_table <- data_frame(comparison = rep(1:5, each = 2),
+comp_table <- tibble(comparison = rep(1:5, each = 2),
            country = c("Sri Lanka", "Turkey", "Poland", "South Korea", "Malaysia", "Russia", "Pakistan","Vietnam","Thailand","South Africa"))
 
 tmp <- gapminder %>% 
@@ -378,10 +378,13 @@ The exploratory data analysis above has revealed two characteristics about avera
 gapminder <- gapminder %>% 
   mutate(group = case_when(
     region %in% c("Western Europe", "Northern Europe","Southern Europe", 
-                    "Northern America", "Australia and New Zealand") ~ "West",
+                    "Northern America", 
+                  "Australia and New Zealand") ~ "West",
     region %in% c("Eastern Asia", "South-Eastern Asia") ~ "East Asia",
-    region %in% c("Caribbean", "Central America", "South America") ~ "Latin America",
-    continent == "Africa" & region != "Northern Africa" ~ "Sub-Saharan Africa",
+    region %in% c("Caribbean", "Central America", 
+                  "South America") ~ "Latin America",
+    continent == "Africa" & 
+      region != "Northern Africa" ~ "Sub-Saharan Africa",
     TRUE ~ "Others"))
 ```
 
@@ -389,8 +392,9 @@ We turn this `group` variable into a factor to control the order of the levels:
 
 ```{r}
 gapminder <- gapminder %>% 
-  mutate(group = factor(group, 
-                        levels = c("Others", "Latin America", "East Asia", "Sub-Saharan Africa", "West")))
+  mutate(group = factor(group, levels = c("Others", "Latin America", 
+                                          "East Asia", "Sub-Saharan Africa",
+                                          "West")))
 ```
 
 We now want to compare the distribution across these five groups to confirm the "west versus the rest" dichotomy. The number of points in each category is large enough that a summary plot may be useful. We could generate five histograms or five density plots, but it may be more practical to have all the visual summaries in one plot. We therefore start by stacking boxplots next to each other. 
@@ -449,8 +453,9 @@ p + geom_density_ridges(jittered_points = TRUE)
 By default, the height of the points is jittered and should not be interpreted in any way. To show data points, but without using jitter we can use the following code to add what is referred to as a _rug representation_ of the data.  
 ```{r ridge-plot-with-rug, message=FALSE}
 p + geom_density_ridges(jittered_points = TRUE, 
-                        position = position_points_jitter(width = 0.05, height = 0),
-                        point_shape = '|', point_size = 3, point_alpha = 1, alpha = 0.7)
+                        position = position_points_jitter(height = 0),
+                        point_shape = '|', point_size = 3, 
+                        point_alpha = 1, alpha = 0.7)
 ```
 
 
@@ -461,8 +466,9 @@ Data exploration clearly shows that in 1970 there was a "west versus the rest" d
 ```{r income-hist-west-v-developing-two-years}
 past_year <- 1970
 present_year <- 2010
+years <- c(past_year, present_year)
 gapminder %>% 
-  filter(year %in% c(past_year, present_year) & !is.na(gdp)) %>%
+  filter(year %in% years & !is.na(gdp)) %>%
   mutate(west = ifelse(group == "West", "West", "Developing")) %>%
   ggplot(aes(dollars_per_day)) +
   geom_histogram(binwidth = 1, color = "black") +
@@ -493,7 +499,7 @@ Let's remake the plot, but only for this subset by simply adding ` country %in% 
 
 ```{r income-histogram-west-v-devel, echo=FALSE}
 gapminder %>% 
-  filter(year %in% c(past_year, present_year) & country %in% country_list) %>%
+  filter(year %in% years & country %in% country_list) %>%
   mutate(west = ifelse(group == "West", "West", "Developing")) %>%
   ggplot(aes(dollars_per_day)) +
   geom_histogram(binwidth = 1, color = "black") +
@@ -508,7 +514,7 @@ To see which specific regions improved the most, we can remake the boxplots we m
 
 ```{r  income-histogram-by-region, out.width="100%"}
 gapminder %>% 
-  filter(year %in% c(past_year, present_year) & country %in% country_list) %>%
+  filter(year %in% years & country %in% country_list) %>%
   ggplot(aes(group, dollars_per_day)) +
   geom_boxplot() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
@@ -523,7 +529,7 @@ So instead of faceting, we keep the data from each year together and ask  to col
 
 ```{r income-histogram-west-v-devel-by-year}
 gapminder %>% 
-  filter(year %in% c(past_year, present_year) & country %in% country_list) %>%
+  filter(year %in% years & country %in% country_list) %>%
   mutate(year = factor(year)) %>%
   ggplot(aes(group, dollars_per_day, fill = year)) +
   geom_boxplot() +
@@ -536,7 +542,7 @@ Finally, we point out that if what we are most interested is in comparing before
 
 ```{r income-west-v-devel-before-after-ratio, echo=FALSE, warning=FALSE}
 gapminder %>% 
-  filter(year %in% c(past_year, present_year) & country %in% country_list) %>%
+  filter(year %in% years & country %in% country_list) %>%
   mutate(year = ifelse(year == past_year, "past", "present")) %>%
   select(country, group, year, dollars_per_day) %>%
   spread(year, dollars_per_day)  %>%
@@ -558,7 +564,7 @@ Let's start by noting that density plots for income distribution in `r past_year
 
 ```{r income-smooth-density-by-year, out.width="100%", fig.height=3}
 gapminder %>% 
-  filter(year %in% c(past_year, present_year) & country %in% country_list) %>%
+  filter(year %in% years & country %in% country_list) %>%
   ggplot(aes(dollars_per_day)) +
   geom_density(fill = "grey") + 
   scale_x_continuous(trans = "log2") + 
@@ -571,20 +577,20 @@ The next message we need to convey is that the reason for this change in distrib
 
 However, we first need to learn how to make these smooth densities in a way that preserves information on the number of countries in each group. To understand why we need this, note the discrepancy in the size of each group:
 
-```{r , echo=FALSE}
+```{r, echo=FALSE}
 gapminder %>% 
   filter(year == past_year & country %in% country_list) %>%
   mutate(group = ifelse(group == "West", "West", "Developing")) %>% 
   group_by(group) %>% 
-  summarize(n=n()) %>% 
-  knitr::kable()
+  summarize(n=n()) %>%
+  spread(group, n)
 ```
 
 But when we overlay two densities, the default is to have the area represented by each distribution add up to 1, regardless of the size of each group:
 
 ```{r income-smooth-density-by-year-west-v-developing}
 gapminder %>% 
-  filter(year %in% c(past_year, present_year) & country %in% country_list) %>%
+  filter(year %in% years & country %in% country_list) %>%
   mutate(group = ifelse(group == "West", "West", "Developing")) %>%
   ggplot(aes(dollars_per_day, fill = group)) +
   scale_x_continuous(trans = "log2") +
@@ -598,7 +604,7 @@ This makes it appear as if there are the same number of countries in each group.
 
 To have the areas of these densities be proportional to the size of the groups, we can simply multiply the y-axis values by the size of the group. From the `geom_density` help file, we see that the functions compute a variable called `count` that does exactly this. We want this variable to be on the y-axis rather than the density.
 
-In __ggplot2__, we access these variables by surrounding the name with two dots `..`. We will use the following mapping:
+In __ggplot2__, we access these variables by surrounding the name with two dots. We will therefore use the following mapping:
 
 ```{r, eval=FALSE}
 aes(x = dollars_per_day, y = ..count..)
@@ -609,7 +615,7 @@ We can now create the desired plot by simply changing the mapping in the previou
 
 ```{r income-smooth-density-counts}
 p <- gapminder %>% 
-  filter(year %in% c(past_year, present_year) & country %in% country_list) %>%
+  filter(year %in% years & country %in% country_list) %>%
   mutate(group = ifelse(group == "West", "West", "Developing")) %>%
   ggplot(aes(dollars_per_day, y = ..count.., fill = group)) +
   scale_x_continuous(trans = "log2", limit = c(0.125, 300))
@@ -630,7 +636,7 @@ To visualize if any of the groups defined above are driving this we can quickly 
 
 ```{r ridge-plot-income-five-regions, warning=FALSE, message=FALSE}
 gapminder %>% 
-  filter(year %in% c(past_year, present_year) & !is.na(dollars_per_day)) %>%
+  filter(year %in% years & !is.na(dollars_per_day)) %>%
   ggplot(aes(dollars_per_day, group)) + 
   scale_x_continuous(trans = "log2") + 
   geom_density_ridges(adjust = 1.5) +
@@ -641,13 +647,14 @@ Another way to achieve this is by stacking the densities on top of each other:
 
 ```{r income-smooth-density-counts-by-region-and-year}
 gapminder %>% 
-    filter(year %in% c(past_year, present_year) & country %in% country_list) %>%
+    filter(year %in% years & country %in% country_list) %>%
   group_by(year) %>%
   mutate(weight = population/sum(population)*2) %>%
   ungroup() %>%
   ggplot(aes(dollars_per_day, fill = group)) +
   scale_x_continuous(trans = "log2", limit = c(0.125, 300)) + 
-  geom_density(alpha = 0.2, bw = 0.75, position = "stack") + facet_grid(year ~ .) 
+  geom_density(alpha = 0.2, bw = 0.75, position = "stack") + 
+  facet_grid(year ~ .) 
 ```
 
 Here we can clearly see how the distributions for East Asia, Latin America and others shift markedly to the right. While Sub-Saharan Africa remains stagnant. 
@@ -661,7 +668,7 @@ As a final point, we note that these distributions weigh every country the same.
 
 ```{r income-smooth-density-counts-by-region-year-weighted, warning=FALSE, echo=FALSE}
 gapminder %>% 
-    filter(year %in% c(past_year, present_year) & country %in% country_list) %>%
+    filter(year %in% years & country %in% country_list) %>%
   group_by(year) %>%
   mutate(weight = population/sum(population)*2) %>%
   ungroup() %>%
@@ -682,14 +689,18 @@ We start by comparing these quantities across regions, but before doing this, we
 ```{r}
 gapminder <- gapminder %>% 
   mutate(group = case_when(
-    region %in% c("Western Europe", "Northern Europe","Southern Europe", 
-                    "Northern America", "Australia and New Zealand") ~ "West",
+    region %in% c("Western Europe", "Northern Europe",
+                  "Southern Europe", "Northern America", 
+                  "Australia and New Zealand") ~ "West",
     region %in% "Northern Africa" ~ "Northern Africa",
     region %in% c("Eastern Asia", "South-Eastern Asia") ~ "East Asia",
     region == "Southern Asia"~ "Southern Asia",
-    region %in% c("Central America", "South America", "Caribbean") ~ "Latin America",
-    continent == "Africa" & region != "Northern Africa" ~ "Sub-Saharan Africa",
-    region %in% c("Melanesia", "Micronesia", "Polynesia") ~ "Pacific Islands"))
+    region %in% c("Central America", "South America", 
+                  "Caribbean") ~ "Latin America",
+    continent == "Africa" & 
+      region != "Northern Africa" ~ "Sub-Saharan Africa",
+    region %in% c("Melanesia", "Micronesia", 
+                  "Polynesia") ~ "Pacific Islands"))
 ```
 
 We then compute these quantities for each region:
@@ -703,7 +714,7 @@ surv_income <- gapminder %>%
             infant_survival_rate = 
               1 - sum(infant_mortality/1000*population)/sum(population)) 
 
-surv_income %>% arrange(income)
+surv_income %>% arrange(income) %>% print(n=nrow(surv_income))
 ```
 
 This shows a dramatic difference. While in the West less than 0.5% of infants die, in Sub-Saharan Africa the rate is higher than 6%! The relationship between these two variables is almost perfectly linear: 

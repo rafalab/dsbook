@@ -74,7 +74,7 @@ browsers %>% spread(Year, Percentage) %>% knitr::kable()
 
 The preferred way to plot these quantities is to use length and position as visual cues, since humans are much better at judging linear measures. The barplot uses this approach by using bars of length proportional to the quantities of interest. By adding horizontal lines at strategically chosen values, in this case at every multiple of 10, we ease the visual burden of quantifying through the position of the top of the bars. Compare and contrast the information we can extract from the two figures.
 
-```{r two-barplots, echo=FALSE}
+```{r two-barplots, echo=FALSE, out.width="100%", fig.width = 6, fig.height = 5}
 p2 <-browsers %>%
   ggplot(aes(Browser, Percentage)) + 
   geom_bar(stat = "identity", width=0.5, fill=4, col = 1) +
@@ -131,7 +131,7 @@ Here is another example, described in detail in this [Flowing Data blog post](ht
 ## http://i2.wp.com/flowingdata.com/wp-content/uploads/2012/08/Bush-cuts.png
 knitr::include_graphics(file.path(img_path, "Bush-cuts.png"))
 ```
-(Source: Fox News, via [Flowing Data]((http://flowingdata.com/2012/08/06/fox-news-continues-charting-excellence/))
+(Source: Fox News, via [Flowing Data](http://flowingdata.com/2012/08/06/fox-news-continues-charting-excellence/))
 
 This plot makes a 13% increase look like a five-fold change. Here is the appropriate plot:
 
@@ -165,7 +165,7 @@ data.frame(Candidate = factor(c("Maduro", "Capriles"), levels = c("Maduro", "Cap
 
 When using position rather than length, it is then not necessary to include 0. This is particularly the case when we want to compare differences between groups relative to the within-group variability. Here is an illustrative example showing country average life expectancy stratified across continents in 2012:
 
-```{r points-plot-not-from-zero, echo=FALSE, out.width="100%"}
+```{r points-plot-not-from-zero, echo=FALSE, out.width="100%",  fig.width = 6, fig.height = 3}
 p1 <- gapminder %>% filter(year == 2012) %>%
   ggplot(aes(continent, life_expectancy)) +
   geom_point()
@@ -544,7 +544,7 @@ dat <- gapminder %>%
 dat %>%
   mutate(location = ifelse(year == 2010, 1, 2), 
          location = ifelse(year == 2015 & 
-                             country %in% c("United Kingdom","Portugal"),
+                             country %in% c("United Kingdom", "Portugal"),
                            location+0.22, location),
          hjust = ifelse(year == 2010, 1, 0)) %>%
   mutate(year = as.factor(year)) %>%
@@ -552,8 +552,7 @@ dat %>%
   geom_line(aes(color = country), show.legend = FALSE) +
   geom_text(aes(x = location, label = country, hjust = hjust), 
             show.legend = FALSE) +
-  xlab("") + 
-  ylab("Life Expectancy")
+  xlab("") + ylab("Life Expectancy")
 ```
 
 An advantage of the slope chart is that it permits us to quickly get an idea of changes based on the slope of the lines. Although we are using angle as the visual cue, we also have position to determine the exact values. Comparing the improvements is a bit harder with a scatterplot:
@@ -569,9 +568,10 @@ dat <- gapminder %>%
            !is.na(life_expectancy) & population > 10^7) 
 
 dat %>% 
-   mutate(year = paste0("life_expectancy_", year)) %>%
-   select(country, year, life_expectancy) %>% spread(year, life_expectancy) %>% 
-   ggplot(aes(x=life_expectancy_2010,y=life_expectancy_2015, label = country)) + 
+  mutate(year = paste0("life_expectancy_", year)) %>%
+  select(country, year, life_expectancy) %>%
+  spread(year, life_expectancy) %>% 
+  ggplot(aes(x=life_expectancy_2010,y=life_expectancy_2015, label = country)) + 
   geom_point() + geom_text_repel() +
   scale_x_continuous(limits=c(78.5, 83)) +
   scale_y_continuous(limits=c(78.5, 83)) +
@@ -589,8 +589,9 @@ Since we are primarily interested in the difference, it makes sense to dedicate 
 ```{r, bland-altman}
 library(ggrepel)
 dat %>% 
-   mutate(year = paste0("life_expectancy_", year)) %>%
-   select(country, year, life_expectancy) %>% spread(year, life_expectancy) %>% 
+  mutate(year = paste0("life_expectancy_", year)) %>%
+  select(country, year, life_expectancy) %>% 
+  spread(year, life_expectancy) %>% 
   mutate(average = (life_expectancy_2015 + life_expectancy_2010)/2,
          difference = life_expectancy_2015 - life_expectancy_2010) %>%
   ggplot(aes(average, difference, label = country)) + 
@@ -679,7 +680,7 @@ shows three variables: dose, drug type and survival. Although your screen/book p
 ## https://raw.githubusercontent.com/kbroman/Talk_Graphs/master/Figs/fig8b.png
 knitr::include_graphics(file.path(img_path,"fig8b.png"))
 ```
-(Source: Karl Broman)
+(Image courtesy of Karl Broman)
 
 Humans are not good at seeing in three dimensions (which explains why it is hard to parallel park) and our limitation is even worse with regard to pseudo-three-dimensions. To see this, try to determine the values of the survival variable in the plot above. Can you tell when the purple ribbon intersects the red one? This is an example in which we can easily use color to represent the categorical variable instead of using a pseudo-3D:
 
@@ -703,14 +704,14 @@ Pseudo-3D is sometimes used completely gratuitously: plots are made to look 3D e
 ##https://raw.githubusercontent.com/kbroman/Talk_Graphs/master/Figs/fig1e.png
 knitr::include_graphics(file.path(img_path,"fig1e.png"))
 ```
-(Source: Karl Broman)
+(Image courtesy of Karl Broman)
 
 
 ```{r, echo=FALSE}
 ##https://raw.githubusercontent.com/kbroman/Talk_Graphs/master/Figs/fig2d.png
 knitr::include_graphics(file.path(img_path,"fig2d.png"))
 ```
-(Source: Karl Broman)
+(Image courtesy of Karl Broman)
 
 
 ## Avoid too many significant digits
@@ -736,7 +737,7 @@ We are reporting precision up to 0.00001 cases per 10,000, a very small value in
 
 ```{r, echo = FALSE}
 dat %>% 
-  mutate_at(c("Measles", "Pertussis", "Polio"), funs(round(., digits=1))) %>%
+  mutate_at(c("Measles", "Pertussis", "Polio"), ~round(., digits=1)) %>%
   knitr::kable()
 ```
 

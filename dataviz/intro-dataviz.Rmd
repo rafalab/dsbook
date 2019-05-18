@@ -46,19 +46,62 @@ The growing availability of informative datasets and software tools has led to i
 
 A particularly effective example is a Wall Street Journal [article](http://graphics.wsj.com/infectious-diseases-and-vaccines/?mc_cid=711ddeb86e) showing data related to the impact of vaccines on battling infectious diseases. One of the graphs shows measles cases by US state through the years with a vertical line demonstrating when the vaccine was introduced.
 
-```{r, echo=FALSE}
-knitr::include_graphics(file.path(img_path,"wsj-vaccines.png"))
+```{r, echo=FALSE, out.width="100%", fig.height=5}
+#knitr::include_graphics(file.path(img_path,"wsj-vaccines.png"))
+data(us_contagious_diseases)
+the_disease <- "Measles"
+dat <- us_contagious_diseases %>%
+  filter(!state%in%c("Hawaii","Alaska") & disease == the_disease) %>%
+  mutate(rate = count / population * 10000 * 52 / weeks_reporting) %>%
+  mutate(state = reorder(state, rate))
+
+jet.colors <-
+colorRampPalette(c("#F0FFFF", "cyan", "#007FFF", "yellow", "#FFBF00", "orange", "red", "#7F0000"), bias = 2.25)
+
+dat %>% ggplot(aes(year, state, fill = rate)) +
+  geom_tile(color = "white", size=0.35) +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradientn(colors = jet.colors(16), na.value = 'white') +
+  geom_vline(xintercept=1963, col = "black") +
+  theme_minimal() + 
+  theme(panel.grid = element_blank()) +
+  coord_cartesian(clip = 'off') +
+  ggtitle(the_disease) +
+  ylab("") +
+  xlab("") +  
+  theme(legend.position = "bottom", text = element_text(size = 8)) + 
+  annotate(geom = "text", x = 1963, y = 50.5, label = "Vaccine introduced", size = 3, hjust=0)
 ```
 
-(Source: [Wall Street Journal](http://graphics.wsj.com/infectious-diseases-and-vaccines/))
+<!--(Source: [Wall Street Journal](http://graphics.wsj.com/infectious-diseases-and-vaccines/))-->
 
-Another striking example comes from the New York Times and shows data on scores from the NYC Regents Exams. These scores are collected for several reasons, including to determine if a student graduates from high school. In New York City you need a 65 to pass. The distribution of the test scores forces us to notice something somewhat problematic:
+Another striking example comes from [this New York Times chart](http://graphics8.nytimes.com/images/2011/02/19/nyregion/19schoolsch/19schoolsch-popup.gif), which summarizes scores from the NYC Regents Exams. As described in 
+[this article](https://www.nytimes.com/2011/02/19/nyregion/19schools.html), these scores are collected for several reasons, including to determine if a student graduates from high school. In New York City you need a 65 to pass. The distribution of the test scores forces us to notice something somewhat problematic:
 
-```{r, echo=FALSE}
-knitr::include_graphics(file.path(img_path,"nythist.png"))
+```{r, echo=FALSE, warning=FALSE, out.width="100%", fig.height=3}
+#knitr::include_graphics(file.path(img_path,"nythist.png"))
+data("nyc_regents_scores")
+nyc_regents_scores$total <- rowSums(nyc_regents_scores[,-1], na.rm=TRUE)
+
+nyc_regents_scores %>% 
+  filter(!is.na(score)) %>%
+  ggplot(aes(score, total)) + 
+  annotate("rect", xmin = 65, xmax = 99, ymin = 0, ymax = 35000, alpha = .5) +
+  geom_bar(stat = "identity", color = "black", fill = "#C4843C") + 
+  annotate("text", x = 66, y = 28000, label = "MINIMUM\nREGENTS DIPLOMA\nSCORE IS 65", hjust = 0, size = 3) +
+  annotate("text", x = 0, y = 12000, label = "2010 Regents scores oon\nthe five most common tests", hjust = 0, size = 3) +
+  scale_x_continuous(breaks = seq(5, 95, 5), limit = c(0,99)) + 
+  scale_y_continuous(position = "right") +
+  ggtitle("Scraping by") + 
+  xlab("") + ylab("Number of tests") + 
+  theme_minimal() + 
+  theme(panel.grid.major.x = element_blank(), 
+        panel.grid.minor.x = element_blank(),
+        axis.ticks.length = unit(-0.2, "cm"),
+        plot.title = element_text(face = "bold"))
 ```
 
-(Source: New York Times)
+<!--(Source: [New York Times](http://graphics8.nytimes.com/images/2011/02/19/nyregion/19schoolsch/19schoolsch-popup.gif) via Amanda Cox)-->
 
 The most common test score is the minimum passing grade, with very few scores just below the threshold. This unexpected result is consistent with students close to passing having their scores bumped up.
 

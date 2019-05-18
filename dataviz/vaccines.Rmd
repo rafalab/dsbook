@@ -13,9 +13,10 @@ The data used for these plots were collected, organized and distributed by the [
 
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
+library(RColorBrewer)
 library(dslabs)
 data(us_contagious_diseases)
-str(us_contagious_diseases)
+names(us_contagious_diseases)
 ```
 
 We create a temporary object `dat` that stores only the measles data, includes a per 100,000 rate, orders states by average value of disease and removes Alaska and Hawaii since they only became states in the late 50s. Note that there is a `weeks_reporting` column that tells us for how many weeks of the year data was reported. We have to adjust for that value when computing the rate.
@@ -50,7 +51,7 @@ We use the geometry `geom_tile` to tile the region with colors representing dise
 dat %>% ggplot(aes(year, state, fill = rate)) +
   geom_tile(color = "grey50") +
   scale_x_continuous(expand=c(0,0)) +
-  scale_fill_gradientn(colors = RColorBrewer::brewer.pal(9, "Reds"), trans = "sqrt") +
+  scale_fill_gradientn(colors = brewer.pal(9, "Reds"), trans = "sqrt") +
   geom_vline(xintercept=1963, col = "blue") +
   theme_minimal() +  theme(panel.grid = element_blank()) +
   ggtitle(the_disease) + 
@@ -63,17 +64,18 @@ This plot makes a very striking argument for the contribution of vaccines. Howev
 ```{r}
 avg <- us_contagious_diseases %>%
   filter(disease==the_disease) %>% group_by(year) %>%
-  summarize(us_rate = sum(count, na.rm=TRUE)/sum(population, na.rm=TRUE)*10000)
+  summarize(us_rate = sum(count, na.rm = TRUE) / 
+              sum(population, na.rm = TRUE) * 10000)
 ```
 
 Now to make the plot we simply use the `geom_line` geometry:
-```{r time-series-vaccines-plot}
+```{r time-series-vaccines-plot, out.width="100%", fig.height=5}
 dat %>% 
   filter(!is.na(rate)) %>%
     ggplot() +
   geom_line(aes(year, rate, group = state),  color = "grey50", 
             show.legend = FALSE, alpha = 0.2, size = 1) +
-  geom_line(mapping = aes(year, us_rate),  data = avg, size = 1, color = "black") +
+  geom_line(mapping = aes(year, us_rate),  data = avg, size = 1) +
   scale_y_continuous(trans = "sqrt", breaks = c(5, 25, 125, 300)) + 
   ggtitle("Cases per 10,000 by state") + 
   xlab("") + 
@@ -81,7 +83,8 @@ dat %>%
   geom_text(data = data.frame(x = 1955, y = 50), 
             mapping = aes(x, y, label="US average"), 
             color="black") + 
-  geom_vline(xintercept=1963, col = "blue") 
+  geom_vline(xintercept=1963, col = "blue") +
+  theme(legend.position="bottom", text = element_text(size = 8))
 ```
 
 In theory, we could use color to represent the categorical value state, but it is hard to pick 50 distinct colors.
