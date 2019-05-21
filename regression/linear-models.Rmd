@@ -263,7 +263,7 @@ lse <- data.frame(beta_0 = lse[1,], beta_1 = lse[2,])
 
 We can see the variability of the estimates by plotting their distributions:
 
-```{r lse-distributions}
+```{r lse-distributions, out.width="100%", fig.width=6, fig.height=3}
 library(gridExtra)
 p1 <- lse %>% ggplot(aes(beta_0)) + 
   geom_histogram(binwidth = 5, color = "black") 
@@ -705,17 +705,17 @@ Here, we pick the one position the player most played using the `top_n` function
 position_names <- 
   paste0("G_", c("p","c","1b","2b","3b","ss","lf","cf","rf"))
 
-tmp_tab <- Appearances %>% 
+tmp <- Appearances %>% 
   filter(yearID == 2002) %>% 
   group_by(playerID) %>%
   summarize_at(position_names, sum) %>%
   ungroup()
   
-pos <- tmp_tab %>%
+pos <- tmp %>%
   select(position_names) %>%
   apply(., 1, which.max) 
 
-players <- tibble(playerID = tmp_tab$playerID, POS = position_names[pos]) %>%
+players <- tibble(playerID = tmp$playerID, POS = position_names[pos]) %>%
   mutate(POS = str_to_upper(str_remove(POS, "G_"))) %>%
   filter(POS != "P") %>%
   right_join(players, by="playerID") %>%

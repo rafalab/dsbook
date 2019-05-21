@@ -120,7 +120,8 @@ we can construct a prediction rule that partitions the predictor space so that e
 
 ```{r olive-separated}
 p + geom_vline(xintercept = 0.065, lty = 2) + 
-  geom_segment(x = -0.2, y = 10.54, xend = 0.065, yend = 10.54, color = "black", lty = 2)
+  geom_segment(x = -0.2, y = 10.54, xend = 0.065, yend = 10.54, 
+               color = "black", lty = 2)
 ```
 
 Specifically, we define the following decision rule. If eicosenoic is larger than 0.065, predict Southern Italy. If not, then if linoleic is larger than $10.535$, predict Sardinia, and if lower, predict Northern Italy. We can draw this decision tree like this:
@@ -213,7 +214,8 @@ However, cp is not the only parameter used to decide if we should partition a cu
 As expected, if we set `cp = 0` and `minsplit = 2`, then our prediction is as flexible as possible and our predictor is our original data:
 
 ```{r polls-2008-tree-over-fit}
-fit <- rpart(margin ~ ., data = polls_2008, control = rpart.control(cp = 0, minsplit = 2))
+fit <- rpart(margin ~ ., data = polls_2008, 
+             control = rpart.control(cp = 0, minsplit = 2))
 polls_2008 %>% 
   mutate(y_hat = predict(fit)) %>% 
   ggplot() +
@@ -361,6 +363,7 @@ fit <- randomForest(margin~., data = polls_2008)
 Note that if we apply the function `plot` to the resulting object, stored in `fit`, we see the how the error rate of our algorithm changes as we add trees. 
 
 ```{r more-trees-better-fit}
+rafalib::mypar()
 plot(fit)
 ```
 
@@ -472,7 +475,8 @@ Here is the random forest fit for our digits example based on two predictors:
 library(randomForest)
 train_rf <- randomForest(y ~ ., data=mnist_27$train)
 
-confusionMatrix(predict(train_rf, mnist_27$test), mnist_27$test$y)$overall["Accuracy"]
+confusionMatrix(predict(train_rf, mnist_27$test),
+                mnist_27$test$y)$overall["Accuracy"]
 ```
 
 Here is what the conditional probabilities look like:
@@ -488,7 +492,7 @@ grid.arrange(p2, p1, nrow=1)
 
 Visualizing the estimate shows that, although we obtain high accuracy, it appears that there is room for improvement by making the estimate smoother. This could be achieved by changing the parameter that controls the minimum number of data points in the nodes of the tree. The larger this minimum, the smoother the final estimate will be. We can train the parameters of the random forest. Below, we use the __caret__ package to optimize over the minimum node size. Because, this is not one of the parameters that the __caret__ package optimizes by default we will write our own code:
 
-```{r, cache=TRUE}
+```{r acc-versus-nodesize, cache=TRUE}
 nodesize <- seq(1, 51, 10)
 acc <- sapply(nodesize, function(ns){
   train(y ~ ., method = "rf", data = mnist_27$train,
@@ -504,7 +508,8 @@ We can now fit the random forrest with the optimized minimun node size to the en
 train_rf_2 <- randomForest(y ~ ., data=mnist_27$train,
                            nodesize = nodesize[which.max(acc)])
 
-confusionMatrix(predict(train_rf_2, mnist_27$test), mnist_27$test$y)$overall["Accuracy"]
+confusionMatrix(predict(train_rf_2, mnist_27$test),
+                mnist_27$test$y)$overall["Accuracy"]
 ```
 
 The selected model improves accuracy and provides a smoother estimate.

@@ -56,7 +56,7 @@ tab %>% knitr::kable()
 
 You can think of the task of a recommendation system as filling in the `NA`s in the table above. To see how _sparse_ the matrix is, here is the matrix for a random sample of 100 movies and 100 users with yellow indicating a user/movie combination for which we have a rating.
 
-```{r sparsity-of-movie-recs, echo=FALSE, fig.width=4, fig.height=4}
+```{r sparsity-of-movie-recs, echo=FALSE, fig.width=3, fig.height=3}
 users <- sample(unique(movielens$userId), 100)
 rafalib::mypar()
 movielens %>% filter(userId %in% users) %>% 
@@ -205,7 +205,7 @@ movie_avgs <- train_set %>%
 We can see that these estimates vary substantially:
 
 ```{r movie-effects}
-movie_avgs %>% qplot(b_i, geom ="histogram", bins = 10, data = ., color = I("black"))
+qplot(b_i, data = movie_avgs, bins = 10, color = I("black"))
 ```
 
 Remember $\hat{\mu}=3.5$ so a $b_i = 1.5$ implies a perfect five star rating.
@@ -725,11 +725,13 @@ m_5 <- "Sleepless in Seattle"
 qplot(y[ ,m_4], y[,m_5], xlab = m_4, ylab = m_5)
 ```
 
-By looking at the correlation between movies, we can see a pattern:
+By looking at the correlation between movies, we can see a pattern (we rename the columns to save print space):
 
 ```{r}
 x <- y[, c(m_1, m_2, m_3, m_4, m_5)]
-colnames(x)[1:2] <- c("Godfather", "Godfather 2")
+short_names <- c("Godfather", "Godfather2", "Goodfellas",
+                 "You've Got", "Sleepless")
+colnames(x) <- short_names
 cor(x, use="pairwise.complete")
 ```
 
@@ -737,14 +739,14 @@ There seems to be people that like romantic comedies more than expected, while o
 
 These results tell us that there is structure in the data. But how can we model this?
 
-### Factors
+### Factors analysis
 
 Here is an illustration, using a simulation, of how we can use some structure to predict the $r_{u,i}$. Suppose our residuals `r` look like this:
 
 ```{r, echo=FALSE}
 q <- matrix(c(1 , 1, 1, -1, -1), ncol = 1)
-rownames(q) <- c("Godfather", "Godfather 2", m_3, m_4, m_5)
-p <- matrix(rep(c(2,0,-2), c(3,5,4)), ncol = 1)
+rownames(q) <- short_names
+p <- matrix(rep(c(2, 0, -2), c(3, 5, 4)), ncol = 1)
 rownames(p) <- 1:nrow(p)
 
 set.seed(1988)
@@ -755,11 +757,11 @@ r <- jitter(p %*% t(q))
 round(r, 1)
 ```
 
-There seems to be pattern here. In fact, we can see very strong correlation patterns:
+There seems to be a pattern here. In fact, we can see very strong correlation patterns:
 
 ```{r}
 cor(r) 
-```
+``` 
 
 We can create vectors `q` and `p`, that can explain much of the structure we see. The `q` would look like this:
 
@@ -770,7 +772,7 @@ t(q)
 and it narrows down movies to two groups: gangster (coded with 1) and romance (coded with -1). We can also reduce the users to three groups: 
 
 ```{r}
-p
+t(p)
 ```
 
 those that like gangster movies and dislike romance movies (coded as 2), those that like romance movies and dislike gangster movies (coded as -2), and those that don't care (coded as 0). The main point here is that we can almost reconstruct $r$, which has 60 values, with a couple of vectors totaling 17 values. If $r$ contains the residuals for users $u=1,\dots,12$ for movies $i=1,\dots,5$ we can write the following mathematical formula for our residuals $r_{u,i}$.
@@ -795,7 +797,7 @@ set.seed(1988)
 m_6 <- "Scent of a Woman"
 q <- cbind(c(1 , 1, 1, -1, -1, -1), 
            c(1 , 1, -1, -1, -1, 1))
-rownames(q) <- c("Godfather", "Godfather 2", m_3, m_4, m_5, m_6)
+rownames(q) <- c(short_names, "Scent")
 p <- cbind(rep(c(2,0,-2), c(3,5,4)), 
           c(-1,1,1,0,0,1,1,1,0,-1,-1,-1))/2
 rownames(p) <- 1:nrow(p)
@@ -809,6 +811,7 @@ round(r, 1)
 
 By exploring the correlation structure of this new dataset
 ```{r}
+colnames(r)[4:6] <- c("YGM", "SS", "SW")
 cor(r)
 ```
 We note that we perhaps need a second factor to account for the fact that some users like Al Pacino, while others dislike him or don't care.Notice that the overall structure of the correlation obtained from the simulated data is not that far off the real correlation:
@@ -816,7 +819,7 @@ We note that we perhaps need a second factor to account for the fact that some u
 ```{r}
 six_movies <- c(m_1, m_2, m_3, m_4, m_5, m_6)
 x <- y[, six_movies]
-colnames(x)[1:2] <- c("Godfather", "Godfather 2")
+colnames(x) <- colnames(r)
 cor(x, use="pairwise.complete")
 ```
 
@@ -829,7 +832,7 @@ t(q)
 With the first factor (the first row) used to code the gangster versus romance groups and a second factor (the second row) to explain the Al Pacino versus no Al Pacino groups. We will also need two sets of coefficients to explain the variability introduced by the $3\times 3$ types of groups:
 
 ```{r}
-p
+t(p)
 ```
 
 The model with two factors has 36 parameters that can be used to explain much of the variability in the 72 ratings:

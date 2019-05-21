@@ -1,5 +1,9 @@
 ##  Dimension reduction 
 
+```{r, echo=FALSE}
+rafalib::mypar()
+```
+
 A typical machine learning challenge will include a large number of predictors, which makes visualization somewhat challenging. We have shown methods for visualizing univariate and paired data, but plots that reveal relationships between many variables are more complicated in higher dimensions. For example, to compare each of the 784 features in our predicting digits example,  we would have to create, for example, 306,936 scatter plots. Creating one single scatter-plot of the data is impossible due to the high dimensionality. 
 
 Here we describe powerful techniques useful for exploratory data analysis, among other things, generally referred to as _dimension reduction_. The general idea is to reduce the dimension of the dataset while preserving important characteristics, such as the distance between features or observations. With fewer dimensions, visualization then becomes more feasible. The technique behind it all, the singular value decomposition, is also useful in other contexts. Principal component analysis (PCA) is the approach we will be showing. Before applying PCA to high dimensional datasets, we will motivate the ideas behind with a simple example.
@@ -12,13 +16,14 @@ We consider an example with twin heights. Some pairs are adults the others are c
 set.seed(1988)
 library(MASS)
 n <- 100
-x <- rbind(mvrnorm(n / 2, c(69, 69), matrix(c(9, 9 * 0.9, 9 * 0.92, 9 * 1), 2, 2)),
-           mvrnorm(n / 2, c(55, 55), matrix(c(9, 9 * 0.9, 9 * 0.92, 9 * 1), 2, 2)))
+Sigma <- matrix(c(9, 9 * 0.9, 9 * 0.92, 9 * 1), 2, 2)
+x <- rbind(mvrnorm(n / 2, c(69, 69), Sigma),
+           mvrnorm(n / 2, c(55, 55), Sigma))
 ```
 
 A scatterplot quickly reveals that the correlation is high and that there are two groups of twins, the adults (upper right points) and the children (lower left points):
 
-```{r simulated-twin-heights, fig.width=4, fig.height=4, echo=FALSE, message=FALSE}
+```{r simulated-twin-heights, fig.width=3, fig.height=3, echo=FALSE, message=FALSE}
 lim <- c(48, 78)
 rafalib::mypar()
 plot(x, xlim=lim, ylim=lim)
@@ -28,7 +33,7 @@ Our features are $N$ two-dimensional points, the two heights, and, for illustrat
 
 Let's consider a specific challenge: we want a one-dimensional summary of our predictors from which we can approximate the distance between any two observations. In the figure below we show the distance between observation 1 and 2 (blue), and observation 1 and 51 (red). Note that the blue line is shorter, which implies 1 and 2 are closer:
 
-```{r distance-illustration, fig.width=4, fig.height=4, echo=FALSE}
+```{r distance-illustration, fig.width=3, fig.height=3, echo=FALSE}
 rafalib::mypar()
 plot(x, xlim=lim, ylim=lim)
 lines(x[c(1, 2),], col = "blue", lwd = 2)
@@ -53,7 +58,8 @@ z <- x[,1]
 ```
 
 Here are the approximate distances versus the original distances:
-```{r one-dim-approx-to-dist, echo = FALSE, fig.width=4, fig.height=4}
+```{r one-dim-approx-to-dist, echo = FALSE, fig.width=3, fig.height=3}
+rafalib::mypar()
 plot(dist(x), dist(z))
 abline(0,1, col = "red")
 ```
@@ -64,7 +70,8 @@ $$\sqrt{ \frac{1}{2} \sum_{j=1}^2 (X_{i,j}-X_{i,j})^2 },$$
 
 then the underestimation goes away. We divide the distance by $\sqrt{2}$ to achieve the correction.
 
-```{r distance-approx-1, echo = FALSE, fig.width=4, fig.height=4}
+```{r distance-approx-1, echo = FALSE, fig.width=3, fig.height=3}
+rafalib::mypar()
 plot(dist(x) / sqrt(2), dist(z))
 abline(0, 1, col = "red")
 ```
@@ -86,7 +93,7 @@ z  <- cbind((x[,2] + x[,1])/2,  x[,2] - x[,1])
 
 we can see how the distance between points is mostly explained by the first dimension: the average.
 
-```{r rotation, fig.width=4, fig.height=4, echo=FALSE}
+```{r rotation, fig.width=3, fig.height=3, echo=FALSE}
 rafalib::mypar()
 plot(z, xlim=lim, ylim = lim - mean(lim))
 lines(z[c(1,2),], col = "blue", lwd = 2)
@@ -96,7 +103,8 @@ points(z[c(1,2,51),], pch = 16)
 
 This means that we can ignore the second dimension and not lose too much information. If the line is completely flat, we lose no information at all. Using the first dimension of this transformed matrix we obtain an even better approximation:
 
-```{r distance-approx-2, echo=FALSE, fig.width=4, fig.height=4}
+```{r distance-approx-2, echo=FALSE, fig.width=3, fig.height=3}
+rafalib::mypar()
 plot(dist(x), dist(z[,1])*sqrt(2))
 abline(0,1)
 ```
@@ -183,7 +191,8 @@ z[,2] <- (x[,2] - x[,1]) / sqrt(2)
 
 This gives us a transformation that preserves the distance between any two points:
 
-```{r orthogonal-transformation, fig.width=4, fig.height=4, echo=FALSE}
+```{r orthogonal-transformation, fig.width=3, fig.height=3, echo=FALSE}
+rafalib::mypar()
 plot(dist(x), dist(z))
 abline(0, 1, col = "red")
 ```
@@ -367,7 +376,7 @@ And see that the first pattern is  Sepal Length,  Petal Length and Petal Width (
 We can see this better by plotting the first two PCs with color representing the species:
 
 
-```{r, iris-pca}
+```{r iris-pca}
 data.frame(pca$x[,1:2], Species=iris$Species) %>% 
   ggplot(aes(PC1,PC2, fill = Species))+
   geom_point(cex=3, pch=21) +
@@ -426,7 +435,7 @@ data.frame(PC1 = pca$x[,1], PC2 = pca$x[,2],
 
 We can also _see_ the linear combinations on the grid to get an idea of what is getting weighted:
 
-```{r mnist-pca-1-4, out.width="100%", fig.height=3}
+```{r mnist-pca-1-4, echo = FALSE, out.width="100%", fig.width=6, fig.height=1.75}
 library(RColorBrewer)
 tmp <- lapply( c(1:4,781:784), function(i){
     expand.grid(Row=1:28, Column=1:28) %>%

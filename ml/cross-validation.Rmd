@@ -1,5 +1,16 @@
 # Cross validation {#cross-validation}
 
+
+
+```{r, include=FALSE}
+if(knitr::is_html_output()){
+  knitr::opts_chunk$set(out.width = "500px",
+                        out.extra='style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;"')
+} else{
+  knitr::opts_chunk$set(out.width = "4in")
+}
+```
+
 In this chapter we introduce cross validation, one of the most important ideas in machine learning. Here we focus on the conceptual and mathematical aspects. We will describe how to implement cross validation in practice with the __caret__ package later, in Section \@ref(caret-cv) in the next chapter. To motivate the concept, we will use the two predictor digits data presented in Section \@ref(two-or-seven) and introduce, for the first time, an actual machine learning algorithm: k-nearest neighbors (kNN).
 
 ## Motivation with k-nearest neighbors {#knn-cv-intro}
@@ -411,6 +422,7 @@ Suppose the income distribution of your population is as follows:
 
 
 ```{r income-distribution}
+set.seed(1995)
 n <- 10^6
 income <- 10^(rnorm(n, log10(45000), log10(3)))
 qplot(log10(income), bins = 30, color = I("black"))
@@ -426,7 +438,6 @@ m
 Suppose we don't have access to the entire population, but want to estimate the median $m$. We take a sample of 250 and estimate the population median $m$ with the sample median $M$:
 
 ```{r}
-set.seed(1995)
 N <- 250
 X <- sample(income, N)
 M <- median(X)
@@ -437,7 +448,7 @@ Can we construct a confidence interval? What is the distribution of $M$ ?
 
 From a Monte Carlo simulation, we see that the distribution of $M$ is approximately normal with the following expected value and standard error:
 
-```{r median-is-normal, message=FALSE, warning=FALSE, out.width="100%"}
+```{r median-is-normal, message=FALSE, warning=FALSE, out.width="100%", fig.width = 6, fig.height = 3}
 library(gridExtra)
 B <- 10^4
 M <- replicate(B, {
