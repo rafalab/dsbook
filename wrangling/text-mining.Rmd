@@ -126,36 +126,31 @@ campaign_tweets[i,] %>%
   pull(word) 
 ```
 
-Note that the function tries to convert tokens into words. To do this, however, it strips characters that are important in the context of twitter. Namely, the function removes all the `#` and `@`. A _token_ in the context of Twitter is not the same as in the context of spoken or written English. For this reason, instead of using the default, words, we define a regex that captures Twitter characters. This may appear complex, but all we are defining is a pattern that starts with @, # or neither, and is followed by any combination of letters or digits:
+Note that the function tries to convert tokens into words. To do this, however, it strips characters that are important in the context of twitter. Namely, the function removes all the `#` and `@`. A _token_ in the context of Twitter is not the same as in the context of spoken or written English. For this reason, instead of using the default, words, we use the `tweets` token includes patterns that start with @ and #:
 
-```{r}
-pattern <- "([^A-Za-z\\d#@']|'(?![A-Za-z\\d#@]))"
-```
 
-We can now use the `unnest_tokens` function with the `regex` option and appropriately extract the hashtags and mentions. We demonstrate with our example tweet:
-
-```{r}
+```{r, message=FALSE, warning=FALSE}
 campaign_tweets[i,] %>% 
-  unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
+  unnest_tokens(word, text, token = "tweets") %>%
   pull(word)
 ```
 
 Another minor adjustment we want to make is to remove the links to pictures:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 links <- "https://t.co/[A-Za-z\\d]+|&amp;"
 campaign_tweets[i,] %>% 
   mutate(text = str_replace_all(text, links, ""))  %>%
-  unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
+  unnest_tokens(word, text, token = "tweets") %>%
   pull(word)
 ```
 
 Now we are now ready to extract the words for all our tweets. 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 tweet_words <- campaign_tweets %>% 
   mutate(text = str_replace_all(text, links, ""))  %>%
-  unnest_tokens(word, text, token = "regex", pattern = pattern) 
+  unnest_tokens(word, text, token = "tweets") 
 ```
 
 
@@ -175,10 +170,10 @@ stop_words
 
 If we filter out rows representing stop words with `filter(!word %in% stop_words$word)`:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 tweet_words <- campaign_tweets %>% 
   mutate(text = str_replace_all(text, links, ""))  %>%
-  unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
+  unnest_tokens(word, text, token = "tweets") %>%
   filter(!word %in% stop_words$word ) 
 ```
 
@@ -195,10 +190,10 @@ tweet_words %>%
 Some exploration of the resulting words (not shown here) reveals a couple of unwanted characteristics in our tokens. First, some of our tokens are just numbers (years, for example). We want to remove these and we can find them using the regex `^\d+$`. Second, some of our tokens come from a quote and they start with `'`. We want to remove the `'` when it is at the start of a word so we will just `str_replace`. We add these two lines to the code above to generate our final table:
 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 tweet_words <- campaign_tweets %>% 
   mutate(text = str_replace_all(text, links, ""))  %>%
-  unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
+  unnest_tokens(word, text, token = "tweets") %>%
   filter(!word %in% stop_words$word &
            !str_detect(word, "^\\d+$")) %>%
   mutate(word = str_replace(word, "^'", ""))
@@ -243,10 +238,10 @@ We already see somewhat of a pattern in the types of words that are being tweete
 
 In sentiment analysis, we assign a word to one or more "sentiments". Although this approach will miss context dependent sentiments, such as sarcasm, when performed on large numbers of words, summaries can provide insights.
 
-The first step in sentiment analysis is to assign a sentiment to each word. The __tidytext__ package includes several maps or lexicons in the object `sentiments`:
+The first step in sentiment analysis is to assign a sentiment to each word. As we demonstreate, the __tidytext__ package includes several maps or lexicons. Other we will obtain using __textdata__ package.
 
-```{r}
-table(sentiments$lexicon)
+```{r, message=FALSE, warning=FALSE}
+library(textdata)
 ```
 
 The `bing` lexicon divides words into `positive` and `negative` sentiments. We can see this using the _tidytext_ function `get_sentiments`:
@@ -255,13 +250,13 @@ The `bing` lexicon divides words into `positive` and `negative` sentiments. We c
 get_sentiments("bing")
 ```
 
-The `AFINN` lexicon assigns a score between -5 and 5, with -5 the most negative and 5 the most positive. You access the lexicon like this:
+The `AFINN` lexicon assigns a score between -5 and 5, with -5 the most negative and 5 the most positive. Note that this lexicon needs to be downloaded the first time you call the function `get_sentiment`:
 
 ```{r, eval=FALSE}
 get_sentiments("afinn")
 ```
 
-The `loughran` and `nrc` lexicons provide several different sentiments:
+The `loughran` and `nrc` lexicons provide several different sentiments. Note that these also have to be downloaded the first time you use them.
 
 ```{r}
 get_sentiments("loughran") %>% count(sentiment)
@@ -271,13 +266,10 @@ get_sentiments("loughran") %>% count(sentiment)
 get_sentiments("nrc") %>% count(sentiment)
 ```
 
-To start learning about how these lexicons were developed, you can read this help file `?sentiments`. 
-
 For our analysis, we are interested in exploring the different sentiments of each tweet so we will use the `nrc` lexicon:
 
 ```{r}
-nrc <- sentiments %>%
-  filter(lexicon == "nrc") %>%
+nrc <- get_sentiments("nrc") %>%
   select(word, sentiment)
 ```
 
