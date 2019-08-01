@@ -5,13 +5,13 @@ In this chapter, we will demonstrate how relatively simple __ggplot2__ code can 
 
 ## Case study: new insights on poverty
 
-Hans Rosling^[https://en.wikipedia.org/wiki/Hans_Rosling] was the co-founder of the Gapminder Foundation^[http://www.gapminder.org/], an organization dedicated to educating the public by using data to dispel common myths about the so-called developing world. The organization uses data to show how actual trends in health and economics contradict the narratives that emanate from sensationalist media coverage of catastrophes, tragedies and other unfortunate events. As stated in the Gapminder Foundation's website:
+Hans Rosling^[https://en.wikipedia.org/wiki/Hans_Rosling] was the co-founder of the Gapminder Foundation^[http://www.gapminder.org/], an organization dedicated to educating the public by using data to dispel common myths about the so-called developing world. The organization uses data to show how actual trends in health and economics contradict the narratives that emanate from sensationalist media coverage of catastrophes, tragedies, and other unfortunate events. As stated in the Gapminder Foundation's website:
 
 >>> Journalists and lobbyists tell dramatic stories. That’s their job. They tell stories about extraordinary events and unusual people. The piles of dramatic stories pile up in peoples' minds into an over-dramatic worldview and strong negative stress feelings: "The world is getting worse!", "It’s we vs. them!”, “Other people are strange!", "The population just keeps growing!" and "Nobody cares!"
 
 Hans Rosling conveyed actual data-based trends in a dramatic way of his own, using effective data visualization. This section is based on two talks that exemplify this approach to education: [New Insights on Poverty]^[https://www.ted.com/talks/hans_rosling_reveals_new_insights_on_poverty?language=en] and The Best Stats You've Ever Seen^[https://www.ted.com/talks/hans_rosling_shows_the_best_stats_you_ve_ever_seen]. Specifically, in this section, we use data to attempt to answer the following two questions:
 
-1. Is it a fair characterization of today's world to say it is divided into western rich nations and the developing world in Africa, Asia and Latin America? 
+1. Is it a fair characterization of today's world to say it is divided into western rich nations and the developing world in Africa, Asia, and Latin America? 
 2. Has income inequality across countries worsened during the last 40 years? 
 
 To answer these questions, we will be using the `gapminder` dataset provided in __dslabs__. This dataset was created using a number of spreadsheets available from the Gapminder Foundation. You can access the table like this:
@@ -33,7 +33,7 @@ As done in the _New Insights on Poverty_ video, we start by testing our knowledg
 4. Pakistan or Vietnam
 5. Thailand or South Africa
 
-When answering these questions without data, the non-European countries are typically picked as having higher child mortality rates: Sri Lanka over Turkey, South Korea over Poland, and Malaysia over Russia. It is also common to assume that countries considered to be part of the developing world: Pakistan, Vietnam, Thailand and South Africa, have similarly high mortality rates. 
+When answering these questions without data, the non-European countries are typically picked as having higher child mortality rates: Sri Lanka over Turkey, South Korea over Poland, and Malaysia over Russia. It is also common to assume that countries considered to be part of the developing world: Pakistan, Vietnam, Thailand, and South Africa, have similarly high mortality rates. 
 
 To answer these questions __with data__, we can use __dplyr__. For example, for the first comparison we see that:
 
@@ -77,8 +77,8 @@ filter(gapminder, year == 1962) %>%
 
 Most points fall into two distinct categories: 
 
-1. Life expectancy around 70 years and 3 or less children per family.
-2. Life expectancy lower then 65 years and more than 5 children per family. 
+1. Life expectancy around 70 years and 3 or fewer children per family.
+2. Life expectancy lower than 65 years and more than 5 children per family. 
 
 To confirm that indeed these countries are from the regions we expect, we can use color to represent continent. 
 
@@ -162,7 +162,7 @@ gapminder %>%
   geom_point()
 ```
 
-We see that the trend is not linear at all. Instead there is sharp drop during the 60s and 70s to below 2. Then the trend comes back to 2 and stabilizes during the 90s.
+We see that the trend is not linear at all. Instead there is sharp drop during the 1960s and 1970s to below 2. Then the trend comes back to 2 and stabilizes during the 1990s.
 
 When the points are regularly and densely spaced, as they are here, we create curves by joining the points with lines, to convey that these data are from a single series, here a country. To do this, we use the `geom_line` function instead of `geom_point`. 
 
@@ -205,7 +205,7 @@ gapminder %>% filter(country %in% countries & !is.na(fertility)) %>%
   geom_line()
 ```
 
-The plot clearly shows how South Korea's fertility rate dropped drastically during the 60s and 70s, and by 1990 had a similar rate to that of Germany.
+The plot clearly shows how South Korea's fertility rate dropped drastically during the 1960s and 1970s, and by 1990 had a similar rate to that of Germany.
 
 ### Labels instead of legends 
 
@@ -232,7 +232,7 @@ The plot clearly shows how an improvement in life expectancy followed the drops 
 
 We now shift our attention to the second question related to the commonly held notion that wealth distribution across the world has become worse during the last decades. When general audiences are asked if poor countries have become poorer and rich countries become richer, the majority answers yes. By using stratification, histograms, smooth densities, and boxplots, we will be able to understand if this is in fact the case. First we learn how transformations can sometimes help provide more informative summaries and plots.
 
-The `gapminder` data table includes a column with the countries gross domestic product (GDP). GDP measures the market value of goods and services produced by a country in a year. The GDP per person is often used as a rough summary of a country's wealth. Here we divide this quantity by 365 to obtain the more interpretable measure _dollars per day_.  Using current US dollars as a unit, a person surviving on an income of less than $2 a day is defined to be living in _absolute poverty_. We add this variable to the data table:
+The `gapminder` data table includes a column with the countries' gross domestic product (GDP). GDP measures the market value of goods and services produced by a country in a year. The GDP per person is often used as a rough summary of a country's wealth. Here we divide this quantity by 365 to obtain the more interpretable measure _dollars per day_.  Using current US dollars as a unit, a person surviving on an income of less than $2 a day is defined to be living in _absolute poverty_. We add this variable to the data table:
 
 
 ```{r}
@@ -278,7 +278,7 @@ In general, we do not recommend using the natural log for data exploration and v
 In the dollars per day example, we used base 2 instead of base 10 because the resulting range is easier to interpret. The range of the values being plotted is `r with(filter(gapminder, year==past_year), range(dollars_per_day, na.rm=TRUE))`. 
 
 In base 10, this turns into a range that includes very few integers: just 0 and 1. 
-With base two, our range includes -2, -1, 0, 1, 2, 3, 4 and 5. It is easier to compute $2^x$ and $10^x$ when $x$ is an integer and between -10 and 10, so we prefer to have smaller integers in the scale. Another consequence of a limited range is that choosing the binwidth is more challenging. With log base 2, we know that a binwidth of 1 will translate to a bin with range $x$ to $2x$.
+With base two, our range includes -2, -1, 0, 1, 2, 3, 4, and 5. It is easier to compute $2^x$ and $10^x$ when $x$ is an integer and between -10 and 10, so we prefer to have smaller integers in the scale. Another consequence of a limited range is that choosing the binwidth is more challenging. With log base 2, we know that a binwidth of 1 will translate to a bin with range $x$ to $2x$.
 
 For an example in which base 10 makes more sense, consider population sizes. A log base 10 is preferable since the range for these is:
 
@@ -350,6 +350,12 @@ Notice that we can't read the region names because the default __ggplot2__ behav
 ```{r dollars-per-day-boxplot-rotate-labels}
 p + geom_point() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Another option is to flip the figure:
+
+```{r eval=FALSE} 
+p + geom_point() + coord_flip() 
 ```
 
 In the plot we just made, the regions are ordered alphabetically. But there is no practical reason for this to be the case.  In general, **do not order alphabetically**.  Data exploration is often made easier if we order the strata by some interpretable quantity. This can be achieved using the `reorder` function, which we covered in Section \@ref(factors).
@@ -538,7 +544,7 @@ gapminder %>%
   xlab("") 
 ```
 
-Finally, we point out that if what we are most interested is in comparing before and after values, it might make more sense to plot the percentage increases. We are still not ready to learn to code this, but here is what the plot would look like:
+Finally, we point out that if what we are most interested in is comparing before and after values, it might make more sense to plot the percentage increases. We are still not ready to learn to code this, but here is what the plot would look like:
 
 ```{r income-west-v-devel-before-after-ratio, echo=FALSE, warning=FALSE}
 gapminder %>% 
@@ -657,9 +663,9 @@ gapminder %>%
   facet_grid(year ~ .) 
 ```
 
-Here we can clearly see how the distributions for East Asia, Latin America and others shift markedly to the right. While Sub-Saharan Africa remains stagnant. 
+Here we can clearly see how the distributions for East Asia, Latin America, and others shift markedly to the right. While Sub-Saharan Africa remains stagnant. 
 
-Notice that we order the levels of the group so that the West's density are plotted first, then Sub-Saharan Africa. Having the two extremes plotted first allows us to see the remaining bimodality better.
+Notice that we order the levels of the group so that the West's density is plotted first, then Sub-Saharan Africa. Having the two extremes plotted first allows us to see the remaining bimodality better.
 
 
 ### Weighted densities 
@@ -734,13 +740,13 @@ The logistic or logit transformation for a proportion or rate $p$ is defined as:
 
 $$f(p) = \log \left( \frac{p}{1-p} \right)$$
 
-When $p$ is a proportion or probability, the quantity that is being logged, $p/(1-p)$, is called the _odds_. In this case $p$ is the proportion of infants that survived. The odds tell us how many more infants are expected to survive than to die. The log transformation makes this symmetric. If the rates are the same, then the log odds is 0. Fold increases or decreases turn into positive and negative increments respectively.
+When $p$ is a proportion or probability, the quantity that is being logged, $p/(1-p)$, is called the _odds_. In this case $p$ is the proportion of infants that survived. The odds tell us how many more infants are expected to survive than to die. The log transformation makes this symmetric. If the rates are the same, then the log odds is 0. Fold increases or decreases turn into positive and negative increments, respectively.
 
 This scale is useful when we want to highlight differences near 0 or 1. For survival rates this is important because a survival rate of 90% is unacceptable, while a survival of 99% is relatively good. We would much prefer a survival rate closer to 99.9%. We want our scale to highlight these difference and the logit does this. Note that 99.9/0.1 is about 10 times bigger than 99/1 which is about 10 times larger than 90/10. By using the log, these fold changes turn into constant increases.
 
 ### Show the data 
 
-Now, back to our plot. Based on the plot above, do we conclude that a country with a low income is destined to have low survival rate? Do we conclude that all survival rates in Sub-Saharan Africa are all lower than in Southern Asia, which in turn are lower than in the Pacific Islands, and so on?
+Now, back to our plot. Based on the plot above, do we conclude that a country with a low income is destined to have low survival rate? Do we conclude that survival rates in Sub-Saharan Africa are all lower than in Southern Asia, which in turn are lower than in the Pacific Islands, and so on?
 
 Jumping to this conclusion based on a plot showing averages is referred to as the _ecological fallacy_. The almost perfect relationship between survival rates and income is only observed for the averages at the region level. Once we show all the data, we see a somewhat more complicated story:
 

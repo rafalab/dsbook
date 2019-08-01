@@ -1,6 +1,6 @@
-# Statistical Inference {#inference}
+# Statistical inference {#inference}
 
-In Chapter \@ref(models) we will describe, in some detail, how poll aggregators such as FiveThirtyEight use data to predict election outcomes. To understand how they do this, we first need to learn the basics of _Statistical Inference_, the part of Statistics that helps distinguish patterns arising from signal from those arising from chance. Statistical inference is a broad topic and here we go over the very basics using polls as a motivating examples. To describe the concepts, we complement the mathematical formulas with Monte Carlo simulations and R code.   
+In Chapter \@ref(models) we will describe, in some detail, how poll aggregators such as FiveThirtyEight use data to predict election outcomes. To understand how they do this, we first need to learn the basics of _Statistical Inference_, the part of statistics that helps distinguish patterns arising from signal from those arising from chance. Statistical inference is a broad topic and here we go over the very basics using polls as a motivating examples. To describe the concepts, we complement the mathematical formulas with Monte Carlo simulations and R code.   
 
 ```{r, echo=FALSE}
 img_path <- "inference/img/"
@@ -8,9 +8,9 @@ img_path <- "inference/img/"
 
 ## Polls
 
-Opinion polling has been conducted since the 19th century. The general goal of these is to describe the opinions held by a specific population on a given set of topics. In recent times, these polls have been pervasive during presidential elections. Polls are useful when interviewing every member of a particular population is logistically impossible. The general strategy is to interview a smaller group, chosen at random, and then infer the opinions of the entire population from the opinions of the smaller group. Statistical theory is used to justify the process. This theory is referred to as  _inference_ and it is the main topic of this chapter.
+Opinion polling has been conducted since the 19th century. The general goal is to describe the opinions held by a specific population on a given set of topics. In recent times, these polls have been pervasive during presidential elections. Polls are useful when interviewing every member of a particular population is logistically impossible. The general strategy is to interview a smaller group, chosen at random, and then infer the opinions of the entire population from the opinions of the smaller group. Statistical theory is used to justify the process. This theory is referred to as  _inference_ and it is the main topic of this chapter.
 
-Perhaps the best known opinion polls are those conducted to determine which candidate is preferred by voters in a given election. Political strategists make extensive use of polls to decide, among other things, how to invest resources. For example, they may want to know in which geographical locations to focus their 'get out the vote' efforts. 
+Perhaps the best known opinion polls are those conducted to determine which candidate is preferred by voters in a given election. Political strategists make extensive use of polls to decide, among other things, how to invest resources. For example, they may want to know in which geographical locations to focus their "get out the vote" efforts. 
 
 Elections are a particularly interesting case of opinion polls because the actual opinion of the entire population is revealed on election day. Of course, it costs millions of dollars to run an actual election which makes polling a cost effective strategy for those that want to forecast the results. 
 
@@ -40,7 +40,7 @@ Although in the United States the popular vote does not determine the result of 
 
 Let's make some observations about the table above. First, note that different polls, all taken days before the election, report a different _spread_:  the estimated difference between support for the two candidates. Notice also that the reported spreads hover around what ended up being the actual result: Clinton won the popular vote by 2.1%. We also see a column titled **MoE** which stands for _margin of error_. 
 
-In this section, we will show how the probability concepts we learned in the previous chapter can be applied to develop the statistical approaches that make polls an effective tool. We will learn the statistical concepts necessary to define _estimates_ and _margins of errors_, and show how we can use these to forecast final results relatively well and also provide an estimate of the precision of our forecast. Once we learn this, we will be able to understand two concepts that are ubiquitous in data science: _confidence intervals_ and _p-values_. Finally, to understand probabilistic statements about the probability of a candidate winning, we will have to learn about Bayesian modelling. In the final sections, we put it all together to recreate the simplified version of the FiveThirtyEight model and apply it to the 2016 election. 
+In this section, we will show how the probability concepts we learned in the previous chapter can be applied to develop the statistical approaches that make polls an effective tool. We will learn the statistical concepts necessary to define _estimates_ and _margins of errors_, and show how we can use these to forecast final results relatively well and also provide an estimate of the precision of our forecast. Once we learn this, we will be able to understand two concepts that are ubiquitous in data science: _confidence intervals_ and _p-values_. Finally, to understand probabilistic statements about the probability of a candidate winning, we will have to learn about Bayesian modeling. In the final sections, we put it all together to recreate the simplified version of the FiveThirtyEight model and apply it to the 2016 election. 
 
 We start by connecting probability theory to the task of using polls to learn about a population.
 
@@ -72,7 +72,7 @@ Think about how you would construct your interval based on the data shown above.
 
 We have just described a simple sampling model for opinion polls. The beads inside the urn represent the individuals that will vote on election day. Those that will vote for the Republican candidate are represented with red beads and the Democrats with the blue beads. For simplicity, assume there are no other colors. That is, that there are just two parties: Republican and Democratic. 
 
-## Populations, samples, parameters and estimates
+## Populations, samples, parameters, and estimates
 
 We want to predict the proportion of blue beads in the urn. Let's call this quantity $p$, which then tells us the proportion of red beads $1-p$, and the spread $p - (1-p)$, which simplifies to $2p - 1$. 
 
@@ -93,7 +93,7 @@ Note that in the four random samples shown above, the sample proportions range f
 
 ### The sample average
 
-Conducting an opinion poll is being modeled as taking a random sample from an urn. We are proposing the use of the proportion of blue beads in our sample as an _estimate_ of the parameter $p$. Once we have this estimate, we can can easily report an estimate for the spread $2p-1$, but for simplicity we will illustrate the concepts for estimating $p$. We will use our knowledge of probability to defend our use of the sample proportion and quantify how close we think it is from the population proportion $p$.
+Conducting an opinion poll is being modeled as taking a random sample from an urn. We are proposing the use of the proportion of blue beads in our sample as an _estimate_ of the parameter $p$. Once we have this estimate, we can easily report an estimate for the spread $2p-1$, but for simplicity we will illustrate the concepts for estimating $p$. We will use our knowledge of probability to defend our use of the sample proportion and quantify how close we think it is from the population proportion $p$.
 
 We start by defining the random variable $X$ as: $X=1$ if we pick a blue bead at random and $X=0$ if it is red. This implies that the population is a list of 0s and 1s. If we sample $N$ beads, then the average of the draws $X_1, \dots, X_N$ is equivalent to the proportion of blue beads in our sample. This is because adding the $X$s is equivalent to counting the blue beads and dividing this count by the total $N$ is equivalent to computing a proportion. We use the symbol $\bar{X}$ to represent this average. In general, in statistics textbooks a bar on top of a symbol means the average. The theory we just learned about the sum of draws becomes useful because the average is a sum of draws multiplied by the constant $1/N$:
 
@@ -162,7 +162,7 @@ or 1.5 percentage points. So even with large polls, for close elections, $\bar{X
 5. Write a line of code that gives you the standard error `se` for the problem above for several values of $p$, specifically for `p <- seq(0, 1, length = 100)`. Make a plot of `se` versus `p`. 
 
 
-6. Copy the code above and put it inside a for-loop to make the plot for $N=25$, $N=100$ and $N=1000$. 
+6. Copy the code above and put it inside a for-loop to make the plot for $N=25$, $N=100$, and $N=1000$. 
 
 
 7. If we are interested in the difference in proportions, $p - (1-p)$, our estimate is $d = \bar{X} - (1-\bar{X})$. Use the rules we learned about sums of random variables and scaled random variables to derive the expected value of $d$.
@@ -182,6 +182,6 @@ or 1.5 percentage points. So even with large polls, for close elections, $\bar{X
     
     C. The difference is 10% and the standard error is about 0.2, therefore much smaller than the difference.
     
-    D. Because we don't know $p$, we have no way knowing that making $N$ larger would actually improve our standard error.
+    D. Because we don't know $p$, we have no way of knowing that making $N$ larger would actually improve our standard error.
 
 

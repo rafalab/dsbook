@@ -67,7 +67,7 @@ Remember that the correlation summary is a random variable. Here is the distribu
 res %>% ggplot(aes(x=r)) + geom_histogram(binwidth = 0.1, color = "black")
 ```
 
-It's just a mathematical fact that if we observe `r cat(prettyNum(g, big.mark=",",scientific=FALSE))` random correlations that are expected to be 0, but have a standard error of `r sd(res$r)`, the largest one will be close 1. 
+It's just a mathematical fact that if we observe `r cat(prettyNum(g, big.mark=",",scientific=FALSE))` random correlations that are expected to be 0, but have a standard error of `r sd(res$r)`, the largest one will be close to 1. 
 
 If we performed regression on this group and interpreted the p-value, we would incorrectly claim this was a statistically significant relation:
 
@@ -168,7 +168,7 @@ Confounders are perhaps the most common reason that leads to associations begin 
 
 If $X$ and $Y$ are correlated, we call $Z$ a _confounder_ if changes in $Z$ causes changes in both $X$ and $Y$. Earlier, when studying baseball data, we saw how Home Runs was a confounder that resulted in a higher correlation than expected when studying the relationship between Bases on Balls and Runs. In some cases, we can use linear models to account for confounders. However, this is not always the case.
 
-Incorrect interpretation due to confounders are ubiquitous in the lay press and they are often hard to detect. Here, we present a widely used example related to college admissions.
+Incorrect interpretation due to confounders is ubiquitous in the lay press and they are often hard to detect. Here, we present a widely used example related to college admissions.
 
 ### Example: UC Berkeley admissions 
 
@@ -269,7 +269,7 @@ admissions %>%  group_by(gender) %>% summarize(average = mean(admitted))
 
 ## Simpson's paradox 
 
-The case we have just covered is an example of Simpson's Paradox. It is called a paradox because we see the sign of the correlation  flip when comparing the entire publication and specific strata. As an illustrative example, suppose you have three random variables $X$, $Y$ and $Z$ and that we observe realizations of these. Here is plot of simulated observations for $X$ and $Y$ along we the sample correlation:
+The case we have just covered is an example of Simpson's paradox. It is called a paradox because we see the sign of the correlation  flip when comparing the entire publication and specific strata. As an illustrative example, suppose you have three random variables $X$, $Y$, and $Z$ and that we observe realizations of these. Here is plot of simulated observations for $X$ and $Y$ along with the sample correlation:
 
 ```{r simpsons-paradox, echo=FALSE}
 N <- 100
@@ -315,7 +315,7 @@ It is really $Z$ that is negatively correlated with $X$. If we stratify by $Z$, 
 
 For the next set of exercises, we examine the data from a 2014 PNAS paper^[http://www.pnas.org/content/112/40/12349.abstract] that analyzed success rates from funding agencies in the Netherlands and concluded:
 
-> our results reveal gender bias favoring male applicants over female applicants in the prioritization of their “quality of researcher” (but not "quality of proposal") evaluations and success rates, as well as in the language used in instructional and evaluation materials.
+> Our results reveal gender bias favoring male applicants over female applicants in the prioritization of their “quality of researcher” (but not "quality of proposal") evaluations and success rates, as well as in the language used in instructional and evaluation materials.
 
 
 A response^[http://www.pnas.org/content/112/51/E7036.extract] was published a few months later titled _No evidence that gender contributes to personal research funding success in The Netherlands: A reaction to Van der Lee and Ellemers_  which concluded:
@@ -335,13 +335,13 @@ Who is right here? The original paper or the response? Here, you will examine th
     Construct the two-by-two table used for the conclusion about differences in awards by gender.
 
 
-2. Compute the difference in percentage from the two by two table.
+2. Compute the difference in percentage from the two-by-two table.
 
 
-3. In the previous exercise, we noticed that the success rate is lower for women. But is it significant? Compute a p-value using a Chi Square test.
+3. In the previous exercise, we noticed that the success rate is lower for women. But is it significant? Compute a p-value using a Chi-square test.
 
 
-4. We see that the p-value is about 0.05. So there appears to be some evidence of an association. But can we infer causation here? Is gender bias causing this observed difference? The response to the original paper claims that what we see here is similar to the UC Berkeley admissions example. Specifically they state that this _"could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines, then an analysis across all disciplines could incorrectly show "evidence" of gender inequality."_ To settle this dispute, create a dataset with number of applications, awards, and success rate for each gender. Reorder the disciplines by their overall success rate. Hint: use the `reorder` function to reorder the disciplines in a first step, then use gather, separate and spread to create the desired table.
+4. We see that the p-value is about 0.05. So there appears to be some evidence of an association. But can we infer causation here? Is gender bias causing this observed difference? The response to the original paper claims that what we see here is similar to the UC Berkeley admissions example. Specifically they state that this "could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines, then an analysis across all disciplines could incorrectly show 'evidence' of gender inequality." To settle this dispute, create a dataset with number of applications, awards, and success rate for each gender. Re-order the disciplines by their overall success rate. Hint: use the `reorder` function to re-order the disciplines in a first step, then use `gather`, `separate`, and `spread` to create the desired table.
 
 
 5. To check if this is a case of Simpson's paradox, plot the success rates versus disciplines, which have been ordered by overall success, with colors to denote the genders and size to denote the number of applications.
@@ -349,10 +349,10 @@ Who is right here? The original paper or the response? Here, you will examine th
   
 6. We definitely do not see the same level of confounding as in the UC Berkeley example. It is hard to say there is a confounder here. However, we do see that, based on the observed rates, some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But, unlike the UC Berkeley example, women are not more likely to apply for the harder subjects. So perhaps some of the selection committees are biased and others are not.  
 
-    But, before we conclude this, we must check if these differences are any different than what we get by chance. Are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. Perform a Chi Square test for each discipline. Hint: define a function that receives the total of a two-by-two table and returns a data frame with the p-value. Use the 0.5 correction. Then use the do function. 
+    But, before we conclude this, we must check if these differences are any different than what we get by chance. Are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. Perform a Chi-square test for each discipline. Hint: define a function that receives the total of a two-by-two table and returns a data frame with the p-value. Use the 0.5 correction. Then use the do function. 
 
  
-7. For the Medical Sciences, there appears to be a statistically significant difference. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 might be considered an example of cherry picking. 
+7. For the medical sciences, there appears to be a statistically significant difference. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 might be considered an example of cherry picking. 
 Repeat the exercise above, but instead of a p-value, compute a log odds ratio divided by their standard error. Then use qq-plot to see how much these log odds ratios deviate from the normal distribution we would expect: a standard normal distribution.
 
     

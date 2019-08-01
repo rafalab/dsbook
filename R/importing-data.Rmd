@@ -6,23 +6,23 @@ img_path <- "R/img"
  
 We have been using data sets already stored as R objects. A data scientist will rarely have such luck and will have to import data into R from either a file, a database, or other sources. Currently, one of the most common ways of storing and sharing data for analysis is through electronic spreadsheets. A spreadsheet stores data in rows and columns. It is basically a file version of a data frame. When saving such a table to a computer file, one needs a way to define when a new row or column ends and the other begins. This in turn defines the cells in which single values are stored. 
 
-When creating spreadsheets with text files, like the ones created with a simple text editor, a new row is defined with return and columns are separated with some predefined special character. The most common characters are comma (`,`), semicolon (`;`), space (` `) and tab (`    ` or `\t`, a preset number of spaces). Here is an example of what a comma separated file looks like if we open it with a basic text editor:
+When creating spreadsheets with text files, like the ones created with a simple text editor, a new row is defined with return and columns are separated with some predefined special character. The most common characters are comma (`,`), semicolon (`;`), space ( ), and tab (a preset number of spaces or `\t`). Here is an example of what a comma separated file looks like if we open it with a basic text editor:
 
 
 ```{r, echo=FALSE}
 knitr::include_graphics(file.path(img_path,"csv-file.png"))
 ```
 
-The first row contains column names rather than data. We call this a _header_, and when we read-in data from a spreadsheet it is important to know if the file has a header or not. Most reading functions assume there is a header. To know if the file has a header, it helps to look at the file before trying to read it. This can be done with a text editor or with RStudio. In RStudio, we can do this by either opening the file in the editor or navigating to the file location, double clicking on the file and hitting _View File_.
+The first row contains column names rather than data. We call this a _header_, and when we read-in data from a spreadsheet it is important to know if the file has a header or not. Most reading functions assume there is a header. To know if the file has a header, it helps to look at the file before trying to read it. This can be done with a text editor or with RStudio. In RStudio, we can do this by either opening the file in the editor or navigating to the file location, double clicking on the file, and hitting _View File_.
 
 However, not all spreadsheet files are in a text format. Google Sheets, which are rendered on a browser, are an example. Another example is the proprietary format used by Microsoft Excel. These can't be viewed with a text editor. Despite this, due to the widespread use of Microsoft Excel software, this format is widely used. 
 
-We start this chapter by describing the difference between text (ASCII), Unicode, and binary files and how this affects how we import them. We then explain the concepts of file paths and working directories, which are essential to understand to import data effectively. We then introduce the __readr__ and __readxl__ package and the functions that are available to import spreadsheets into R. Finally, we provide some recommendations on how to store and organize data in files. More complex challenges such as extracting data from web pages or PDF documents are left for the Data Wrangling part of the book.
+We start this chapter by describing the difference between text (ASCII), Unicode, and binary files and how this affects how we import them. We then explain the concepts of file paths and working directories, which are essential to understand how to import data effectively. We then introduce the __readr__ and __readxl__ package and the functions that are available to import spreadsheets into R. Finally, we provide some recommendations on how to store and organize data in files. More complex challenges such as extracting data from web pages or PDF documents are left for the Data Wrangling part of the book.
 
 
 ## Paths and the working directory 
 
-The first step when importing data from a spreadsheet is to locate the file containing the data. Although we do not recommend it, you can can use an approach similar to what you do to open file in Microsoft Excel by clicking on the RStudio "File" menu, clicking "Import Dataset", then clicking through folders until you find the file. We want to be able to write code rather than use the point-and-click approach. The keys and concepts we need to learn to do this are described in detail in the Productivity Tools part of this book. Here we provide an overview of the very basics.
+The first step when importing data from a spreadsheet is to locate the file containing the data. Although we do not recommend it, you can use an approach similar to what you do to open files in Microsoft Excel by clicking on the RStudio "File" menu, clicking "Import Dataset", then clicking through folders until you find the file. We want to be able to write code rather than use the point-and-click approach. The keys and concepts we need to learn to do this are described in detail in the Productivity Tools part of this book. Here we provide an overview of the very basics.
 
 The main challenge in this first step is that we need to let the R functions doing the importing know where to look for the file containing the data. The simplest way to do this is to have a copy of the file in the folder in which the importing functions look by default. Once we do this, all we have to supply to the importing function is the filename. 
 
@@ -42,11 +42,11 @@ library(tidyverse)
 dat <- read_csv(filename)
 ```
 
-The data is imported and stored in `dat`. The rest of this section defines some important concepts and provides an overview of how we write code that tells R how to find the files we want to import. Section \@ref(unix) provides more details on this topic. 
+The data is imported and stored in `dat`. The rest of this section defines some important concepts and provides an overview of how we write code that tells R how to find the files we want to import. Chapter \@ref(unix) provides more details on this topic. 
 
 ### The filesystem
 
-You can think of your computer's filesystem as a series of nested folders, each containing other folders and files.  Data scientists refer to folders as _directories_. We refer to the folder that contains all other folders as the The _root directory_. We refer to the directory in which we are currently located as the _working directory_. The working directory therefore changes as you move through folders: think of it as your current location. 
+You can think of your computer's filesystem as a series of nested folders, each containing other folders and files.  Data scientists refer to folders as _directories_. We refer to the folder that contains all other folders as the _root directory_. We refer to the directory in which we are currently located as the _working directory_. The working directory therefore changes as you move through folders: think of it as your current location. 
 
 
 ### Relative and full paths
@@ -68,7 +68,7 @@ list.files(path = dir)
 
 These relative paths give us the location of the files or directories if we start in the directory with the full path. For example, the full path to the `help` directory in the example above is `/Library/Frameworks/R.framework/Versions/3.5/Resources/library/dslabs/help`. 
 
-**Note**: You will probably not make much use of the `system.file` function in your day-to-day data anlysis work. We introduce it in this section becuase it facilitates the sharing of spreadsheets by including them in the __dslabs__ package. You will rarely have the luxury of data being included in pacakges you already have installed. However, you will frequently need to navigate full and relative paths and import spreadsheet formatted data.
+**Note**: You will probably not make much use of the `system.file` function in your day-to-day data analysis work. We introduce it in this section because it facilitates the sharing of spreadsheets by including them in the __dslabs__ package. You will rarely have the luxury of data being included in packages you already have installed. However, you will frequently need to navigate full and relative paths and import spreadsheet formatted data.
 
 ### The working directory
 
@@ -201,7 +201,7 @@ The package provides functions to read-in Microsoft Excel formats:
 | read_xls | original format |  xls |
 | read_xlsx | new format | xlsx |
 
-The Microsoft Excel formats permits you to have more than one spreadsheet in one file. These are referred to as _sheets_. The functions listed above read the first sheet by default, but we can also read the others. The `excel_sheets` function gives us the names of all the sheets in an excel file. These names can then be passed to the `sheet` argument in the three functions above to read sheets other than the first.
+The Microsoft Excel formats permit you to have more than one spreadsheet in one file. These are referred to as _sheets_. The functions listed above read the first sheet by default, but we can also read the others. The `excel_sheets` function gives us the names of all the sheets in an Excel file. These names can then be passed to the `sheet` argument in the three functions above to read sheets other than the first.
 
 ## Exercises 
 
@@ -293,10 +293,9 @@ class(dat$state)
 
 In our experience this can be a cause for confusion since a variable that was saved as characters in file is converted to factors regardless of what the variable represents. In fact, we **highly** recommend setting `stringsAsFactors=FALSE` to be your default approach when using the R-base parsers. You can easily convert the desired columns to factors after importing data.
 
-
 ### `scan` 
 
-When reading in spreadsheets many things can go wrong. The file might have a multiline header, be missing cells or it might use an unexpected encoding^[https://en.wikipedia.org/wiki/Character_encoding]. We recommend you read this post about common issues found here: [https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/](https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/). 
+When reading in spreadsheets many things can go wrong. The file might have a multiline header, be missing cells, or it might use an unexpected encoding^[https://en.wikipedia.org/wiki/Character_encoding]. We recommend you read this post about common issues found here: [https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/](https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/). 
 
 With experience you will learn how to deal with different challenges. Carefully reading the help files for the functions discussed here will be useful. Two other functions that are helpful are `scan`. With scan you can read-in each cell of a file. Here is an example:
 
@@ -311,7 +310,7 @@ Note that the tidyverse provides `read_lines`, a similarly useful function.
 
 ## Text versus binary files
 
-For data science purposes, files can generally be classified into two categories: text files (also known as ASCII files) and binary files. You have already worked with text files. All your R scripts are text files and so are the R markdown files used to create this book. The csv tables you have read are also text files. One big advantage of these files is that we can easily "look" at them without having to purchase any kind of special software or follow complicated instructions. Any text editor can be used to examine a text file, including freely available editors such as RStudio, Notepad, textEdit, vi, emacs, nano, and pico. To see this, try opening a csv file using the "Open file" RStudio tool. You should be able to see the content right on your editor. However, if you try to open, say, an excel xls file, jpg or png file, you will not be able to see anything immediately useful. These are binary files. Excel files are actually compressed folders with several text files inside. But the main distinction here is that text files can be easily examined. 
+For data science purposes, files can generally be classified into two categories: text files (also known as ASCII files) and binary files. You have already worked with text files. All your R scripts are text files and so are the R markdown files used to create this book. The csv tables you have read are also text files. One big advantage of these files is that we can easily "look" at them without having to purchase any kind of special software or follow complicated instructions. Any text editor can be used to examine a text file, including freely available editors such as RStudio, Notepad, textEdit, vi, emacs, nano, and pico. To see this, try opening a csv file using the "Open file" RStudio tool. You should be able to see the content right on your editor. However, if you try to open, say, an Excel xls file, jpg or png file, you will not be able to see anything immediately useful. These are binary files. Excel files are actually compressed folders with several text files inside. But the main distinction here is that text files can be easily examined. 
 
 Although R includes tools for reading widely used binary files, such as xls files, in general you will want to find data sets stored in text files. Similarly, when sharing data you want to make it available as text files as long as storage is not an issue (binary files are much more efficient at saving space on your disk). In general, plain-text formats make it easier to share data since commercial software is not required for working with the data.
 
@@ -321,22 +320,22 @@ Extracting data from a spreadsheet stored as a text file is perhaps the easiest 
 
 A pitfall in data science is assuming a file is an ASCII text file when, in fact, it is something else that can look a lot like an ASCII text file: a Unicode text file. 
 
-To understand the difference between these, remember that everything on a computer needs to eventually be converted to 0s and 1s. ASCII is an _encoding_ that maps characters to numbers. ASCII uses 7 bits (0s and 1s) which results in $2^7 = 128$ unique items, enough to encode all the characters on an English language keyboard. However, other languages use characters not included in this encoding. For example, the é in México is not encoded by ASCII. For this reason, a new encoding, using more than 7 bits, was defined: Unicode. When using Unicode, one can chose between 8, 16, and 32 bits abbreviated UTF-8, UTF-16 and UTF-32 respectively. RStudio actually defaults to UTF-8 encoding. 
+To understand the difference between these, remember that everything on a computer needs to eventually be converted to 0s and 1s. ASCII is an _encoding_ that maps characters to numbers. ASCII uses 7 bits (0s and 1s) which results in $2^7 = 128$ unique items, enough to encode all the characters on an English language keyboard. However, other languages use characters not included in this encoding. For example, the é in México is not encoded by ASCII. For this reason, a new encoding, using more than 7 bits, was defined: Unicode. When using Unicode, one can chose between 8, 16, and 32 bits abbreviated UTF-8, UTF-16, and UTF-32 respectively. RStudio actually defaults to UTF-8 encoding. 
 
 Although we do not go into the details of how to deal with the different encodings here, it is important that you know these different encodings exist so that you can better diagnose a problem if you encounter it. One way problems manifest themselves is when you see "weird looking" characters you were not expecting. This StackOverflow discussion is an example: [https://stackoverflow.com/questions/18789330/r-on-windows-character-encoding-hell](https://stackoverflow.com/questions/18789330/r-on-windows-character-encoding-hell).
 
-## Organizing Data with Spreadsheets
+## Organizing data with spreadsheets
 
 Although there are R packages designed to read this format, if you are choosing a file format to save your own data, you generally want to avoid Microsoft Excel. We recommend Google Sheets as a free software tool for organizing data.  We provide more recommendations in the section Data Organization with Spreadsheets.
 This book focuses on data analysis. Yet often a data scientist needs to collect data or work with others collecting data. Filling out a spreadsheet by hand is a practice we highly discourage and instead recommend that the process be automatized as much as possible. But sometimes you just have to do it.
 In this section, we provide recommendations on how to store data in a spreadsheet. We summarize a paper  by Karl Broman and Kara Woo^[https://www.tandfonline.com/doi/abs/10.1080/00031305.2017.1375989]. Below are their general recommendations. Please read the paper for important details.
 
 * __Be Consistent__ - Before you commence entering data, have a plan. Once you have a plan, be consistent and stick to it. 
-* __Choose Good Names for Things__ - You want the names you pick for objects, files and directories to be memorable, easy to spell, and descriptive. This is actually a hard balance to achieve and it does require time and thought. One important rule to follow is **do not use spaces**, use underscores `_` or dashes instead `-`. Also, avoid symbols, stick to letters and numbers.
+* __Choose Good Names for Things__ - You want the names you pick for objects, files, and directories to be memorable, easy to spell, and descriptive. This is actually a hard balance to achieve and it does require time and thought. One important rule to follow is **do not use spaces**, use underscores `_` or dashes instead `-`. Also, avoid symbols; stick to letters and numbers.
 * __Write Dates as YYYY-MM-DD__ -  To avoid confusion, we strongly recommend using this global ISO 8601 standard.
 * __No Empty Cells__ - Fill in all cells and use some common code for missing data. 
 * __Put Just One Thing in a Cell__ - It is better to add columns to store the extra information rather than having more than one piece of information in one cell.
-* __Make it a Rectangle__ - The spreadsheet should be a rectangle. 
+* __Make It a Rectangle__ - The spreadsheet should be a rectangle. 
 * __Create a Data Dictionary__ - If you need to explain things, such as what the columns are or what the labels used for categorical variables are, do this in a separate file.
 * __No Calculations in the Raw Data Files__ - Excel permits you to perform calculations. Do not make this part of your spreadsheet. Code for calculations should be in a script.
 * __Do Not Use Font Color or Highlighting as Data__ - Most import functions are not able to import this information. Encode this information as a variable instead.

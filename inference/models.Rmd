@@ -4,7 +4,7 @@
 
 The day before the 2008 presidential election, Nate Silver's FiveThirtyEight stated that "Barack Obama appears poised for a decisive electoral victory". They went further and predicted that Obama would win the election with 349 electoral votes to 189, and the popular vote by a margin of 6.1%. FiveThirtyEight also attached a probabilistic statement to their prediction claiming that Obama had a 91% chance of winning the election. The predictions were quite accurate since, in the final results, Obama won the electoral college 365 to 173 and the popular vote by a 7.2% difference. Their performance in the 2008 election brought FiveThirtyEight to the attention of political pundits and TV personalities. Four years later, the week before the 2012 presidential election, FiveThirtyEight's Nate Silver was giving Obama a 90% chance of winning despite many of the experts thinking the final results would be closer. Political commentator Joe Scarborough said during his show^[https://www.youtube.com/watch?v=TbKkjm-gheY]:
 
->>Anybody that thinks that this race is anything but a tossup right now is such an ideologue ... they're jokes.
+>>Anybody that thinks that this race is anything but a toss-up right now is such an ideologue ... they're jokes.
 
 To which Nate Silver responded via Twitter:
 
@@ -98,7 +98,7 @@ ggplot(polls2, aes(poll, estimate, ymin=low, ymax=high, color=col)) +
 
 Of course, this was just a simulation to illustrate the idea. The actual data science exercise of forecasting elections is much more complicated and it involves modeling. Below we explain how pollsters fit multilevel models to the data and use this to forecast election results. In the 2008 and 2012 US presidential elections, Nate Silver used this approach to make an almost perfect prediction and silence the pundits.
 
-Since the 2008 elections, other organizations have started their own election forecasting group that, like Nate Silver's, aggregates polling data and uses statistical models to make predictions. In 2016, forecasters underestimated Trump's chances of winning greatly. The day before the election the New York Times reported^[https://www.nytimes.com/interactive/2016/upshot/presidential-polls-forecast.html] the following probabilities for Hilary Clinton:
+Since the 2008 elections, other organizations have started their own election forecasting group that, like Nate Silver's, aggregates polling data and uses statistical models to make predictions. In 2016, forecasters underestimated Trump's chances of winning greatly. The day before the election the New York Times reported^[https://www.nytimes.com/interactive/2016/upshot/presidential-polls-forecast.html] the following probabilities for Hillary Clinton:
 
 
 ```{r, echo=FALSE, out.width="100%"}
@@ -112,7 +112,7 @@ tmp
 For example, the Princeton Election Consortium (PEC) gave Trump less than 1% chance of winning, while the Huffington Post gave him a 2% chance. In contrast, FiveThirtyEight had Trump's probability of winning at 29%, higher than tossing two coins and getting two heads. In fact, four days before the election FiveThirtyEight published an article titled _Trump Is Just A Normal Polling Error Behind Clinton_^[https://fivethirtyeight.com/features/trump-is-just-a-normal-polling-error-behind-clinton/]. 
 By understanding statistical models and how these forecasters use them, we will start to understand how this happened.
 
-Although not nearly as interesting as predicting the electoral college, for illustrative purposes we will start by looking at predictions for the popular vote. FiveThirtyEight predicted a 3.6% advantage for Clinton^[https://projects.fivethirtyeight.com/2016-election-forecast/], included the actual result of 2.1% (48.2% to 46.1%) in their interval, and was much more confident about Clinton winning the election, giving her a 81.4% chance. Their prediction was summarized with a chart like this: 
+Although not nearly as interesting as predicting the electoral college, for illustrative purposes we will start by looking at predictions for the popular vote. FiveThirtyEight predicted a 3.6% advantage for Clinton^[https://projects.fivethirtyeight.com/2016-election-forecast/], included the actual result of 2.1% (48.2% to 46.1%) in their interval, and was much more confident about Clinton winning the election, giving her an 81.4% chance. Their prediction was summarized with a chart like this: 
 
 
 ```{r fivethirtyeight-densities, echo=FALSE, out.width="100%", fig.height=2}
@@ -252,7 +252,7 @@ polls %>% group_by(pollster) %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
-This plot reveals a unexpected result. First, consider that the standard error predicted by theory for each poll:
+This plot reveals an unexpected result. First, consider that the standard error predicted by theory for each poll:
 
 ```{r}
 polls %>% group_by(pollster) %>% 
@@ -265,7 +265,7 @@ is between 0.018 and 0.033, which agrees with the within poll variation we see. 
 In the following section, rather than use the urn model theory, we are instead going to develop a data-driven model. 
 
 
-## Data driven models {#data-driven-model}
+## Data-driven models {#data-driven-model}
 
 For each pollster, let's collect their last reported result before the election:
 
@@ -285,7 +285,7 @@ In the previous section, we saw that using the urn model theory to combine these
 
 The new model can also be thought of as an urn model, although the connection is not as direct. Rather than 0s (Republicans) and 1s (Democrats), our urn now contains poll results from all possible pollsters. We _assume_ that the expected value of our urn is the actual spread $d=2p-1$. 
 
-Because instead of 0s and 1s, our urn contains continuous numbers between -1 and 1, the standard deviation of the urn is no longer $\sqrt{p(1-p)}$. Rather than voter sampling variability, the standard error now includes the pollster to pollster variability. Our new urn also includes the sampling variability from the polling. Regardless, this standard deviation is now an unknown parameter. In statistics textbooks, the Greek symbol $\sigma$ is used to represent this parameter. 
+Because instead of 0s and 1s, our urn contains continuous numbers between -1 and 1, the standard deviation of the urn is no longer $\sqrt{p(1-p)}$. Rather than voter sampling variability, the standard error now includes the pollster-to-pollster variability. Our new urn also includes the sampling variability from the polling. Regardless, this standard deviation is now an unknown parameter. In statistics textbooks, the Greek symbol $\sigma$ is used to represent this parameter. 
 
 In summary, we have two unknown parameters: the expected value $d$ and the standard deviation $\sigma$.
 
@@ -305,7 +305,7 @@ The `sd` function in R computes the sample standard deviation:
 sd(one_poll_per_pollster$spread)
 ```
 
-We are now ready to form a new confidence interval based on our new data driven model:
+We are now ready to form a new confidence interval based on our new data-driven model:
 
 ```{r}
 results <- one_poll_per_pollster %>% 

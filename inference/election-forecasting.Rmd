@@ -1,4 +1,4 @@
-## Case study: Election forecasting {#election-forecasting}
+## Case study: election forecasting {#election-forecasting}
 
 In a previous section, we generated these data tables:
 ```{r, message=FALSE, warning=FALSE}
@@ -22,7 +22,7 @@ Below, we will use these for our forecasting.
 
 ### Bayesian approach {#bayesian-approach}
 
-Pollsters tend to make probabilistic statements about the results of the election. For example, "The chance that Obama wins the electoral colleges is 91%" is a probabilistic statement about a parameter which in previous sections we have denoted with $d$. We showed that for the 2016 election, FiveThirtyEight gave Clinton a 81.4% chance of winning the popular vote. To do this, they used the Bayesian approach we described. 
+Pollsters tend to make probabilistic statements about the results of the election. For example, "The chance that Obama wins the electoral colleges is 91%" is a probabilistic statement about a parameter which in previous sections we have denoted with $d$. We showed that for the 2016 election, FiveThirtyEight gave Clinton an 81.4% chance of winning the popular vote. To do this, they used the Bayesian approach we described. 
 
 We assume a hierarchical model similar to what we did to predict the performance of a baseball player. Statistical textbooks will write the model like this:
 
@@ -129,7 +129,7 @@ polls %>% group_by(pollster) %>%
   scale_y_continuous(limit = c(-0.056,0.092))
 ```
 
-The model above does not account for pollster to pollster variability. To fix this, we add a new term for the pollster effect. We will use $h_i$ to represent the house effect of the $i$-th pollster. The model is now augmented to: 
+The model above does not account for pollster-to-pollster variability. To fix this, we add a new term for the pollster effect. We will use $h_i$ to represent the house effect of the $i$-th pollster. The model is now augmented to: 
 
 $$
 X_{i,j} = d + h_i + \varepsilon_{i,j}
@@ -166,7 +166,7 @@ $$
 X_{i,j} = d + b + h_i + \varepsilon_{i,j}.
 $$
 
-Here $b$ is a random variable that accounts for the election-to-election variability. This random variable changes from election to election, but for any given election, it is the same for all pollsters and polls within on election. This is why it does not have indexes. This implies that all the random variables $X_{i,j}$ for on election year are correlated since they all have $b$ in common.
+Here $b$ is a random variable that accounts for the election-to-election variability. This random variable changes from election to election, but for any given election, it is the same for all pollsters and polls within on election. This is why it does not have indexes. This implies that all the random variables $X_{i,j}$ for an election year are correlated since they all have $b$ in common.
 
 One way to interpret $b$ is as the difference between the average of all polls from all pollsters and the actual result of the election. Because we don't know the actual result until after the election, we can't estimate $b$ until after the election. However, we can estimate $b$ from previous elections and study the distribution of these values. Based on this approach we assume that, across election years, $b$ has expected value 0 and the standard error is about $\sigma_b = 0.025$. 
 
@@ -213,7 +213,7 @@ Up to now we have focused on the popular vote. But in the United States, electio
 results_us_election_2016 %>% top_n(5, electoral_votes)
 ```
 
-With some minor exceptions we don't discuss, the electoral votes are won all or nothing. For example, if you win California by just 1 vote, you still get all 55 of its electoral votes. This means that by winning a few big states by a large margin, but losing many small states by small margins, you can win the popular vote and yet lose the electoral college. This happened in 1876, 1888, 2000 and 2016. The idea behind this is to avoid a few large states having the power to dominate the presidential election. Nonetheless, many people in the US consider the electoral college unfair and would like to see it abolished. 
+With some minor exceptions we don't discuss, the electoral votes are won all or nothing. For example, if you win California by just 1 vote, you still get all 55 of its electoral votes. This means that by winning a few big states by a large margin, but losing many small states by small margins, you can win the popular vote and yet lose the electoral college. This happened in 1876, 1888, 2000, and 2016. The idea behind this is to avoid a few large states having the power to dominate the presidential election. Nonetheless, many people in the US consider the electoral college unfair and would like to see it abolished. 
 
 We are now ready to predict the electoral college result for 2016. We start by aggregating results from a poll taken during the last week before the election. We use the `str_detect`, a function we introduce later in Section \@ref(stringr), to remove polls that are not for entire states. 
 
@@ -235,7 +235,7 @@ Here are the 10 closest races according to the polls:
 results %>% arrange(abs(avg))
 ```
 
-We now introduce the command `left_join` that will let us easily add the number of electoral votes for each state from the data set `us_electoral_votes_2016`. We will describe this function in detail in the Wrangling chapter. Here, we simply say that the function combines the two datasets so that the information from the second argument is added to the information in the first:
+We now introduce the command `left_join` that will let us easily add the number of electoral votes for each state from the dataset `us_electoral_votes_2016`. We will describe this function in detail in the Wrangling chapter. Here, we simply say that the function combines the two datasets so that the information from the second argument is added to the information in the first:
 
 ```{r}
 results <- left_join(results, results_us_election_2016, by = "state")
@@ -256,7 +256,7 @@ results <- results %>%
   mutate(sd = ifelse(is.na(sd), median(results$sd, na.rm = TRUE), sd))
 ```
 
-To make probabilistic arguments, we will use a Monte Carlo simulation. For each state, we apply the Bayesian approach to generate an election day $d$. We could construct the priors for each state based on recent history. However, to keep it simple, we assign a prior to each state that assumes we know nothing about what will happen. Since from election year to election year the results from a specific state don't change that much, we will assign a standard deviation of 2% or $\tau=0.02$. For now, we will assume, incorrectly, that the poll results from each state are independent. The code for the Bayesian calculation under these assmuption looks like this:
+To make probabilistic arguments, we will use a Monte Carlo simulation. For each state, we apply the Bayesian approach to generate an election day $d$. We could construct the priors for each state based on recent history. However, to keep it simple, we assign a prior to each state that assumes we know nothing about what will happen. Since from election year to election year the results from a specific state don't change that much, we will assign a standard deviation of 2% or $\tau=0.02$. For now, we will assume, incorrectly, that the poll results from each state are independent. The code for the Bayesian calculation under these assumptions looks like this:
 
 ```{r}
 mu <- 0
@@ -431,7 +431,7 @@ polls_us_election_2016 %>%
   scale_y_continuous(limits = c(30,50))
 ```
 
-Once a model like the one above is selected, we can use historical and present data to estimate all the necessary parameters to make predictions. There are a variety of methods for estimating trends $f(t)$ which we discuss in the Machine Learning part.
+Once a model like the one above is selected, we can use historical and present data to estimate all the necessary parameters to make predictions. There is a variety of methods for estimating trends $f(t)$ which we discuss in the Machine Learning part.
 
 ## Exercises
 
@@ -480,5 +480,5 @@ Once a model like the one above is selected, we can use historical and present d
 9. We see that at the state level, the median error was 3% in favor of Clinton. The distribution is not centered at 0, but at 0.03. This is the general bias we described in the section above. Create a boxplot to see if the bias was general to all states or it affected some states differently. Use `filter(grade %in% c("A+","A","A-","B+") | is.na(grade))) ` to only include pollsters with high grades.
 
 
-10. Some of these states only have a few polls. Repeat exercise 9, but only include states with 5 good polls or more. Hint: use `group_by`, `filter` then `ungroup`. You will see that the West (Washington, New Mexico, California) underestimated Hillary's performance, while the Midwest (Michigan, Pennsylvania, Wisconsin, Ohio, Missouri) overestimated it. In our simulation, we did not model this behavior since we added general bias, rather than a regional bias. Note that some pollsters may now modeling correlation between similar states and estimating this correlation from historical data. To learn more about this, you can learn about random effects and mixed models. 
+10. Some of these states only have a few polls. Repeat exercise 9, but only include states with 5 good polls or more. Hint: use `group_by`, `filter` then `ungroup`. You will see that the West (Washington, New Mexico, California) underestimated Hillary's performance, while the Midwest (Michigan, Pennsylvania, Wisconsin, Ohio, Missouri) overestimated it. In our simulation, we did not model this behavior since we added general bias, rather than a regional bias. Note that some pollsters may now be modeling correlation between similar states and estimating this correlation from historical data. To learn more about this, you can learn about random effects and mixed models. 
 

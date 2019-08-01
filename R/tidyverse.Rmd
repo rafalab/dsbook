@@ -8,7 +8,7 @@ We can load all the tidyverse packages at once by installing and loading the __t
 library(tidyverse)
 ```
 
-We will learn how to implement the tidyverse approach throughout the book, but before delving into the details, in this chapter we introduce some of the most widely used tidyverse functionality. starting with the __dplyr__ package for manipulating data frames and the __purrr__ package for working with functions. Note that the tidyverse also includes a graphing package, __ggplot2__, which we introduce later in Chapter \@ref(ggplot2) in the Data Visualization part of the book; the __readr__ package discussed in Chapter \@ref(importing-data); and many others. In this chapter, we first introduce the concept of _tidy data_ and then demonstrate how we use the tidyverse to work with data frames in this format. 
+We will learn how to implement the tidyverse approach throughout the book, but before delving into the details, in this chapter we introduce some of the most widely used tidyverse functionality, starting with the __dplyr__ package for manipulating data frames and the __purrr__ package for working with functions. Note that the tidyverse also includes a graphing package, __ggplot2__, which we introduce later in Chapter \@ref(ggplot2) in the Data Visualization part of the book; the __readr__ package discussed in Chapter \@ref(importing-data); and many others. In this chapter, we first introduce the concept of _tidy data_ and then demonstrate how we use the tidyverse to work with data frames in this format. 
 
 ## Tidy data {#tidy-data}
 
@@ -33,7 +33,7 @@ tidy_data <- gapminder %>%
 head(tidy_data, 12)
 ```
 
-This tidy dataset provides fertility rates for two countries across the years. This is a tidy dataset because each row presents one observation with the three variables being county, year and fertility rate. However, this dataset originally came in another format and was reshaped for the __dslabs__ package. Originally, the data was in the following format:
+This tidy dataset provides fertility rates for two countries across the years. This is a tidy dataset because each row presents one observation with the three variables being country, year, and fertility rate. However, this dataset originally came in another format and was reshaped for the __dslabs__ package. Originally, the data was in the following format:
 
 
 ```{r, echo=FALSE, message=FALSE}
@@ -65,9 +65,9 @@ Although not immediately obvious, as you go through the book you will start to a
 
     A.  `ChickWeight` is not tidy: each chick has more than one row. 
 
-    B.  `ChickWeight` is tidy: each observation (a weight) is represented by one row. The chick from which this measurement came from is one the variables.
+    B.  `ChickWeight` is tidy: each observation (a weight) is represented by one row. The chick from which this measurement came is one of the variables.
 
-    C.  `ChickWeight` is not a tidy: we are missing the year column.
+    C.  `ChickWeight` is not tidy: we are missing the year column.
 
     D.  `ChickWeight` is tidy: it is stored in a data frame.
 
@@ -214,7 +214,7 @@ In the call to `select`, the first argument `murders` is an object, but `state`,
     filter(murders, population < 5000000 & region == "Northeast")
     ```
 
-    Make sure `murders` has been defined with `rate` and `rank` and still has all states. Create a table called `my_states` that contains rows for states satisfying both the conditions: it is in the Northeast or West and the murder rate is less than 1.  Use `select` to show only the state name, the rate and the rank.
+    Make sure `murders` has been defined with `rate` and `rank` and still has all states. Create a table called `my_states` that contains rows for states satisfying both the conditions: it is in the Northeast or West and the murder rate is less than 1.  Use `select` to show only the state name, the rate, and the rank.
 
 ## The pipe: `%>%`
 
@@ -336,7 +336,7 @@ s$average
 s$standard_deviation
 ```
 
-As with most other __dplyr__ functions, `summarize` is aware of the variable names and we can use them directly. So when inside the call to the `summarize` function we write `mean(height)`, the function is accessing the column with the name "height" and then computing the average of the resulting numeric vector. We can compute any other summary that operates on vectors and returns a single value. For example, we can add the median, min and max heights like this:
+As with most other __dplyr__ functions, `summarize` is aware of the variable names and we can use them directly. So when inside the call to the `summarize` function we write `mean(height)`, the function is accessing the column with the name "height" and then computing the average of the resulting numeric vector. We can compute any other summary that operates on vectors and returns a single value. For example, we can add the median, minimum, and maximum heights like this:
 
 ```{r}
 heights %>% 
@@ -485,7 +485,7 @@ In the code above, we have used the function `head` to avoid having the page fil
 murders %>% top_n(10, rate)
 ```
 
-Note that rows are not sorted by `rate`, only filtered. If want to sort, we need to use `arrange`.
+Note that rows are not sorted by `rate`, only filtered. If we want to sort, we need to use `arrange`.
 Note that if the third argument is left blank, `top_n`, filters by the last column.
 
 
@@ -516,7 +516,7 @@ sd(na_example, na.rm = TRUE)
 
 Let's now explore the NHANES data.
 
-1. We will provide some basic facts about blood pressure. First let's select a group to set the standard. We will use 20-29 year old females. `AgeDecade` is a categorical variable with these ages. Note that the category is coded like " 20-29", with a space in front! What is the average and standard deviation of systolic blood pressure as saved in the `BPSysAve` variable? Save it to a variable called `ref`.
+1. We will provide some basic facts about blood pressure. First let's select a group to set the standard. We will use 20-to-29-year-old females. `AgeDecade` is a categorical variable with these ages. Note that the category is coded like " 20-29", with a space in front! What is the average and standard deviation of systolic blood pressure as saved in the `BPSysAve` variable? Save it to a variable called `ref`.
 
 Hint: Use `filter` and `summarize` and use the `na.rm = TRUE` argument when computing the average and standard deviation. You can also filter the NA values using `filter`.
 
@@ -604,7 +604,7 @@ as_tibble(murders)$Population
 
 ### Tibbles can have complex entries
 
-While data frame columns need to be vectors of numbers, strings or logical values, tibbles can have more complex objects, such as lists or functions. Also, we can create tibbles with functions:
+While data frame columns need to be vectors of numbers, strings, or logical values, tibbles can have more complex objects, such as lists or functions. Also, we can create tibbles with functions:
 
 ```{r}
 tibble(id = c(1, 2, 3), func = c(mean, median, sd))
@@ -653,7 +653,7 @@ as_tibble(grades) %>% class()
 
 ## The dot operator
 
-One of the advantages of using the pipe `%>%` is that we do not have to keep naming new objects as we manipulate the data frame. As quick reminder, if we want to compute the median murder rate for states in the southern states, instead of typing:
+One of the advantages of using the pipe `%>%` is that we do not have to keep naming new objects as we manipulate the data frame. As a quick reminder, if we want to compute the median murder rate for states in the southern states, instead of typing:
 
 ```{r}
 tab_1 <- filter(murders, region == "South")
@@ -697,7 +697,7 @@ heights %>%
   summarize(range = quantile(height, c(0, 0.5, 1)))
 ```
 
-We can use the `do` function fix this. 
+We can use the `do` function to fix this. 
 
 First we have to write a function that fits into the tidyverse approach: that is, it receives a data frame and returns a data frame. 
 
@@ -732,7 +732,7 @@ heights %>%
   do(my_summary())
 ```
 
-If you do not use the parenthesis, then the function is not executed and instead do tries to return the function. This gives an error because do must always return a data frame. You can see the error by typing:
+If you do not use the parenthesis, then the function is not executed and instead `do` tries to return the function. This gives an error because `do` must always return a data frame. You can see the error by typing:
 
 
 ```{r, eval=FALSE}
@@ -778,7 +778,7 @@ class(s_n)
 
 This produces the same results as the `sapply` call shown above.
 
-A particularly useful __purrr__ function for interacting with the rest of the tidyverse is `map_df`, which always returns a tibble data frame. However, the function being called needs to return a vector a or list with names. For this reason, the following code would result in a `Argument 1 must have names` error:
+A particularly useful __purrr__ function for interacting with the rest of the tidyverse is `map_df`, which always returns a tibble data frame. However, the function being called needs to return a vector or a list with names. For this reason, the following code would result in a `Argument 1 must have names` error:
 
 ```{r, eval=FALSE}
 s_n <- map_df(n, compute_s_n)
@@ -798,18 +798,18 @@ The __purrr__ package provides much more functionality not covered here. For mor
 
 ## Tidyverse conditionals
 
-A typical data analysis will often involve one or more conditional operation. In Section \@ref(conditionals) we described the `ifelse` function, which we will use extensively in this book. In this section we present two __dplyr__ functions that provide further functionality for performing conditional operations.
+A typical data analysis will often involve one or more conditional operations. In Section \@ref(conditionals) we described the `ifelse` function, which we will use extensively in this book. In this section we present two __dplyr__ functions that provide further functionality for performing conditional operations.
 
 ### `case_when`
 
-The `case_when` function is useful for vectorizing conditional statements. It is similar to `ifelse` but can output any number of values, as opposed to just `TRUE` or `FALSE`. Here is an example splitting numbers into negative, positives and 0:
+The `case_when` function is useful for vectorizing conditional statements. It is similar to `ifelse` but can output any number of values, as opposed to just `TRUE` or `FALSE`. Here is an example splitting numbers into negative, positive, and 0:
 
 ```{r}
 x <- c(-2, -1, 0, 1, 2)
 case_when(x < 0 ~ "Negative", x > 0 ~ "Positive", TRUE ~ "Zero")
 ```
 
-A common use for this function is to define categorical variables based on existing variables. For example, suppose we we want compare the murder rates in in three groups of states: _New England_, _West Coast_, _South_,  and _other_. For each state, we need to ask if it is in New England, if it is not we ask if it is in the West Coast, if not we ask if it is in the South and if not we assign _other_. Here is how we use `case_when` to do this:
+A common use for this function is to define categorical variables based on existing variables. For example, suppose we want to compare the murder rates in three groups of states: _New England_, _West Coast_, _South_,  and _other_. For each state, we need to ask if it is in New England, if it is not we ask if it is in the West Coast, if not we ask if it is in the South, and if not we assign _other_. Here is how we use `case_when` to do this:
 
 ```{r}
 data(murders)
@@ -850,7 +850,7 @@ between(x, a, b)
     
     D. `murders` is not in tidy format and is stored in a data frame.
     
-2. Use `as_tibble` to covert the `murders` data table into a tibble and save it in an object called `murders_tibble`.
+2. Use `as_tibble` to convert the `murders` data table into a tibble and save it in an object called `murders_tibble`.
     
 3. Use the `group_by` function to convert murders into a tibble that is grouped by region.
 

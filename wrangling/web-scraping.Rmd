@@ -1,4 +1,4 @@
-# Web Scraping 
+# Web scraping 
 
 ```{r, echo=FALSE}
 img_path <- "wrangling/img/"
@@ -17,7 +17,7 @@ You can see the data table when you visit the webpage:
 knitr::include_graphics(file.path(img_path,"murders-data-wiki-page.png"))
 ```
 
-(Web page courtesy of Wikipedia^[https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&oldid=843135608]. CC-BY-SA-3.0 license^[https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License]. Screenshot of part of the page.)
+(Web page courtesy of Wikipedia^[https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state]. CC-BY-SA-3.0 license^[https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License]. Screenshot of part of the page.)
 
 Unfortunately, there is no link to a data file. To make the data frame that is loaded when we type `data(murders)`, we had to do some _web scraping_. 
 
@@ -67,9 +67,9 @@ title="List of U.S. states and territories by population">Population</a><br />
 <tr>
 ```
 
-You can actually see the data, except data values are surrounded by html code such as `<td>`. We can also see a pattern of how it is stored. If you know HTML, you can write programs that leverage knowledge of these patterns to extract what we want. We also take advantage of a language widely used to make webpages look "pretty" called Cascading Style Sheets (CSS). We say more about this in the CSS Selector Section. 
+You can actually see the data, except data values are surrounded by html code such as `<td>`. We can also see a pattern of how it is stored. If you know HTML, you can write programs that leverage knowledge of these patterns to extract what we want. We also take advantage of a language widely used to make webpages look "pretty" called Cascading Style Sheets (CSS). We say more about this in Section \@ref(css-selectors).
 
-Although we provide tools that make it possible to scrape data without knowing HTML, as a data scientists it is quite useful to learn some HTML and CSS. Not only does this improve your scraping skills, but it might come in handy if you are creating a webpage to showcase you work. There are plenty of online courses and tutorials for learning these. Two examples are Codeacademy^[https://www.codecademy.com/learn/learn-html] and W3schools^[https://www.w3schools.com/].
+Although we provide tools that make it possible to scrape data without knowing HTML, as a data scientist it is quite useful to learn some HTML and CSS. Not only does this improve your scraping skills, but it might come in handy if you are creating a webpage to showcase your work. There are plenty of online courses and tutorials for learning these. Two examples are Codeacademy^[https://www.codecademy.com/learn/learn-html] and W3schools^[https://www.w3schools.com/].
 
 ## The rvest package
 
@@ -102,7 +102,7 @@ We can see all the code that defines the downloaded webpage using the `html_text
 html_text(h)
 ```
 
-We don't show the output here becuase it includes thousands of characters, but if we look at it, we can see the data we are after are stored in an HTML table: you can see this in this line of the HTML code above `<table class="wikitable sortable">`. The different parts of an HTML document, often defined with a message in between  `<` and `>`  are referred to as _nodes_. The __rvest__ package includes functions to extract nodes of an HTML document: `html_nodes` extracts all nodes of different types and `html_node` extracts the first one. To extract the tables from the html code we use:
+We don't show the output here because it includes thousands of characters, but if we look at it, we can see the data we are after are stored in an HTML table: you can see this in this line of the HTML code above `<table class="wikitable sortable">`. The different parts of an HTML document, often defined with a message in between  `<` and `>`  are referred to as _nodes_. The __rvest__ package includes functions to extract nodes of an HTML document: `html_nodes` extracts all nodes of different types and `html_node` extracts the first one. To extract the tables from the html code we use:
  
 
 ```{r} 
@@ -140,7 +140,7 @@ head(tab)
 We still have some wrangling to do. For example, we need to remove the commas and turn characters into numbers. Before continuing with this, we will learn a more general approach to extracting information from web sites.
 
 
-## CSS selectors
+## CSS selectors {css-selectors}
 
 The default look of a webpage made with the most basic HTML is quite unattractive. The aesthetically pleasing pages we see today are made using CSS to define the look and style of webpages. The fact that all pages for a company have the same style usually results from their use of the same CSS file to define the style. The general way these CSS files work is by defining how each of the elements of a webpage will look. The title, headings, itemized lists, tables, and links, for example, each receive their own style including font, color, size, and distance from the margin. CSS does this by leveraging patterns used to define these elements, referred to as _selectors_. An example of such a pattern, which we used above, is `table`, but there are many, many more. 
 
@@ -152,7 +152,7 @@ vignette^[https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget
 
 ## JSON
 
-Sharing data on the internet has become more and more common. Unfortunately, providers use different formats, which makes it harder for data scientists to wrangle data into R. Yet there are some standards that are also becoming more common. Currently, a format that is widely being adopted is the JavaScript Object Notation or JSON. Because this format is very general, it is nothing like a spreadsheet. This JSON files look more like the code you use to define a list. Here is an example of information stored in a JSON format:
+Sharing data on the internet has become more and more common. Unfortunately, providers use different formats, which makes it harder for data scientists to wrangle data into R. Yet there are some standards that are also becoming more common. Currently, a format that is widely being adopted is the JavaScript Object Notation or JSON. Because this format is very general, it is nothing like a spreadsheet. This JSON file looks more like the code you use to define a list. Here is an example of information stored in a JSON format:
 
 ```{r, echo=FALSE}
 library(jsonlite)
@@ -215,7 +215,7 @@ You can learn much more by examining tutorials and help files from the __jsonlit
 
 4. Repeat the above for the first 4 components of `nodes`. Which of the following are payroll tables:
 
-    A. All them.
+    A. All of them.
     
     B. 1
     
@@ -238,7 +238,7 @@ You can learn much more by examining tutorials and help files from the __jsonlit
 
 
 7. We saw in the previous analysis that the first table node is not actually a table. This happens sometimes in html because tables are used to make text look a certain way, as opposed to storing numeric values. 
-Remove the first component and then use `sapply` and `html_table` to covert each node in `nodes` into a table. Note that in this case, `sapply` will return a list of tables. You can also use `lapply` to assure that a list is applied.
+Remove the first component and then use `sapply` and `html_table` to convert each node in `nodes` into a table. Note that in this case, `sapply` will return a list of tables. You can also use `lapply` to assure that a list is applied.
 
 
 

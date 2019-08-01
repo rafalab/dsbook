@@ -1,7 +1,6 @@
 # Cross validation {#cross-validation}
 
 
-
 ```{r, include=FALSE}
 if(knitr::is_html_output()){
   knitr::opts_chunk$set(out.width = "500px",
@@ -32,7 +31,7 @@ $$
 as defined in Section \@ref(smoothing-ml-connection). With k-nearest neighbors (kNN) we estimate $p(x_1, x_2)$ in a similar way to bin smoothing. However, as we will see, kNN is easier to adapt to multiple dimensions. First we define the distance between all observations based on the features. Then, for any point $(x_1,x_2)$ for which we want an estimate of $p(x_1, x_2)$, we look for the $k$ nearest points to $(x_1,x_2)$ and then take an average of the 0s and 1s associated with these points. We refer to the set of points used to compute the average as the _neighborhood_. Due to the connection we described earlier between conditional expectations and conditional probabilities, this gives us a $\hat{p}(x_1,x_2)$, just like the bin smoother gave us an estimate of a trend. As with bin smoothers, we can control the flexibility of our estimate, in this case through the $k$ parameter: larger $k$s result in smoother estimates, while smaller $k$s result in more flexible and more wiggly estimates. 
 
 
-To implement the algorithm, we can use the `knn3` function from the __caret__ package. Looking at the help file for this package, we see that we can call it in one of two ways. We will use the first in which we specify a _formula_ and a data frame. The data frame contains all the data to be used. The formula has the from `outcome ~ predictor_1 + predictor_2 + predictor_3` and so on. Therefore, we would type `y ~ x_1 + x_2`. If we are going to use all the predictors, we can use the `.` like this `y ~ .`. The final call looks like this:
+To implement the algorithm, we can use the `knn3` function from the __caret__ package. Looking at the help file for this package, we see that we can call it in one of two ways. We will use the first in which we specify a _formula_ and a data frame. The data frame contains all the data to be used. The formula has the form `outcome ~ predictor_1 + predictor_2 + predictor_3` and so on. Therefore, we would type `y ~ x_1 + x_2`. If we are going to use all the predictors, we can use the `.` like this `y ~ .`. The final call looks like this:
 
 
 ```{r, eval=FALSE}
@@ -65,7 +64,7 @@ y_hat_lm <- factor(ifelse(p_hat_lm > 0.5, 7, 2))
 confusionMatrix(y_hat_lm, mnist_27$test$y)$overall["Accuracy"]
 ```
 
-And we see that kNN, with the default parameter, already beats regression. To see why this is case, we will plot $\hat{p}(x_1, x_2)$ and compare it to the the true conditional probability $p(x_1, x_2)$:
+And we see that kNN, with the default parameter, already beats regression. To see why this is the case, we will plot $\hat{p}(x_1, x_2)$ and compare it to the true conditional probability $p(x_1, x_2)$:
 
 
 ```{r, echo=FALSE}
@@ -216,7 +215,7 @@ accuracy %>% mutate(k = ks) %>%
 
 First, note that the estimate obtained on the training set is generally lower than the estimate obtained with the test set, with the difference larger for smaller values of $k$. This is due to over-training. Also note that the accuracy versus $k$ plot is quite jagged. We do not expect this because small changes in $k$ should not affect the algorithm's performance too much. The jaggedness is explained by the fact that the accuracy is computed on a sample and therefore is a random variable. This demonstrates why we prefer to minimize the expected loss rather than the loss we observe with one dataset. 
 
-If we were to use these estimate to pick the $k$ that maximizes accuracy, we would use the estimates built on the test data:
+If we were to use these estimates to pick the $k$ that maximizes accuracy, we would use the estimates built on the test data:
 
 ```{r}
 ks[which.max(accuracy$test)]
@@ -245,13 +244,13 @@ When all we have at our disposal is one dataset, we can estimate the MSE with th
 $$
 \hat{\mbox{MSE}} = \frac{1}{N}\sum_{i=1}^N (\hat{y}_i - y_i)^2
 $$
-These two are often referred to as the _true error_ and _apparent error_ respectively.
+These two are often referred to as the _true error_ and _apparent error_, respectively.
 
 There are two important characteristics of the apparent error we should always keep in mind:
 
 1. Because our data is random, the apparent error is a random variable. For example, the dataset we have may be a random sample from a larger population. An algorithm may have a lower apparent error than another algorithm due to luck.
 
-2. If we train an algorithm on the same dataset that we use to compute the apparent error, we might be overtraining. In general, when we do this, the apparent error will be an underestimate of the true error. We will see an extreme example of this with k nearest neighbors.
+2. If we train an algorithm on the same dataset that we use to compute the apparent error, we might be overtraining. In general, when we do this, the apparent error will be an underestimate of the true error. We will see an extreme example of this with k-nearest neighbors.
 
 Cross validation is a technique that permits us to alleviate both these problems. To understand cross validation, it helps to think of the true error, a theoretical quantity, as the average of many apparent errors obtained by applying the algorithm to $B$ new random samples of the data, none of them used to train the algorithm. As shown in a previous chapter, we think of the true error as:
 
@@ -289,7 +288,7 @@ Let's reiterate that it is indispensable that we not use the test set at all: no
 
 Now this presents a new problem because for most machine learning algorithms we need to select parameters, for example the number of neighbors $k$ in k-nearest neighbors. Here, we will refer to the set of parameters as $\lambda$. We need to optimize algorithm parameters without using our test set and we know that if we optimize and evaluate on the same dataset, we will overtrain.  This is where cross validation is most useful.
 
-For each set of algorithm parameters being considered, we we want an estimate of the MSE and then we will chose the parameters with the smallest MSE. Cross validation provides this estimate.
+For each set of algorithm parameters being considered, we want an estimate of the MSE and then we will choose the parameters with the smallest MSE. Cross validation provides this estimate.
 
 First, before we start the cross validation procedure, it is important to fix all the algorithm parameters. Although we will train the algorithm on the set of training sets, the parameters $\lambda$ will be the same across all training sets. We will use $\hat{y}_i(\lambda)$ to denote the predictors obtained when we use parameters $\lambda$.
 
@@ -376,7 +375,7 @@ y <- rbinom(n, 1, 0.5) %>% factor()
 x_subset <- x[ ,sample(p, 100)]
 ```
 
-1. Because `x` and `y` are completely independent, you should not be able to predict `y` using `x` with accuracy larger than 0.5. Confirm this by running cross-validation using logistic regression to fit the model. Because we have so many predictors, we selected a random sample `x_subset`. Use the subset when training the model. Hint: use the caret `train` function. The `results` component of the output of `train` shows you the accuracy. Ignore the warnings.
+1. Because `x` and `y` are completely independent, you should not be able to predict `y` using `x` with accuracy larger than 0.5. Confirm this by running cross validation using logistic regression to fit the model. Because we have so many predictors, we selected a random sample `x_subset`. Use the subset when training the model. Hint: use the caret `train` function. The `results` component of the output of `train` shows you the accuracy. Ignore the warnings.
 
 
 2. Now, instead of a random selection of predictors, we are going to search for those that are most predictive of the outcome. We can do this by comparing the values for the $y=1$ group to those in the $y=0$ group, for each predictor, using a t-test. You can perform this step like this:
@@ -394,22 +393,22 @@ x_subset <- x[ ,sample(p, 100)]
 3. Create an index `ind` with the column numbers of the predictors that were "statistically significantly" associated with `y`. Use a p-value cutoff of 0.01 to define "statistically significant". How many predictors survive this cutoff?
 
 
-4. Re-run the cross-validation but after redefining `x_subset` to be the subset of `x` defined by the columns showing "statistically significant" association with `y`. What is the accuracy now?
+4. Re-run the cross validation but after redefining `x_subset` to be the subset of `x` defined by the columns showing "statistically significant" association with `y`. What is the accuracy now?
 
 
 5. Re-run the cross-validation again, but this time using kNN. Try out the following grid of tuning parameters: `k = seq(101, 301, 25)`. Make a plot of the resulting accuracy.
 
-6. In exercise 3 and 4, we see that despite the fact that `x` and `y` are completely independent, we were able to predict `y` with accuracy higher than 70%. We must be doing something wrong then. What is it?
+6. In exercises 3 and 4, we see that despite the fact that `x` and `y` are completely independent, we were able to predict `y` with accuracy higher than 70%. We must be doing something wrong then. What is it?
 
     A. The function `train` estimates accuracy on the same data it uses to train the algorithm.
     
     B. We are over-fitting the model by including 100 predictors.
     
-    C. We used the entire dataset to select the columns used in the model. This step needs to be included as part of the algorithm. The cross-validation was done **after** this selection.
+    C. We used the entire dataset to select the columns used in the model. This step needs to be included as part of the algorithm. The cross validation was done **after** this selection.
     
     D. The high accuracy is just due to random variability.
 
-7. Advanced. Re-do the cross validation but this time include the selection step in the cross-validation. The accuracy should now be close to 50%.
+7. Advanced. Re-do the cross validation but this time include the selection step in the cross validation. The accuracy should now be close to 50%.
 
     
 8. Load the `tissue_gene_expression` dataset. Use the `train` function to predict tissue from gene expression. Use kNN. What `k` works best?
@@ -518,7 +517,7 @@ mean(M_star) + 1.96 * sd(M_star) * c(-1, 1)
     indexes <- createResample(mnist_27$train$y, 10)
     ```
     
-    How many times do `3`, `4` and `7` appear in the first re-sampled index?
+    How many times do `3`, `4`, and `7` appear in the first re-sampled index?
 
     
 2. We see that some numbers appear more than once and others appear no times. This has to be this way for each dataset to be independent. Repeat the exercise for all the re-sampled indexes.

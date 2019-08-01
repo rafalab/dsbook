@@ -1,10 +1,10 @@
-# Linear Models
+# Linear models
 
 Since Galton's original development, regression has become one of the most widely used tools in data science. One reason has to do with the fact that regression permits us to find relationships between two variables taking into account the effects of other variables that affect both. This has been particularly popular in fields where randomized experiments are hard to run, such as economics and epidemiology. 
 
 When we are not able to randomly assign each individual to a treatment or control group, confounding is particularly prevalent. For example, consider estimating the effect of eating fast foods on life expectancy using data collected from a random sample of people in a jurisdiction. Fast food consumers are more likely to be smokers, drinkers, and have lower incomes. Therefore, a naive regression model may lead to an overestimate of the negative health effect of fast food. So how do we account for confounding in practice? In this chapter we learn how linear models can help with such situations and can be used to describe how one or more variables affect an outcome variable.
 
-## Case Study: Moneyball
+## Case study: Moneyball
 
 ```{r,echo=FALSE}
 img_path <- "regression/img/"
@@ -14,11 +14,11 @@ _Moneyball: The Art of Winning an Unfair Game_ is a book by Michael Lewis about 
 
 Traditionally, baseball teams use _scouts_ to help them decide what players to hire. These scouts evaluate players by observing them perform. Scouts tend to favor athletic players with observable physical abilities. For this reason, scouts tend to agree on who the best players are and, as a result, these players tend to be in high demand. This in turn drives up their salaries. 
 
-From 1989 to 1991, the A's had one of the highest payrolls in baseball. They were able to buy the best players and, during that time, they were one of the best teams. However, in 1995 the A's team owner changed and the new management cut the budget drastically, leaving then general manager, Sandy Alderson, with one of the lowest payrolls in baseball. He could no longer afford the most sought after players. Alderson began using a statistical approach to find inefficiencies in the market. Alderson was a mentor to Billy Beane, who succeeded him in 1998 and fully embraced data science, as opposed to scouts, as a method for finding low cost players that data predicted would help the team win. Today, this strategy has been adapted by most baseball teams. As we will see, regression plays a large role in this approach.
+From 1989 to 1991, the A's had one of the highest payrolls in baseball. They were able to buy the best players and, during that time, they were one of the best teams. However, in 1995 the A's team owner changed and the new management cut the budget drastically, leaving then general manager, Sandy Alderson, with one of the lowest payrolls in baseball. He could no longer afford the most sought-after players. Alderson began using a statistical approach to find inefficiencies in the market. Alderson was a mentor to Billy Beane, who succeeded him in 1998 and fully embraced data science, as opposed to scouts, as a method for finding low-cost players that data predicted would help the team win. Today, this strategy has been adapted by most baseball teams. As we will see, regression plays a large role in this approach.
 
 As motivation for this chapter, we will pretend it is 2002 and try to build a baseball team with a limited budget, just like the A's had to do. To appreciate what you are up against, note that in 2002 the Yankees' payroll of \$125,928,583 more than tripled the Oakland A's \$39,679,746: 
 
-```{r mlb-2002-payroll, echo=FALSE, message=FALSE, warning=FALSE}
+```{r mlb-2002-payroll, echo=FALSE, message=FALSE, warning=FALSE, fig.height = 4.5}
 library(tidyverse)
 library(rvest)
 url <- "http://www.stevetheump.com/Payrolls.htm"
@@ -50,7 +50,7 @@ To see how regression will help us find undervalued players, we actually don't n
 
 The goal of a baseball game is to score more runs (points) than the other team. Each team has 9 batters that have an opportunity to hit a ball with a bat in a predetermined order. After the 9th batter has had their turn, the first batter bats again, then the second, and so on. Each time a batter has an opportunity to bat, we call it a plate appearance (PA). At each PA, the other team's _pitcher_ throws the ball and the batter tries to hit it. The PA ends with an binary outcome: the batter either makes an _out_ (failure) and returns to the bench or the batter doesn't (success) and can run around the bases, and potentially score a run (reach all 4 bases). Each team gets nine tries, referred to as _innings_, to score runs and each inning ends after three outs (three failures).
 
-Here is a video showing a success: [https://www.youtube.com/watch?v=HL-XjMCPfio](https://www.youtube.com/watch?v=HL-XjMCPfio). And here one showing a failure: [https://www.youtube.com/watch?v=NeloljCx-1g](https://www.youtube.com/watch?v=NeloljCx-1g). In these videos, we see how luck is involved in the process. When at bat, the batter wants to hit the ball hard. If the batter hits it hard enough, it is a HR, the best possible outcome as the batter gets at least one automatic run. But sometimes, due to chance, the batter hits the ball very hard and a defender catches it, resulting in an out. In contrast, sometimes the batter hits the ball softly, but it lands just in the right place. The fact that there is chance involved hints at why probability models will be involved.
+Here is a video showing a success: [https://www.youtube.com/watch?v=HL-XjMCPfio](https://www.youtube.com/watch?v=HL-XjMCPfio). And here is one showing a failure: [https://www.youtube.com/watch?v=NeloljCx-1g](https://www.youtube.com/watch?v=NeloljCx-1g). In these videos, we see how luck is involved in the process. When at bat, the batter wants to hit the ball hard. If the batter hits it hard enough, it is a HR, the best possible outcome as the batter gets at least one automatic run. But sometimes, due to chance, the batter hits the ball very hard and a defender catches it, resulting in an out. In contrast, sometimes the batter hits the ball softly, but it lands just in the right place. The fact that there is chance involved hints at why probability models will be involved.
 
 Now there are several ways to succeed. Understanding this distinction will be important for our analysis. When the batter hits the ball, the batter wants to pass as many _bases_ as possible. There are four bases with the fourth one called _home plate_. Home plate is where batters start by trying to hit, so the bases form a cycle.
 
@@ -64,7 +64,7 @@ knitr::include_graphics(file.path(img_path,"Baseball_Diamond1.png"))
 A batter who _goes around the bases_ and arrives home, scores a run. 
 
 
-We are simplifying a bit, but there are five ways a batter can succeed, that is not make an out: 
+We are simplifying a bit, but there are five ways a batter can succeed, that is, not make an out: 
 
 - Bases on balls (BB) - the pitcher fails to throw the ball through a predefined area considered to be hittable (the strikezone), so the batter is permitted to go to first base.
 - Single - Batter hits the ball and gets to first base.
@@ -85,11 +85,11 @@ knitr::include_graphics(file.path(img_path,"JumboTron.png"))
 ```
 (Picture courtesy of Keith Allison^[https://www.flickr.com/people/27003603@N00]. CC BY-SA 2.0 license^[https://creativecommons.org/licenses/by-sa/2.0].)
 
-Historically, the _batting average_ has been considered the most important offensive statistic. To define this average, we define a _hit_ (H) and an _at bat_ (AB). Singles, doubles, triples and home runs are hits. The fifth way to be successful, BB, is not a hit. An AB is the number of times you either get a hit or make an out; BBs are excluded. The batting average is simply H/AB and is considered the main measure of a success rate. Today this success rate ranges from 20% to 38%. We refer to the batting average in thousands so, for example, if your success rate is 28%, we call it _batting 280_.
+Historically, the _batting average_ has been considered the most important offensive statistic. To define this average, we define a _hit_ (H) and an _at bat_ (AB). Singles, doubles, triples, and home runs are hits. The fifth way to be successful, BB, is not a hit. An AB is the number of times you either get a hit or make an out; BBs are excluded. The batting average is simply H/AB and is considered the main measure of a success rate. Today this success rate ranges from 20% to 38%. We refer to the batting average in thousands so, for example, if your success rate is 28%, we call it _batting 280_.
 
-One of Bill James' first important insights is that the batting average ignores BB, but a BB is a success.  He proposed we use the _on base percentage_ (OBP) instead of batting average. He defined OBP as (H+BB)/(AB+BB) which is simply the proportion of plate appearances that don't result in an out, a very intuitive measure. He noted that a player that gets many more BB than the average player might not be recognized if the batter does not excel in batting average. But is this player not helping produce runs? No award is given to the player with the most BB. However, bad habits are hard to break and baseball did not immediately adopt OPB as an important statistic. In contrast, total stolen bases were considered important and an award^[http://www.baseball-almanac.com/awards/lou_brock_award.shtml] given to the player with the most. But players with high totals of SB also made more outs as they did not always succeed. Does a player with high SB total help produce runs? Can we use data science to determine if it's better to pay for players with high BB or SB? 
+One of Bill James' first important insights is that the batting average ignores BB, but a BB is a success.  He proposed we use the _on base percentage_ (OBP) instead of batting average. He defined OBP as (H+BB)/(AB+BB) which is simply the proportion of plate appearances that don't result in an out, a very intuitive measure. He noted that a player that gets many more BB than the average player might not be recognized if the batter does not excel in batting average. But is this player not helping produce runs? No award is given to the player with the most BB. However, bad habits are hard to break and baseball did not immediately adopt OBP as an important statistic. In contrast, total stolen bases were considered important and an award^[http://www.baseball-almanac.com/awards/lou_brock_award.shtml] given to the player with the most. But players with high totals of SB also made more outs as they did not always succeed. Does a player with high SB total help produce runs? Can we use data science to determine if it's better to pay for players with high BB or SB? 
 
-### Base on Balls or Stolen Bases?
+### Base on balls or stolen bases?
 
 One of the challenges in this analysis is that it is not obvious how to determine if a player produces runs because so much depends on his teammates. We do keep track of the number of runs scored by a player. However, remember that if a player X bats right before someone who hits many HRs, batter X will score many runs. But these runs don't necessarily happen if we hire player X but not his HR hitting teammate.  However, we can examine team-level statistics. How do teams with many SB compare to teams with few? How about BB? We have data! Let's examine some. 
 
@@ -124,7 +124,7 @@ Teams %>% filter(yearID %in% 1961:2001) %>%
 
 Here again we see a clear association. But does this mean that increasing a team's BBs **causes** an increase in runs? One of the most important lessons you learn in this book is that **assocation is not causation.**
 
-In fact, it looks like BB and HRs are also associated:
+In fact, it looks like BBs and HRs are also associated:
 
 ```{r bb-vs-hrs}
 Teams %>% filter(yearID %in% 1961:2001 ) %>%
@@ -133,7 +133,7 @@ Teams %>% filter(yearID %in% 1961:2001 ) %>%
   geom_point(alpha = 0.5)
 ```
 
-We know that HR cause runs because, as the name "home run" implies, when a player hits a HR they are guaranteed at least one run. Could it be that HRs also cause BB and this makes it appear as if BB cause runs? When this happens we say there is _confounding_, an important concept we will learn more about throughout this chapter.
+We know that HRs cause runs because, as the name "home run" implies, when a player hits a HR they are guaranteed at least one run. Could it be that HRs also cause BB and this makes it appear as if BB cause runs? When this happens we say there is _confounding_, an important concept we will learn more about throughout this chapter.
 
 Linear regression will help us parse all this out and quantify the associations. This will then help us determine what players to recruit. Specifically, we will try to predict things like how many more runs will a team score if we increase the number of BBs, but keep the HRs fixed? Regression will help us answer questions like this one.
 
