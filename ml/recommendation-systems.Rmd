@@ -4,7 +4,7 @@ Recommendation systems use ratings that _users_ have given _items_ to make speci
 
 Netflix uses a recommendation system to predict how many _stars_ a user will give a specific movie. One star suggests it is not a good movie, whereas five stars suggests it is an excellent movie. Here, we provide the basics of how these recommendations are made, motivated by some of the approaches taken by the winners of the  _Netflix challenges_.  
 
-On October 2006, Netflix offered a challenge to the data science community: improve our recommendation algorithm by 10% and win a million dollars. In September 2009, 
+In October 2006, Netflix offered a challenge to the data science community: improve our recommendation algorithm by 10% and win a million dollars. In September 2009, 
 the winners were announced^[http://bits.blogs.nytimes.com/2009/09/21/netflix-awards-1-million-prize-and-starts-a-new-contest/]. You can read a good summary of how the winning algorithm was put together here: [http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/](http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/) 
 and a more detailed explanation here: 
 [http://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf](http://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf).  We will now show you some of the data analysis strategies used by the winning team.
@@ -66,10 +66,9 @@ movielens %>% filter(userId %in% users) %>%
   spread(movieId, rating) %>% select(sample(ncol(.), 100)) %>% 
   as.matrix() %>% t(.) %>%
   image(1:100, 1:100,. , xlab="Movies", ylab="Users")
-  abline(h=0:100+0.5, v=0:100+0.5, col = "grey")
 ```
 
-This machine learning challenge is more complicated than what we have studied up to now because each outcome $Y$ has a different set of predictors. To see this, note that if we are predicting the rating for movie $i$ by user $u$, in principle, all other ratings related to movie $i$ and by user $u$ may used as predictors, but different users rate different movies and a different number of movies. Furthermore, we may be able to use information from other movies that we have determined are similar to movie $i$ or from users determined to be similar to user $u$. In essence, the entire matrix can be used as predictors for each cell. 
+This machine learning challenge is more complicated than what we have studied up to now because each outcome $Y$ has a different set of predictors. To see this, note that if we are predicting the rating for movie $i$ by user $u$, in principle, all other ratings related to movie $i$ and by user $u$ may be used as predictors, but different users rate different movies and a different number of movies. Furthermore, we may be able to use information from other movies that we have determined are similar to movie $i$ or from users determined to be similar to user $u$. In essence, the entire matrix can be used as predictors for each cell. 
 
 Let's look at some of the general properties of the data to better understand the challenges.
 
@@ -194,7 +193,7 @@ We can again use least squares to estimate the $b_i$ in the following way:
 fit <- lm(rating ~ as.factor(movieId), data = movielens)
 ```
 
-Because there are thousands of $b_i$ as each movie gets one, the `lm()` function will be very slow here. We therefore don't recommend running the code above. But in this particular situation, we know that the least square estimate $\hat{b}_i$ is just the average of $Y_{u,i} - \hat{\mu}$ for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
+Because there are thousands of $b_i$ as each movie gets one, the `lm()` function will be very slow here. We therefore don't recommend running the code above. But in this particular situation, we know that the least squares estimate $\hat{b}_i$ is just the average of $Y_{u,i} - \hat{\mu}$ for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
 
 ```{r}
 mu <- mean(train_set$rating) 
@@ -342,7 +341,7 @@ rmse_results
     
     B. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
     
-    C. $Y_{u,i} = \mu + b_i + b_u + \sum{k=1}^K x_{u,i} \beta_k + \varepsilon_{u,i}$, with $x^k_{u,i} = 1$ if $g_{u,i}$ is genre $k$.
+    C. $Y_{u,i} = \mu + b_i + b_u + \sum_{k=1}^K x_{u,i} \beta_k + \varepsilon_{u,i}$, with $x^k_{u,i} = 1$ if $g_{u,i}$ is genre $k$.
     
     D. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
 
@@ -421,7 +420,7 @@ Regularization permits us to penalize large estimates that
 are formed using small sample sizes. It has commonalities with the 
 Bayesian approach that shrunk predictions described in Section \@ref(bayesian-statistics). 
 
-### Penalized Least Squares
+### Penalized least squares
 
 The general idea behind regularization is to constrain the total variability of the effect sizes. Why does this help? Consider a case in which we have movie $i=1$ with 100 user ratings and 4 movies $i=2,3,4,5$ with just one user rating. We intend to fit the  model
 
@@ -429,7 +428,7 @@ $$
 Y_{u,i} = \mu + b_i + \varepsilon_{u,i}
 $$
 
-Suppose we know the average rating is, say, $\mu = 3$. If we use least squares, the estimate for the first movie effect $b_1$ is the average of the 100 user ratings, $1/100 \sum_{i=1}^{100} (Y_{i,1} - \mu)$, which we expect to be a quite precise. However, the estimate for movies 2,3,4 and 5 will simply be the observed deviation from the average rating $\hat{b}_i = Y_{u,i} - \hat{\mu}$ which is an estimate based on just one number so it won't be precise at all. Note these estimate  makes the error $Y_{u,i} - \mu + \hat{b}_i$ equal to 0 for $i=2,3,4,5$, but this is a case of over-training. In fact, ignoring the one user and guessing that movies 2,3,4, and 5 are just average movies ($b_i = 0$) might provide a better prediction. The general idea of penalized regression is to control the total variability of the movie effects: $\sum_{i=1}^5 b_i^2$. Specifically, instead of minimizing the least square equation, we minimize an equation that adds a penalty:
+Suppose we know the average rating is, say, $\mu = 3$. If we use least squares, the estimate for the first movie effect $b_1$ is the average of the 100 user ratings, $1/100 \sum_{i=1}^{100} (Y_{i,1} - \mu)$, which we expect to be a quite precise. However, the estimate for movies 2, 3, 4, and 5 will simply be the observed deviation from the average rating $\hat{b}_i = Y_{u,i} - \hat{\mu}$ which is an estimate based on just one number so it won't be precise at all. Note these estimates  make the error $Y_{u,i} - \mu + \hat{b}_i$ equal to 0 for $i=2,3,4,5$, but this is a case of over-training. In fact, ignoring the one user and guessing that movies 2,3,4, and 5 are just average movies ($b_i = 0$) might provide a better prediction. The general idea of penalized regression is to control the total variability of the movie effects: $\sum_{i=1}^5 b_i^2$. Specifically, instead of minimizing the least squares equation, we minimize an equation that adds a penalty:
 
 $$\frac{1}{N} \sum_{u,i} \left(y_{u,i} - \mu - b_i\right)^2 + \lambda \sum_{i} b_i^2$$
 The first term is just least squares and the second is a penalty that gets larger when many $b_i$ are large. Using calculus we can actually show that the values of $b_i$ that minimize this equation are:
@@ -526,7 +525,7 @@ qplot(lambdas, rmses)
 lambdas[which.min(rmses)]
 ```
 
-However, while we show this as an illustration, in practice we should be using full cross validation just on the train set, without using the test set until the final assessment. The test set should never be used for tuning.
+However, while we show this as an illustration, in practice we should be using full cross-validation just on the train set, without using the test set until the final assessment. The test set should never be used for tuning.
 
 We can use regularization for the estimate user effects as well. We are minimizing:
 
@@ -621,7 +620,7 @@ schools <- schools %>% mutate(score = sapply(scores, mean))
 ```
 
 
-1. What are the top schools based on the average score? Show just the ID, size and the average score.
+1. What are the top schools based on the average score? Show just the ID, size, and the average score.
 
 
 2. Compare the median school size to the median school size of the top 10 schools based on the score.
@@ -641,7 +640,7 @@ schools <- schools %>% mutate(score = sapply(scores, mean))
     overall <- mean(sapply(scores, mean))
     ```
     
-    and then define, for each school, how it deviates from that average. Write code that estimates the score above the average for each school but dividing by $n + \lambda$ instead of $n$, with $n$ the schools size and $\lambda$ a regularization parameters. Try $\lambda = 3$.
+    and then define, for each school, how it deviates from that average. Write code that estimates the score above average for each school but dividing by $n + \lambda$ instead of $n$, with $n$ the school size and $\lambda$ a regularization parameter. Try $\lambda = 3$.
 
 6. Notice that this improves things a bit. The number of small schools that are not highly ranked is now 4.  Is there a better $\lambda$? Find the $\lambda$ that minimizes the RMSE = $1/100 \sum_{i=1}^{100} (\mbox{quality} - \mbox{estimate})^2$.
 
@@ -653,7 +652,7 @@ schools <- schools %>% mutate(score = sapply(scores, mean))
 
 ## Matrix factorization
 
-Matrix factorization is a widely used concept in machine learning. It is very much related to factor analysis, singular value decomposition (SVD) and principal component analysis (PCA). Here we describe the concept in the context of movie recommendation systems.
+Matrix factorization is a widely used concept in machine learning. It is very much related to factor analysis, singular value decomposition (SVD), and principal component analysis (PCA). Here we describe the concept in the context of movie recommendation systems.
 
 We have described how the model:
 
@@ -790,7 +789,7 @@ Y_{u,i} = \mu + b_i + b_u + p_u q_i + \varepsilon_{u,i}
 $$
 
 
-However, we motivated the need for the $p_u q_i$ term with a simple simulation. The structure found in data is usually more complex. For example, in this first simulation we assumed there were was just one factor $p_u$ that determined which of the two genres movie $u$ belongs to. But the structure in our movie data seems to be much more complicated than gangster movie versus romance. We may have many other factors. Here we present a slightly more complex simulation. We know add a sixth movie.
+However, we motivated the need for the $p_u q_i$ term with a simple simulation. The structure found in data is usually more complex. For example, in this first simulation we assumed there were was just one factor $p_u$ that determined which of the two genres movie $u$ belongs to. But the structure in our movie data seems to be much more complicated than gangster movie versus romance. We may have many other factors. Here we present a slightly more complex simulation. We now add a sixth movie.
 
 
 ```{r, echo=FALSE}
@@ -815,7 +814,7 @@ By exploring the correlation structure of this new dataset
 colnames(r)[4:6] <- c("YGM", "SS", "SW")
 cor(r)
 ```
-We note that we perhaps need a second factor to account for the fact that some users like Al Pacino, while others dislike him or don't care.Notice that the overall structure of the correlation obtained from the simulated data is not that far off the real correlation:
+We note that we perhaps need a second factor to account for the fact that some users like Al Pacino, while others dislike him or don't care. Notice that the overall structure of the correlation obtained from the simulated data is not that far off the real correlation:
 
 ```{r}
 six_movies <- c(m_1, m_2, m_3, m_4, m_5, m_6)
@@ -859,7 +858,7 @@ $$
 r_{u,i} = p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \dots + p_{u,m} q_{m,i} 
 $$
 
-with the variability of each term decreasing and with the $p$s uncorrelated. The algorithm also computes this variability so that we can know how much of the matrices total variability is explained as we add new terms. This may permit us to see that, with just a few terms, we can explain most of the variability.
+with the variability of each term decreasing and with the $p$s uncorrelated. The algorithm also computes this variability so that we can know how much of the matrices, total variability is explained as we add new terms. This may permit us to see that, with just a few terms, we can explain most of the variability.
 
 Let's see an example with the movie data. To compute the decomposition, we will make the residuals with NAs equal to 0:
 
@@ -943,7 +942,7 @@ The SVD tells us that we can _decompose_ an $N\times p$ matrix $Y$ with $p < N$ 
 
 $$ Y = U D V^{\top} $$
 
-With $U$ and $V$ _orthogonal_ of dimensions $N\times p$ and $p\times p$ respectively and $D$ a $p \times p$ _diagonal_ matrix with the values of the diagonal decreasing: 
+With $U$ and $V$ _orthogonal_ of dimensions $N\times p$ and $p\times p$, respectively, and $D$ a $p \times p$ _diagonal_ matrix with the values of the diagonal decreasing: 
 
 $$d_{1,1} \geq d_{2,2} \geq \dots d_{p,p}$$. 
 
@@ -964,7 +963,7 @@ colnames(y) <- c(paste(rep("Math",k), 1:k, sep="_"),
                  paste(rep("Arts",k), 1:k, sep="_"))
 ``` 
 
-Our goal is to describe the student performances as succinctly as possible. For example, we want to know if these test results are all just a random independent numbers. Are all students just about as good? Does being good in one subject  imply you will be good in another? How does the SVD help with all this? We will go step by step to show that with just three relatively small pairs of vectors we can explain much of the variability in this $100 \times 24$ dataset. 
+Our goal is to describe the student performances as succinctly as possible. For example, we want to know if these test results are all just  random independent numbers. Are all students just about as good? Does being good in one subject  imply you will be good in another? How does the SVD help with all this? We will go step by step to show that with just three relatively small pairs of vectors we can explain much of the variability in this $100 \times 24$ dataset. 
 
 You can visualize the 24 test scores for the 100 students by plotting an image:
 
@@ -1083,7 +1082,7 @@ plot `ss_y` against the column number and then do the same for `ss_yv`. What do 
 
   
 
-11. We see that with just a vector of length 100, a scalar, and a vector of length 24, we actually come close to reconstructing the a $100 \times 24$ matrix. This is our first matrix factorization:
+11. We see that with just a vector of length 100, a scalar, and a vector of length 24, we actually come close to reconstructing the original $100 \times 24$ matrix. This is our first matrix factorization:
 
     $$ Y \approx d_{1,1} U_1 V_1^{\top}$$
 
@@ -1143,10 +1142,10 @@ plot `ss_y` against the column number and then do the same for `ss_yv`. What do 
 
     $$ Y =  d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top} + \varepsilon$$
 
-    with $\varepsilon$ a matrix of independent identically distributed errors. This model is useful because we summarize of $100 \times 24$ observations with $3 \times (100+24+1) = 375$ numbers. Furthermore, the three components of the model have useful interpretations: 1) the overall ability of a student, 2) the difference in ability between the math/sciences and arts and 3) the remaining differences between the three subjects. The sizes $d_{1,1}, d_{2,2}$ and $d_{3,3}$ tells us the variability explained by each component. Finally, note that the components $d_{j,j} U_j V_j^{\top}$ are equivalent to the jth principal component.
+    with $\varepsilon$ a matrix of independent identically distributed errors. This model is useful because we summarize of $100 \times 24$ observations with $3 \times (100+24+1) = 375$ numbers. Furthermore, the three components of the model have useful interpretations: 1) the overall ability of a student, 2) the difference in ability between the math/sciences and arts, and 3) the remaining differences between the three subjects. The sizes $d_{1,1}, d_{2,2}$ and $d_{3,3}$ tell us the variability explained by each component. Finally, note that the components $d_{j,j} U_j V_j^{\top}$ are equivalent to the jth principal component.
     
     Finish the exercise by plotting an image of  $Y$, an image of $d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$ and an image of the residuals, all with the same `zlim`.
 
   
 
-14. Advanced. The `movielens` dataset included` in the __dslabs__ package is a small subset of a larger dataset with millions of ratings. You can find the entire latest dataset here [https://grouplens.org/datasets/movielens/20m/](https://grouplens.org/datasets/movielens/20m/). Create your own recommendation system using all the tools we have shown you.
+14. Advanced. The `movielens` dataset included in the __dslabs__ package is a small subset of a larger dataset with millions of ratings. You can find the entire latest dataset here [https://grouplens.org/datasets/movielens/20m/](https://grouplens.org/datasets/movielens/20m/). Create your own recommendation system using all the tools we have shown you.

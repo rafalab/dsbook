@@ -1,4 +1,4 @@
-## Classification and Regression Trees (CART)
+## Classification and regression trees (CART)
 
 ```{r, echo=FALSE}
 img_path <- "ml/img"
@@ -6,7 +6,7 @@ img_path <- "ml/img"
 
 ### The curse of dimensionality
 
-We described how methods such as LDA and QDA are not meant to be used with many predictors $p$ because the number of parameters that we need to estimate becomes too large. For example, with the digits example $p=784$, we would have over 600,000 parameters with LDA, and we would multiply that by the number of classes for QDA. Kernel methods such as kNN or local regression do not have model parameters to estimate. However, they also face a challenge when multiple predictors are used due to what is referred to the _curse of dimensionality_. The _dimension_ here refers to the fact that when we have $p$ predictors, the distance between two observations is computed in $p$-dimensional space.
+We described how methods such as LDA and QDA are not meant to be used with many predictors $p$ because the number of parameters that we need to estimate becomes too large. For example, with the digits example $p=784$, we would have over 600,000 parameters with LDA, and we would multiply that by the number of classes for QDA. Kernel methods such as kNN or local regression do not have model parameters to estimate. However, they also face a challenge when multiple predictors are used due to what is referred to as the _curse of dimensionality_. The _dimension_ here refers to the fact that when we have $p$ predictors, the distance between two observations is computed in $p$-dimensional space.
 
 A useful way of understanding the curse of dimensionality is by considering how large we have to make a span/neighborhood/window to include a given percentage of the data. Remember that with larger neighborhoods, our methods lose flexibility. 
 
@@ -49,7 +49,7 @@ points(x,y, cex = 0.25)
 points(x[25],y[25], cex = 0.5, pch=4)
 ```
 
-Using the same logic, if we want to include 10% of the data in a three dimensional space, then the side of each cube is  $\sqrt[3]{.10} \approx 0.464$.
+Using the same logic, if we want to include 10% of the data in a three-dimensional space, then the side of each cube is  $\sqrt[3]{.10} \approx 0.464$.
 In general, to include 10% of the data in a case with $p$ dimensions, we need an interval with each side of size $\sqrt[p]{.10}$ of the total. This proportion gets close to 1 quickly, and if the proportion is 1 it means we include all the data and are no longer smoothing.
 
 ```{r curse-of-dim-4, message=FALSE, message=FALSE}
@@ -157,7 +157,7 @@ data("polls_2008")
 qplot(day, margin, data = polls_2008)
 ```
 
-The general idea here is to build a decision tree and, at end of each _node_, obtain a predictor $\hat{y}$. A mathematical way to describe this is to say that we are partitioning the predictor space into $J$ non-overlapping regions, $R_1, R_2, \ldots, R_J$, and then for any predictor $x$ that falls within region $R_j$, estimate $f(x)$ with the average of the training observations $y_i$ for which the associated predictor $x_i$ in also in $R_j$.
+The general idea here is to build a decision tree and, at the end of each _node_, obtain a predictor $\hat{y}$. A mathematical way to describe this is to say that we are partitioning the predictor space into $J$ non-overlapping regions, $R_1, R_2, \ldots, R_J$, and then for any predictor $x$ that falls within region $R_j$, estimate $f(x)$ with the average of the training observations $y_i$ for which the associated predictor $x_i$ is also in $R_j$.
 
 But how do we decide on the partition  $R_1, R_2, \ldots, R_J$ and how do we choose $J$? Here is where the algorithm gets a bit complicated.
 
@@ -195,7 +195,7 @@ plot(fit, margin = 0.1)
 text(fit, cex = 0.75)
 ```
 
-The first split is made on day 39.5. One of those regions is then split at day 86.5. The two resulting new partitions are split on days 49.5 and 117.5 respectively, and so on. We end up with 8 partitions. The final estimate $\hat{f}(x)$ looks like this:
+The first split is made on day 39.5. One of those regions is then split at day 86.5. The two resulting new partitions are split on days 49.5 and 117.5, respectively, and so on. We end up with 8 partitions. The final estimate $\hat{f}(x)$ looks like this:
 
 ```{r polls-2008-tree-fit, fig.height=5}
 polls_2008 %>% 
@@ -207,9 +207,9 @@ polls_2008 %>%
 
 Note that the algorithm stopped partitioning at 8. Now we explain how this decision is made. 
 
-First we need to define the term _complexity parameter_ (cp).  Every time we split and define two new partitions, our training set RSS decreases. This is because with more partitions, our model has more flexibility to adapt to the training data. In fact, if you split until every point is its own partition, then RSS goes all the way down to 0 since the average of one value is that same value. To avoid this, the algorithm sets a minimum for how much the RSS must improve for another partition to be added. This parameter is referred to as the _complexity parameter_ (cp). The RSS must improve by a factor of cp for the new partition to be added. Large values of cp will therefore force the algorithm to stop earlier which result in less nodes. 
+First we need to define the term _complexity parameter_ (cp).  Every time we split and define two new partitions, our training set RSS decreases. This is because with more partitions, our model has more flexibility to adapt to the training data. In fact, if you split until every point is its own partition, then RSS goes all the way down to 0 since the average of one value is that same value. To avoid this, the algorithm sets a minimum for how much the RSS must improve for another partition to be added. This parameter is referred to as the _complexity parameter_ (cp). The RSS must improve by a factor of cp for the new partition to be added. Large values of cp will therefore force the algorithm to stop earlier which results in fewer nodes. 
 
-However, cp is not the only parameter used to decide if we should partition a current partition or not. Another common parameter is the minimum number of observations required in a partition before partitioning it further. The argument used in the `rpart` function is `minsplit` and the default is 20. The `rpart` implementation of regression trees also permits users to determine a minimum number observations in each node. The argument is `minbucket` and defaults to `round(minsplit/3)`. 
+However, cp is not the only parameter used to decide if we should partition a current partition or not. Another common parameter is the minimum number of observations required in a partition before partitioning it further. The argument used in the `rpart` function is `minsplit` and the default is 20. The `rpart` implementation of regression trees also permits users to determine a minimum number of observations in each node. The argument is `minbucket` and defaults to `round(minsplit/3)`. 
 
 As expected, if we set `cp = 0` and `minsplit = 2`, then our prediction is as flexible as possible and our predictor is our original data:
 
@@ -223,9 +223,9 @@ polls_2008 %>%
   geom_step(aes(day, y_hat), col="red")
 ```
 
-Intuitively we know that this is not a good approach as it will generally result in over-training. These `cp`, `minsplit` and `minbucket` three parameters can be used to control the variability of the final predictors. The larger these values are the more data is averaged to compute a predictor and thus reduce variability. The drawback is that it restrict flexibility. 
+Intuitively we know that this is not a good approach as it will generally result in over-training. These `cp`, `minsplit`, and `minbucket` three parameters can be used to control the variability of the final predictors. The larger these values are the more data is averaged to compute a predictor and thus reduce variability. The drawback is that it restrict flexibility. 
 
-So how do we pick these parameters? We can use cross validation, described in Section \@ref(cross-validation), just like with any tuning parameter. Here is an example of using cross validation to chose cp.
+So how do we pick these parameters? We can use cross validation, described in Chapter \@ref(cross-validation), just like with any tuning parameter. Here is an example of using cross validation to chose cp.
 
 ```{r polls-2008-tree-train}
 library(caret)
@@ -330,11 +330,11 @@ p2 <- plot_cond_prob(predict(train_rpart, newdata = mnist_27$true_p, type = "pro
 grid.arrange(p2, p1, nrow=1)
 ```
 
-Note that with with decision trees, it is difficult to make the boundaries smooth since each partition creates a discontinuity. 
+Note that with decision trees, it is difficult to make the boundaries smooth since each partition creates a discontinuity. 
 
 Classification trees have certain advantages that make them very useful. They are highly interpretable, even more so than linear models. They are easy to visualize (if small enough).  Finally, they can model human decision processes and don't require use of dummy predictors for categorical variables. On the other hand, the approach via recursive partitioning can easily over-train and is therefore a bit harder to train than, for example, linear regression or kNN. Furthermore, in terms of accuracy, it is rarely the best performing method since it is not very flexible and is highly unstable to changes in training data. Random forests, explained next, improve on several of these shortcomings.
 
-## Random Forests
+## Random forests
 
 Random forests are a **very popular** machine learning approach that addresses the shortcomings of decision trees using a clever idea. The goal is to improve prediction performance and reduce instability by _averaging_ multiple decision trees (a forest of trees constructed with randomness). It has two features that help accomplish this.
 
@@ -348,11 +348,11 @@ The first step is _bootstrap aggregation_ or _bagging_. The general idea is to g
      
 So how do we get different decision trees from a single training set? For this, we use randomness in two ways which we explain in the steps below. Let $N$ be the number of observations in the training set. To create $T_j, \, j=1,\ldots,B$ from the training set we do the following:
 
-1. Create a bootstrap training set by sampling $N$ observations from the training set **with replacement**. This is the first way in induce randomness. 
+1. Create a bootstrap training set by sampling $N$ observations from the training set **with replacement**. This is the first way to induce randomness. 
     
-2. A large number of features is typical in a machine learning challenges. Often, many features can be informative but including them all in the model may result in overfitting. The second way random forests induce randomness is by randomly selecting features to be included in the building of each tree. A different random subset is selected for each tree. This reduces correlation between trees in the forest, thereby improving prediction accuracy. 
+2. A large number of features is typical in machine learning challenges. Often, many features can be informative but including them all in the model may result in overfitting. The second way random forests induce randomness is by randomly selecting features to be included in the building of each tree. A different random subset is selected for each tree. This reduces correlation between trees in the forest, thereby improving prediction accuracy. 
 
-To illustrate how the first steps can result in smoother estimates we will demonstrate by fitting a Random Forest to 
+To illustrate how the first steps can result in smoother estimates we will demonstrate by fitting a random forest to 
 the 2008 polls data.  We will use the `randomForest` function in the __randomForest__ package:
 
 ```{r polls-2008-rf, message=FALSE, warning=FALSE}
@@ -360,7 +360,7 @@ library(randomForest)
 fit <- randomForest(margin~., data = polls_2008) 
 ```
 
-Note that if we apply the function `plot` to the resulting object, stored in `fit`, we see the how the error rate of our algorithm changes as we add trees. 
+Note that if we apply the function `plot` to the resulting object, stored in `fit`, we see how the error rate of our algorithm changes as we add trees. 
 
 ```{r more-trees-better-fit}
 rafalib::mypar()
@@ -379,7 +379,7 @@ polls_2008 %>%
   geom_line(aes(day, y_hat), col="red")
 ```
 
-Notice that the random forest estimate is much smoother than what we achieved with the regression tree in the previous section. This is possible because the average of many step functions can be smooth. We can see this by visually examining how the estimate changes as we add more trees. In the following figure you see each of bootstrap samples for several values if $b$ and for each one we see the tree that is fitted in grey, the previous trees that were fitted in lighter grey, and the result of averaging all the trees estimated up to that point.
+Notice that the random forest estimate is much smoother than what we achieved with the regression tree in the previous section. This is possible because the average of many step functions can be smooth. We can see this by visually examining how the estimate changes as we add more trees. In the following figure you see each of the bootstrap samples for several values of $b$ and for each one we see the tree that is fitted in grey, the previous trees that were fitted in lighter grey, and the result of averaging all the trees estimated up to that point.
 
 ```{r rf-animation, echo=FALSE, out.width="100%"}
 library(rafalib)
@@ -502,7 +502,7 @@ acc <- sapply(nodesize, function(ns){
 qplot(nodesize, acc)
 ```
 
-We can now fit the random forrest with the optimized minimun node size to the entire training data and evaluate performance on the test data.
+We can now fit the random forest with the optimized minimun node size to the entire training data and evaluate performance on the test data.
 
 ```{r}
 train_rf_2 <- randomForest(y ~ ., data=mnist_27$train,
@@ -524,7 +524,7 @@ grid.arrange(p2, p1, nrow=1)
 ```
 
 
-Note that we can avoid writing our own code by using other Random Forest implementions as described in the __caret__ manual^[http://topepo.github.io/caret/available-models.html].
+Note that we can avoid writing our own code by using other random forest implementations as described in the __caret__ manual^[http://topepo.github.io/caret/available-models.html].
 
 
 Random forest performs better in all the examples we have considered. However, a disadvantage of random forests is that we lose interpretability. An approach that helps with interpretability is to examine _variable importance_.
@@ -599,4 +599,4 @@ To define _variable importance_ we count how often a predictor is used in the in
     What is the variable importance in the random forest call for these predictors? Where do they rank?
 
 
-16. Advanced: Extract the top 50 predictors based on importance, take a subset of `x` with just these predictors and apply the function `heatmap` to see how these genes behave across the tissues. We will introduce the `heatmap` function in the Section \@ref(clustering).
+16. Advanced: Extract the top 50 predictors based on importance, take a subset of `x` with just these predictors and apply the function `heatmap` to see how these genes behave across the tissues. We will introduce the `heatmap` function in Chapter \@ref(clustering).

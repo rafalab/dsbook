@@ -12,7 +12,7 @@ However, Bayes' theorem tells us that knowing the distribution of the predictors
 
 ### Naive Bayes 
 
-Recall that Bayes rule tells use that we can rewrite $p(\mathbf{x})$ like this:
+Recall that Bayes rule tells us that we can rewrite $p(\mathbf{x})$ like this:
 
 $$
 p(\mathbf{x}) = \mbox{Pr}(Y=1|\mathbf{X}=\mathbf{x}) = \frac{f_{\mathbf{X}|Y=1}(\mathbf{x}) \mbox{Pr}(Y=1)}
@@ -38,7 +38,7 @@ train_set <- heights %>% slice(-test_index)
 test_set <- heights %>% slice(test_index)
 ```
 
-In this case, the Naive Bayes approach is particularly appropriate because we know that the normal distribution is a good approximation for the conditional distributions of height given sex for both classes $Y=1$ (female) and $Y=0$ (Male). This implies that we can approximate the conditional distributions $f_{X|Y=1}$ and $f_{X|Y=0}$ by simply estimating averages and standard deviations from the data:
+In this case, the Naive Bayes approach is particularly appropriate because we know that the normal distribution is a good approximation for the conditional distributions of height given sex for both classes $Y=1$ (female) and $Y=0$ (male). This implies that we can approximate the conditional distributions $f_{X|Y=1}$ and $f_{X|Y=0}$ by simply estimating averages and standard deviations from the data:
 
 ```{r}
 params <- train_set %>% 
@@ -134,7 +134,7 @@ qplot(x, p_hat_bayes_unbiased, geom = "line") +
   geom_vline(xintercept = 67, lty = 2)
 ```
 
-### Quadratic Discriminant Analysis
+### Quadratic discriminant analysis
 
 Quadratic Discriminant Analysis (QDA) is a version of Naive Bayes in which we assume that the distributions $p_{\mathbf{X}|Y=1}(x)$ and $p_{\mathbf{X}|Y=0}(\mathbf{x})$ are multivariate normal. The simple example we described in the previous section is actually QDA. Let's now look at a slightly more complicated case: the 2 or 7 example.
 
@@ -214,7 +214,7 @@ mnist_27$train %>% mutate(y = factor(y)) %>%
 ```
 
 
-QDA can work well here, but it becomes harder to use as the number of predictors increases. Here we have 2 predictors and had to compute 4 means, 4 SDs and 2 correlations. How many parameters would we have if instead of 2 predictors, we had 10? 
+QDA can work well here, but it becomes harder to use as the number of predictors increases. Here we have 2 predictors and had to compute 4 means, 4 SDs, and 2 correlations. How many parameters would we have if instead of 2 predictors, we had 10? 
 The main problem comes from estimating correlations for 10 predictors. With 10, we have 45 correlations for each class. In general, the formula is $K\times p(p-1)/2$, which gets big fast. Once the number of parameters approaches the size of our data, the method becomes impractical due to overfitting.
 
 
@@ -298,7 +298,6 @@ which is the negative of a distance squared scaled by the standard deviation. Fo
 
 ### Case study: more than three classes
 
-We will briefly give a slightly more complex example: one with 3 classes instead of 2. We first create a dataset similar to the 2 or 7 dataset, except now we have 1s, 2s and 7s.
 
 ```{r}
 if(!exists("mnist")) mnist <- read_mnist()
@@ -374,7 +373,7 @@ confusionMatrix(predict(train_qda, test_set), test_set$y)$overall["Accuracy"]
 For sensitivity and specificity, we have a pair of values for **each** class. To define these terms, we need a binary outcome. We therefore have three columns: one for each class as the positives and the other two as the negatives.
 
 
-We can visualize what parts of the region are called 1, 2 and 7:
+We can visualize what parts of the region are called 1, 2, and 7:
 
 ```{r three-classes-plot, echo=FALSE}
 GS <- 150

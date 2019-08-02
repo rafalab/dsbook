@@ -1,6 +1,6 @@
 # Examples of algorithms
 
-There are dozens of machine learning algorithms. Here we were provide a few examples spanning rather different approaches. Throughout the chapter we will be using the two predictor digits data introduced in Section \@ref(two-or-seven) to demonstrate how the algorithms work.
+There are dozens of machine learning algorithms. Here we provide a few examples spanning rather different approaches. Throughout the chapter we will be using the two predictor digits data introduced in Section \@ref(two-or-seven) to demonstrate how the algorithms work.
 
 ```{r warning=FALSE, message=FALSE}
 library(tidyverse)
@@ -12,7 +12,7 @@ data("mnist_27")
 
 ## Linear regression 
 
-Linear regression can be considered a machine learning algorithm. In Section \@ref(two-or-seven) we demonstrated how linear regression can be too rigid to be useful. This in generally true, but for some challenges it works rather well. It also serves as a baseline approach: if you can't beat it with a more complex approach, you probably want to stick to linear regression. To quickly make the connection between regression and machine learning, we will reformulate Galton's study with heights, a continuous outcome.
+Linear regression can be considered a machine learning algorithm. In Section \@ref(two-or-seven) we demonstrated how linear regression can be too rigid to be useful. This is generally true, but for some challenges it works rather well. It also serves as a baseline approach: if you can't beat it with a more complex approach, you probably want to stick to linear regression. To quickly make the connection between regression and machine learning, we will reformulate Galton's study with heights, a continuous outcome.
 
 ```{r, message=FALSE, warning=FALSE}
 library(HistData)
@@ -78,7 +78,7 @@ mean((y_hat - test_set$son)^2)
 
 ### The `predict` function
 
-The `predict` function is very useful for machine learning applications. This function takes a fitted object from functions such as `lm` or `glm` (we learn about `glm` soon) and a data frame with the new predictors for which to predict. So in our current example, we would use predict like this:
+The `predict` function is very useful for machine learning applications. This function takes a fitted object from functions such as `lm` or `glm` (we learn about `glm` soon) and a data frame with the new predictors for which to predict. So in our current example, we would use `predict` like this:
 
 ```{r}
 y_hat <- predict(fit, test_set)
@@ -163,7 +163,7 @@ There are many other versions of `predict` and many machine learning algorithms 
 
     A. It is just luck. If we do it again, it will be larger.
     
-    B. The central limit theorem tell us the RMSE is normal.
+    B. The Central Limit Theorem tells us the RMSE is normal.
     
     C. When we increase the correlation between `x` and `y`, `x` has more predictive power and thus provides a better estimate of `y`. This correlation has a much bigger effect on RMSE than `n`. Large `n` simply provide us more precise estimates of the linear model coefficients.
     
@@ -184,7 +184,7 @@ There are many other versions of `predict` and many machine learning algorithms 
     cor(dat)
     ```
 
-    Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2` and both `x_1` and `x_2` Train a linear model and report the RMSE. 
+    Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2`, and both `x_1` and `x_2`. Train a linear model and report the RMSE. 
 
     
 7.  Repeat exercise 6 but now create an example in which `x_1` and `x_2` are highly correlated:
@@ -196,7 +196,7 @@ There are many other versions of `predict` and many machine learning algorithms 
       data.frame() %>% setNames(c("y", "x_1", "x_2"))
     ```
     
-    Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2` and both `x_1` and `x_2` Train a linear model and report the RMSE. 
+    Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2`, and both `x_1` and `x_2` Train a linear model and report the RMSE. 
 
 8. Compare the results in 6 and 7 and choose the statement you agree with:
 
@@ -256,7 +256,7 @@ $$p(x) = \mbox{Pr}( Y = 1 | X=x)  = \beta_0 + \beta_1 x$$
 
 Note: because $p_0(x) = 1 - p_1(x)$, we will only estimate $p_1(x)$ and drop the $_1$ index.
 
-If we convert the factors to 0s and 1s, we can we can estimate $\beta_0$ and $\beta_1$ with least squares. 
+If we convert the factors to 0s and 1s, we can estimate $\beta_0$ and $\beta_1$ with least squares. 
 
 ```{r}
 lm_fit <- mutate(train_set, y = as.numeric(sex == "Female")) %>% 
@@ -280,7 +280,7 @@ confusionMatrix(y_hat, test_set$sex)[["Accuracy"]]
 
 We see this method does substantially better than guessing.
 
-### Generalized Linear Models
+### Generalized linear models
 
 The function $\beta_0 + \beta_1 x$ can take any value including negatives and values larger than 1. In fact, the estimate $\hat{p}(x)$ computed in the linear regression section does indeed become negative at around 76 inches.
 
@@ -303,7 +303,7 @@ range(p_hat)
 
 But we are estimating a probability: $\mbox{Pr}( Y = 1 \mid X = x)$ which is constrained between 0 and 1. 
 
-The idea of Generalized Linear Models (GLM) is to 1) define a distribution of $Y$ that is consistent with it's possible outcomes and 
+The idea of generalized linear models (GLM) is to 1) define a distribution of $Y$ that is consistent with it's possible outcomes and 
 2) find a function $g$ so that $g(\mbox{Pr}( Y = 1 \mid X = x))$ can be modeled as a linear combination of predictors. 
 Logistic regression is the most commonly used GLM. It is an extension of linear regression that assures that the estimate of  $\mbox{Pr}( Y = 1 \mid X = x)$ is between 0 and 1. This approach makes use of the  _logistic_ transformation introduced in Section \@ref(logit):  
 
@@ -437,7 +437,7 @@ Just like regression, the decision rule is a line, a fact that can be corroborat
 $$
 g^{-1}(\hat{\beta}_0 + \hat{\beta}_1 x_1 + \hat{\beta}_2 x_2) = 0.5 \implies
 \hat{\beta}_0 + \hat{\beta}_1 x_1 + \hat{\beta}_2 x_2 = g(0.5) = 0 \implies
-x_2 = -\hat{\beta}_0/\hat{\beta}_2 + -\hat{\beta}_1/\hat{\beta}_2 x_1
+x_2 = -\hat{\beta}_0/\hat{\beta}_2 -\hat{\beta}_1/\hat{\beta}_2 x_1
 $$
 
 Thus $x_2$ is a linear function of $x_1$. This implies that, just like regression, our logistic regression approach has no chance of capturing the non-linear nature of the true $p(x_1,x_2)$. Once we move on to more complex examples, we will see that linear regression and generalized linear regression are limited and not flexible enough to be useful for most machine learning challenges. The new techniques we learn are essentially approaches to estimating the conditional probability in a way that is more flexible. 

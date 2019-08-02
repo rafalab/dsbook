@@ -357,7 +357,7 @@ Now how do we pick the cross validation $K$? Large values of $K$ are preferable 
 
 One way we can improve the variance of our final estimate is to take more samples. To do this, we would no longer require the training set to be partitioned into non-overlapping sets. Instead, we would just pick $K$ sets of some size at random.
 
-One popular version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages (not discussed here) and is generally referred to as the _Bootstrap_. In fact, this is the default approach in the __caret__ package.  We describe how to implement cross validation with the __caret__ package in the next chapter. In the next section, we include an explanation of how the bootstrap works in general.
+One popular version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages (not discussed here) and is generally referred to as the _bootstrap_. In fact, this is the default approach in the __caret__ package.  We describe how to implement cross validation with the __caret__ package in the next chapter. In the next section, we include an explanation of how the bootstrap works in general.
 
 
 ## Exercises 
@@ -419,7 +419,6 @@ x_subset <- x[ ,sample(p, 100)]
 
 Suppose the income distribution of your population is as follows:
 
-
 ```{r income-distribution}
 set.seed(1995)
 n <- 10^6
@@ -434,18 +433,17 @@ m <- median(income)
 m
 ```
 
-Suppose we don't have access to the entire population, but want to estimate the median $m$. We take a sample of 250 and estimate the population median $m$ with the sample median $M$:
+Suppose we don't have access to the entire population, but want to estimate the median $m$. We take a sample of 100 and estimate the population median $m$ with the sample median $M$:
 
 ```{r}
-N <- 250
+N <- 100
 X <- sample(income, N)
-M <- median(X)
-M
+median(X)
 ```
 
 Can we construct a confidence interval? What is the distribution of $M$ ?
 
-From a Monte Carlo simulation, we see that the distribution of $M$ is approximately normal with the following expected value and standard error:
+Because we are simulating the data, we can use a Monte Carlo simulation to learn the distribution of $M$.
 
 ```{r median-is-normal, message=FALSE, warning=FALSE, out.width="100%", fig.width = 6, fig.height = 3}
 library(gridExtra)
@@ -457,14 +455,21 @@ M <- replicate(B, {
 p1 <- qplot(M, bins = 30, color = I("black"))
 p2 <- qplot(sample = scale(M)) + geom_abline()
 grid.arrange(p1, p2, ncol = 2)
-
-mean(M)
-sd(M)
 ```
 
-The problem here is that, as we have already described, in practice we do not have access to the distribution. In the past, we have used the central limit theorem. But the CLT we studied applies to averages and here we are interested in the median. 
+If we know this distribution, we can construct a confidence interval. The problem here is that, as we have already described, in practice we do not have access to the distribution. In the past, we have used the Central Limit Theorem, but the CLT we studied applies to averages and here we are interested in the median. We can see that the 95% confidence interval based on CLT
 
-The bootstrap permits us to approximate a Monte Carlo simulation without access to the entire distribution. The general idea is relatively simple. We act as if the observed sample is the population. We then sample (with replacement) datasets, of the same sample size as the original dataset. Then we compute the summary statistic, in this case median, on this _bootstrap sample_. 
+```{r}
+median(X) + 1.96 * sd(X) / sqrt(N) * c(-1, 1)
+```
+
+is quite different from the confidence interval we would generate if we know the actual distribution of $M$:
+
+```{r}
+quantile(M, c(0.025, 0.975))
+```
+
+The bootstrap permits us to approximate a Monte Carlo simulation without access to the entire distribution. The general idea is relatively simple. We act as if the observed sample is the population. We then sample (with replacement) datasets, of the same sample size as the original dataset. Then we compute the summary statistic, in this case the median, on these _bootstrap samples_. 
 
 Theory tells us that, in many situations, the distribution of the statistics obtained with bootstrap samples approximate the distribution of our actual statistic. This is how we construct bootstrap samples and an approximate distribution:
 
@@ -477,34 +482,14 @@ M_star <- replicate(B, {
 })
 ```
 
-Now we can check how close it is to the actual distribution:
-
-```{r boostram-versus-monte-carlo}
-tibble(monte_carlo = sort(M), bootstrap = sort(M_star)) %>% 
-  qplot(monte_carlo, bootstrap, data = .) + 
-  geom_abline()
-```
-
-We see it is not perfect, but it provides a decent approximation:
+Note a confidence interval constructed with the bootstrap is much closer to one constructed with the theoretical distribution: 
 
 ```{r}
-quantile(M, c(0.05, 0.95))
-quantile(M_star, c(0.05, 0.95))
+quantile(M_star, c(0.025, 0.975))
 ```
 
-This is much better than what we get if we mindlessly use the CLT:
+For more on the Bootstrap, including corrections one can apply to improve these confidence intervals, please consult the book _An introduction to the bootstrap_ by Efron, B., & Tibshirani, R. J.
 
-```{r}
-median(X) + 1.96 * sd(X) / sqrt(N) * c(-1, 1)
-```
-
-
-If we know the distribution is normal, we can use the bootstrap to estimate the mean:
-
-```{r}
-mean(M) + 1.96 * sd(M) * c(-1,1)
-mean(M_star) + 1.96 * sd(M_star) * c(-1, 1)
-```
 
 *Note that we can use ideas similar to those used in the bootstrap in cross validation: instead of dividing the data into equal partitions, we simply bootstrap many times.*
 

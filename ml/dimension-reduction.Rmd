@@ -6,11 +6,11 @@ rafalib::mypar()
 
 A typical machine learning challenge will include a large number of predictors, which makes visualization somewhat challenging. We have shown methods for visualizing univariate and paired data, but plots that reveal relationships between many variables are more complicated in higher dimensions. For example, to compare each of the 784 features in our predicting digits example,  we would have to create, for example, 306,936 scatterplots. Creating one single scatter-plot of the data is impossible due to the high dimensionality. 
 
-Here we describe powerful techniques useful for exploratory data analysis, among other things, generally referred to as _dimension reduction_. The general idea is to reduce the dimension of the dataset while preserving important characteristics, such as the distance between features or observations. With fewer dimensions, visualization then becomes more feasible. The technique behind it all, the singular value decomposition, is also useful in other contexts. Principal component analysis (PCA) is the approach we will be showing. Before applying PCA to high dimensional datasets, we will motivate the ideas behind with a simple example.
+Here we describe powerful techniques useful for exploratory data analysis, among other things, generally referred to as _dimension reduction_. The general idea is to reduce the dimension of the dataset while preserving important characteristics, such as the distance between features or observations. With fewer dimensions, visualization then becomes more feasible. The technique behind it all, the singular value decomposition, is also useful in other contexts. Principal component analysis (PCA) is the approach we will be showing. Before applying PCA to high-dimensional datasets, we will motivate the ideas behind with a simple example.
 
 ### Preserving distance 
 
-We consider an example with twin heights. Some pairs are adults the others are children. Here we simulate 100 two-dimensional points that represent the number of standard deviations each individual is from the mean height. Each point is a pair of twins. We use the `mvrnorm` function from the __MASS__ package to simulate bivariate normal data.
+We consider an example with twin heights. Some pairs are adults, the others are children. Here we simulate 100 two-dimensional points that represent the number of standard deviations each individual is from the mean height. Each point is a pair of twins. We use the `mvrnorm` function from the __MASS__ package to simulate bivariate normal data.
 
 ```{r, message=FALSE}
 set.seed(1988)
@@ -129,7 +129,7 @@ The second entry was also a linear transformation:
 
 $$Z_{i,2} = a_{1,2} X_{i,1} + a_{2,2} X_{i,2}$$
 
-with $a_{1,2} = 1$ and $a_{2,2} = -1$
+with $a_{1,2} = 1$ and $a_{2,2} = -1$.
 
 We can also use linear transformation to get $X$ back from $Z$:
 
@@ -170,7 +170,7 @@ Dimension reduction can often be described as applying a transformation $A$ to a
 
 ### Orthogonal transformations (advanced)
 
-Note that we divided the above by $\sqrt{2}$ to account for the differences in dimensions when comparing a 2 dimension distance to a 1 dimension distance. We can actually guarantee that the distance scales remain the same if we re-scale the columns of $A$ to assure that the sum of squares are 1
+Note that we divided the above by $\sqrt{2}$ to account for the differences in dimensions when comparing a 2 dimension distance to a 1 dimension distance. We can actually guarantee that the distance scales remain the same if we re-scale the columns of $A$ to assure that the sum of squares is 1
 
 $$a_{1,1}^2 + a_{2,1}^2 = 1\mbox{ and } a_{1,2}^2 + a_{2,2}^2=1,$$
 
@@ -230,7 +230,7 @@ One way this insight may be useful in a machine learning application is that we 
 
 It is actually common to obtain data with several highly correlated predictors. In these cases PCA, which we describe next, can be quite useful for reducing the complexity of the model being fit.
 
-### Principal Component Analysis 
+### Principal component analysis 
 
 In the computation above, the total variability in our data can be defined as the sum of the sum of squares of the columns. We assume the columns are centered, so this sum is equivalent to the sum of the variances of each column:
 
@@ -284,7 +284,7 @@ b <- pca$x
 max(abs(a - b))
 ```
 
-We can visualize these to see how the first component summaries the data. In the plot below red represents high values and blue negative values (later we learn why we call these weights and patterns):
+We can visualize these to see how the first component summarizes the data. In the plot below red represents high values and blue negative values (later we learn why we call these weights and patterns):
 
 
 ```{r illustrate-pca-twin-heights, echo=FALSE, height = 5, out.width="100%"}
@@ -328,10 +328,10 @@ illustrate_pca(x, flip = -1)
 
 It turns out that we can find this linear transformation not just for two dimensions but for matrices of any dimension $p$. 
 
-For a multidimensional matrix with $X$ with $p$ columns, we can find a transformation that creates $Z$ that preserves distance between rows, but with the variance of the columns in decreasing order. The second column is the second principal component, the third column is the third principal component and so on. As in our example, if after a certain number of columns, say $k$, the variances of the columns of $Z_j$, $j>k$ are very small, it means these dimensions have little to contribute to the distance and we can approximate distance between any two points with just $k$ dimensions. If $k$ is much smaller than $p$, then we can achieve a very efficient summary of our data.
+For a multidimensional matrix with $X$ with $p$ columns, we can find a transformation that creates $Z$ that preserves distance between rows, but with the variance of the columns in decreasing order. The second column is the second principal component, the third column is the third principal component, and so on. As in our example, if after a certain number of columns, say $k$, the variances of the columns of $Z_j$, $j>k$ are very small, it means these dimensions have little to contribute to the distance and we can approximate distance between any two points with just $k$ dimensions. If $k$ is much smaller than $p$, then we can achieve a very efficient summary of our data.
 
 
-### Iris Example
+### Iris example
 
 The Iris data is a widely used example in data analysis courses. It includes four botanical measurements related to three flower species:
 
@@ -371,7 +371,7 @@ rafalib::mypar()
 illustrate_pca(x)
 ```
 
-And see that the first pattern is  Sepal Length,  Petal Length and Petal Width (red) in one direction and Sepal Width (blue) in the other. The second pattern is the Sepal Length and Petal Width in one direction (blue) and Petal Length and Petal Width in the other (red). You can see from the weights that the first PC1 drives most the variability and it clearly separates the first third of samples (setosa) from the second two thirds (versicolor and virginica). If you look at the second column of the weights, you notice that it somewhat separates versicolor (red) from virgnica (blue).
+And see that the first pattern is  sepal length,  petal length, and petal width (red) in one direction and sepal width (blue) in the other. The second pattern is the sepal length and petal width in one direction (blue) and petal length and petal width in the other (red). You can see from the weights that the first PC1 drives most the variability and it clearly separates the first third of samples (setosa) from the second two thirds (versicolor and virginica). If you look at the second column of the weights, you notice that it somewhat separates versicolor (red) from virginica (blue).
 
 We can see this better by plotting the first two PCs with color representing the species:
 
@@ -392,9 +392,9 @@ qplot(d, d_approx) + geom_abline(color="red")
 
 This example is more realistic than the first artificial example we used, since we showed how we can visualize the data using two dimensions when the data was four-dimensional.
 
-### MNIST Example
+### MNIST example
 
-The written digits example 784 features. Is there any room for data reduction? Can we create simple machine learning algorithms with using fewer features?
+The written digits example has 784 features. Is there any room for data reduction? Can we create simple machine learning algorithms using fewer features?
 
 Let's load the data:
 ```{r}
@@ -465,9 +465,8 @@ tmp %>% filter(id>5) %>%
 
 Now let's apply the transformation we learned with the training data to the test data, reduce the dimension and run knn on just a small number of dimensions.
 
-We try 36 dimensions since this explains about 80% of the data
+We try 36 dimensions since this explains about 80% of the data. First fit the model:
 
-First fit the model:
 ```{r}
 library(caret)
 k <- 36

@@ -1,8 +1,8 @@
 # Clustering {#clustering}
 
-The algorithms we have described up to now are examples of a general approach referred to as _supervised_ machine learning. The name comes from the fact that we use the outcomes in a training set to _supervise_ the creation of our prediction algorithm. There is another subset of machine learning referred to as _unsupervised_. In this subset we do not necessarily know the outcomes and instead are interested in discovering groups. These algorithms are also referred to as _clustering_ algorithm since predictors are used to define _clusters_. 
+The algorithms we have described up to now are examples of a general approach referred to as _supervised_ machine learning. The name comes from the fact that we use the outcomes in a training set to _supervise_ the creation of our prediction algorithm. There is another subset of machine learning referred to as _unsupervised_. In this subset we do not necessarily know the outcomes and instead are interested in discovering groups. These algorithms are also referred to as _clustering_ algorithms since predictors are used to define _clusters_. 
 
-In the two examples we have shown here clustering would not be very useful. In the first example, if we are simply given the heights we will not be able to discover two groups, males and females, because the intersection is large. In the second example, we can see from plotting the predictors that discovering the two digits, two and seven, will be challenging:
+In the two examples we have shown here, clustering would not be very useful. In the first example, if we are simply given the heights we will not be able to discover two groups, males and females, because the intersection is large. In the second example, we can see from plotting the predictors that discovering the two digits, two and seven, will be challenging:
 
 ```{r mnist-27-unsupervised, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -48,7 +48,7 @@ d <- dist(x)
 
 ## Hierarchical clustering
 
-With the distance between each pair of movies computed, we need  an algorithms to define groups from these. Hierarchical clustering starts by defining each observation as a separate group, then the two closest groups are joined into a group iteratively until there is just one group including all the observations. The `hclust` function implements this algorithm and it takes a distance as input.
+With the distance between each pair of movies computed, we need an algorithm to define groups from these. Hierarchical clustering starts by defining each observation as a separate group, then the two closest groups are joined into a group iteratively until there is just one group including all the observations. The `hclust` function implements this algorithm and it takes a distance as input.
 
 ```{r}
 h <- hclust(d)
@@ -60,7 +60,7 @@ We can see the resulting groups using a _dendrogram_.
 plot(h, cex = 0.65)
 ```
 
-To interpret this graph we do the following. To find the distance between any two movies, find the first location from top to bottom that the movies split into two different groups. The height of this location is the distance between the groups. So the distance between the Star Wars movies is 8 or less, while the distance between Raiders of the Lost of Arc and Silence of the Lambs is about 17. 
+To interpret this graph we do the following. To find the distance between any two movies, find the first location from top to bottom that the movies split into two different groups. The height of this location is the distance between the groups. So the distance between the Star Wars movies is 8 or less, while the distance between Raiders of the Lost of Ark and Silence of the Lambs is about 17. 
 
 To generate actual groups we can do one of two things: 1) decide on a minimum distance needed for observations to be in the same group or 2) decide on the number of groups you want and then find the minimum distance that achieves this. The function `cutree` can be applied to the output of `hclust` to perform either of these two operations and generate groups.
 
@@ -101,7 +101,7 @@ groups <- k$cluster
 split(names(groups), groups)
 ```
 
-Note that because the first center is chosen at random, the final clusters are random. We impose some stability by repeating the entire several times and averaging the results.
+Note that because the first center is chosen at random, the final clusters are random. We impose some stability by repeating the entire function several times and averaging the results.
 
 ```{r}
 k <- kmeans(x_0, centers = 10, nstart = 25)
@@ -112,7 +112,7 @@ split(names(groups), groups)
 
 ## Heatmaps
 
-A powerful visualization tool for discovering clusters or patterns in your data is the heatmap. The idea is simple: plot an image of your data matrix with colors used as the visual cue and both the columns and rows ordered according to the results of clustering algorithm. We will demonstrate this with the `tissue_gene_expression` dataset. We will scale the rows of the gene expression matrix.
+A powerful visualization tool for discovering clusters or patterns in your data is the heatmap. The idea is simple: plot an image of your data matrix with colors used as the visual cue and both the columns and rows ordered according to the results of a clustering algorithm. We will demonstrate this with the `tissue_gene_expression` dataset. We will scale the rows of the gene expression matrix.
 
 The first step is compute: 
 ```{r}
@@ -136,12 +136,12 @@ There is also `heatmap` function that you can use on the original matrix:
 heatmap(x, col = RColorBrewer::brewer.pal(11, "Spectral"))
 ```
 
-We do not show the results of the heatmap function because there are too many features for the plot to be useful. We will therefore filter some columns and remake the plos.
+We do not show the results of the heatmap function because there are too many features for the plot to be useful. We will therefore filter some columns and remake the plots.
 
 ## Filtering features
 
 If the information about clusters in included in just a few features, including all the features can add enough noise that detecting clusters 
-becomes challenging. One simple approach to try to remove feature with no information is to only include those with high variance. In the movie example, a user with low variance in their ratings is not really informative: all the movies seem about the same to them. Here is an example of how we can include only the features with high variance.
+becomes challenging. One simple approach to try to remove features with no information is to only include those with high variance. In the movie example, a user with low variance in their ratings is not really informative: all the movies seem about the same to them. Here is an example of how we can include only the features with high variance.
 
 ```{r heatmap-3, out.width="100%", fig.height=7, message=FALSE, warning=FALSE}
 library(matrixStats)
@@ -162,5 +162,5 @@ heatmap(x[,o], col = RColorBrewer::brewer.pal(11, "Spectral"))
 3. Run a k-means clustering on the data with $K=7$. Make a table comparing the identified clusters to the actual tissue types. Run the algorithm several times to see how the answer changes.
 
 
-4. Select the 50 most variable genes. Make sure the observations show up in the columns, that the predictor are centered, and add a color bar to show the different tissue types. Hint: use the `ColSideColors` argument to assign colors. Also, use `col = RColorBrewer::brewer.pal(11, "RdBu")` for a better use of colors.
+4. Select the 50 most variable genes. Make sure the observations show up in the columns, that the predictors are centered, and add a color bar to show the different tissue types. Hint: use the `ColSideColors` argument to assign colors. Also, use `col = RColorBrewer::brewer.pal(11, "RdBu")` for a better use of colors.
 
