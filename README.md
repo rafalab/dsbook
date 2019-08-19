@@ -1,5 +1,5 @@
 This is the code for the [Introduction to Data Science](https://rafalab.github.io/dsbook/) class notes used in the
- [HarvardX Data Science Series](https://www.edx.org/course/data-science-r-basics-harvardx-ph125-1x).
+ [HarvardX Data Science Series](https://www.edx.org/professional-certificate/harvardx-data-science).
 
 [Book web page](https://rafalab.github.io/dsbook/)
 
