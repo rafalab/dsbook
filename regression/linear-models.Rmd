@@ -5,12 +5,12 @@ Previously, we noted a strong relationship between Runs and BB. If we find the r
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(Lahman)
+get_slope <- function(x, y) cor(x, y) / (sd(x) * sd(y))
+
 bb_slope <- Teams %>% 
   filter(yearID %in% 1961:2001 ) %>% 
   mutate(BB_per_game = BB/G, R_per_game = R/G) %>% 
-  lm(R_per_game ~ BB_per_game, data = .) %>% 
-  .$coef %>%
-  .[2]
+  summarize(slope = get_slope(R_per_game, BB_per_game))
 
 bb_slope 
 ```
@@ -24,9 +24,7 @@ Note that if we compute the regression line slope for singles we get:
 singles_slope <- Teams %>% 
   filter(yearID %in% 1961:2001 ) %>%
   mutate(Singles_per_game = (H-HR-X2B-X3B)/G, R_per_game = R/G) %>%
-  lm(R_per_game ~ Singles_per_game, data = .) %>%
-  .$coef  %>%
-  .[2]
+  summarize(slope = get_slope(R_per_game, Singles_per_game))
 
 singles_slope 
 ```
@@ -39,7 +37,7 @@ Also, notice that a single gets you to first base just like a BB. Those that kno
 Teams %>% 
   filter(yearID %in% 1961:2001 ) %>% 
   mutate(Singles = (H-HR-X2B-X3B)/G, BB = BB/G, HR = HR/G) %>%  
-  summarize(cor(BB, HR), cor(Singles, HR), cor(BB,Singles))
+  summarize(cor(BB, HR), cor(Singles, HR), cor(BB, Singles))
 ```
 
 It turns out that pitchers, afraid of HRs, will sometimes avoid throwing strikes to HR hitters. As a result, HR hitters tend to have more BBs and a team with many HRs will also have more BBs. Although it may appear that BBs cause runs, it is actually the HRs that cause most of these runs. We say that BBs are _confounded_ with HRs. Nonetheless, could it be that BBs still help? To find out, we somehow have to adjust for the HR effect. Regression can help with this as well.
@@ -71,7 +69,7 @@ Remember that the regression slope for predicting runs with BB was `r round(bb_s
 ```{r}
 dat %>%  
   group_by(HR_strata) %>%
-  summarize(slope = cor(BB_per_game, R_per_game)*sd(R_per_game)/sd(BB_per_game))
+  summarize(slope = get_slope(BB_per_game, R_per_game))
 ```
 
 The slopes are reduced, but they are not 0, which indicates that BBs are helpful for producing runs, just not as much as previously thought.
@@ -90,14 +88,14 @@ dat %>%
   ggplot(aes(HR_per_game, R_per_game)) +  
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm") +
-  facet_wrap(~BB_strata) 
+  facet_wrap( ~ BB_strata) 
 ```
 
 In this case, the slopes do not change much from the original:
 
-```{r, echo=FALSE}
+```{r}
 dat %>% group_by(BB_strata) %>%
-   summarize(slope = cor(HR_per_game, R_per_game)*sd(R_per_game)/sd(HR_per_game))
+   summarize(slope = get_slope(HR_per_game, R_per_game))
 ```
 
 They are reduced a bit, which is consistent with the fact that BB do in fact cause some runs.
@@ -107,9 +105,7 @@ They are reduced a bit, which is consistent with the fact that BB do in fact cau
 hr_slope <- Teams %>% 
   filter(yearID %in% 1961:2001 ) %>% 
   mutate(HR_per_game = HR/G, R_per_game = R/G) %>% 
-  lm(R_per_game ~ HR_per_game, data = .) %>% 
-  .$coef  %>% 
-  .[2]
+  summarize(slope = get_slope(R_per_game, HR_per_game))
 
 hr_slope
 ```
@@ -121,7 +117,7 @@ Regardless, it seems that if we stratify by HR, we have bivariate distributions 
 It is somewhat complex to be computing regression lines for each strata. We are essentially fitting models like this:
 
 $$
-\mbox{E}[R \mid BB = x_1, HR = x_2] = \beta_0 + \beta_1(x_2) x_1 + \beta_2(x_1) x_2
+\mbox{E}[R \mid BB = x_1, \, HR = x_2] = \beta_0 + \beta_1(x_2) x_1 + \beta_2(x_1) x_2
 $$
 
 with the slopes for $x_1$ changing for different values of $x_2$ and vice versa. But is there an easier approach?
@@ -129,7 +125,7 @@ with the slopes for $x_1$ changing for different values of $x_2$ and vice versa.
 If we take random variability into account, the slopes in the strata don't appear to change much. If these slopes are in fact the same, this implies that $\beta_1(x_2)$ and $\beta_2(x_1)$ are constants. This in turn implies that the expectation of runs conditioned on HR and BB can be written like this:
 
 $$
-\mbox{E}[R \mid BB = x_1, HR = x_2] = \beta_0 + \beta_1 x_1 + \beta_2 x_2
+\mbox{E}[R \mid BB = x_1, \, HR = x_2] = \beta_0 + \beta_1 x_1 + \beta_2 x_2
 $$
 
 This model suggests that if the number of HR is fixed at $x_2$, we observe a linear relationship between runs and BB with an intercept of $\beta_0 + \beta_2 x_2$. Our exploratory data analysis suggested this. The model also suggests that as the number of HR grows, the intercept growth is linear as well and determined by $\beta_1 x_1$. 
@@ -315,9 +311,9 @@ The R function `predict` takes an `lm` object as input and returns the predictio
 ```{r father-son-predictor}
 fit <- galton_heights %>% lm(son ~ father, data = .) 
 
-Y_hat <- predict(fit, se.fit = TRUE)
+y_hat <- predict(fit, se.fit = TRUE)
 
-names(Y_hat)
+names(y_hat)
 ```
 
 ## Exercises
@@ -368,10 +364,11 @@ dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
 
 Since we didn't know the `lm` function, to compute the regression line in each strata, we used the formula directly like this:
 
-```{r}
+```{r, eval=FALSE}
+get_slope <- function(x, y) cor(x, y) / (sd(x) * sd(y))
 dat %>%  
   group_by(HR) %>%
-  summarize(slope = cor(BB,R)*sd(R)/sd(BB))
+  summarize(slope = get_slope(BB, R))
 ```
 
 We argued that the slopes are similar and that the differences were perhaps due to random variation. To provide a more rigorous defense of the slopes being the same, which led to our multivariate model, we could compute confidence intervals for each slope. We have not learned the formula for this, but the `lm` function provides enough information to construct them. 
