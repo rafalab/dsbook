@@ -21,13 +21,12 @@ Keep in mind that discrete numeric data can be considered ordinal. Although this
 
 Here we introduce a new motivating problem. It is an artificial one, but it will help us illustrate the concepts needed to understand distributions. 
 
-Pretend that we have to describe the heights of our classmates to ET, an extraterrestrial that has never seen humans. As a first step, we need to collect data. To do this, we ask students to report their heights in inches. We ask them to provide sex information because we know there are two different distributions by sex. We collect the data and save it in a data frame:
+Pretend that we have to describe the heights of our classmates to ET, an extraterrestrial that has never seen humans. As a first step, we need to collect data. To do this, we ask students to report their heights in inches. We ask them to provide sex information because we know there are two different distributions by sex. We collect the data and save it in the `heights` data frame:
 
 ```{r load-heights, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(dslabs)
 data(heights)
-head(heights)
 ```
 
 One way to convey the heights to ET is to simply send him this list of `r nrow(heights)` heights. But there are much more effective ways to convey this information, and understanding the concept of a distribution will help. To simplify the explanation, we first focus on male heights. We examine the female height data in Section \@ref(student-height-cont) .
@@ -229,170 +228,137 @@ With the right argument, `ggplot` automatically shades the intersecting region w
 ## Exercises 
 
 
-1. In the `murders` dataset, the region is a categorical variable and the following is its distribution:
+1\. In the `murders` dataset, the region is a categorical variable and the following is its distribution:
 
-    ```{r barplot-exercise, echo=FALSE}
-    library(dslabs)
-    ds_theme_set()
-    data(murders)
-    murders %>% group_by(region) %>%
-      summarize(n = n()) %>%
-      mutate(Proportion = n/sum(n), 
-             region = reorder(region, Proportion)) %>%
-      ggplot(aes(x=region, y=Proportion, fill=region)) + 
-      geom_bar(stat = "identity", show.legend = FALSE) + 
-      xlab("")
-    ```
+```{r barplot-exercise, echo=FALSE}
+library(dslabs)
+ds_theme_set()
+data(murders)
+murders %>% group_by(region) %>%
+  summarize(n = n()) %>%
+  mutate(Proportion = n/sum(n), 
+         region = reorder(region, Proportion)) %>%
+  ggplot(aes(x=region, y=Proportion, fill=region)) + 
+  geom_bar(stat = "identity", show.legend = FALSE) + 
+  xlab("")
+```
 
-    To the closet 5%, what proportion of the states are in the North Central region?
+To the closet 5%, what proportion of the states are in the North Central region?
 
+
+
+2\. Which of the following is true:
+
+a. The graph above is a histogram.
+b. The graph above shows only four numbers with a bar plot.
+c. Categories are not numbers, so it does not make sense to graph the distribution.
+d. The colors, not the height of the bars, describe the distribution.
+
+3\. The plot below shows the eCDF for male heights:
+
+
+```{r ecdf-exercise, echo=FALSE}
+heights %>% filter(sex=="Male") %>% ggplot(aes(height)) + 
+  stat_ecdf() +
+  ylab("F(a)") + xlab("a")
+```
+
+Based on the plot, what percentage of males are shorter than 75 inches?
+
+a. 100%
+b. 95%
+c. 80%
+d. 72 inches
+
+
+4\. To the closest inch, what height `m` has the property that 1/2 of the male students are taller than `m` and 1/2 are shorter?
     
+a. 61 inches
+b. 64 inches
+c. 69 inches
+d. 74 inches
+    
+5\. Here is an eCDF of the murder rates across states:
 
-2. Which of the following is true:
+```{r ecdf-exercise-2, echo=FALSE}
+murders %>% mutate(murder_rate = total/population * 10^5) %>%
+  ggplot(aes(murder_rate)) + 
+  stat_ecdf() +
+  ylab("F(a)") + xlab("a")
+```
 
-    A. The graph above is a histogram.
+Knowing that there are 51 states (counting DC) and based on this plot, how many states have murder rates larger than 10 per 100,000 people?
 
-    B. The graph above shows only four numbers with a bar plot.
-
-    C. Categories are not numbers, so it does not make sense to graph the distribution.
-
-    D. The colors, not the height of the bars, describe the distribution.
+a. 1
+b. 5
+c. 10
+d. 50
   
 
-3. The plot below shows the eCDF for male heights:
+6\. Based on the eCDF above, which of the following statements are true:
 
+a. About half the states have murder rates above 7 per 100,000 and the other half below.
+b. Most states have murder rates below 2 per 100,000.
+c. All the states have murder rates above 2 per 100,000.
+d. With the exception of 4 states, the murder rates are below 5 per 100,000.
 
-    ```{r ecdf-exercise, echo=FALSE}
-    heights %>% filter(sex=="Male") %>% ggplot(aes(height)) + 
-      stat_ecdf() +
-      ylab("F(a)") + xlab("a")
-    ```
+ 
+7\. Below is a histogram of male heights in our `heights` dataset: 
 
-    Based on the plot, what percentage of males are shorter than 75 inches?
-    
-    A. 100%
-    
-    B. 95%
-    
-    C. 80%
-    
-    D. 72 inches
-   
+```{r height-histogram-exercise, echo=FALSE}
+heights %>% 
+  filter(sex=="Male") %>% 
+  ggplot(aes(height)) + 
+  geom_histogram(binwidth = 1, color = "black")
+```
 
-4. To the closest inch, what height `m` has the property that 1/2 of the male students are taller than `m` and 1/2 are shorter?
-    
-    A. 61 inches
-    
-    B. 64 inches
-    
-    C. 69 inches
-    
-    D. 74 inches
+Based on this plot, how many males are between 63.5 and 65.5?
+
+a. 10
+b. 24
+c. 34
+d. 100
+
+8\. About what **percentage** are shorter than 60 inches?
   
-5. Here is an eCDF of the murder rates across states:
+a. 1%
+b. 10%
+c. 25%
+d. 50%
 
-    ```{r ecdf-exercise-2, echo=FALSE}
-    murders %>% mutate(murder_rate = total/population * 10^5) %>%
-      ggplot(aes(murder_rate)) + 
-      stat_ecdf() +
-      ylab("F(a)") + xlab("a")
-    ```
-    
-    Knowing that there are 51 states (counting DC) and based on this plot, how many states have murder rates larger than 10 per 100,000 people?
+9\. Based on the density plot below, about what proportion of US states have populations larger than 10 million?
 
-    A. 1
-    
-    B. 5
-    
-    C. 10
-    
-    D. 50
-  
+```{r density-exercise, echo=FALSE}
+murders %>% ggplot(aes(x=population/10^6)) + 
+  geom_density(fill = "grey") + 
+  scale_x_log10() +
+  xlab("Population in millions")
+```
 
-6. Based on the eCDF above, which of the following statements are true:
+a. 0.02
+b. 0.15
+c. 0.50
+d. 0.55
 
-    A. About half the states have murder rates above 7 per 100,000 and the other half below.
-    
-    B. Most states have murder rates below 2 per 100,000.
-    
-    C. All the states have murder rates above 2 per 100,000.
-    
-    D. With the exception of 4 states, the murder rates are below 5 per 100,000.
-  
-  
+10\. Below are three density plots. Is it possible that they are from the same dataset? 
 
-7. Below is a histogram of male heights in our `heights` dataset: 
+```{r density-exercise-2, echo=FALSE, warning=FALSE, message=FALSE}
+library(gridExtra)
+p1 <- murders %>% ggplot(aes(x=population/10^6)) + 
+  geom_density(fill = "grey", bw = 5) + xlab("Population in millions") + ggtitle("1")
+p2 <- murders %>% ggplot(aes(x=population/10^6)) + 
+  geom_density(fill = "grey", bw = .05) + scale_x_log10() + xlab("Population in millions") + ggtitle("2")
+p3 <- murders %>% ggplot(aes(x=population/10^6)) + 
+  geom_density(fill = "grey", bw = 1) + scale_x_log10() + xlab("Population in millions") + ggtitle("3")
+grid.arrange(p1,p2,p3,ncol=2)
+```
 
-    ```{r height-histogram-exercise, echo=FALSE}
-    heights %>% 
-      filter(sex=="Male") %>% 
-      ggplot(aes(height)) + 
-      geom_histogram(binwidth = 1, color = "black")
-    ```
+Which of the following statements is true:
 
-    Based on this plot, how many males are between 63.5 and 65.5?
-
-    A. 10
-    
-    B. 24
-    
-    C. 34
-    
-    D. 100
-
-
-
-8. About what **percentage** are shorter than 60 inches?
-  
-    A. 1%
-    
-    B. 10%
-    
-    C. 25%
-    
-    D. 50%
-
-
-9. Based on the density plot below, about what proportion of US states have populations larger than 10 million?
-
-    ```{r density-exercise, echo=FALSE}
-    murders %>% ggplot(aes(x=population/10^6)) + 
-      geom_density(fill = "grey") + 
-      scale_x_log10() +
-      xlab("Population in millions")
-    ```
-    
-    A. 0.02
-    
-    B. 0.15
-    
-    C. 0.50
-    
-    D. 0.55
-
-10. Below are three density plots. Is it possible that they are from the same dataset? 
-
-    ```{r density-exercise-2, echo=FALSE, warning=FALSE, message=FALSE}
-    library(gridExtra)
-    p1 <- murders %>% ggplot(aes(x=population/10^6)) + 
-      geom_density(fill = "grey", bw = 5) + xlab("Population in millions") + ggtitle("1")
-    p2 <- murders %>% ggplot(aes(x=population/10^6)) + 
-      geom_density(fill = "grey", bw = .05) + scale_x_log10() + xlab("Population in millions") + ggtitle("2")
-    p3 <- murders %>% ggplot(aes(x=population/10^6)) + 
-      geom_density(fill = "grey", bw = 1) + scale_x_log10() + xlab("Population in millions") + ggtitle("3")
-    grid.arrange(p1,p2,p3,ncol=2)
-    ```
-
-    Which of the following statements is true:
-
-    A. It is impossible that they are from the same dataset.
-    
-    B. They are from the same dataset, but the plots are different due to code errors.
-    
-    C. They are the same dataset, but the first and second plot undersmooth and the third oversmooths.
-    
-    D. They are the same dataset, but the first is not in the log scale, the second undersmooths, and the third oversmooths.
-  
+a. It is impossible that they are from the same dataset.
+b. They are from the same dataset, but the plots are different due to code errors.
+c. They are the same dataset, but the first and second plot undersmooth and the third oversmooths.
+d. They are the same dataset, but the first is not in the log scale, the second undersmooths, and the third oversmooths.
 
 ## The normal distribution {#normal-distribution}
 
@@ -646,88 +612,80 @@ Because these are reported heights, a possibility is that the student meant to e
 
 ## Exercises 
 
-1. Define variables containing the heights of males and females like this:
+1\. Define variables containing the heights of males and females like this:
 
-    ```{r, eval=FALSE}
-    library(dslabs)
-    data(heights)
-    male <- heights$height[heights$sex=="Male"]
-    female <- heights$height[heights$sex=="Female"]
-    ```
+```{r, eval=FALSE}
+library(dslabs)
+data(heights)
+male <- heights$height[heights$sex=="Male"]
+female <- heights$height[heights$sex=="Female"]
+```
 
-    How many measurements do we have for each?
+How many measurements do we have for each?
 
 
-2. Suppose we can't make a plot and want to compare the distributions side by side. We can't just list all the numbers. Instead, we will look at the percentiles. Create a five row table showing `female_percentiles` and `male_percentiles` with the 10th, 30th, 50th, ..., 90th percentiles for each sex. Then create a data frame with these two as columns.
+2\. Suppose we can't make a plot and want to compare the distributions side by side. We can't just list all the numbers. Instead, we will look at the percentiles. Create a five row table showing `female_percentiles` and `male_percentiles` with the 10th, 30th, 50th, ..., 90th percentiles for each sex. Then create a data frame with these two as columns.
 
     
-3. Study the following boxplots showing population sizes by country:
+3\. Study the following boxplots showing population sizes by country:
 
-    ```{r boxplot-exercise, echo=FALSE, message=FALSE}
-    library(tidyverse)
-    library(dslabs)
-    ds_theme_set()
-    data(gapminder)
-    tab <- gapminder %>% filter(year == 2010) %>% group_by(continent) %>% select(continent, population)  
-    tab %>% ggplot(aes(x=continent, y=population/10^6)) + 
-      geom_boxplot() + 
-      scale_y_continuous(trans = "log10", breaks = c(1,10,100,1000)) + ylab("Population in millions")
-    ```
-    
-    Which continent has the country with the biggest population size?
-    
-4. What continent has the largest median population size?
-    
-    
-5. What is median population size for Africa to the nearest million? 
+```{r boxplot-exercise, echo=FALSE, message=FALSE}
+library(tidyverse)
+library(dslabs)
+ds_theme_set()
+data(gapminder)
+tab <- gapminder %>% filter(year == 2010) %>% group_by(continent) %>% select(continent, population)  
+tab %>% ggplot(aes(x=continent, y=population/10^6)) + 
+  geom_boxplot() + 
+  scale_y_continuous(trans = "log10", breaks = c(1,10,100,1000)) + ylab("Population in millions")
+```
+
+Which continent has the country with the biggest population size?
+
+4\. What continent has the largest median population size?
     
     
-6. What proportion of countries in Europe have populations below 14 million?
+5\. What is median population size for Africa to the nearest million? 
     
-    A. 0.99
     
-    B. 0.75
+6\. What proportion of countries in Europe have populations below 14 million?
     
-    C. 0.50
+a. 0.99
+b. 0.75
+c. 0.50
+d. 0.25
+
+7\. If we use a log transformation, which continent shown above has the largest interquartile range?
     
-    D. 0.25
+8\. Load the height data set and create a vector `x` with just the male heights:
+
+```{r, eval=FALSE}
+library(dslabs)
+data(heights)
+x <- heights$height[heights$sex=="Male"]
+```
+
+What proportion of the data is between 69 and 72 inches (taller than 69, but shorter or equal to 72)? Hint: use a logical operator and `mean`.
+
+9\. Suppose all you know about the data is the average and the standard deviation. Use the normal approximation to estimate the proportion you just calculated. Hint: start by computing the average and standard deviation. Then use the `pnorm` function to predict the proportions.
+
+10\. Notice that the approximation calculated in question two is very close to the exact calculation in the first question. Now perform the same task for more extreme values. Compare the exact calculation and the normal approximation for the interval (79,81]. How many times bigger is the actual proportion than the approximation?
     
-7. If we use a log transformation, which continent shown above has the largest interquartile range?
-    
+11\. Approximate the distribution of adult men in the world as normally distributed with an average of 69 inches and a standard deviation of 3 inches. Using this approximation, estimate the proportion of adult men that are 7 feet tall or taller, referred to as _seven footers_. Hint: use the `pnorm` function.
 
+12\. There are about 1 billion men between the ages of 18 and 40 in the world. Use your answer to the previous question to estimate how many of these men (18-40 year olds) are seven feet tall or taller in the world?
 
-8. Load the height data set and create a vector `x` with just the male heights:
+13\. There are about 10 National Basketball Association (NBA) players that are 7 feet tall or higher. Using the answer to the previous two questions, what proportion of the world's 18-to-40-year-old _seven footers_ are in the NBA?
 
-    ```{r, eval=FALSE}
-    library(dslabs)
-    data(heights)
-    x <- heights$height[heights$sex=="Male"]
-    ```
+14\. Repeat the calculations performed in the previous question for Lebron James' height: 6 feet 8 inches. There are about 150 players that are at least that tall.
 
-    What proportion of the data is between 69 and 72 inches (taller than 69, but shorter or equal to 72)? Hint: use a logical operator and `mean`.
+15\. In answering the previous questions, we found that it is not at all rare for a seven footer to become an NBA player. What would be a fair critique of our calculations:
 
-9. Suppose all you know about the data is the average and the standard deviation. Use the normal approximation to estimate the proportion you just calculated. Hint: start by computing the average and standard deviation. Then use the `pnorm` function to predict the proportions.
+a. Practice and talent are what make a great basketball player, not height.
+b. The normal approximation is not appropriate for heights.
+c. As seen in question 3, the normal approximation tends to underestimate the extreme values. It's possible that there are more seven footers than we predicted.
+d. As seen in question 3, the normal approximation tends to overestimate the extreme values. It's possible that there are fewer seven footers than we predicted.
 
-10. Notice that the approximation calculated in question two is very close to the exact calculation in the first question. Now perform the same task for more extreme values. Compare the exact calculation and the normal approximation for the interval (79,81]. How many times bigger is the actual proportion than the approximation?
-    
-11. Approximate the distribution of adult men in the world as normally distributed with an average of 69 inches and a standard deviation of 3 inches. Using this approximation, estimate the proportion of adult men that are 7 feet tall or taller, referred to as _seven footers_. Hint: use the `pnorm` function.
-
-12. There are about 1 billion men between the ages of 18 and 40 in the world. Use your answer to the previous question to estimate how many of these men (18-40 year olds) are seven feet tall or taller in the world?
-
-13. There are about 10 National Basketball Association (NBA) players that are 7 feet tall or higher. Using the answer to the previous two questions, what proportion of the world's 18-to-40-year-old _seven footers_ are in the NBA?
-
-7. Repeat the calculations performed in the previous question for Lebron James' height: 6 feet 8 inches. There are about 150 players that are at least that tall.
-
-8. In answering the previous questions, we found that it is not at all rare for a seven footer to become an NBA player. What would be a fair critique of our calculations:
-
-    A. Practice and talent are what make a great basketball player, not height.
-
-    B. The normal approximation is not appropriate for heights.
-
-    C. As seen in question 3, the normal approximation tends to underestimate the extreme values. It's possible that there are more seven footers than we predicted.
-
-    D. As seen in question 3, the normal approximation tends to overestimate the extreme values. It's possible that there are fewer seven footers than we predicted.
-    
 ## ggplot2 geometries {#other-geometries}
 
 In Chapter \@ref(ggplot2), we introduced the __ggplot2__ package for data visualization. Here we demonstrate how to generate plots related to distributions, specifically the plots shown earlier in this chapter.
@@ -842,7 +800,7 @@ heights %>% filter(sex=="Male") %>%
 
 By default, the sample variable is compared to a normal distribution with average 0 and standard deviation 1. To change this, we use the `dparams` arguments based on the help file. Adding an identity line is as simple as assigning another layer. For straight lines, we use the `geom_abline` function. The default line is the identity line (slope = 1, intercept = 0).
 
-```{r  ggplot-qq-dparams}
+```{r  ggplot-qq-dparams, eval=FALSE}
 params <- heights %>% filter(sex=="Male") %>%
   summarize(mean = mean(height), sd = sd(height))
 
@@ -902,7 +860,7 @@ x <- heights %>%
 
 To make a quick histogram we can use:
 
-```{r qplot-example-1, warning=FALSE, message=FALSE}
+```{r qplot-example-1, warning=FALSE, message=FALSE, eval=FALSE}
 qplot(x)
 ```
 
@@ -910,26 +868,26 @@ The function guesses that we want to make a histogram because we only supplied o
 
 To make a quick qqplot you have to use the `sample` argument. Note that we can add layers just as we do with `ggplot`.
 
-```{r qplot-example-2}
+```{r qplot-example-2, eval=FALSE}
 qplot(sample = scale(x)) + geom_abline()
 ```
 
 
 If we supply a factor and a numeric vector, we obtain a plot like the one below. Note that in the code below we are using the `data` argument. Because the data frame is not the first argument in `qplot`, we have to use the dot operator.
 
-```{r qplot-example-3}
+```{r qplot-example-3, eval=FALSE}
 heights %>% qplot(sex, height, data = .)
 ```
 
 We can also select a specific geometry by using the `geom` argument. So to convert the plot above to a boxplot, we use the following code:
 
-```{r qplot-example-4}
+```{r qplot-example-4, eval=FALSE}
 heights %>% qplot(sex, height, data = ., geom = "boxplot")
 ```
 
 We can also use the `geom` argument to generate a density plot instead of a histogram:
 
-```{r qplot-example-5}
+```{r qplot-example-5, eval=FALSE}
 qplot(x, geom = "density")
 ```
 
@@ -947,49 +905,40 @@ qplot(x, bins=15, color = I("black"), xlab = "Population")
 ## Exercises 
 
 
-1. Now we are going to use the `geom_histogram` function to make a histogram of the heights in the `height` data frame. When reading the documentation for this function we see that it requires just one mapping, the values to be used for the histogram. Make a histogram of all the plots. 
+1\. Now we are going to use the `geom_histogram` function to make a histogram of the heights in the `height` data frame. When reading the documentation for this function we see that it requires just one mapping, the values to be used for the histogram. Make a histogram of all the plots. 
 
-    What is the variable containing the heights?
+What is the variable containing the heights?
 
-    A. `sex`
-  
-    B. `heights`
-    
-    C. `height`
+a. `sex`
+b. `heights`
+c. `height`
+d. `heights$height`
 
-    D. `heights$height`
+2\. Now create a ggplot object using the pipe to assign the heights data to a ggplot object. Assign `height` to the x values through the `aes` function.
 
-2. Now create a ggplot object using the pipe to assign the heights data to a ggplot object. Assign `height` to the x values through the `aes` function.
+3\. Now we are ready to add a layer to actually make the histogram. Use the object created in the previous exercise and the `geom_histogram` function to make the histogram.
 
-3. Now we are ready to add a layer to actually make the histogram. Use the object created in the previous exercise and the `geom_histogram` function to make the histogram.
-
-4. Note that when we run the code in the previous exercise we get the warning:
+4\. Note that when we run the code in the previous exercise we get the warning:
 `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.`
 
-    Use the `binwidth` argument to change the histogram made in the previous exercise to use bins of size 1 inch. 
+Use the `binwidth` argument to change the histogram made in the previous exercise to use bins of size 1 inch. 
 
-5. Instead of a histogram, we are going to make a smooth density plot. In this case we will not make an object, but instead render the plot with one line of code. Change the geometry in the code previously used to make a smooth density instead of a histogram.
+5\. Instead of a histogram, we are going to make a smooth density plot. In this case we will not make an object, but instead render the plot with one line of code. Change the geometry in the code previously used to make a smooth density instead of a histogram.
 
-6. Now we are going to make a density plot for males and females separately. We can do this using the `group` argument. We assign groups via the aesthetic mapping as each point needs to a group before making the calculations needed to estimate a density.
+6\. Now we are going to make a density plot for males and females separately. We can do this using the `group` argument. We assign groups via the aesthetic mapping as each point needs to a group before making the calculations needed to estimate a density.
 
-7. We can also assign groups through the `color` argument. This has the added benefit that it uses color to distinguish the groups. Change the code above to use color.
+7\. We can also assign groups through the `color` argument. This has the added benefit that it uses color to distinguish the groups. Change the code above to use color.
 
-8. We can also assign groups through the `fill` argument. This has the added benefit that it uses colors to distinguish the groups, like this:
-
-
-    ```{r, eval=FALSE}
-    heights %>% 
-      ggplot(aes(height, fill = sex)) + 
-      geom_density() 
-    ```
-
-    However, here the second density is drawn over the other. We can make the curves more visible by using alpha blending to add transparency. Set the alpha parameter to 0.2 in the `geom_density` function to make this change.
+8\. We can also assign groups through the `fill` argument. This has the added benefit that it uses colors to distinguish the groups, like this:
 
 
+```{r, eval=FALSE}
+heights %>% 
+  ggplot(aes(height, fill = sex)) + 
+  geom_density() 
+```
 
-
-
-
+However, here the second density is drawn over the other. We can make the curves more visible by using alpha blending to add transparency. Set the alpha parameter to 0.2 in the `geom_density` function to make this change.
 
 
 

@@ -135,19 +135,14 @@ This plot clearly shows how most Asian countries have improved at a much faster 
 
 The default choice of the range of the axes is important. When not using `facet`, this range is determined by the data shown in the plot. When using `facet`, this range is determined by the data shown in all plots and therefore kept fixed across plots. This makes comparisons across plots much easier. For example, in the above plot, we can see that life expectancy has increased and the fertility has decreased across most countries. We see this because the cloud of points moves. This is not the case if we adjust the scales:
 
-```{r facet-without-fixed-scales, warning=FALSE, , out.width="100%", message = FALSE, echo=FALSE, fig.height=3}
-library(gridExtra)
-p1 <- filter(gapminder, year == 1962) %>%
+```{r facet-without-fixed-scales, warning=FALSE}
+filter(gapminder, year%in%c(1962, 2012)) %>%
   ggplot(aes(fertility, life_expectancy, col = continent)) +
-  geom_point() 
-p2 <- filter(gapminder, year == 2012) %>%
-  ggplot(aes(fertility, life_expectancy, col = continent)) +
-  geom_point() 
-grid.arrange(p1, p2, ncol = 2)
+  geom_point() +
+  facet_wrap(. ~ year, scales = "free")
 ```
 
-In the plot above, we have to pay special attention to the range to notice that the plot on the right has a larger life expectancy.
-
+In the plot above, we have to pay special attention to the range to notice that the plot on the right has a larger life expectancy. 
 
 ## Time series plots
 
@@ -334,51 +329,18 @@ The histogram above suggests that the 1970 country income distribution has two m
 
 A histogram showed us that the 1970 income distribution values show a dichotomy. However, the histogram does not show us if the two groups of countries are _west_ versus the _developing_ world.  
 
-Let's start by quickly examining the data by region.
+Let's start by quickly examining the data by region. We reorder the regions by the median value and use a log scale.
 
-
-```{r dollars-per-day-by-region}
-p <- gapminder %>% 
-  filter(year == past_year & !is.na(gdp)) %>%
-  ggplot(aes(region, dollars_per_day)) 
-p + geom_point() 
-```
-
-
-Notice that we can't read the region names because the default __ggplot2__ behavior is to write the labels horizontally and here we run out of room. We can easily fix this by either rotating the axes or rotating the labels. Consulting the cheat sheet we find we can rotate the axes with `coord_flip` or we can rotate the labels by changing the `theme` through `element_text`. The `hjust = 1` justifies the text so that it is next to the axis.
-
-```{r dollars-per-day-boxplot-rotate-labels}
-p + geom_point() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-```
-
-Another option is to flip the figure:
-
-```{r eval=FALSE} 
-p + geom_point() + coord_flip() 
-```
-
-In the plot we just made, the regions are ordered alphabetically. But there is no practical reason for this to be the case.  In general, **do not order alphabetically**.  Data exploration is often made easier if we order the strata by some interpretable quantity. This can be achieved using the `reorder` function, which we covered in Section \@ref(factors).
-
-```{r dollars-per-day-by-region-ordered}
-p <- gapminder %>% 
+```{r}
+gapminder %>% 
   filter(year == past_year & !is.na(gdp)) %>%
   mutate(region = reorder(region, dollars_per_day, FUN = median)) %>%
-  ggplot(aes(region, dollars_per_day)) +
+  ggplot(aes(dollars_per_day, region)) +
   geom_point() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
-p
+  scale_x_continuous(trans = "log2")  
 ```
 
-We can already see that there is indeed a "west versus the rest" dichotomy: we see two clear groups, with the rich group composed of North America, Northern and Western Europe, New Zealand and Australia. As with the histogram, if we remake the plot using a log scale. This permits us to better appreciate the differences within the developing world.
-
-```{r dollars-per-day-by-region-log}
-p + scale_y_continuous(trans = "log2")
-```
-
-### Boxplots 
-
-The exploratory data analysis above has revealed two characteristics about average income distribution in 1970. Using a histogram, we found a bimodal distribution with the modes relating to poor and rich countries. Then, by examining the data after stratifying by region, we noticed that rich countries were mostly in Europe and North America, along with Australia and New Zealand. This fact and the variability observed in the rest of the countries motivates us to define the following give groups:
+We can already see that there is indeed a "west versus the rest" dichotomy: we see two clear groups, with the rich group composed of North America, Northern and Western Europe, New Zealand and Australia. We define groups based on this observation:
 
 ```{r}
 gapminder <- gapminder %>% 
@@ -390,7 +352,7 @@ gapminder <- gapminder %>%
     region %in% c("Caribbean", "Central America", 
                   "South America") ~ "Latin America",
     continent == "Africa" & 
-      region != "Northern Africa" ~ "Sub-Saharan Africa",
+      region != "Northern Africa" ~ "Sub-Saharan",
     TRUE ~ "Others"))
 ```
 
@@ -399,21 +361,27 @@ We turn this `group` variable into a factor to control the order of the levels:
 ```{r}
 gapminder <- gapminder %>% 
   mutate(group = factor(group, levels = c("Others", "Latin America", 
-                                          "East Asia", "Sub-Saharan Africa",
+                                          "East Asia", "Sub-Saharan",
                                           "West")))
 ```
 
-We now want to compare the distribution across these five groups to confirm the "west versus the rest" dichotomy. The number of points in each category is large enough that a summary plot may be useful. We could generate five histograms or five density plots, but it may be more practical to have all the visual summaries in one plot. We therefore start by stacking boxplots next to each other. 
+
+In the next section we demonstrate how to visualize and compare distributions across groups.
+
+### Boxplots 
+
+The exploratory data analysis above has revealed two characteristics about average income distribution in 1970. Using a histogram, we found a bimodal distribution with the modes relating to poor and rich countries. We now want to compare the distribution across these five groups to confirm the "west versus the rest" dichotomy. The number of points in each category is large enough that a summary plot may be useful. We could generate five histograms or five density plots, but it may be more practical to have all the visual summaries in one plot. We therefore start by stacking boxplots next to each other. Note that we add the layer `theme(axis.text.x = element_text(angle = 90, hjust = 1))` to turn the group labels vertica, since they do not fit if show them horizontally, and remove the axis label to make space.
+
 
 ```{r dollars-per-day-boxplot}
 p <- gapminder %>% 
   filter(year == past_year & !is.na(gdp)) %>%
   ggplot(aes(group, dollars_per_day)) +
   geom_boxplot() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   scale_y_continuous(trans = "log2") +
-  xlab("")
-p 
+  xlab("") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+p
 ```
 
 Boxplots have the limitation that by summarizing the data into five numbers, we might miss important characteristics of the data. One way to avoid this is by showing the data.
@@ -690,9 +658,9 @@ This particular figure shows very clearly how the income distribution gap is clo
 
 Throughout this section, we have been comparing regions of the world. We have seen that, on average, some regions do better than others. In this section, we focus on describing the importance of variability within the groups when examining the relationship between a country's infant mortality rates and average income.
 
-We start by comparing these quantities across regions, but before doing this, we define a few more regions:
+We define a few more regions and compare the averages across regions:
 
-```{r}
+```{r ecological-fallacy-averages, echo=FALSE}
 gapminder <- gapminder %>% 
   mutate(group = case_when(
     region %in% c("Western Europe", "Northern Europe",
@@ -704,14 +672,9 @@ gapminder <- gapminder %>%
     region %in% c("Central America", "South America", 
                   "Caribbean") ~ "Latin America",
     continent == "Africa" & 
-      region != "Northern Africa" ~ "Sub-Saharan Africa",
+      region != "Northern Africa" ~ "Sub-Saharan",
     region %in% c("Melanesia", "Micronesia", 
                   "Polynesia") ~ "Pacific Islands"))
-```
-
-We then compute these quantities for each region:
-
-```{r}
 surv_income <- gapminder %>% 
   filter(year %in% present_year & !is.na(gdp) & 
            !is.na(infant_mortality) & !is.na(group)) %>%
@@ -720,12 +683,8 @@ surv_income <- gapminder %>%
             infant_survival_rate = 
               1 - sum(infant_mortality/1000*population)/sum(population)) 
 
-surv_income %>% arrange(income) %>% print(n=nrow(surv_income))
-```
+#surv_income %>% arrange(income) %>% print(n=nrow(surv_income))
 
-This shows a dramatic difference. While in the West less than 0.5% of infants die, in Sub-Saharan Africa the rate is higher than 6%! The relationship between these two variables is almost perfectly linear: 
-
-```{r ecological-fallacy-averages, echo=FALSE}
 surv_income %>% ggplot(aes(income, infant_survival_rate, label = group, color = group)) +
   scale_x_continuous(trans = "log2", limits = c(0.25, 150)) +
   scale_y_continuous(trans = "logit", limit = c(0.875, .9981), 
@@ -733,7 +692,9 @@ surv_income %>% ggplot(aes(income, infant_survival_rate, label = group, color = 
   geom_label_repel(size = 3, show.legend = FALSE)
 ```
 
-In this plot we introduce the use of the `limit` argument, which lets us change the range of the axes. We are making the range larger than the data requires because we will later compare this plot to one with more variability and we want the ranges to be the same. We also introduce the `breaks` argument, which lets us set the location of the axes labels. Finally, we introduce a new transformation, the logistic transformation.
+The relationship between these two variables is almost perfectly linear and the graph shows a dramatic difference. While in the West less than 0.5% of infants die, in Sub-Saharan Africa the rate is higher than 6%! 
+
+Note that the plot uses a new transformation, the logistic transformation.
 
 ### Logistic transformation {#logit}
 The logistic or logit transformation for a proportion or rate $p$ is defined as: 
