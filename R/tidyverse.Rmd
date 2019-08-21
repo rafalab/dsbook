@@ -30,7 +30,7 @@ data("gapminder")
 tidy_data <- gapminder %>% 
   filter(country %in% c("South Korea", "Germany") & !is.na(fertility)) %>%
   select(country, year, fertility)
-head(tidy_data, 12)
+head(tidy_data, 6)
 ```
 
 This tidy dataset provides fertility rates for two countries across the years. This is a tidy dataset because each row presents one observation with the three variables being country, year, and fertility rate. However, this dataset originally came in another format and was reshaped for the __dslabs__ package. Originally, the data was in the following format:
@@ -40,7 +40,7 @@ This tidy dataset provides fertility rates for two countries across the years. T
 path <- system.file("extdata", package="dslabs")
 filename <- file.path(path, "fertility-two-countries-example.csv")
 wide_data <- read_csv(filename)
-select(wide_data, country, `1960`:`1965`) %>% as.data.frame
+select(wide_data, country, `1960`:`1962`) %>% as.data.frame
 ```
 
 The same information is provided, but there are two important differences in the format: 1) each row includes several observations and 2) one of the variables, year, is stored in the header. For the tidyverse packages to be optimally used, data need to be reshaped into `tidy` format, which you will learn to do in the Data Wrangling part of the book. Until then, we will use example datasets that are already in tidy format.
@@ -50,53 +50,38 @@ Although not immediately obvious, as you go through the book you will start to a
 ## Exercises 
 
 
-1. Examine the built-in dataset `co2`. Which of the following is true:
+1\. Examine the built-in dataset `co2`. Which of the following is true:
 
-    A. `co2` is tidy data: it has one year for each row.
-
-    B. `co2` is not tidy: we need at least one column with a character vector.
-
-    C. `co2` is not tidy:  it is a matrix instead of a data frame.
-
-    D. `co2` is not tidy: to be tidy we would have to wrangle it to have three columns (year, month and value), then each co2 observation would have a row.
+a. `co2` is tidy data: it has one year for each row.
+b. `co2` is not tidy: we need at least one column with a character vector.
+c. `co2` is not tidy:  it is a matrix instead of a data frame.
+d. `co2` is not tidy: to be tidy we would have to wrangle it to have three columns (year, month and value), then each co2 observation would have a row.
 
 
-2. Examine the built-in dataset  `ChickWeight`. Which of the following is true:
+2\. Examine the built-in dataset  `ChickWeight`. Which of the following is true:
 
-    A.  `ChickWeight` is not tidy: each chick has more than one row. 
-
-    B.  `ChickWeight` is tidy: each observation (a weight) is represented by one row. The chick from which this measurement came is one of the variables.
-
-    C.  `ChickWeight` is not tidy: we are missing the year column.
-
-    D.  `ChickWeight` is tidy: it is stored in a data frame.
+a.  `ChickWeight` is not tidy: each chick has more than one row. 
+b.  `ChickWeight` is tidy: each observation (a weight) is represented by one row. The chick from which this measurement came is one of the variables.
+c.  `ChickWeight` is not tidy: we are missing the year column.
+d.  `ChickWeight` is tidy: it is stored in a data frame.
 
 
-3. Examine the built-in dataset `BOD`. Which of the following is true:
+3\. Examine the built-in dataset `BOD`. Which of the following is true:
 
-    A. `BOD` is not tidy: it only has six rows.
-
-    B. `BOD` is not tidy: the first column is just an index.
-
-    C. `BOD` is tidy: each row is an observation with two values (time and demand)
-
-    D. `BOD` is tidy: all small datasets are tidy by definition.
+a. `BOD` is not tidy: it only has six rows.
+b. `BOD` is not tidy: the first column is just an index.
+c. `BOD` is tidy: each row is an observation with two values (time and demand)
+d. `BOD` is tidy: all small datasets are tidy by definition.
 
 
-4. Which of the following built-in datasets is tidy (you can pick more than one):
+4\. Which of the following built-in datasets is tidy (you can pick more than one):
 
-    A. `BJsales`
-
-    B. `EuStockMarkets`
-
-    C. `DNase`
-
-    D. `Formaldehyde`
-
-    E. `Orange`
-
-    F. `UCBAdmissions`
-
+a. `BJsales`
+b. `EuStockMarkets`
+d. `DNase`
+d. `Formaldehyde`
+e. `Orange`
+f. `UCBAdmissions`
 
 
 ## Manipulating data frames
@@ -147,74 +132,74 @@ In the call to `select`, the first argument `murders` is an object, but `state`,
 
 ## Exercises 
 
-1. Load the __dplyr__ package and the murders dataset.
+1\. Load the __dplyr__ package and the murders dataset.
 
-    ```{r, eval=FALSE}
-    library(dplyr)
-    library(dslabs)
-    data(murders)
-    ```
+```{r, eval=FALSE}
+library(dplyr)
+library(dslabs)
+data(murders)
+```
 
-    You can add columns using the __dplyr__ function `mutate`. This function is aware of the column names and inside the function you can call them unquoted:
-
-
-    ```{r, eval=FALSE}
-    murders <- mutate(murders, population_in_millions = population / 10^6)
-    ```
-
-    We can write `population` rather than `murders$population`. The function `mutate` knows we are grabbing columns from `murders`.
-
-    Use the function `mutate` to add a murders column named `rate` with the per 100,000 murder rate as in the example code above. Make sure you redefine `murders` as done in the example code above ( murders <- [your code]) so we can keep using this variable.
-
-2. If `rank(x)` gives you the ranks of `x` from lowest to highest, `rank(-x)` gives you the ranks from highest to lowest. Use the function `mutate` to add a column `rank` containing the rank, from highest to lowest murder rate. Make sure you redefine `murders` so we can keep using this variable.
+You can add columns using the __dplyr__ function `mutate`. This function is aware of the column names and inside the function you can call them unquoted:
 
 
+```{r, eval=FALSE}
+murders <- mutate(murders, population_in_millions = population / 10^6)
+```
 
-3. With __dplyr__, we can use `select` to show only certain columns. For example, with this code we would only show the states and population sizes:
+We can write `population` rather than `murders$population`. The function `mutate` knows we are grabbing columns from `murders`.
 
-    ```{r, eval=FALSE}
-    select(murders, state, population) %>% head()
-    ```
+Use the function `mutate` to add a murders column named `rate` with the per 100,000 murder rate as in the example code above. Make sure you redefine `murders` as done in the example code above ( murders <- [your code]) so we can keep using this variable.
 
-    Use `select` to show the state names and abbreviations in `murders`. Do not redefine `murders`, just show the results.
+2\. If `rank(x)` gives you the ranks of `x` from lowest to highest, `rank(-x)` gives you the ranks from highest to lowest. Use the function `mutate` to add a column `rank` containing the rank, from highest to lowest murder rate. Make sure you redefine `murders` so we can keep using this variable.
 
 
-4. The __dplyr__ function `filter` is used to choose specific rows of the data frame to keep. Unlike `select` which is for columns, `filter` is for rows. For example, you can show just the New York row like this:
 
-    ```{r, eval=FALSE}
-    filter(murders, state == "New York")
-    ```
-    
-    You can use other logical vectors to filter rows.
+3\. With __dplyr__, we can use `select` to show only certain columns. For example, with this code we would only show the states and population sizes:
 
-    Use `filter` to show the top 5 states with the highest murder rates. After we add murder rate and rank, do not change the murders dataset, just show the result. Remember that you can filter based on the `rank` column.
+```{r, eval=FALSE}
+select(murders, state, population) %>% head()
+```
+
+Use `select` to show the state names and abbreviations in `murders`. Do not redefine `murders`, just show the results.
+
+
+4\. The __dplyr__ function `filter` is used to choose specific rows of the data frame to keep. Unlike `select` which is for columns, `filter` is for rows. For example, you can show just the New York row like this:
+
+```{r, eval=FALSE}
+filter(murders, state == "New York")
+```
+
+You can use other logical vectors to filter rows.
+
+Use `filter` to show the top 5 states with the highest murder rates. After we add murder rate and rank, do not change the murders dataset, just show the result. Remember that you can filter based on the `rank` column.
 
  
-5. We can remove rows using the `!=` operator. For example, to remove Florida, we would do this:
+5\. We can remove rows using the `!=` operator. For example, to remove Florida, we would do this:
 
-    ```{r, eval=FALSE}
-    no_florida <- filter(murders, state != "Florida")
-    ```
+```{r, eval=FALSE}
+no_florida <- filter(murders, state != "Florida")
+```
 
-    Create a new data frame called `no_south` that removes states from the South region. How many states are in this category? You can use the function `nrow` for this.
-
-
-6. We can also use `%in%` to filter with __dplyr__. You can therefore see the data from New York and Texas like this:
-
-    ```{r, eval=FALSE}
-    filter(murders, state %in% c("New York", "Texas"))
-    ```
-    
-    Create a new data frame called `murders_nw` with only the states from the Northeast and the West.  How many states are in this category? 
+Create a new data frame called `no_south` that removes states from the South region. How many states are in this category? You can use the function `nrow` for this.
 
 
-7. Suppose you want to live in the Northeast or West **and** want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with `filter`. Here is an example in which we filter to keep only small states in the Northeast region.
+6\. We can also use `%in%` to filter with __dplyr__. You can therefore see the data from New York and Texas like this:
 
-    ```{r, eval=FALSE}
-    filter(murders, population < 5000000 & region == "Northeast")
-    ```
+```{r, eval=FALSE}
+filter(murders, state %in% c("New York", "Texas"))
+```
 
-    Make sure `murders` has been defined with `rate` and `rank` and still has all states. Create a table called `my_states` that contains rows for states satisfying both the conditions: it is in the Northeast or West and the murder rate is less than 1.  Use `select` to show only the state name, the rate, and the rank.
+Create a new data frame called `murders_nw` with only the states from the Northeast and the West.  How many states are in this category? 
+
+
+7\. Suppose you want to live in the Northeast or West **and** want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with `filter`. Here is an example in which we filter to keep only small states in the Northeast region.
+
+```{r, eval=FALSE}
+filter(murders, population < 5000000 & region == "Northeast")
+```
+
+Make sure `murders` has been defined with `rate` and `rank` and still has all states. Create a table called `my_states` that contains rows for states satisfying both the conditions: it is in the Northeast or West and the murder rate is less than 1.  Use `select` to show only the state name, the rate, and the rank.
 
 ## The pipe: `%>%`
 
@@ -264,41 +249,41 @@ Note that the pipe works well with functions where the first argument is the inp
 
 ## Exercises
 
-1. The pipe `%>%` can be used to perform operations sequentially without having to define intermediate objects. Start by redefining murder to include rate and rank.
+1\. The pipe `%>%` can be used to perform operations sequentially without having to define intermediate objects. Start by redefining murder to include rate and rank.
 
-    ```{r, eval=FALSE}
-    murders <- mutate(murders, rate =  total / population * 100000, 
-                      rank = rank(-rate))
-    ```
+```{r, eval=FALSE}
+murders <- mutate(murders, rate =  total / population * 100000, 
+                  rank = rank(-rate))
+```
 
-    In the solution to the previous exercise, we did the following:
-    ```{r, eval=FALSE}
-    my_states <- filter(murders, region %in% c("Northeast", "West") & 
-                          rate < 1)
+In the solution to the previous exercise, we did the following:
+```{r, eval=FALSE}
+my_states <- filter(murders, region %in% c("Northeast", "West") & 
+                      rate < 1)
 
-    select(my_states, state, rate, rank)
-    ```
+select(my_states, state, rate, rank)
+```
 
-    The pipe `%>%` permits us to perform both operations sequentially without having to define an intermediate variable `my_states`. We therefore could have mutated and selected in the same line like this:
+The pipe `%>%` permits us to perform both operations sequentially without having to define an intermediate variable `my_states`. We therefore could have mutated and selected in the same line like this:
 
-    ```{r, eval=FALSE}
-    mutate(murders, rate =  total / population * 100000, 
-           rank = rank(-rate)) %>%
-      select(state, rate, rank)
-    ```
+```{r, eval=FALSE}
+mutate(murders, rate =  total / population * 100000, 
+       rank = rank(-rate)) %>%
+  select(state, rate, rank)
+```
 
-    Notice that `select` no longer has a data frame as the first argument. The first argument is assumed to be the result of the operation conducted right before the  `%>%`.
+Notice that `select` no longer has a data frame as the first argument. The first argument is assumed to be the result of the operation conducted right before the  `%>%`.
     
-    Repeat the previous exercise, but now instead of creating a new object, show the result and only include the state, rate, and rank columns. Use a pipe `%>%` to do this in just one line.
+Repeat the previous exercise, but now instead of creating a new object, show the result and only include the state, rate, and rank columns. Use a pipe `%>%` to do this in just one line.
 
-2. Reset `murders` to the original table by using `data(murders)`. Use a pipe to create a new data frame called `my_states` that considers only states in the Northeast or West which have a murder rate lower than 1, and contains only the state, rate and rank columns. The pipe should also have four components separated by three `%>%`. The code should look something like this:
+2\. Reset `murders` to the original table by using `data(murders)`. Use a pipe to create a new data frame called `my_states` that considers only states in the Northeast or West which have a murder rate lower than 1, and contains only the state, rate and rank columns. The pipe should also have four components separated by three `%>%`. The code should look something like this:
     
-    ```{r, eval=FALSE}
-    my_states <- murders %>%
-      mutate SOMETHING %>% 
-      filter SOMETHING %>% 
-      select SOMETHING
-    ```
+```{r, eval=FALSE}
+my_states <- murders %>%
+  mutate SOMETHING %>% 
+  filter SOMETHING %>% 
+  select SOMETHING
+```
 
 ## Summarizing data
 
@@ -454,16 +439,15 @@ With `arrange` we get to decide which column to sort by. To see the states by po
 
 ```{r}
 murders %>% 
-  arrange(rate) %>% 
+  arrange(rate) %>%
   head()
 ```
 
 Note that the default behavior is to order in ascending order. In __dplyr__, the function `desc` transforms a vector so that it is in descending order. To sort the table in descending order, we can type:
 
-```{r}
+```{r, eval=FALSE}
 murders %>% 
-  arrange(desc(rate)) %>% 
-  head()
+  arrange(desc(rate)) 
 ```
 
 ### Nested sorting 
@@ -479,10 +463,10 @@ murders %>%
 
 ### The top $n$ 
 
-In the code above, we have used the function `head` to avoid having the page fill up with the entire dataset. If we want to see a larger proportion, we can use the `top_n` function. This function takes a data frame as it's first argument, the number of rows to show in the second, and the variable to filter by in the third. Here is an example of how to see the top 10 rows:
+In the code above, we have used the function `head` to avoid having the page fill up with the entire dataset. If we want to see a larger proportion, we can use the `top_n` function. This function takes a data frame as it's first argument, the number of rows to show in the second, and the variable to filter by in the third. Here is an example of how to see the top 5 rows:
 
 ```{r}
-murders %>% top_n(10, rate)
+murders %>% top_n(5, rate)
 ```
 
 Note that rows are not sorted by `rate`, only filtered. If we want to sort, we need to use `arrange`.
@@ -516,24 +500,24 @@ sd(na_example, na.rm = TRUE)
 
 Let's now explore the NHANES data.
 
-1. We will provide some basic facts about blood pressure. First let's select a group to set the standard. We will use 20-to-29-year-old females. `AgeDecade` is a categorical variable with these ages. Note that the category is coded like " 20-29", with a space in front! What is the average and standard deviation of systolic blood pressure as saved in the `BPSysAve` variable? Save it to a variable called `ref`.
+1\. We will provide some basic facts about blood pressure. First let's select a group to set the standard. We will use 20-to-29-year-old females. `AgeDecade` is a categorical variable with these ages. Note that the category is coded like " 20-29", with a space in front! What is the average and standard deviation of systolic blood pressure as saved in the `BPSysAve` variable? Save it to a variable called `ref`.
 
 Hint: Use `filter` and `summarize` and use the `na.rm = TRUE` argument when computing the average and standard deviation. You can also filter the NA values using `filter`.
 
 
-2. Using a pipe, assign the average to a numeric variable `ref_avg`. Hint: Use the code similar to above and then `pull`.
+2\. Using a pipe, assign the average to a numeric variable `ref_avg`. Hint: Use the code similar to above and then `pull`.
 
 
-3. Now report the min and max values for the same group.
+3\. Now report the min and max values for the same group.
 
 
-4. Compute the average and standard deviation for females, but for each age group separately rather than a selected decade as in question 1. Note that the age groups are defined by `AgeDecade`. Hint: rather than filtering by age and gender, filter by `Gender` and then use `group_by`.
+4\. Compute the average and standard deviation for females, but for each age group separately rather than a selected decade as in question 1. Note that the age groups are defined by `AgeDecade`. Hint: rather than filtering by age and gender, filter by `Gender` and then use `group_by`.
 
-5. Repeat exercise 4 for males. 
+5\. Repeat exercise 4 for males. 
 
-6. We can actually combine both summaries for exercises 4 and 5 into one line of code. This is because `group_by` permits us to group by more than one variable. Obtain one big summary table using `group_by(AgeDecade, Gender)`.
+6\. We can actually combine both summaries for exercises 4 and 5 into one line of code. This is because `group_by` permits us to group by more than one variable. Obtain one big summary table using `group_by(AgeDecade, Gender)`.
 
-7. For males between the ages of 40-49, compare systolic blood pressure across race as reported in the `Race1` variable. Order the resulting table from lowest to highest average systolic blood pressure.
+7\. For males between the ages of 40-49, compare systolic blood pressure across race as reported in the `Race1` variable. Order the resulting table from lowest to highest average systolic blood pressure.
 
 
 
@@ -549,10 +533,10 @@ class(murders)
 In Section \@ref(group-by) we introduced the `group_by` function, which permits stratifying data before computing summary statistics. But where is the group information stored in the data frame? 
 
 ```{r}
-murders %>% group_by(region) %>% head()
+murders %>% group_by(region)
 ```
 
-Notice that there are no columns with this information. But, if you look closely at the output above, you see the line `A tibble: 6 x 5`. We can learn the class of the returned object using:
+Notice that there are no columns with this information. But, if you look closely at the output above, you see the line `A tibble` followd by dimensions. We can learn the class of the returned object using:
 
 ```{r}
 murders %>% group_by(region) %>% class()
@@ -840,26 +824,23 @@ between(x, a, b)
 
 ## Exercises 
 
-1. Load the `murders` dataset. Which of the following is true?
+1\. Load the `murders` dataset. Which of the following is true?
 
-    A. `murders` is in tidy format and is stored in a tibble.
+a. `murders` is in tidy format and is stored in a tibble.
+b. `murders` is in tidy format and is stored in a data frame.
+c. `murders` is not in tidy format and is stored in a tibble.
+d. `murders` is not in tidy format and is stored in a data frame.
     
-    B. `murders` is in tidy format and is stored in a data frame.
+2\. Use `as_tibble` to convert the `murders` data table into a tibble and save it in an object called `murders_tibble`.
     
-    C. `murders` is not in tidy format and is stored in a tibble.
-    
-    D. `murders` is not in tidy format and is stored in a data frame.
-    
-2. Use `as_tibble` to convert the `murders` data table into a tibble and save it in an object called `murders_tibble`.
-    
-3. Use the `group_by` function to convert murders into a tibble that is grouped by region.
+3\. Use the `group_by` function to convert murders into a tibble that is grouped by region.
 
-4. Write tidyverse code that is equivalent to this code:
+4\. Write tidyverse code that is equivalent to this code:
     
-    ```{r, eval=FALSE}
-    exp(mean(log(murders$population)))
-    ```
+```{r, eval=FALSE}
+exp(mean(log(murders$population)))
+```
+
+Write it using the pipe so that each function is called without arguments. Use the dot operator to access the population. Hint: The code should start with `murders %>%`.
     
-    Write it using the pipe so that each function is called without arguments. Use the dot operator to access the population. Hint: The code should start with `murders %>%`.
-    
-5. Use the `map_df` to create a data frame with three columns named `n`, `s_n`, and `s_n_2`. The first column should contain the numbers 1 through 100. The second and third columns should each contain the sum of 1 through $n$ with $n$ the row number.  
+5\. Use the `map_df` to create a data frame with three columns named `n`, `s_n`, and `s_n_2`. The first column should contain the numbers 1 through 100. The second and third columns should each contain the sum of 1 through $n$ with $n$ the row number.  
