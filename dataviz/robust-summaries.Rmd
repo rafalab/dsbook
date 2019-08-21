@@ -28,15 +28,22 @@ sd(outlier_example)
 
 and writes a report on the interesting fact that this group of males is much taller than usual. The average height is over six feet tall! Using your data science skills, however, you notice something else that is unexpected: the standard deviation is over 7 feet. Adding and subtracting two standard deviations, you note that 95% of this population will have heights between `r mean(outlier_example) + c(-2, 2)*sd(outlier_example)` feet, which does not make sense. A quick plot reveals the problem:
 
+<!--
 ```{r histogram-reveals-outliers}
 qplot(outlier_example, bins = 30)
 ```
+-->
 
-There appears to be at least one value that is nonsensical, since we know that a height of `r max(outlier_example)` feet is impossible. The boxplot detects this point as an outlier:
-
-```{r, boxplot-reveals-outliers}
+```{r, eval=FALSE}
 boxplot(outlier_example)
 ```
+
+```{r, boxplot-reveals-outliers, echo=FALSE, out.width="50%"}
+rafalib::mypar()
+boxplot(outlier_example)
+```
+
+There appears to be at least one value that is nonsensical, since we know that a height of `r max(outlier_example)` feet is impossible. The boxplot detects this point as an outlier.
 
 ## Median
 
@@ -95,7 +102,14 @@ max_height
 
 If we take this value out, we can see that the data is in fact normally distributed as expected:
 
-```{r outlier-qqnorm}
+```{r eval=FALSE}
+x <- outlier_example[outlier_example < max_height]
+qqnorm(x)
+qqline(x)
+```
+
+```{r outlier-qqnorm, echo=FALSE}
+rafalib::mypar()
 x <- outlier_example[outlier_example < max_height]
 qqnorm(x)
 qqline(x)
@@ -130,39 +144,36 @@ data(Galton)
 x <- Galton$child
 ```
 
-1. Compute the average and median of these data.
+1\. Compute the average and median of these data.
 
-2. Compute the median and median absolute deviation of these data.
-
-
-
-3. Now suppose Galton made a mistake when entering the first value and forgot to use the decimal point. You can imitate this error by typing:
-
-    ```{r}
-    x_with_error <- x
-    x_with_error[1] <- x_with_error[1]*10
-    ```
-
-    How many inches does the average grow after this mistake?
-    
-4. How many inches does the SD grow after this mistake?
-
-5. How many inches does the median grow after this mistake?
-
-6. How many inches does the MAD grow after this mistake?
-
-7. How could you use exploratory data analysis to detect that an error was made?
-  
-    A. Since it is only one value out of many, we will not be able to detect this.
-    
-    B. We would see an obvious shift in the distribution.
-    
-    C. A boxplot, histogram, or qq-plot would reveal a clear outlier.
-    
-    D. A scatterplot would show high levels of measurement error.
+2\. Compute the median and median absolute deviation of these data.
 
 
-8. How much can the average accidentally grow with mistakes like this? Write a function called `error_avg` that takes a value `k` and returns the average of the vector `x` after the first entry changed to `k`. Show the results for `k=10000` and `k=-10000`.
+
+3\. Now suppose Galton made a mistake when entering the first value and forgot to use the decimal point. You can imitate this error by typing:
+
+```{r}
+x_with_error <- x
+x_with_error[1] <- x_with_error[1]*10
+```
+
+How many inches does the average grow after this mistake?
+
+4\. How many inches does the SD grow after this mistake?
+
+5\. How many inches does the median grow after this mistake?
+
+6\. How many inches does the MAD grow after this mistake?
+
+7\. How could you use exploratory data analysis to detect that an error was made?
+
+a. Since it is only one value out of many, we will not be able to detect this.
+b. We would see an obvious shift in the distribution.
+c. A boxplot, histogram, or qq-plot would reveal a clear outlier.
+d. A scatterplot would show high levels of measurement error.
+
+
+8\. How much can the average accidentally grow with mistakes like this? Write a function called `error_avg` that takes a value `k` and returns the average of the vector `x` after the first entry changed to `k`. Show the results for `k=10000` and `k=-10000`.
 
 ## Case study: self-reported student heights 
 
@@ -171,7 +182,6 @@ The heights we have been looking at are not the original heights reported by stu
 ```{r}
 library(dslabs)
 data("reported_heights")
-head(reported_heights)
 ```
 
 Height is a character vector so we create a new column with the numeric version:
@@ -185,9 +195,7 @@ Note that we get a warning about NAs. This is because some of the self reported 
 We can see why we get these: 
 
 ```{r, warning=FALSE}
-reported_heights %>% 
-  filter(is.na(height)) %>% 
-  head()
+reported_heights %>% filter(is.na(height)) %>%  head()
 ```
 
 Some students self-reported their heights using feet and inches rather than just inches. Others used centimeters and others were just trolling. For now we will remove these entries:
@@ -217,9 +225,7 @@ reported_heights %>%
 We can see some rather extreme values. To see what these values are, we can quickly look at the largest values using the `arrange` function:
 
 ```{r}
-reported_heights %>% 
-  arrange(desc(height)) %>% 
-  top_n(10, height)
+reported_heights %>% arrange(desc(height)) %>% top_n(10, height)
 ```
 
 The first seven entries look like strange errors. However, the next few look like they were entered as centimeters instead of inches. Since 184 cm is equivalent to six feet tall, we suspect that 184 was actually meant to be 72 inches. 
@@ -227,13 +233,9 @@ The first seven entries look like strange errors. However, the next few look lik
 We can review all the nonsensical answers by looking at the data considered to be _far out_ by Tukey:
 
 ```{r}
-max_height <- quantile(reported_heights$height, .75) + 3*IQR(reported_heights$height)
-min_height <- quantile(reported_heights$height, .25) - 3*IQR(reported_heights$height)
-c(min_height, max_height)
-```
-
-
-```{r}
+whisker <- 3*IQR(reported_heights$height)
+max_height <- quantile(reported_heights$height, .75) + whisker
+min_height <- quantile(reported_heights$height, .25) - whisker
 reported_heights %>% 
   filter(!between(height, min_height, max_height)) %>% 
   select(original_heights) %>%
