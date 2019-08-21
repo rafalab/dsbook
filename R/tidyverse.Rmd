@@ -343,7 +343,6 @@ we will receive an error: `Error: expecting result of length one, got : 2`. With
 For another example of how we can use the `summarize` function, let's compute the average murder rate for the United States. Remember our data table includes total murders and population size for each state and we have already used __dplyr__ to add a murder rate column:
 
 ```{r}
-data(murders)
 murders <- murders %>% mutate(rate = total/population*100000)
 ```
 
@@ -523,14 +522,7 @@ Hint: Use `filter` and `summarize` and use the `na.rm = TRUE` argument when comp
 
 ## Tibbles
 
-Tidy data must be stored in data frames. We introduced the data frame in Section \@ref(data-frames) and have been using the `murders` data frame throughout the book:
-
-```{r}
-data(murders)
-class(murders)
-```
-
-In Section \@ref(group-by) we introduced the `group_by` function, which permits stratifying data before computing summary statistics. But where is the group information stored in the data frame? 
+Tidy data must be stored in data frames. We introduced the data frame in Section \@ref(data-frames) and have been using the `murders` data frame throughout the book. In Section \@ref(group-by) we introduced the `group_by` function, which permits stratifying data before computing summary statistics. But where is the group information stored in the data frame? 
 
 ```{r}
 murders %>% group_by(region)
@@ -542,7 +534,7 @@ Notice that there are no columns with this information. But, if you look closely
 murders %>% group_by(region) %>% class()
 ```
 
-The `tbl`, pronounced tibble, is a special kind of data frame. The functions `group_by` and `summarize` always return this type of data frame. The `group_by` function returns a special kind of `tbl`, the `grouped_df`. We will say more about these later. For consistency, the __dplyr__manipulation verbs (`select`, `filter`, `mutate`, and `arrange`) preserve the class of the input: if they receive a regular data frame they return a regular data frame, while if they receive a tibble they return a tibble. But tibbles are the preferred format in the tidyverse and as a result tidyverse functions that produce a data frame from scratch return a tibble. For example, in Chapter \@ref(importing-data) we will see that tidyverse functions used to import data create tibbles.
+The `tbl`, pronounced tibble, is a special kind of data frame. The functions `group_by` and `summarize` always return this type of data frame. The `group_by` function returns a special kind of `tbl`, the `grouped_df`. We will say more about these later. For consistency, the __dplyr__ manipulation verbs (`select`, `filter`, `mutate`, and `arrange`) preserve the class of the input: if they receive a regular data frame they return a regular data frame, while if they receive a tibble they return a tibble. But tibbles are the preferred format in the tidyverse and as a result tidyverse functions that produce a data frame from scratch return a tibble. For example, in Chapter \@ref(importing-data) we will see that tidyverse functions used to import data create tibbles.
 
 Tibbles are very similar to data frames. In fact, you can think of them as a modern version of data frames. Nonetheless there are three important differences which we describe in the next.
 
@@ -607,7 +599,6 @@ It is sometimes useful for us to create our own data frames. To create a data fr
 grades <- tibble(names = c("John", "Juan", "Jean", "Yao"), 
                      exam_1 = c(95, 80, 90, 85), 
                      exam_2 = c(90, 85, 85, 90))
-grades
 ```
 
 Note that base R (without packages loaded) has a function with a very similar name, `data.frame`, that can be used to create a regular data frame rather than a tibble.  One other important difference is that by default `data.frame` coerces characters into factors without providing a warning or message:
@@ -727,18 +718,14 @@ heights %>%
 
 ## The __purrr__ package
 
-In Section \@ref(vectorization) we learned about the `sapply` function, which permitted us to apply the same function to each element of a vector. We constructed this function:
+In Section \@ref(vectorization) we learned about the `sapply` function, which permitted us to apply the same function to each element of a vector. We constructed a function and used `sapply` to compute the sum of the first `n` integers for several values of `n` like this:
+
 
 ```{r}
 compute_s_n <- function(n){
   x <- 1:n
   sum(x)
 }
-```
-
-and used `sapply` to compute the sum of the first `n` integers for several values of `n` like this:
-
-```{r}
 n <- 1:25
 s_n <- sapply(n, compute_s_n)
 ```
@@ -776,8 +763,8 @@ compute_s_n <- function(n){
   tibble(sum = sum(x))
 }
 s_n <- map_df(n, compute_s_n)
-head(s_n)
 ```
+
 The __purrr__ package provides much more functionality not covered here. For more details you can consult [this online resource](https://jennybc.github.io/purrr-tutorial/).
 
 ## Tidyverse conditionals
@@ -796,16 +783,14 @@ case_when(x < 0 ~ "Negative", x > 0 ~ "Positive", TRUE ~ "Zero")
 A common use for this function is to define categorical variables based on existing variables. For example, suppose we want to compare the murder rates in three groups of states: _New England_, _West Coast_, _South_,  and _other_. For each state, we need to ask if it is in New England, if it is not we ask if it is in the West Coast, if not we ask if it is in the South, and if not we assign _other_. Here is how we use `case_when` to do this:
 
 ```{r}
-data(murders)
 murders %>% 
   mutate(group = case_when(
     abb %in% c("ME", "NH", "VT", "MA", "RI", "CT") ~ "New England",
     abb %in% c("WA", "OR", "CA") ~ "West Coast",
     region == "South" ~ "South",
-    TRUE ~ "other")) %>%
+    TRUE ~ "Other")) %>%
   group_by(group) %>%
-  summarize(rate = sum(total) / sum(population) * 10^5) %>%
-  arrange(rate)
+  summarize(rate = sum(total) / sum(population) * 10^5) 
 ```
 
 ### `between`

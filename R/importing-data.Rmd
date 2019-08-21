@@ -91,11 +91,11 @@ dir <- system.file("extdata", package = "dslabs")
 fullpath <- file.path(dir, filename)
 ```
 
-The function `system.file` provides the full path of the folder containing all the files and directories relevant to the package specified by the `package` argument. By exploring the directories in `r dir` we find that the `extdata` contains the file we want:
+The function `system.file` provides the full path of the folder containing all the files and directories relevant to the package specified by the `package` argument. By exploring the directories in `dir` we find that the `extdata` contains the file we want:
 
 ```{r}
 dir <- system.file(package = "dslabs") 
-list.files(file.path(dir, "extdata"))
+filename %in% list.files(file.path(dir, "extdata")) 
 ```
 
 The `system.file` function permits us to provide a subdirectory as a first argument, so we can obtain the fullpath of the `extdata` directory like this:
@@ -174,10 +174,10 @@ This also shows that there is a header. Now we are ready to read-in the data int
 dat <- read_csv(filename)
 ```
 Note that we receive a message letting us know what data types were used for each column. 
-Also note that `dat` is a `tibble`, not just a data frame. This is because `read_csv` is a __tidyverse__ parser. We can see that the data has in fact been read-in with the content in the file:
+Also note that `dat` is a `tibble`, not just a data frame. This is because `read_csv` is a __tidyverse__ parser. We can confirm that the data has in fact been read-in with:
 
-```{r}
-head(dat)
+```{r, eval=FALSE}
+View(dat)
 ```
 Finally, note that we can also use the full path for the file:
 
@@ -206,30 +206,29 @@ The Microsoft Excel formats permit you to have more than one spreadsheet in one 
 ## Exercises 
 
 
-1. Use the `read_csv` function to read each of the files that the following code saves in the `files` object: 
+1\. Use the `read_csv` function to read each of the files that the following code saves in the `files` object: 
 
-    ```{r, eval=FALSE}
-    path <- system.file("extdata", package = "dslabs")
-    files <- list.files(path)
-    files
-    ```
-
-  
-2. Note that the last one, the `olive` file, gives us a warning. This is because the first line of the file is missing the header for the first column. 
-
-    Read the help file for `read_csv` to figure out how to read in the file without reading this header. If you skip the header, you should not get this warning. Save the result to an object called `dat`.
+```{r, eval=FALSE}
+path <- system.file("extdata", package = "dslabs")
+files <- list.files(path)
+files
+```
 
   
-3. A problem with the previous approach is that we don't know what the columns represent. Type:
+2\. Note that the last one, the `olive` file, gives us a warning. This is because the first line of the file is missing the header for the first column. 
 
-    ```{r, eval=FALSE}
-    names(dat)
-    ```
+Read the help file for `read_csv` to figure out how to read in the file without reading this header. If you skip the header, you should not get this warning. Save the result to an object called `dat`.
 
-    to see that the names are not informative.
+  
+3\. A problem with the previous approach is that we don't know what the columns represent. Type:
 
-    Use the `readLines` function to read in just the first line (we later learn how to extract values from the output). 
+```{r, eval=FALSE}
+names(dat)
+```
 
+to see that the names are not informative.
+
+Use the `readLines` function to read in just the first line (we later learn how to extract values from the output). 
 
 
 ## Downloading files
