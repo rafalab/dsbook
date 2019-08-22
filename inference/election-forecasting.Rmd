@@ -111,22 +111,19 @@ X <- sapply(1:I, function(i){
 The simulated data does not really seem to capture the features of the actual data:
 
 
-```{r simulated-data-without-bias, echo=FALSE}
-data.frame(Spread = as.vector(X) , Pollster = as.factor(rep(1:I, each=J))) %>%
-  ggplot(aes(Pollster, Spread)) + 
-  geom_point() + 
-  scale_y_continuous(limit = c(-0.056,0.092))
-```
-
-Here is the actual data:
-
-```{r pollster-bias-data, echo=FALSE}
+```{r simulated-data-without-bias, echo=FALSE, message=FALSE, warning=FALSE}
 polls %>% group_by(pollster) %>% 
-  filter(n() >= 6) %>%
+  filter(n() >= 6) %>% ungroup() %>%
+  select(pollster, spread) %>%
+  mutate(type = "Observed data", pollster = as.character(pollster)) %>%
+  bind_rows(data.frame(spread = as.vector(X) , 
+                      pollster = I(rep(as.character(1:I), each=J)),
+                      type = I("Simulated data"))) %>%
+  mutate(type = factor(type, levels = c("Simulated data", "Observed data"))) %>%
   ggplot(aes(pollster, spread)) + 
-  geom_point() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_y_continuous(limit = c(-0.056,0.092))
+  geom_point() + 
+  coord_flip() +
+  facet_wrap( ~ type, scales = "free_y")
 ```
 
 The model above does not account for pollster-to-pollster variability. To fix this, we add a new term for the pollster effect. We will use $h_i$ to represent the house effect of the $i$-th pollster. The model is now augmented to: 
@@ -155,7 +152,8 @@ The simulated data now looks more like the actual data:
 data.frame(Spread = as.vector(X) , Pollster = as.factor(rep(1:I, each=J))) %>%
   ggplot(aes(Pollster, Spread)) +
   geom_point() +
-  scale_y_continuous(limit = c(-0.056, 0.092))
+  scale_y_continuous(limit = c(-0.056, 0.092)) +
+  coord_flip()
 ```
 
 Note that $h_i$ is common to all the observed spreads from a specific pollster. Different pollsters have a different $h_i$, which explains why we can see the groups of points shift up and down from pollster to pollster.
@@ -229,7 +227,7 @@ results <- polls_us_election_2016 %>%
   mutate(state = as.character(state))
 ```
 
-Here are the 10 closest races according to the polls:
+Here are the five closest races according to the polls:
 
 ```{r}
 results %>% arrange(abs(avg))
@@ -244,7 +242,7 @@ results <- left_join(results, results_us_election_2016, by = "state")
 Notice that some states have no polls because the winner is pretty much known:
 
 ```{r}
-results_us_election_2016 %>% filter(!state %in% results$state)
+results_us_election_2016 %>% filter(!state %in% results$state) %>% pull(state)
 ```
 
 No polls were conducted in DC, Rhode Island, Alaska, and Wyoming because Democrats are  sure to win in the first two and Republicans in the last two.
@@ -258,19 +256,18 @@ results <- results %>%
 
 To make probabilistic arguments, we will use a Monte Carlo simulation. For each state, we apply the Bayesian approach to generate an election day $d$. We could construct the priors for each state based on recent history. However, to keep it simple, we assign a prior to each state that assumes we know nothing about what will happen. Since from election year to election year the results from a specific state don't change that much, we will assign a standard deviation of 2% or $\tau=0.02$. For now, we will assume, incorrectly, that the poll results from each state are independent. The code for the Bayesian calculation under these assumptions looks like this:
 
-```{r}
+```{r, echo=FALSE}
 mu <- 0
 tau <- 0.02
 results %>% mutate(sigma = sd/sqrt(n), 
                    B = sigma^2 / (sigma^2 + tau^2),
                    posterior_mean = B * mu + (1 - B) * avg,
-                   posterior_se = sqrt(1/ (1/sigma^2 + 1/tau^2))) %>%
-  arrange(abs(posterior_mean))
+                   posterior_se = sqrt(1/ (1/sigma^2 + 1/tau^2)))
 ```
 
 The estimates based on posterior do move the estimates towards 0, although the states with many polls are influenced less. This is expected as the more poll data we collect, the more we trust those results:
 
-```{r posterior-versus-original-estimates}
+```{r posterior-versus-original-estimates, echo=FALSE}
 results %>% mutate(sigma = sd / sqrt(n), 
                    B = sigma^2 / (sigma^2 + tau^2),
                    posterior_mean = B * mu + (1 - B) * avg,
@@ -300,7 +297,8 @@ clinton_EV <- replicate(B, {
 mean(clinton_EV > 269)
 ```
 
-This model gives Clinton over 99% chance of winning. Here is a histogram of the Monte Carlo outcomes:
+This model gives Clinton over 99% chance of winning. 
+<!--Here is a histogram of the Monte Carlo outcomes:
 
 ```{r election-forecast-posterior-no-bias, echo=FALSE}
 data.frame(clinton_EV) %>% 
@@ -308,7 +306,7 @@ data.frame(clinton_EV) %>%
   geom_histogram(binwidth = 1) +
   geom_vline(xintercept = 269)
 ```
-
+-->
 A similar prediction was made by the Princeton Election Consortium. We now know it was quite off. What happened?
 
 The model above ignores the general bias and assumes the results from different states are independent. After the election, we realized that the general bias in 2016 was not that big: it was between 1 and 2%. But because the election was close in several big states and these states had a large number of polls, pollsters that ignored the general bias greatly underestimated the standard error. Using the notation we introduce, they assumed the standard error was $\sqrt{\sigma^2/N}$ which with large N is quite smaller than the more accurate estimate 
@@ -385,7 +383,7 @@ one_pollster %>% ggplot(aes(enddate, spread)) +
 
 Some of the peaks and valleys we see coincide with events such as the party conventions, which tend to give the candidate a boost. We can see the peaks and valleys are consistent across several pollsters:
 
-```{r time-trend-estimate-several-pollsters}
+```{r time-trend-estimate-several-pollsters, echo=FALSE}
 polls_us_election_2016 %>%
   filter(state == "U.S.") %>%
   group_by(pollster) %>%
@@ -415,7 +413,7 @@ $$
 
 We usually see the estimated $f(t)$ not for the difference, but for the actual percentages for each candidate like this:
 
-```{r trend-estimate-for-all-pollsters, warning=FALSE, message=FALSE}
+```{r trend-estimate-for-all-pollsters, warning=FALSE, message=FALSE, echo=FALSE}
 polls_us_election_2016 %>%
   filter(state == "U.S." & enddate>="2016-07-01") %>%
   select(enddate, pollster, rawpoll_clinton, rawpoll_trump) %>%
@@ -435,50 +433,50 @@ Once a model like the one above is selected, we can use historical and present d
 
 ## Exercises
 
-1. Create this table:
+1\. Create this table:
 
-    ```{r, eval=TRUE}
-    library(tidyverse)
-    library(dslabs)
-    data("polls_us_election_2016")
-    polls <- polls_us_election_2016 %>% 
-      filter(state != "U.S." & enddate >= "2016-10-31") %>% 
-      mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
-    ```
+```{r, eval=TRUE}
+library(tidyverse)
+library(dslabs)
+data("polls_us_election_2016")
+polls <- polls_us_election_2016 %>% 
+  filter(state != "U.S." & enddate >= "2016-10-31") %>% 
+  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
+```
 
-    Now for each poll use the CLT to create a 95% confidence interval for the spread reported by each poll. Call the resulting object cis with columns lower and upper for the limits of the confidence intervals. Use the `select` function to keep the columns `state, startdate, end date, pollster, grade, spread, lower, upper`.
+Now for each poll use the CLT to create a 95% confidence interval for the spread reported by each poll. Call the resulting object cis with columns lower and upper for the limits of the confidence intervals. Use the `select` function to keep the columns `state, startdate, end date, pollster, grade, spread, lower, upper`.
 
-2. You can add the final result to the `cis` table you just created using the `right_join` function like this:
+2\. You can add the final result to the `cis` table you just created using the `right_join` function like this:
 
-    ```{r, eval=FALSE}
-    add <- results_us_election_2016 %>% 
-      mutate(actual_spread = clinton/100 - trump/100) %>% 
-      select(state, actual_spread)
-    cis <- cis %>% 
-      mutate(state = as.character(state)) %>% 
-      left_join(add, by = "state")
-    ```
-    
-    Now determine how often the 95% confidence interval includes the actual result.
-    
-3. Repeat this, but show the proportion of hits for each pollster. Show only pollsters with more than 5 polls and order them from best to worst. Show the number of polls conducted by each pollster and the FiveThirtyEight grade of each pollster. Hint: use `n=n(), grade = grade[1]` in the call to summarize.
+```{r, eval=FALSE}
+add <- results_us_election_2016 %>% 
+  mutate(actual_spread = clinton/100 - trump/100) %>% 
+  select(state, actual_spread)
+cis <- cis %>% 
+  mutate(state = as.character(state)) %>% 
+  left_join(add, by = "state")
+```
 
+Now determine how often the 95% confidence interval includes the actual result.
 
-4. Repeat exercise 3, but instead of pollster, stratify by state. Note that here we can't show grades. 
+3\. Repeat this, but show the proportion of hits for each pollster. Show only pollsters with more than 5 polls and order them from best to worst. Show the number of polls conducted by each pollster and the FiveThirtyEight grade of each pollster. Hint: use `n=n(), grade = grade[1]` in the call to summarize.
 
 
-5. Make a barplot based on the result of exercise 4. Use `coord_flip`.
+4\. Repeat exercise 3, but instead of pollster, stratify by state. Note that here we can't show grades. 
 
 
-6. Add two columns to the `cis` table by computing, for each poll, the difference between the predicted spread and the actual spread, and define a column `hit` that is true if the signs are the same. Hint: use the function `sign`. Call the object `resids`.
-
-7. Create a plot like in exercise 5, but for the proportion of times the sign of the spread agreed.
-
-8. In exercise 7, we see that for most states the polls had it right 100% of the time. For only 9 states did the polls miss more than 25% of the time. In particular, notice that in Wisconsin every single poll got it wrong. In Pennsylvania and Michigan more than 90% of the polls had the signs wrong. Make a histogram of the errors. What is the median of these errors?
+5\. Make a barplot based on the result of exercise 4. Use `coord_flip`.
 
 
-9. We see that at the state level, the median error was 3% in favor of Clinton. The distribution is not centered at 0, but at 0.03. This is the general bias we described in the section above. Create a boxplot to see if the bias was general to all states or it affected some states differently. Use `filter(grade %in% c("A+","A","A-","B+") | is.na(grade))) ` to only include pollsters with high grades.
+6\. Add two columns to the `cis` table by computing, for each poll, the difference between the predicted spread and the actual spread, and define a column `hit` that is true if the signs are the same. Hint: use the function `sign`. Call the object `resids`.
+
+7\. Create a plot like in exercise 5, but for the proportion of times the sign of the spread agreed.
+
+8\. In exercise 7, we see that for most states the polls had it right 100% of the time. For only 9 states did the polls miss more than 25% of the time. In particular, notice that in Wisconsin every single poll got it wrong. In Pennsylvania and Michigan more than 90% of the polls had the signs wrong. Make a histogram of the errors. What is the median of these errors?
 
 
-10. Some of these states only have a few polls. Repeat exercise 9, but only include states with 5 good polls or more. Hint: use `group_by`, `filter` then `ungroup`. You will see that the West (Washington, New Mexico, California) underestimated Hillary's performance, while the Midwest (Michigan, Pennsylvania, Wisconsin, Ohio, Missouri) overestimated it. In our simulation, we did not model this behavior since we added general bias, rather than a regional bias. Note that some pollsters may now be modeling correlation between similar states and estimating this correlation from historical data. To learn more about this, you can learn about random effects and mixed models. 
+9\. We see that at the state level, the median error was 3% in favor of Clinton. The distribution is not centered at 0, but at 0.03. This is the general bias we described in the section above. Create a boxplot to see if the bias was general to all states or it affected some states differently. Use `filter(grade %in% c("A+","A","A-","B+") | is.na(grade))) ` to only include pollsters with high grades.
+
+
+10\. Some of these states only have a few polls. Repeat exercise 9, but only include states with 5 good polls or more. Hint: use `group_by`, `filter` then `ungroup`. You will see that the West (Washington, New Mexico, California) underestimated Hillary's performance, while the Midwest (Michigan, Pennsylvania, Wisconsin, Ohio, Missouri) overestimated it. In our simulation, we did not model this behavior since we added general bias, rather than a regional bias. Note that some pollsters may now be modeling correlation between similar states and estimating this correlation from historical data. To learn more about this, you can learn about random effects and mixed models. 
 

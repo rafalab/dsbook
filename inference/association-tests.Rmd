@@ -19,8 +19,8 @@ The main evidence for this conclusion comes down to a comparison of the percenta
 library(tidyverse)
 library(dslabs)
 data("research_funding_rates")
-research_funding_rates %>% 
-  select(discipline, applications_total, success_rates_total)
+research_funding_rates %>% select(discipline, applications_total, success_rates_total) %>%
+  head()
 ```
 
 We have these values for each gender:
@@ -92,10 +92,10 @@ tab
 
 These are referred to as a two-by-two table. For each of the four combinations one can get with a pair of binary variables, they show the observed counts for each occurrence.
 
-The function `fisher.test` performs the inference calculations above and can be obtained like this:
+The function `fisher.test` performs the inference calculations above:
 
 ```{r}
-fisher.test(tab, alternative="greater")
+fisher.test(tab, alternative="greater")$p.value
 ```
 
 ### Chi-square Test
@@ -116,12 +116,12 @@ totals %>% summarize(percent_men = yes_men/(yes_men+no_men),
 respectively. Would we see this again if we randomly assign funding at the overall rate:
 
 ```{r}
-funding_rate <- totals %>%
+rate <- totals %>%
   summarize(percent_total = 
               (yes_men + yes_women)/
               (yes_men + no_men +yes_women + no_women)) %>%
   pull(percent_total)
-funding_rate
+rate
 ```
 
 The Chi-square test answers this question. The first step is to create the two-by-two data table:
@@ -137,11 +137,8 @@ The general idea of the Chi-square test is to compare this two-by-two table to w
 
 ```{r}
 data.frame(awarded = c("no", "yes"), 
-       men = (totals$no_men + totals$yes_men) * 
-         c(1 - funding_rate, funding_rate),
-       women = (totals$no_women + totals$yes_women)*
-         c(1 - funding_rate, funding_rate))
-
+       men = (totals$no_men + totals$yes_men) * c(1 - rate, rate),
+       women = (totals$no_women + totals$yes_women) * c(1 - rate, rate))
 ```
 
 We can see that more men than expected and fewer women than expected received funding. However, under the null hypothesis these observations are random variables. The Chi-square test tells us how likely it is to see
@@ -149,10 +146,7 @@ a deviation this large or larger. This test uses an asymptotic result, similar t
 The R function `chisq.test` takes a two-by-two table and returns the results from the test:
 
 ```{r}
-chisq_test <- two_by_two %>% 
-  select(-awarded) %>%
-  chisq.test()
-chisq_test
+chisq_test <- two_by_two %>% select(-awarded) %>% chisq.test()
 ```
 
 We see that the p-value is 0.0509:
@@ -170,8 +164,7 @@ $$\mbox{Pr}(Y=1 \mid X=1) / \mbox{Pr}(Y=0 \mid X=1)$$
 
 and can be computed like this:
 ```{r}
-odds_men <- (two_by_two$men[2] / sum(two_by_two$men)) / 
-  (two_by_two$men[1] / sum(two_by_two$men))
+odds_men <- with(two_by_two, (men[2]/sum(men)) / (men[1]/sum(men)))
 odds_men
 ```
 
@@ -183,8 +176,7 @@ $$\mbox{Pr}(Y=1 \mid X=0) / \mbox{Pr}(Y=0 \mid X=0)$$
 
 and can be computed like this:
 ```{r}
-odds_women <- (two_by_two$women[2] / sum(two_by_two$women)) / 
-  (two_by_two$women[1] / sum(two_by_two$women))
+odds_women <- with(two_by_two, (women[2]/sum(women)) / (women[1]/sum(women)))
 odds_women
 ```
 
@@ -229,13 +221,11 @@ By exponentiating these two numbers we can construct a confidence interval of th
 
 Using R we can compute this confidence interval as follows:
 ```{r}
-log_or <- log( odds_men / odds_women )
-se <- two_by_two %>% 
-  select(-awarded) %>%
+log_or <- log(odds_men / odds_women)
+se <- two_by_two %>% select(-awarded) %>%
   summarize(se = sqrt(sum(1/men) + sum(1/women))) %>%
   pull(se)
 ci <- log_or + c(-1,1) * qnorm(0.975) * se
-ci
 ```
 
 If we want to convert it back to the odds ratio scale, we can exponentiate:
@@ -244,7 +234,7 @@ If we want to convert it back to the odds ratio scale, we can exponentiate:
 exp(ci)
 ```
 
-Note that 0 is not included in the confidence interval for the log odds ratio (1 not included for odds ratio) which must mean that the p-value is smaller than 0.05. We can confirm this using:
+Note that 1 is not included in the confidence interval which must mean that the p-value is smaller than 0.05. We can confirm this using:
 
 ```{r}
 2*(1 - pnorm(log_or, 0, se))
@@ -268,50 +258,40 @@ the results, we realize odds ratios are quite modest: barely bigger
 than 1. In this case the difference may not be *practically significant* or *scientifically significant*.
 
 Note that the relationship between odds ratio and p-value is not one-to-one. It depends on the sample size. So a very small p-value does not necessarily mean a very large odds ratio.
-
-Notice what happens to the p-value if we multiply our two-by-two table by 10:
+Notice what happens to the p-value if we multiply our two-by-two table by 10, which does not change the odds ratio:
 
 ```{r}
-two_by_two %>% 
-  select(-awarded) %>%
+two_by_two %>% select(-awarded) %>%
   mutate(men = men*10, women = women*10) %>%
-  chisq.test() 
+  chisq.test() %>% .$p.value
 ```
-
-Yet the odds ratio is unchanged.
 
 ## Exercises
 
-1. A famous athlete has an impressive career, winning 70% of her 500 career matches. However, this athlete gets criticized because in important events, such as the Olympics, she has a losing record of 8 wins and 9 losses. Perform a Chi-square test to determine if this losing record can be simply due to chance as opposed to not performing well under pressure.
+1\. A famous athlete has an impressive career, winning 70% of her 500 career matches. However, this athlete gets criticized because in important events, such as the Olympics, she has a losing record of 8 wins and 9 losses. Perform a Chi-square test to determine if this losing record can be simply due to chance as opposed to not performing well under pressure.
 
   
 
-2. Why did we use the Chi-square test instead of Fisher's exact test in the previous exercise?
+2\. Why did we use the Chi-square test instead of Fisher's exact test in the previous exercise?
 
-    A. It actually does not matter, since they give the exact same p-value.
-    
-    B. Fisher's exact and the Chi-square are different names for the same test.
-    
-    C. Because the sum of the rows and columns of the two-by-two table are not fixed so the hypergeometric distribution is not an appropriate assumption for the null hypothesis. For this reason, Fisher's exact test is rarely applicable with observational data.
-    
-    D. Because the Chi-square test runs faster.
+a. It actually does not matter, since they give the exact same p-value.
+b. Fisher's exact and the Chi-square are different names for the same test.
+c. Because the sum of the rows and columns of the two-by-two table are not fixed so the hypergeometric distribution is not an appropriate assumption for the null hypothesis. For this reason, Fisher's exact test is rarely applicable with observational data.
+d. Because the Chi-square test runs faster.
 
-  
-3. Compute the odds ratio of "losing under pressure" along with a confidence interval.
+
+3\. Compute the odds ratio of "losing under pressure" along with a confidence interval.
 
   
-4. Notice that the p-value is larger than 0.05 but the 95% confidence interval does not include 1. What explains this?
+4\. Notice that the p-value is larger than 0.05 but the 95% confidence interval does not include 1. What explains this?
 
-    A. We made a mistake in our code.
-    
-    B. These are not t-tests so the connection between p-value and confidence intervals does not apply.
-    
-    C. Different approximations are used for the p-value and the confidence interval calculation. If we had a larger sample size the match would be better.
-    
-    D. We should use the Fisher exact test to get confidence intervals.
-    
-  
-5. Multiply the two-by-two table by 2 and see if the p-value and confidence retrieval are a better match.
+a. We made a mistake in our code.
+b. These are not t-tests so the connection between p-value and confidence intervals does not apply.
+c. Different approximations are used for the p-value and the confidence interval calculation. If we had a larger sample size the match would be better.
+d. We should use the Fisher exact test to get confidence intervals.
+
+
+5\. Multiply the two-by-two table by 2 and see if the p-value and confidence retrieval are a better match.
 
     
     

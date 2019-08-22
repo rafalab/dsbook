@@ -36,7 +36,7 @@ galton_heights %>%
 
 However, this summary fails to describe an important characteristic of the data: the trend that the taller the father, the taller the son. 
 
-```{r scatterplot, fig.height = 3.708, fig.width = 3.708}
+```{r scatterplot, fig.height = 3, fig.width = 3, out.width="40%"}
 galton_heights %>% ggplot(aes(father, son)) + 
   geom_point(alpha = 0.5)
 ```
@@ -44,7 +44,7 @@ galton_heights %>% ggplot(aes(father, son)) +
 We will learn that the correlation coefficient is an informative summary of how two variables move together and then see how this can be used to predict one variable using the other.
 
 
-## The correlation coefficient 
+## The correlation coefficient {#corr-coef}
 
 The correlation coefficient is defined for a list of pairs $(x_1, y_1), \dots, (x_n,y_n)$ as the average of the product of the standardized values:
 
@@ -78,7 +78,7 @@ galton_heights %>% summarize(r = cor(father, son)) %>% pull(r)
 
 To see what data looks like for different values of $\rho$, here are six examples of pairs with correlations ranging from -0.9 to 0.99:
 
-```{r what-correlation-looks-like, echo=FALSE, out.width="100%"}
+```{r what-correlation-looks-like, echo=FALSE}
 n <- 250
 cors <- c(-0.9,-0.5,0,0.5,0.9,0.99)
 sim_data <- lapply(cors,function(r) MASS::mvrnorm(n,c(0,0), matrix(c(1,r,r,1),2,2)))
@@ -104,8 +104,7 @@ By way of illustration, let's assume that the `r nrow(galton_heights)` pairs of 
 
 ```{r}
 R <- sample_n(galton_heights, 25, replace = TRUE) %>% 
-  summarize(r = cor(father, son))
-R
+  summarize(r = cor(father, son)) %>% pull(r)
 ```
 
 `R` is a random variable. We can run a Monte Carlo simulation to see its distribution:
@@ -118,7 +117,6 @@ R <- replicate(B, {
     summarize(r=cor(father, son)) %>% 
     pull(r)
 })
-
 qplot(R, geom = "histogram", binwidth = 0.05, color = I("black"))
 ```
 
@@ -140,9 +138,8 @@ Also, note that because the sample correlation is an average of independent draw
 
 In our example, $N=25$ does not seem to be large enough to make the approximation a good one:
 
-```{r small-sample-correlation-not-normal}
-data.frame(R) %>% 
-  ggplot(aes(sample=R)) + 
+```{r small-sample-correlation-not-normal, out.width="40%"}
+ggplot(aes(sample=R), data = data.frame(R)) + 
   stat_qq() + 
   geom_abline(intercept = mean(R), slope = sqrt((1-mean(R)^2)/(N-2)))
 ```
@@ -153,15 +150,16 @@ If you increase $N$, you will see the distribution converging to normal.
 
 Correlation is not always a good summary of the relationship between two variables. The following four artificial datasets, referred to as Anscombe's quartet, famously illustrate this point. All these pairs have a correlation of 0.82:
 
-```{r ascombe-quartet,echo=FALSE, out.width="100%"}
+```{r ascombe-quartet,echo=FALSE}
 anscombe %>% mutate(row = seq_len(n())) %>%
   gather(name, value, -row) %>% 
   separate(name, c("axis", "group"), sep=1) %>%
   spread(axis, value) %>% select(-row) %>%
   ggplot(aes(x,y)) +
   facet_wrap(~group)  +
-  geom_smooth(method="lm", fill=NA, fullrange=TRUE, color="blue") +
-  geom_point(bg="orange", color="red", cex=3, pch=21)
+  geom_smooth(method="lm", fill=NA, fullrange=TRUE) + 
+  geom_point()
+#+  geom_point(bg="orange", color="red", cex=3, pch=21)
 ```
 
 Correlation is only meaningful in a particular context. To help us understand when it is that correlation is meaningful as a summary statistic, we will return to the example of predicting a son's height using his father's height. This will help motivate and define linear regression. We start by demonstrating how correlation can be useful for prediction.
@@ -205,7 +203,6 @@ conditional_avg <- galton_heights %>%
   filter(round(father) == 72) %>%
   summarize(avg = mean(son)) %>% 
   pull(avg)
-
 conditional_avg
 ```
 
@@ -215,7 +212,7 @@ Note that a 72-inch father is taller than average - specifically, 72 - `r round(
 
 If we want to make a prediction of any height, not just 72, we could apply the same approach to each strata. Stratification followed by boxplots lets us see the distribution of each group:
 
-```{r boxplot-1, fig.height = 3.708, fig.width = 3.708}
+```{r boxplot-1, fig.height = 3, fig.width = 3, out.width="40%"}
 galton_heights %>% mutate(father_strata = factor(round(father))) %>% 
   ggplot(aes(father_strata, son)) + 
   geom_boxplot() + 
@@ -223,30 +220,15 @@ galton_heights %>% mutate(father_strata = factor(round(father))) %>%
 ```
 
 Not surprisingly, the centers of the groups are increasing with height. 
+Furthermore, these centers appear to follow a linear relationship. Below we plot the averages of each group. If we take into account that these averages are random variables with standard errors, the data is consistent with these points following a straight line:
 
-```{r boxplot-2, fig.height = 3.708, fig.width = 3.708}
+```{r conditional-averages-follow-line, echo=FALSE, fig.height = 3, fig.width = 3, out.width="40%"}
 galton_heights %>% 
   mutate(father = round(father)) %>% 
   group_by(father) %>%
   summarize(son_conditional_avg = mean(son)) %>%
   ggplot(aes(father, son_conditional_avg)) + 
   geom_point()
-```
-Furthermore, these centers appear to follow a linear relationship. Below we plot the averages of each group. If we take into account that these averages are random variables with standard errors, the data is consistent with these points following a straight line:
-
-```{r conditional-averages-follow-line, echo=FALSE, fig.height = 3.708, fig.width = 3.708}
-r <- galton_heights %>% 
-  summarize(r = cor(father, son)) %>% 
-  pull(r)
-
-galton_heights %>% 
-  mutate(father = round(father)) %>% 
-  group_by(father) %>%
-  summarize(son = mean(son)) %>%
-  mutate(z_father = scale(father), z_son = scale(son)) %>%
-  ggplot(aes(z_father, z_son)) + 
-  geom_point() +
-  geom_abline(intercept = 0, slope = r)
 ```
 
 The fact that these conditional averages follow a line is not a coincidence. In the next section, we explain that the line these averages follow is what we call the *regression line*, which  improves the precision of our estimates. However, it is not always appropriate to estimate conditional expectations with the regression line so we also describe Galton's theoretical justification for using the regression line.
@@ -276,25 +258,22 @@ $$
 
 Here we add the regression line to the original data:
 
-```{r regression-line, fig.height = 3.708, fig.width = 3.708}
+```{r regression-line, fig.height = 3, fig.width = 3, out.width="40%"}
 mu_x <- mean(galton_heights$father)
 mu_y <- mean(galton_heights$son)
 s_x <- sd(galton_heights$father)
 s_y <- sd(galton_heights$son)
 r <- cor(galton_heights$father, galton_heights$son)
 
-m <-  r * s_y / s_x
-b <- mu_y - m*mu_x
-
 galton_heights %>% 
   ggplot(aes(father, son)) + 
   geom_point(alpha = 0.5) +
-  geom_abline(intercept = b, slope = m ) 
+  geom_abline(slope = r * s_y/s_x, intercept = mu_y - r * s_y/s_x * mu_x) 
 ```
 
-The regression formula implies that if we first standardize the variables, that is subtract the average and divide by the standard deviation, then the regression line has intercept 0 and slope equal to the correlation $\rho$. Here is the same plot, but using standard units:
+The regression formula implies that if we first standardize the variables, that is subtract the average and divide by the standard deviation, then the regression line has intercept 0 and slope equal to the correlation $\rho$. You can make same plot, but using standard units like this:
 
-```{r regression-line-standard-units, fig.height = 3.708, fig.width = 3.708} 
+```{r regression-line-standard-units, fig.height = 3, fig.width = 3, out.width="40%", eval=FALSE} 
 galton_heights %>% 
   ggplot(aes(scale(father), scale(son))) + 
   geom_point(alpha = 0.5) +
@@ -330,7 +309,6 @@ regression_prediction <- replicate(B, {
   s_x <- sd(dat$father)
   s_y <- sd(dat$son)
   r <- cor(dat$father, dat$son)
-  
   mu_y + r*(72 - mu_x)/s_x*s_y
 })
 ```
@@ -360,9 +338,10 @@ Correlation and the regression slope are a widely used summary statistic, but th
 
 The main way we motivate the use of correlation involves what is called the _bivariate normal distribution_. 
 
-When a pair of random variables is approximated by the bivariate normal distribution, scatterplots look like ovals. They can be thin (high correlation) or circle-shaped (no correlation). 
+When a pair of random variables is approximated by the bivariate normal distribution, scatterplots look like ovals. As we saw in Section \@ref(corr-coef), they can be thin (high correlation) or circle-shaped (no correlation). 
 
-```{r bivariate-ovals, echo=FALSE, out.width="100%"}
+<!--
+```{r bivariate-ovals, echo=FALSE}
 n <- 250
 cors <- c(-0.9,-0.5,0,0.5,0.9,0.99)
 sim_data <- lapply(cors,function(r) MASS::mvrnorm(n,c(0,0), matrix(c(1,r,r,1),2,2)))
@@ -371,12 +350,13 @@ sim_data <- cbind( rep(cors, each=n), sim_data)
 colnames(sim_data) <- c("r","x","y")
 as.data.frame(sim_data) %>% ggplot(aes(x,y)) +facet_wrap(~r) + geom_point() +geom_vline(xintercept = 0,lty=2) + geom_hline(yintercept = 0,lty=2) 
 ```
+-->
 
 A more technical way to define the bivariate normal distribution is the following: if $X$ is a normally distributed random variable, $Y$ is also a normally distributed random variable, and the conditional distribution of $Y$ for any $X=x$ is approximately normal, then the pair is approximately bivariate normal. 
 
 If we think the height data is well approximated by the bivariate normal distribution, then we should see the normal approximation hold for each strata. Here we stratify the son heights by the standardized father heights and see that the assumption appears to hold:
 
-```{r qqnorm-of-strata, out.width="100%"}
+```{r qqnorm-of-strata}
 galton_heights %>%
   mutate(z_father = round((father - mean(father)) / sd(father))) %>%
   filter(z_father %in% -2:2) %>%
@@ -441,14 +421,14 @@ We need to compute $\mbox{E}(X \mid Y=y)$. Since the data is approximately bivar
 
 ```{r}
 m_2 <-  r * s_x / s_y
-b_2 <- mu_x - m_2*mu_y
+b_2 <- mu_x - m_2 * mu_y
 ```
 
 So we get $\mbox{E}(X \mid Y=y) =$ `r round(b_2, 1)` + `r round(m_2, 2)`y. Again we see regression to the average: the prediction for the father is closer to the father average than the son heights $y$ is to the son average.
 
-Here is a plot showing the two regression lines:
+Here is a plot showing the two regression lines, with blue for the predicting son heights with father heights and red for predicting father heights with son heights:
 
-```{r two-regression-lines, fig.height = 3.708, fig.width = 3.708}
+```{r two-regression-lines, fig.height = 3, fig.width = 3, out.width="40%"}
 galton_heights %>% 
   ggplot(aes(father, son)) + 
   geom_point(alpha = 0.5) + 
@@ -456,15 +436,15 @@ galton_heights %>%
   geom_abline(intercept = -b_2/m_2, slope = 1/m_2, col = "red") 
 ```
 
-with blue for the predicting son heights with father heights and red for predicting father heights with son heights.
+
 
 ## Exercises 
 
 
-1. Load the `GaltonFamilies` data from the __HistData__. The children in each family are listed by gender and then by height. Create a dataset called `galton_heights` by picking a male and female at random. 
+1\. Load the `GaltonFamilies` data from the __HistData__. The children in each family are listed by gender and then by height. Create a dataset called `galton_heights` by picking a male and female at random. 
 
-2. Make a scatterplot for heights between mothers and daughters, mothers and sons, fathers and daughters, and fathers and sons. 
+2\. Make a scatterplot for heights between mothers and daughters, mothers and sons, fathers and daughters, and fathers and sons. 
 
-3. Compute the correlation in heights between mothers and daughters, mothers and sons, fathers and daughters, and fathers and sons.
+3\. Compute the correlation in heights between mothers and daughters, mothers and sons, fathers and daughters, and fathers and sons.
 
 

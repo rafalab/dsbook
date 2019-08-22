@@ -319,7 +319,7 @@ Remember that for each of these parameters, we can get a different sensitivity a
 A widely used plot that does this is the _receiver operating characteristic_ (ROC) curve. If you are wondering where this name comes from, you can consult the 
 ROC Wikipedia page^[https://en.wikipedia.org/wiki/Receiver_operating_characteristic].
 
-The ROC curve plots sensitivity (TPR) versus 1 - specificity or the false positive rate (FPR). Here is an ROC curve for guessing sex but using different probabilities of guessing male:
+The ROC curve plots sensitivity (TPR) versus 1 - specificity or the false positive rate (FPR). Here we compute the TPR and FPR needed for different probabilities of guessing male:
 
 ```{r roc-1}
 probs <- seq(0, 1, length.out = 10)
@@ -331,13 +331,13 @@ guessing <- map_df(probs, function(p){
        FPR = 1 - specificity(y_hat, test_set$sex),
        TPR = sensitivity(y_hat, test_set$sex))
 })
-guessing %>% 
-  qplot(FPR, TPR, data =., xlab = "1 - Specificity", ylab = "Sensitivity")
 ```
 
-The ROC curve for guessing always looks like a straight line.  So how does our second approach compare? We can construct an ROC curve for the height-based approach:
+We can use similar code to compute these values for our our second approach. By plotting both curves together, we are able to compare sensitivity for different values of specificity:
 
-```{r}
+<!--We can construct an ROC curve for the height-based approach:-->
+
+```{r, echo=FALSE}
 cutoffs <- c(50, seq(60, 75), 80)
 height_cutoff <- map_df(cutoffs, function(x){
   y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
@@ -348,9 +348,7 @@ height_cutoff <- map_df(cutoffs, function(x){
 })
 ```
 
-By plotting both curves together, we are able to compare sensitivity for different values of specificity:
-
-```{r roc-2}
+```{r roc-2, echo=FALSE}
 bind_rows(guessing, height_cutoff) %>%
   ggplot(aes(FPR, TPR, color = method)) +
   geom_line() +
@@ -359,11 +357,11 @@ bind_rows(guessing, height_cutoff) %>%
   ylab("Sensitivity")
 ```
 
-We can see that we obtain higher sensitivity with this approach for all values of specificity, which implies it is in fact a better method.
+We can see that we obtain higher sensitivity with this approach for all values of specificity, which implies it is in fact a better method. Note that ROC curves for guessing always fall on the identiy line.
 
 When making ROC curves, it is often nice to add the cutoff used to the points:
 
-```{r roc-3}
+```{r roc-3, echo=FALSE}
 library(ggrepel)
 map_df(cutoffs, function(x){
   y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
@@ -383,7 +381,7 @@ map_df(cutoffs, function(x){
 ROC curves have one weakness and it is that neither of the measures plotted depends on prevalence. In cases in which prevalence matters, we may instead make a precision-recall plot. The idea is similar, but we instead plot precision against recall:
 
 
-```{r precision-recall-1, warning=FALSE, message=FALSE}
+```{r precision-recall-1, warning=FALSE, message=FALSE, echo=FALSE}
 guessing <- map_df(probs, function(p){
   y_hat <- sample(c("Male", "Female"), length(test_index), 
                   replace = TRUE, prob=c(p, 1-p)) %>% 
@@ -411,7 +409,7 @@ From this plot we immediately see that the precision of guessing is not high. Th
 If we change positives to mean Male instead of Female, the ROC curve remains the same, but the precision recall plot changes:
 
 
-```{r precision-recall-2, warning=FALSE, message=FALSE}
+```{r precision-recall-2, warning=FALSE, message=FALSE, echo=FALSE}
 guessing <- map_df(probs, function(p){
   y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, 
                   prob=c(p, 1-p)) %>% 
@@ -451,15 +449,7 @@ $$
 \mbox{MSE} = \frac{1}{N} \mbox{RSS} = \frac{1}{N}\sum_{i=1}^N (\hat{y}_i - y_i)^2
 $$
 
-In practice, we often report the root mean squared error 
-because it is in the same units as the outcomes:
-
-
-$$
-\mbox{RMSE} = \sqrt{\mbox{MSE}} = \sqrt{\frac{1}{N}\sum_{i=1}^N (\hat{y}_i - y_i)^2}
-$$
-
-But doing the math is often easier with the MSE and it is therefore more commonly used in textbooks, since these usually describe theoretical properties of algorithms.
+In practice, we often report the root mean squared error (RMSE), which is $\sqrt{\mbox{MSE}}$, because it is in the same units as the outcomes. But doing the math is often easier with the MSE and it is therefore more commonly used in textbooks, since these usually describe theoretical properties of algorithms.
 
 If the outcomes are binary, both RMSE and MSE are equivalent to accuracy, since $(\hat{y} - y)^2$ is 0 if the prediction was correct and 1 otherwise. In general, our goal is to build an algorithm that minimizes the loss so it is as close to 0 as possible.
 
@@ -477,13 +467,8 @@ $$
 
 with $y_{i}^b$ denoting the $i$th observation in the $b$th random sample and $\hat{y}_i^b$ the resulting prediction obtained from applying the exact same algorithm to the $b$th random sample. Again, in practice we only observe one random sample, so the expected MSE is only theoretical. However, in Section \@ref(cross-validation) we describe an approach to estimating the MSE that tries to mimic this theoretical quantity.
 
-Note that there are loss functions other than the squared loss. For example, the _Mean Absolute Error_  uses absolute values instead of squaring the errors:
-
-$$
-\mbox{E}\left\{ \frac{1}{N}\sum_{i=1}^N |\hat{Y}_i - Y_i|\right\}
-$$
-
-However, in this book we focus on minimizing square loss since it is the most widely used.
+Note that there are loss functions other than the squared loss. For example, the _Mean Absolute Error_  uses absolute values, $|\hat{Y}_i - Y_i|$ instead of squaring the errors 
+$(\hat{Y}_i - Y_i)^2$. However, in this book we focus on minimizing square loss since it is the most widely used.
 
 
 ## Exercises 
@@ -492,37 +477,34 @@ However, in this book we focus on minimizing square loss since it is the most wi
 The `reported_height` and `height` datasets were collected from three classes taught in the Departments of Computer Science and Biostatistics, as well as remotely through the Extension School. The biostatistics class was taught in 2016 along with an online version offered by the Extension School. On 2016-01-25 at 8:15 AM, during one of the lectures, the instructors asked students to fill in the sex and height questionnaire that populated the `reported_height` dataset. The online students filled the survey during the next few days, after the lecture was posted online. We can use this insight to define a variable, call it `type`, to denote the type of student:  `inclass` or `online`:
 
 ```{r, eval=FALSE}
-data("reported_heights")
 library(lubridate)
+data("reported_heights")
 dat <- mutate(reported_heights, date_time = ymd_hms(time_stamp)) %>%
   filter(date_time >= make_date(2016, 01, 25) & 
            date_time < make_date(2016, 02, 1)) %>%
-  mutate(type = ifelse(day(date_time) == 25 & 
-                         hour(date_time) == 8 & 
+  mutate(type = ifelse(day(date_time) == 25 & hour(date_time) == 8 & 
                          between(minute(date_time), 15, 30),
-                       "inclass", "online")) %>%
-  select(sex, type)
-
-y <- factor(dat$sex, c("Female", "Male"))
+                       "inclass", "online")) %>% select(sex, type)
 x <- dat$type
+y <- factor(dat$sex, c("Female", "Male"))
 ```
 
 
-1. Show summary statistics that indicate that the `type` is predictive of sex.
+1\. Show summary statistics that indicate that the `type` is predictive of sex.
 
      
-2. Instead of using height to predict sex, use the `type` variable.
+2\. Instead of using height to predict sex, use the `type` variable.
 
     
-3. Show the confusion matrix.
+3\. Show the confusion matrix.
     
   
-4. Use the `confusionMatrix` function in the __caret__ package to report accuracy.
+4\. Use the `confusionMatrix` function in the __caret__ package to report accuracy.
 
 
-5. Now use the `sensitivity` and `specificity` functions to report specificity and sensitivity.
+5\. Now use the `sensitivity` and `specificity` functions to report specificity and sensitivity.
 
   
-6. What is the prevalence (% of females) in the `dat` dataset defined above?
+6\. What is the prevalence (% of females) in the `dat` dataset defined above?
 
   

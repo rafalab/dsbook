@@ -340,17 +340,17 @@ Random forests are a **very popular** machine learning approach that addresses t
 
 The first step is _bootstrap aggregation_ or _bagging_. The general idea is to generate many predictors, each using regression or classification trees, and then forming a final prediction based on the average prediction of all these trees. To assure that the individual trees are not the same, we use the bootstrap to induce randomness. These two features combined explain the name: the bootstrap makes the individual trees **randomly** different, and the combination of trees is the **forest**. The specific steps are as follows.
 
-1. Build $B$ decision trees using the training set. We refer to the fitted models as $T_1, T_2, \dots, T_B$. We later explain how we ensure they are different.
+1\. Build $B$ decision trees using the training set. We refer to the fitted models as $T_1, T_2, \dots, T_B$. We later explain how we ensure they are different.
 
-2. For every observation in the test set, form a prediction $\hat{y}_j$ using tree $T_j$.
+2\. For every observation in the test set, form a prediction $\hat{y}_j$ using tree $T_j$.
 
-3. For continuous outcomes, form a final prediction with the average $\hat{y} = \frac{1}{B} \sum_{j=1}^B \hat{y}_j$. For categorical data classification, predict $\hat{y}$ with majority vote (most frequent class among $\hat{y}_1, \dots, \hat{y}_T$).
+3\. For continuous outcomes, form a final prediction with the average $\hat{y} = \frac{1}{B} \sum_{j=1}^B \hat{y}_j$. For categorical data classification, predict $\hat{y}$ with majority vote (most frequent class among $\hat{y}_1, \dots, \hat{y}_T$).
      
 So how do we get different decision trees from a single training set? For this, we use randomness in two ways which we explain in the steps below. Let $N$ be the number of observations in the training set. To create $T_j, \, j=1,\ldots,B$ from the training set we do the following:
 
-1. Create a bootstrap training set by sampling $N$ observations from the training set **with replacement**. This is the first way to induce randomness. 
+1\. Create a bootstrap training set by sampling $N$ observations from the training set **with replacement**. This is the first way to induce randomness. 
     
-2. A large number of features is typical in machine learning challenges. Often, many features can be informative but including them all in the model may result in overfitting. The second way random forests induce randomness is by randomly selecting features to be included in the building of each tree. A different random subset is selected for each tree. This reduces correlation between trees in the forest, thereby improving prediction accuracy. 
+2\. A large number of features is typical in machine learning challenges. Often, many features can be informative but including them all in the model may result in overfitting. The second way random forests induce randomness is by randomly selecting features to be included in the building of each tree. A different random subset is selected for each tree. This reduces correlation between trees in the forest, thereby improving prediction accuracy. 
 
 To illustrate how the first steps can result in smoother estimates we will demonstrate by fitting a random forest to 
 the 2008 polls data.  We will use the `randomForest` function in the __randomForest__ package:
@@ -533,70 +533,70 @@ To define _variable importance_ we count how often a predictor is used in the in
 
 ## Exercises
 
-1. Create a simple dataset where the outcome grows 0.75 units on average for every increase in a predictor: 
+1\. Create a simple dataset where the outcome grows 0.75 units on average for every increase in a predictor: 
 
-    ```{r, eval=FALSE}
-    n <- 1000
-    sigma <- 0.25
-    x <- rnorm(n, 0, 1)
-    y <- 0.75 * x + rnorm(n, 0, sigma)
-    dat <- data.frame(x = x, y = y)
-    ```
+```{r, eval=FALSE}
+n <- 1000
+sigma <- 0.25
+x <- rnorm(n, 0, 1)
+y <- 0.75 * x + rnorm(n, 0, sigma)
+dat <- data.frame(x = x, y = y)
+```
 
-    Use `rpart` to fit a regression tree and save the result to `fit`.
-
-
-2. Plot the final tree so that you can see where the partitions occurred.
+Use `rpart` to fit a regression tree and save the result to `fit`.
 
 
-3. Make a scatterplot of `y` versus `x` along with the predicted values based on the fit.
+2\. Plot the final tree so that you can see where the partitions occurred.
 
 
-4. Now model with a random forest instead of a regression tree using `randomForest` from the __randomForest__ package, and remake the scatterplot with the prediction line.
+3\. Make a scatterplot of `y` versus `x` along with the predicted values based on the fit.
 
 
-5. Use the function `plot` to see if the random forest has converged or if we need more trees.
+4\. Now model with a random forest instead of a regression tree using `randomForest` from the __randomForest__ package, and remake the scatterplot with the prediction line.
 
 
-6. It seems that the default values for the random forest result in an estimate that is too flexible (not smooth). Re-run the random forest but this time with `nodesize` set at 50 and `maxnodes` set at 25. Remake the plot.
-
-7. We see that this yields smoother results. Let's use the `train` function to help us pick these values. From the __caret__ manual^[https://topepo.github.io/caret/available-models.html] we see that we can't tune the `maxnodes` parameter or the `nodesize` argument with `randomForest`, so we will use the __Rborist__ package and tune the `minNode` argument. Use the `train` function to try values `minNode <- seq(5, 250, 25)`. See which value minimizes the estimated RMSE.
+5\. Use the function `plot` to see if the random forest has converged or if we need more trees.
 
 
-8. Make a scatterplot along with the prediction from the best fitted model.
+6\. It seems that the default values for the random forest result in an estimate that is too flexible (not smooth). Re-run the random forest but this time with `nodesize` set at 50 and `maxnodes` set at 25. Remake the plot.
+
+7\. We see that this yields smoother results. Let's use the `train` function to help us pick these values. From the __caret__ manual^[https://topepo.github.io/caret/available-models.html] we see that we can't tune the `maxnodes` parameter or the `nodesize` argument with `randomForest`, so we will use the __Rborist__ package and tune the `minNode` argument. Use the `train` function to try values `minNode <- seq(5, 250, 25)`. See which value minimizes the estimated RMSE.
 
 
-9. Use the `rpart` function to fit a classification tree to the `tissue_gene_expression` dataset. Use the `train` function to estimate the accuracy. Try out `cp` values of `seq(0, 0.05, 0.01)`. Plot the accuracy to report the results of the best model.
+8\. Make a scatterplot along with the prediction from the best fitted model.
 
 
-10. Study the confusion matrix for the best fitting classification tree. What do you observe happening for placenta?
+9\. Use the `rpart` function to fit a classification tree to the `tissue_gene_expression` dataset. Use the `train` function to estimate the accuracy. Try out `cp` values of `seq(0, 0.05, 0.01)`. Plot the accuracy to report the results of the best model.
 
 
-11. Notice that placentas are called endometrium more often than placenta. Note also that the number of placentas is just six, and that, by default, `rpart` requires 20 observations before splitting a node. Thus it is not possible with these parameters to have a node in which placentas are the majority. Rerun the above analysis but this time permit `rpart` to split any node by using the argument `control = rpart.control(minsplit = 0)`. Does the accuracy increase? Look at the confusion matrix again.
+10\. Study the confusion matrix for the best fitting classification tree. What do you observe happening for placenta?
+
+
+11\. Notice that placentas are called endometrium more often than placenta. Note also that the number of placentas is just six, and that, by default, `rpart` requires 20 observations before splitting a node. Thus it is not possible with these parameters to have a node in which placentas are the majority. Rerun the above analysis but this time permit `rpart` to split any node by using the argument `control = rpart.control(minsplit = 0)`. Does the accuracy increase? Look at the confusion matrix again.
 
 
 
-12. Plot the tree from the best fitting model obtained in exercise 11.
+12\. Plot the tree from the best fitting model obtained in exercise 11.
 
 
-13. We can see that with just six genes, we are able to predict the tissue type. Now let's see if we can do even better with a random forest. Use the `train` function and the `rf` method to train a random forest. Try out values of `mtry` ranging from, at least, `seq(50, 200, 25)`. What `mtry` value maximizes accuracy? To permit small `nodesize` to grow as we did with the classification trees, use the following argument: `nodesize = 1`.  This will take several seconds to run. If you want to test it out, try using smaller values with `ntree`. Set the seed to 1990.
+13\. We can see that with just six genes, we are able to predict the tissue type. Now let's see if we can do even better with a random forest. Use the `train` function and the `rf` method to train a random forest. Try out values of `mtry` ranging from, at least, `seq(50, 200, 25)`. What `mtry` value maximizes accuracy? To permit small `nodesize` to grow as we did with the classification trees, use the following argument: `nodesize = 1`.  This will take several seconds to run. If you want to test it out, try using smaller values with `ntree`. Set the seed to 1990.
 
 
-14. Use the function `varImp` on the output of `train` and save it to an object called `imp`. 
+14\. Use the function `varImp` on the output of `train` and save it to an object called `imp`. 
 
 
-15. The `rpart` model we ran above produced a tree that used just six predictors. Extracting the predictor names is not straightforward, but can be done. If the output of the call to train was `fit_rpart`, we can extract the names like this:
+15\. The `rpart` model we ran above produced a tree that used just six predictors. Extracting the predictor names is not straightforward, but can be done. If the output of the call to train was `fit_rpart`, we can extract the names like this:
 
-    ```{r, eval=FALSE}
-    ind <- !(fit_rpart$finalModel$frame$var == "<leaf>")
-    tree_terms <- 
-      fit_rpart$finalModel$frame$var[ind] %>%
-      unique() %>%
-      as.character()
-    tree_terms
-    ```
+```{r, eval=FALSE}
+ind <- !(fit_rpart$finalModel$frame$var == "<leaf>")
+tree_terms <- 
+  fit_rpart$finalModel$frame$var[ind] %>%
+  unique() %>%
+  as.character()
+tree_terms
+```
 
-    What is the variable importance in the random forest call for these predictors? Where do they rank?
+What is the variable importance in the random forest call for these predictors? Where do they rank?
 
 
-16. Advanced: Extract the top 50 predictors based on importance, take a subset of `x` with just these predictors and apply the function `heatmap` to see how these genes behave across the tissues. We will introduce the `heatmap` function in Chapter \@ref(clustering).
+16\. Advanced: Extract the top 50 predictors based on importance, take a subset of `x` with just these predictors and apply the function `heatmap` to see how these genes behave across the tissues. We will introduce the `heatmap` function in Chapter \@ref(clustering).

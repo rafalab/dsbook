@@ -131,7 +131,8 @@ The final code and  resulting estimate look like this:
 ```{r binsmoother-final}
 span <- 7 
 fit <- with(polls_2008, 
-            ksmooth(day, margin, x.points = day, kernel="box", bandwidth = span))
+            ksmooth(day, margin, 
+                    x.points = day, kernel="box", bandwidth = span))
 
 polls_2008 %>% mutate(smooth = fit$y) %>%
   ggplot(aes(day, margin)) +
@@ -149,28 +150,29 @@ $$
 \hat{f}(x_0) = \sum_{i=1}^N w_0(x_i) Y_i
 $$
 
-in which each point receives a weight of either $0$ or $1/N_0$, with $N_0$ the number of points in the week. In the code above, we used the argument `kernel=box` in our call to the function `ksmooth`. This is because the weight function looks like a box:
-
-```{r box-kernel, echo=FALSE}
-x_0 <- -125
-data.frame(x = polls_2008$day) %>% mutate(w_0 = 1*I(abs(x - x_0)<=span/2)) %>%
-  mutate(w_0 = w_0/sum(w_0)) %>%
-  ggplot(aes(x, w_0)) +
-  geom_step()
-```
-
-The `ksmooth` function provides a "smoother" option which uses the normal density to assign weights:
+in which each point receives a weight of either $0$ or $1/N_0$, with $N_0$ the number of points in the week. In the code above, we used the argument `kernel="box"` in our call to the function `ksmooth`. This is because the weight function looks like a box.
+The `ksmooth` function provides a "smoother" option which uses the normal density to assign weights.
 
 ```{r gaussian-kernel, echo=FALSE}
 x_0 <- -125
-tmp <- with(data.frame(day = seq(min(polls_2008$day), max(polls_2008$day), .25)), 
-                       ksmooth(day, 1*I(day == x_0), kernel = "normal", x.points = day, bandwidth = span))
-data.frame(x = tmp$x, w_0 = tmp$y) %>%
+
+p1 <- data.frame(x = polls_2008$day) %>% mutate(w_0 = 1*I(abs(x - x_0)<=span/2)) %>%
   mutate(w_0 = w_0/sum(w_0)) %>%
   ggplot(aes(x, w_0)) +
-  geom_line()
+  geom_step() +
+  ggtitle("Box")
+
+tmp <- with(data.frame(day = seq(min(polls_2008$day), max(polls_2008$day), .25)), 
+                       ksmooth(day, 1*I(day == x_0), kernel = "normal", x.points = day, bandwidth = span))
+p2 <- data.frame(x = tmp$x, w_0 = tmp$y) %>%
+  mutate(w_0 = w_0/sum(w_0)) %>%
+  ggplot(aes(x, w_0)) +
+  geom_line() +
+  ggtitle("Normal")
+gridExtra::grid.arrange(p1, p2, ncol = 2)
 ```
 
+<!--
 With this animation, we see that points on the edge get less weight (the size of the point is proportional to its weight):
 
 ```{r kernel-animation, echo=FALSE, warning=FALSE} 
@@ -214,8 +216,9 @@ if(knitr::is_html_output()){
     facet_wrap(~center, nrow = 2)
 }
 ```
+-->
 
-The final code and resulting plot look like this:
+The final code and resulting plot for the normal kerenl look like this:
 
 ```{r final-ksmooth-normal-kernel}
 span <- 7
@@ -270,7 +273,7 @@ tmp %>%
   facet_wrap(~center)
 ```
 
-The fitted value at $x_0$ becomes our estimate $\hat{f}(x_0)$. The following animation demonstrates the idea:
+The fitted value at $x_0$ becomes our estimate $\hat{f}(x_0)$. Below we show the procedure happening as we move from the -155 up to 0. 
 
 ```{r loess-animation, echo=FALSE, warning=FALSE} 
 library(broom)
@@ -323,7 +326,7 @@ polls_2008 %>% mutate(smooth = fit$fitted) %>%
 
 Different spans give us different estimates. We can see how different window sizes lead to different estimates:
 
-```{r loess-multi-span-animation, echo=FALSE, warning=FALSE, fig.height=6, out.width="100%"} 
+```{r loess-multi-span-animation, echo=FALSE, warning=FALSE} 
 spans <- c(.66, 0.25, 0.15, 0.10)
 
 fits <- tibble(span = spans) %>% 
@@ -351,7 +354,7 @@ if(!file.exists(file.path(img_path, "loess-multi-span-animation.gif"))){
 if(knitr::is_html_output()){
   knitr::include_graphics(file.path(img_path,"loess-multi-span-animation.gif"))
 } else{
-  centers <- quantile(tmp$center, seq(1,4)/4)
+  centers <- quantile(tmp$center, seq(1,3)/3)
   tmp_fits <- crossing(center=centers, fits) %>%
     group_by(center) %>%
     filter(day <= center) %>%
@@ -379,9 +382,9 @@ tmp %>% ggplot(aes(day, margin)) +
 
 There are three other differences between `loess` and the typical bin smoother. 
 
-1. Rather than keeping the bin size the same, `loess` keeps the number of points used in the local fit the same. This number is controlled via the `span` argument, which expects a proportion. For example, if `N` is the number of data points and `span=0.5`, then for a given $x$, `loess` will use the `0.5 * N` closest points to $x$ for the fit. 
+1\. Rather than keeping the bin size the same, `loess` keeps the number of points used in the local fit the same. This number is controlled via the `span` argument, which expects a proportion. For example, if `N` is the number of data points and `span=0.5`, then for a given $x$, `loess` will use the `0.5 * N` closest points to $x$ for the fit. 
 
-2. When fitting a line locally, `loess` uses a _weighted_ approach. Basically, instead of using least squares, we minimize a weighted version:
+2\. When fitting a line locally, `loess` uses a _weighted_ approach. Basically, instead of using least squares, we minimize a weighted version:
 
 $$
 \sum_{i=1}^N w_0(x_i) \left[Y_i - \left\{\beta_0 + \beta_1 (x_i-x_0)\right\}\right]^2
@@ -409,7 +412,7 @@ data.frame(x = seq(min(polls_2008$day), max(polls_2008$day), length.out = 100)) 
 ```
 
     
-3. `loess` has the option of fitting the local model _robustly_. An iterative algorithm is implemented in which, after fitting a model in one iteration, outliers are detected and down-weighted for the next iteration. To use this option, we use the argument `family="symmetric"`.
+3\. `loess` has the option of fitting the local model _robustly_. An iterative algorithm is implemented in which, after fitting a model in one iteration, outliers are detected and down-weighted for the next iteration. To use this option, we use the argument `family="symmetric"`.
 
 ### Fitting parabolas
 
@@ -471,72 +474,63 @@ with $X_1$ and $X_2$ the two predictors defined in Section \@ref(two-or-seven). 
 
 ## Exercises
 
-1. In the wrangling part of this book, we used the code below to obtain mortality counts for Puerto Rico for 2015-2018.
+1\. In the wrangling part of this book, we used the code below to obtain mortality counts for Puerto Rico for 2015-2018.
 
-    ```{r, eval=FALSE}
-    library(tidyverse)
-    library(purrr)
-    library(pdftools)
-    library(dslabs)
-    
-    fn <- system.file("extdata", "RD-Mortality-Report_2015-18-180531.pdf",
-                      package="dslabs")
-    dat <- map_df(str_split(pdf_text(fn), "\n"), function(s){
-      s <- str_trim(s)
-      header_index <- str_which(s, "2015")[1]
-      tmp <- str_split(s[header_index], "\\s+", simplify = TRUE)
-      month <- tmp[1]
-      header <- tmp[-1]
-      tail_index  <- str_which(s, "Total")
-      n <- str_count(s, "\\d+")
-      out <- c(1:header_index, which(n == 1), 
-               which(n >= 28), tail_index:length(s))
-      s[-out] %>%
-        str_remove_all("[^\\d\\s]") %>%
-        str_trim() %>%
-        str_split_fixed("\\s+", n = 6) %>%
-        .[,1:5] %>%
-        as_tibble() %>% 
-        setNames(c("day", header)) %>%
-        mutate(month = month,
-               day = as.numeric(day)) %>%
-        gather(year, deaths, -c(day, month)) %>%
-        mutate(deaths = as.numeric(deaths))
-    }) %>%
-      mutate(month = recode(month, 
-                            "JAN" = 1, "FEB" = 2, "MAR" = 3, 
-                            "APR" = 4, "MAY" = 5, "JUN" = 6, 
-                            "JUL" = 7, "AGO" = 8, "SEP" = 9, "
-                            OCT" = 10, "NOV" = 11, "DEC" = 12)) %>%
-      mutate(date = make_date(year, month, day)) %>%
-      filter(date <= "2018-05-01")
-    
-    ```
+```{r, eval=FALSE}
+library(tidyverse)
+library(purrr)
+library(pdftools)
+library(dslabs)
 
-    Use the `loess` function to obtain a smooth estimate of the expected number of deaths as a function of date. Plot this resulting smooth function. Make the span about two months long.
+fn <- system.file("extdata", "RD-Mortality-Report_2015-18-180531.pdf",
+                  package="dslabs")
+dat <- map_df(str_split(pdf_text(fn), "\n"), function(s){
+  s <- str_trim(s)
+  header_index <- str_which(s, "2015")[1]
+  tmp <- str_split(s[header_index], "\\s+", simplify = TRUE)
+  month <- tmp[1]
+  header <- tmp[-1]
+  tail_index  <- str_which(s, "Total")
+  n <- str_count(s, "\\d+")
+  out <- c(1:header_index, which(n == 1), 
+           which(n >= 28), tail_index:length(s))
+  s[-out] %>%  str_remove_all("[^\\d\\s]") %>% str_trim() %>%
+    str_split_fixed("\\s+", n = 6) %>% .[,1:5] %>% as_tibble() %>% 
+    setNames(c("day", header)) %>%
+    mutate(month = month, day = as.numeric(day)) %>%
+    gather(year, deaths, -c(day, month)) %>%
+    mutate(deaths = as.numeric(deaths))
+}) %>%
+  mutate(month = recode(month, 
+                        "JAN" = 1, "FEB" = 2, "MAR" = 3, 
+                        "APR" = 4, "MAY" = 5, "JUN" = 6, 
+                        "JUL" = 7, "AGO" = 8, "SEP" = 9, 
+                        "OCT" = 10, "NOV" = 11, "DEC" = 12)) %>%
+  mutate(date = make_date(year, month, day)) %>%
+  filter(date <= "2018-05-01")
+```
 
-    
-2. Plot the smooth estimates against day of the year, all on the same plot but with different colors.
+Use the `loess` function to obtain a smooth estimate of the expected number of deaths as a function of date. Plot this resulting smooth function. Make the span about two months long.
 
-    
-3. Suppose we want to predict 2s and 7s in our `mnist_27` dataset with just the second covariate. Can we do this? On first inspection it appears the data does not have much predictive power. In fact, if we fit a regular logistic regression, the coefficient for `x_2` is not significant!
+2\. Plot the smooth estimates against day of the year, all on the same plot but with different colors.
 
-    ```{r, eval = FALSE}
-    library(broom)
-    library(dslabs)
-    data("mnist_27")
-    mnist_27$train %>% 
-      glm(y ~ x_2, family = "binomial", data = .) %>% 
-      tidy()
-    ```
+3\. Suppose we want to predict 2s and 7s in our `mnist_27` dataset with just the second covariate. Can we do this? On first inspection it appears the data does not have much predictive power. In fact, if we fit a regular logistic regression, the coefficient for `x_2` is not significant!
 
-    Plotting a scatterplot here is not useful since `y` is binary:
+```{r, eval = FALSE}
+library(broom)
+library(dslabs)
+data("mnist_27")
+mnist_27$train %>% 
+  glm(y ~ x_2, family = "binomial", data = .) %>% 
+  tidy()
+```
 
-    ```{r, eval = FALSE}
-    qplot(x_2, y, data = mnist_27$train)
-    ```
+Plotting a scatterplot here is not useful since `y` is binary:
 
-    Fit a loess line to the data above and plot the results. Notice that there is predictive power, except the conditional probability is not linear.
+```{r, eval = FALSE}
+qplot(x_2, y, data = mnist_27$train)
+```
 
-    
-    
+Fit a loess line to the data above and plot the results. Notice that there is predictive power, except the conditional probability is not linear.
+
+

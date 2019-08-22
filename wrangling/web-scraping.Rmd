@@ -188,87 +188,77 @@ You can learn much more by examining tutorials and help files from the __jsonlit
 ## Exercises
 
 
-1. Visit the following web page: [https://web.archive.org/web/20181024132313/http://www.stevetheump.com/Payrolls.htm](https://web.archive.org/web/20181024132313/http://www.stevetheump.com/Payrolls.htm)
+1\. Visit the following web page: [https://web.archive.org/web/20181024132313/http://www.stevetheump.com/Payrolls.htm](https://web.archive.org/web/20181024132313/http://www.stevetheump.com/Payrolls.htm)
 
-    Notice there are several tables. Say we are interested in comparing the payrolls of teams across the years. The next few exercises take us through the steps needed to do this.
+Notice there are several tables. Say we are interested in comparing the payrolls of teams across the years. The next few exercises take us through the steps needed to do this.
 
-    Start by applying what you learned to read in the website into an object called `h`.
+Start by applying what you learned to read in the website into an object called `h`.
 
-2. Note that, although not very useful, we can actually see the content of the page by typing:
+2\. Note that, although not very useful, we can actually see the content of the page by typing:
 
-    ```{r, eval = FALSE}
-    html_text(h)
-    ```
+```{r, eval = FALSE}
+html_text(h)
+```
 
-    The next step is to extract the tables. For this, we can use the `html_nodes` function. We learned that tables in html are associated with the `table` node.  Use the `html_nodes` function and the `table` node to extract the first table. Store it in an object `nodes`.
-
-
-
-3. The `html_nodes` function returns a list of objects of class `xml_node`. We can see the content of each one using, for example, the `html_text` function. You can see the content for an arbitrarily picked component like this:
-
-    ```{r, eval = FALSE}
-    html_text(nodes[[8]])
-    ```
-
-    If the content of this object is an html table, we can use the `html_table` function to convert it to a data frame. Use the `html_table` function to convert the 8th entry of `nodes` into a table.
+The next step is to extract the tables. For this, we can use the `html_nodes` function. We learned that tables in html are associated with the `table` node.  Use the `html_nodes` function and the `table` node to extract the first table. Store it in an object `nodes`.
 
 
-4. Repeat the above for the first 4 components of `nodes`. Which of the following are payroll tables:
 
-    A. All of them.
-    
-    B. 1
-    
-    C. 2
-    
-    D. 2-4
+3\. The `html_nodes` function returns a list of objects of class `xml_node`. We can see the content of each one using, for example, the `html_text` function. You can see the content for an arbitrarily picked component like this:
 
+```{r, eval = FALSE}
+html_text(nodes[[8]])
+```
 
-5. Repeat the above for the first __last__ 3 components of `nodes`. Which of the following is true:
-
-    A. The last entry in `nodes` shows the average across all teams through time, not payroll per team.
-    
-    B. All three are payroll per team tables.
-    
-    C. All three are like the first entry, not a payroll table.
-    
-    D. All of the above.
-
-6. We have learned that the first and last entries of `nodes` are not payroll tables. Redefine `nodes` so that these two are removed.
+If the content of this object is an html table, we can use the `html_table` function to convert it to a data frame. Use the `html_table` function to convert the 8th entry of `nodes` into a table.
 
 
-7. We saw in the previous analysis that the first table node is not actually a table. This happens sometimes in html because tables are used to make text look a certain way, as opposed to storing numeric values. 
+4\. Repeat the above for the first 4 components of `nodes`. Which of the following are payroll tables:
+
+a. All of them.
+b. 1
+c. 2
+d. 2-4
+
+
+5\. Repeat the above for the first __last__ 3 components of `nodes`. Which of the following is true:
+
+a. The last entry in `nodes` shows the average across all teams through time, not payroll per team.
+b. All three are payroll per team tables.
+c. All three are like the first entry, not a payroll table.
+d. All of the above.
+
+6\. We have learned that the first and last entries of `nodes` are not payroll tables. Redefine `nodes` so that these two are removed.
+
+
+7\. We saw in the previous analysis that the first table node is not actually a table. This happens sometimes in html because tables are used to make text look a certain way, as opposed to storing numeric values. 
 Remove the first component and then use `sapply` and `html_table` to convert each node in `nodes` into a table. Note that in this case, `sapply` will return a list of tables. You can also use `lapply` to assure that a list is applied.
 
 
 
-8. Look through the resulting tables. Are they all the same? Could we just join them with `bind_rows`? 
+8\. Look through the resulting tables. Are they all the same? Could we just join them with `bind_rows`? 
 
 
-
-9. Create two tables, call them `tab_1` and `tab_2` using entries 10 and 19.
-
+9\. Create two tables, call them `tab_1` and `tab_2` using entries 10 and 19.
 
 
-10. Use a `full_join` function to combine these two tables. Before you do this you will have to fix the missing header problem. You will also need to make the names match.
+10\. Use a `full_join` function to combine these two tables. Before you do this you will have to fix the missing header problem. You will also need to make the names match.
  
 
-11. After joining the tables, you see several NAs. This is because some teams are in one table and not the other. Use the `anti_join` function to get a better idea of why this is happening.
+11\. After joining the tables, you see several NAs. This is because some teams are in one table and not the other. Use the `anti_join` function to get a better idea of why this is happening.
 
 
-
-12. We see see that one of the problem is that Yankees are listed as both _N.Y. Yankees_ and _NY Yankees_. In the next section, we will learn efficient approaches to fixing problems like this. Here we can do it "by hand" as follows:
-
-
-    ```{r, eval=FALSE}
-    tab_1 <- tab_1 %>%
-      mutate(Team = ifelse(Team == "N.Y. Yankees", "NY Yankees", Team))
-    ```
-
-    Now join the tables and show only Oakland and the Yankees and the payroll columns.
+12\. We see see that one of the problem is that Yankees are listed as both _N.Y. Yankees_ and _NY Yankees_. In the next section, we will learn efficient approaches to fixing problems like this. Here we can do it "by hand" as follows:
 
 
-13. Advanced: extract the titles of the movies that won Best Picture from this website: [https://m.imdb.com/chart/bestpicture/](https://m.imdb.com/chart/bestpicture/)
+```{r, eval=FALSE}
+tab_1 <- tab_1 %>%
+  mutate(Team = ifelse(Team == "N.Y. Yankees", "NY Yankees", Team))
+```
+
+Now join the tables and show only Oakland and the Yankees and the payroll columns.
+
+13\. Advanced: extract the titles of the movies that won Best Picture from this website: [https://m.imdb.com/chart/bestpicture/](https://m.imdb.com/chart/bestpicture/)
 
 
 

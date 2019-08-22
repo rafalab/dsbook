@@ -91,28 +91,15 @@ Now we can ask the following: in our simulations, how often did we get sums less
 mean(S <= a)
 ```
 
-This will be a very good approximation of $F(a)$. In fact, we can visualize the distribution by creating a histogram showing the probability $F(b)-F(a)$ for several intervals $(a,b]$:
+This will be a very good approximation of $F(a)$ and we can easily answer the casino's question: how likely is it that we will lose money? We can see it is quite low:
 
-```{r sum-density, echo=FALSE}
-data.frame(S) %>% ggplot(aes(S, ..density..)) + geom_histogram(color = "black", binwidth = 10)  + ylab("Probability")
-```
-
-Now we can easily answer the casino's question: how likely is it that we will lose money?
 
 ```{r}
 mean(S<0)
 ```
 
-We can see it is quite low.
 
-In the histogram above, we see that the distribution appears to be approximately normal. A qq-plot will confirm that the normal approximation is close to perfect. If, in fact, the distribution is normal, then all we need to define the distribution is the average and the standard deviation. Because we have the original values from which the distribution is created, we can easily compute these:
-
-```{r}
-mean(S)
-sd(S)
-```
-
-If we add a normal density with this average and standard deviation to the histogram above, we see that it matches very well:
+We can visualize the distribution of $S$ by creating a histogram showing the probability $F(b)-F(a)$ for several intervals $(a,b]$: 
 
 ```{r normal-approximates-distribution, echo=FALSE}
 s <- seq(min(S), max(S), length = 100)
@@ -122,6 +109,8 @@ data.frame(S=S) %>% ggplot(aes(S, ..density..)) +
   ylab("Probability") + 
   geom_line(data = normal_density, mapping=aes(s,f), color="blue")
 ```
+
+We see that the distribution appears to be approximately normal. A qq-plot will confirm that the normal approximation is close to a perfect approximation for this distribution. If, in fact, the distribution is normal, then all we need to define the distribution is the average and the standard deviation. Because we have the original values from which the distribution is created, we can easily compute these with `mean(S)` and `sd(S)`. The blue curve you see added to the histogram above is a normal density with this average and standard deviation. 
 
 This average and this standard deviation have special names. They are referred to as the _expected value_ and _standard error_ of the random variable $S$. We will say more about these in the next section. 
 
@@ -290,7 +279,7 @@ For all the theory discussed here, you need to compute the actual standard devia
 sqrt(mean((x-m)^2))
 ```
 
-So be careful when using the `sd` function in R. However, keep in mind that throughout the book we sometimes use the `sd` function when we really want the actual SD. This is because when the list size is big, these two are practically equivalent since $\sqrt{(N-1)/N}$ is close to 1.
+So be careful when using the `sd` function in R. However, keep in mind that throughout the book we sometimes use the `sd` function when we really want the actual SD. This is because when the list size is big, these two are practically equivalent since $\sqrt{(N-1)/N} \approx 1$.
 
 ## Central Limit Theorem
 
@@ -353,47 +342,49 @@ You can examine the properties of the Poisson distribution using `dpois` and `pp
 
 There are several useful mathematical results that we used above and often employ when working with data. We list them below.
 
-1. The expected value of the sum of random variables is the sum of each random variable's expected value. We can write it like this:
-    
-    $$ 
-    \mbox{E}[X_1+X_2+\dots+X_n] =  \mbox{E}[X_1] + \mbox{E}[X_2]+\dots+\mbox{E}[X_n]
-    $$
-    
-    If the $X$ are independent draws from the urn, then they all have the same expected value. Let's call it $\mu$ and thus:
-    
-    $$ 
-    \mbox{E}[X_1+X_2+\dots+X_n]=  n\mu
-    $$
-    
-    which is another way of writing the result we show above for the sum of draws.
-    
-2. The expected value of a non-random constant times a random variable is the non-random constant times the expected value of a random variable. This is easier to explain with symbols:
-    $$
-    \mbox{E}[aX] =  a\times\mbox{E}[X]
-    $$
-    
-    To see why this is intuitive, consider change of units. If we change the units of a random variable, say from dollars to cents, the expectation should change in the same way. A consequence of the above two facts is that the expected value of the average of independent draws from the same urn is the expected value of the urn, call it $\mu$ again:
-    
-    $$
-    \mbox{E}[(X_1+X_2+\dots+X_n) / n]=   \mbox{E}[X_1+X_2+\dots+X_n] / n = n\mu/n = \mu 
-    $$
-    
+1\. The expected value of the sum of random variables is the sum of each random variable's expected value. We can write it like this:
 
-3. The square of the standard error of the sum of **independent** random variables is the sum of the square of the standard error of each random variable. This one is easier to understand in math form:
-    $$ 
-    \mbox{SE}[X_1+X_2+\dots+X_n] = \sqrt{\mbox{SE}[X_1]^2 + \mbox{SE}[X_2]^2+\dots+\mbox{SE}[X_n]^2  }
-    $$
-    
-    The square of the standard error is referred to as the _variance_ in statistical textbooks. Note that this particular property is not as intuitive as the previous three and more in depth explanations can be found in statistics textbooks.
+$$ 
+\mbox{E}[X_1+X_2+\dots+X_n] =  \mbox{E}[X_1] + \mbox{E}[X_2]+\dots+\mbox{E}[X_n]
+$$
+
+If the $X$ are independent draws from the urn, then they all have the same expected value. Let's call it $\mu$ and thus:
+
+$$ 
+\mbox{E}[X_1+X_2+\dots+X_n]=  n\mu
+$$
+
+which is another way of writing the result we show above for the sum of draws.
+
+2\. The expected value of a non-random constant times a random variable is the non-random constant times the expected value of a random variable. This is easier to explain with symbols:
+
+$$
+\mbox{E}[aX] =  a\times\mbox{E}[X]
+$$
+
+To see why this is intuitive, consider change of units. If we change the units of a random variable, say from dollars to cents, the expectation should change in the same way. A consequence of the above two facts is that the expected value of the average of independent draws from the same urn is the expected value of the urn, call it $\mu$ again:
+
+$$
+\mbox{E}[(X_1+X_2+\dots+X_n) / n]=   \mbox{E}[X_1+X_2+\dots+X_n] / n = n\mu/n = \mu 
+$$
+
+
+3\. The square of the standard error of the sum of **independent** random variables is the sum of the square of the standard error of each random variable. This one is easier to understand in math form:
+
+$$ 
+\mbox{SE}[X_1+X_2+\dots+X_n] = \sqrt{\mbox{SE}[X_1]^2 + \mbox{SE}[X_2]^2+\dots+\mbox{SE}[X_n]^2  }
+$$
+
+The square of the standard error is referred to as the _variance_ in statistical textbooks. Note that this particular property is not as intuitive as the previous three and more in depth explanations can be found in statistics textbooks.
  
-4. The standard error of a non-random constant times a random variable is the non-random constant times the random variable's standard error. As with the expectation:
-    $$
-    \mbox{SE}[aX] =  a \times \mbox{SE}[X]
-    $$
- 
-    To see why this is intuitive, again think of units. 
-    
-    A consequence of 3 and 4 is that the standard error of the average of independent draws from the same urn is the standard deviation of the urn divided by the square root of $n$ (the number of draws), call it $\sigma$:
+4\. The standard error of a non-random constant times a random variable is the non-random constant times the random variable's standard error. As with the expectation:
+$$
+\mbox{SE}[aX] =  a \times \mbox{SE}[X]
+$$
+
+To see why this is intuitive, again think of units. 
+
+A consequence of 3 and 4 is that the standard error of the average of independent draws from the same urn is the standard deviation of the urn divided by the square root of $n$ (the number of draws), call it $\sigma$:
 
 $$
 \begin{aligned}
@@ -406,7 +397,7 @@ $$
 $$  
   
     
-5. If $X$ is a normally distributed random variable, then if $a$ and $b$ are non-random constants, $aX + b$ is also a normally distributed random variable. All we are doing is changing the units of the random variable by multiplying by $a$, then shifting the center by $b$. 
+5\. If $X$ is a normally distributed random variable, then if $a$ and $b$ are non-random constants, $aX + b$ is also a normally distributed random variable. All we are doing is changing the units of the random variable by multiplying by $a$, then shifting the center by $b$. 
 
 
 Note that statistical textbooks use the Greek letters $\mu$ and $\sigma$ to denote the expected value and standard error, respectively. This is because $\mu$ is the Greek letter for $m$, the first letter of _mean_, which is another term used for expected value. Similarly, $\sigma$ is the Greek letter for $s$, the first letter of standard error. 
@@ -427,69 +418,64 @@ Another funny misuse of the law of averages is in sports when TV sportscasters p
 ## Exercises
 
 
-1. In American Roulette you can also bet on green. There are 18 reds, 18 blacks and 2 greens (0 and 00). What are the chances the green comes out?
+1\. In American Roulette you can also bet on green. There are 18 reds, 18 blacks and 2 greens (0 and 00). What are the chances the green comes out?
 
 
-2. The payout for winning on green is \$17 dollars. This means that if you bet a dollar and it lands on green, you get \$17. Create a sampling model using sample to simulate the random variable $X$ for your winnings. Hint: see the example below for how it should look like when betting on red.
+2\. The payout for winning on green is \$17 dollars. This means that if you bet a dollar and it lands on green, you get \$17. Create a sampling model using sample to simulate the random variable $X$ for your winnings. Hint: see the example below for how it should look like when betting on red.
 
-    ```{r}
-    x <- sample(c(1,-1), 1, prob = c(9/19, 10/19))
-    ```
-3. Compute the expected value of $X$.
+```{r}
+x <- sample(c(1,-1), 1, prob = c(9/19, 10/19))
+```
+
+3\. Compute the expected value of $X$.
 
 
-4. Compute the standard error of $X$.
+4\. Compute the standard error of $X$.
 
     
-5. Now create a random variable $S$ that is the sum of your winnings after betting on green 1000 times. Hint: change the argument `size` and `replace` in your answer to question 2. Start your code by setting the seed to 1 with `set.seed(1)`.
+5\. Now create a random variable $S$ that is the sum of your winnings after betting on green 1000 times. Hint: change the argument `size` and `replace` in your answer to question 2. Start your code by setting the seed to 1 with `set.seed(1)`.
 
-6. What is the expected value of $S$?
-
-
-7. What is the standard error of $S$?
+6\. What is the expected value of $S$?
 
 
-8. What is the probability that you end up winning money? Hint: use the CLT.
+7\. What is the standard error of $S$?
 
 
-9. Create a Monte Carlo simulation that generates 1,000 outcomes of $S$. Compute the average and standard deviation of the resulting list to confirm the results of 6 and 7. Start your code by setting the seed to 1 with `set.seed(1)`.
+8\. What is the probability that you end up winning money? Hint: use the CLT.
+
+
+9\. Create a Monte Carlo simulation that generates 1,000 outcomes of $S$. Compute the average and standard deviation of the resulting list to confirm the results of 6 and 7. Start your code by setting the seed to 1 with `set.seed(1)`.
 
 
 
 
-10. Now check your answer to 8 using the Monte Carlo result. 
+10\. Now check your answer to 8 using the Monte Carlo result. 
 
-11. The Monte Carlo result and the CLT approximation are close, but not that close. What could account for this?
-    
-    A. 1,000 simulations is not enough. If we do more, they match.
-    
-    B. The CLT does not work as well when the probability of success is small. In this case, it was 1/19. If we make the number of roulette plays bigger, they will match better.
+11\. The Monte Carlo result and the CLT approximation are close, but not that close. What could account for this?
 
-    C. The difference is within rounding error.
-    
-    D. The CLT only works for averages.
+a. 1,000 simulations is not enough. If we do more, they match.
+b. The CLT does not work as well when the probability of success is small. In this case, it was 1/19. If we make the number of roulette plays bigger, they will match better.
+c. The difference is within rounding error.
+d. The CLT only works for averages.
 
 
-12. Now create a random variable $Y$ that is your average winnings per bet after playing off your winnings after betting on green 1,000 times.
+12\. Now create a random variable $Y$ that is your average winnings per bet after playing off your winnings after betting on green 1,000 times.
 
-13. What is the expected value of $Y$?
+13\. What is the expected value of $Y$?
 
-14. What is the standard error of $Y$?
+14\. What is the standard error of $Y$?
 
-15. What is the probability that you end up with winnings per game that are positive? Hint: use the CLT.
+15\. What is the probability that you end up with winnings per game that are positive? Hint: use the CLT.
 
 
-16. Create a Monte Carlo simulation that generates 2,500 outcomes of $Y$. Compute the average and standard deviation of the resulting list to confirm the results of 6 and 7. Start your code by setting the seed to 1 with `set.seed(1)`.
+16\. Create a Monte Carlo simulation that generates 2,500 outcomes of $Y$. Compute the average and standard deviation of the resulting list to confirm the results of 6 and 7. Start your code by setting the seed to 1 with `set.seed(1)`.
 
-17. Now check your answer to 8 using the Monte Carlo result. 
+17\. Now check your answer to 8 using the Monte Carlo result. 
 
-18. The Monte Carlo result and the CLT approximation are now much closer.  What could account for this?
+18\. The Monte Carlo result and the CLT approximation are now much closer.  What could account for this?
 
-    A. We are now computing averages instead of sums.
-    
-    B. 2,500 Monte Carlo simulations is not better than 1,000.
-    
-    C. The CLT works better when the sample size is larger. We increased from 1,000 to 2,500.
-    
-    D. It is not closer. The difference is within rounding error.
+a. We are now computing averages instead of sums.
+b. 2,500 Monte Carlo simulations is not better than 1,000.
+c. The CLT works better when the sample size is larger. We increased from 1,000 to 2,500.
+d. It is not closer. The difference is within rounding error.
 

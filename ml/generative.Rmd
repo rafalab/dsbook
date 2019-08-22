@@ -441,55 +441,55 @@ Generative models can be very powerful, but only when we are able to successfull
 We are going to apply LDA and QDA to the `tissue_gene_expression` dataset. We will start with simple examples based on this dataset and then develop a realistic example.
 
 
-1. Create a dataset with just the classes "cerebellum" and "hippocampus" (two parts of the brain) and a predictor matrix with 10 randomly selected columns.
+1\. Create a dataset with just the classes "cerebellum" and "hippocampus" (two parts of the brain) and a predictor matrix with 10 randomly selected columns.
 
-    ```{r, eval=FALSE}
-    set.seed(1993)
-    data("tissue_gene_expression")
-    tissues <- c("cerebellum", "hippocampus")
-    ind <- which(tissue_gene_expression$y %in% tissues)
-    y <- droplevels(tissue_gene_expression$y[ind])
-    x <- tissue_gene_expression$x[ind, ]
-    x <- x[, sample(ncol(x), 10)]
-    ```
-    
-    Use the `train` function to estimate the accuracy of LDA.
+```{r, eval=FALSE}
+set.seed(1993)
+data("tissue_gene_expression")
+tissues <- c("cerebellum", "hippocampus")
+ind <- which(tissue_gene_expression$y %in% tissues)
+y <- droplevels(tissue_gene_expression$y[ind])
+x <- tissue_gene_expression$x[ind, ]
+x <- x[, sample(ncol(x), 10)]
+```
 
-
-2.  In this case, LDA fits two 10-dimensional normal distributions. Look at the fitted model by looking at the `finalModel` component of the result of train. Notice there is a component called `means` that includes the estimate `means` of both distribution. Plot the mean vectors against each other and determine which predictors (genes) appear to be driving the algorithm. 
+Use the `train` function to estimate the accuracy of LDA.
 
 
-3. Repeat exercises 1 with QDA. Does it have a higher accuracy than LDA?
+2\.  In this case, LDA fits two 10-dimensional normal distributions. Look at the fitted model by looking at the `finalModel` component of the result of train. Notice there is a component called `means` that includes the estimate `means` of both distribution. Plot the mean vectors against each other and determine which predictors (genes) appear to be driving the algorithm. 
 
 
-4. Are the same predictors (genes) driving the algorithm? Make a plot as in exercise 2.
+3\. Repeat exercises 1 with QDA. Does it have a higher accuracy than LDA?
 
 
-5. One thing we see in the previous plot is that the value of predictors correlate in both groups: some predictors are low in both groups while others are high in both groups. The mean value of each predictor, `colMeans(x)`, is not informative or useful for prediction, and often for interpretation purposes it is useful to center or scale each column. This can be achieved with the `preProcessing` argument in `train`. Re-run LDA with `preProcessing = "scale"`. Note that accuracy does not change but see how it is easier to identify the predictors that differ more between groups in the plot made in exercise 4.
+4\. Are the same predictors (genes) driving the algorithm? Make a plot as in exercise 2.
+
+
+5\. One thing we see in the previous plot is that the value of predictors correlate in both groups: some predictors are low in both groups while others are high in both groups. The mean value of each predictor, `colMeans(x)`, is not informative or useful for prediction, and often for interpretation purposes it is useful to center or scale each column. This can be achieved with the `preProcessing` argument in `train`. Re-run LDA with `preProcessing = "scale"`. Note that accuracy does not change but see how it is easier to identify the predictors that differ more between groups in the plot made in exercise 4.
 
 
 
-6. In the previous exercises we saw that both approaches worked well. Plot the predictor values for the two genes with the largest differences between the two groups in a scatterplot to see how they appear to follow a bivariate distribution as assumed by the LDA and QDA approaches. Color the points by the outcome.
+6\. In the previous exercises we saw that both approaches worked well. Plot the predictor values for the two genes with the largest differences between the two groups in a scatterplot to see how they appear to follow a bivariate distribution as assumed by the LDA and QDA approaches. Color the points by the outcome.
 
 
-7. Now we are going to increase the complexity of the challenge slightly: we will consider all the tissue types.
+7\. Now we are going to increase the complexity of the challenge slightly: we will consider all the tissue types.
 
-    ```{r, eval=FALSE}
-    set.seed(1993)
-    data("tissue_gene_expression")
-    y <- tissue_gene_expression$y
-    x <- tissue_gene_expression$x
-    x <- x[, sample(ncol(x), 10)]
-    ```
-    
-    What accuracy do you get with LDA?
-    
+```{r, eval=FALSE}
+set.seed(1993)
+data("tissue_gene_expression")
+y <- tissue_gene_expression$y
+x <- tissue_gene_expression$x
+x <- x[, sample(ncol(x), 10)]
+```
 
-
-8. We see that the results are slightly worse. Use the `confusionMatrix` function to learn what type of errors we are making.
+What accuracy do you get with LDA?
 
 
-9. Plot an image of the centers of the seven 10-dimensional normal distributions.
+
+8\. We see that the results are slightly worse. Use the `confusionMatrix` function to learn what type of errors we are making.
+
+
+9\. Plot an image of the centers of the seven 10-dimensional normal distributions.
 
 
 

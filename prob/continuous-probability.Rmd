@@ -57,6 +57,7 @@ s <- sd(x)
 The normal distribution is derived mathematically: we do not need data to define it. For practicing data scientists, almost everything we do involves data. Data is always, technically speaking, discrete. For example, we could consider our height data categorical with each specific height a unique category. The probability distribution is defined by the proportion of students reporting each height. Here is a plot of that probability distribution:
 
 ```{r plot-of-height-frequencies, echo=FALSE}
+rafalib::mypar()
 plot(prop.table(table(x)), xlab = "a = Height in inches", ylab = "Pr(X = a)")
 ```
 
@@ -190,65 +191,60 @@ Note that it does not look normal.
 We introduced the normal distribution in Section \@ref(normal-distribution) and used it as an example above.
 The normal distribution is not the only useful theoretical distribution.  Other continuous distributions that we may encounter are the student-t, Chi-square, exponential, gamma, beta, and beta-binomial. R provides functions to compute the density, the quantiles, the cumulative distribution functions and to generate Monte Carlo simulations. R uses a convention that lets us remember the names, namely using the letters `d`, `q`, `p`, and `r` in front of a shorthand for the distribution. We have already seen the functions `dnorm`, `pnorm`, and `rnorm` for the normal distribution. The functions `qnorm` gives us the quantiles. We can therefore draw a distribution like this:
 
-```{r normal-density}
+```{r normal-density, eval=FALSE}
 x <- seq(-4, 4, length.out = 100)
-data.frame(x, f = dnorm(x)) %>% 
-  ggplot(aes(x, f)) + 
-  geom_line()
+qplot(x, f, geom = "line", data = data.frame(x, f = dnorm(x)))
 ```
 
-For example, for the student-t, described later in Section \@ref(t-dist), the shorthand `t` is used so the functions are `dt` for the density, `qt` for the quantiles, `pt` for the cumulative distribution function, and `rt` for Monte Carlo simulation.
+For the student-t, described later in Section \@ref(t-dist), the shorthand `t` is used so the functions are `dt` for the density, `qt` for the quantiles, `pt` for the cumulative distribution function, and `rt` for Monte Carlo simulation.
 
 ## Exercises 
 
-1. Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is 5 feet or shorter? 
+1\. Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is 5 feet or shorter? 
 
 
-2. Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is 6 feet or taller? 
+2\. Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is 6 feet or taller? 
 
 
-3. Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is between 61 and 67 inches?
+3\. Assume the distribution of female heights is approximated by a normal distribution with a mean of 64 inches and a standard deviation of 3 inches. If we pick a female at random, what is the probability that she is between 61 and 67 inches?
 
 
-4. Repeat the exercise above, but convert everything to centimeters. That is, multiply every height, including the standard deviation, by 2.54. What is the answer now?
+4\. Repeat the exercise above, but convert everything to centimeters. That is, multiply every height, including the standard deviation, by 2.54. What is the answer now?
 
 
-5. Notice that the answer to the question does not change when you change units. This makes sense since the answer to the question should not be affected by what units we use. In fact, if you look closely, you notice that 61 and 64 are both 1 SD away from the average. Compute the probability that a randomly picked, normally distributed random variable is within 1 SD from the average.
+5\. Notice that the answer to the question does not change when you change units. This makes sense since the answer to the question should not be affected by what units we use. In fact, if you look closely, you notice that 61 and 64 are both 1 SD away from the average. Compute the probability that a randomly picked, normally distributed random variable is within 1 SD from the average.
 
 
-6. To see the math that explains why the answers to questions 3, 4, and 5 are the same, suppose we have a random variable with average $m$ and standard error $s$. Suppose we ask the probability of $X$ being smaller or equal to $a$. Remember that, by definition, $a$ is $(a - m)/s$ standard deviations $s$ away from the average $m$. The probability is: 
+6\. To see the math that explains why the answers to questions 3, 4, and 5 are the same, suppose we have a random variable with average $m$ and standard error $s$. Suppose we ask the probability of $X$ being smaller or equal to $a$. Remember that, by definition, $a$ is $(a - m)/s$ standard deviations $s$ away from the average $m$. The probability is: 
 
-    $$
+$$
 \mbox{Pr}(X \leq a)
-    $$
+$$
 
-    Now we subtract $\mu$ to both sides and then divide both sides by $\sigma$:
+Now we subtract $\mu$ to both sides and then divide both sides by $\sigma$:
 
-    $$
+$$
 \mbox{Pr}\left(\frac{X-m}{s} \leq \frac{a-m}{s} \right)
-    $$
+$$
 
-    The quantity on the left is a standard normal random variable. It has an average of 0 and a standard error of 1. We will call it $Z$:
+The quantity on the left is a standard normal random variable. It has an average of 0 and a standard error of 1. We will call it $Z$:
 
 
 
-    $$
+$$
 \mbox{Pr}\left(Z \leq \frac{a-m}{s} \right)
-    $$
+$$
 
-    So, no matter the units, the probability of $X\leq a$ is the same as the probability of a standard normal variable being less than $(a - m)/s$. If `mu` is the average and `sigma` the standard error, which of the following R code would give us the right answer in every situation:
+So, no matter the units, the probability of $X\leq a$ is the same as the probability of a standard normal variable being less than $(a - m)/s$. If `mu` is the average and `sigma` the standard error, which of the following R code would give us the right answer in every situation:
 
-    A. `mean(X<=a)`
-    
-    B. `pnorm((a - m)/s)`
-    
-    C. `pnorm((a - m)/s, m, s)`
-    
-    D. `pnorm(a)`
-    
-7. Imagine the distribution of male adults is approximately normal with an expected value of 69 and a standard deviation of 3. How tall is the male in the 99th percentile? Hint: use `qnorm`.
+a. `mean(X<=a)`
+b. `pnorm((a - m)/s)`
+c. `pnorm((a - m)/s, m, s)`
+d. `pnorm(a)`
+
+7\. Imagine the distribution of male adults is approximately normal with an expected value of 69 and a standard deviation of 3. How tall is the male in the 99th percentile? Hint: use `qnorm`.
 
 
-8. The distribution of IQ scores is approximately normally distributed.  The average is 100 and the standard deviation is 15. Suppose you want to know the distribution of the highest IQ across all graduating classes if 10,000 people are born each in your school district. Run a Monte Carlo simulation with `B=1000` generating 10,000 IQ scores and keeping the highest. Make a histogram.
+8\. The distribution of IQ scores is approximately normally distributed.  The average is 100 and the standard deviation is 15. Suppose you want to know the distribution of the highest IQ across all graduating classes if 10,000 people are born each in your school district. Run a Monte Carlo simulation with `B=1000` generating 10,000 IQ scores and keeping the highest. Make a histogram.
 
 

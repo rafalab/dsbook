@@ -981,171 +981,165 @@ my_image <- function(x, zlim = range(x), ...){
 my_image(y)
 ```
 
-1. How would you describe the data based on this figure?
+1\. How would you describe the data based on this figure?
 
-    A. The test scores are all independent of each other.
-    
-    B. The students that test well are at the top of the image and there seem to be three groupings by subject.
-    
-    C. The students that are good at math are not good at science.
-    
-    D. The students that are good at math are not good at humanities.
-    
-2. You can examine the correlation between the test scores directly like this:
+a. The test scores are all independent of each other.
+b. The students that test well are at the top of the image and there seem to be three groupings by subject.
+c. The students that are good at math are not good at science.
+d. The students that are good at math are not good at humanities.
 
-    ```{r, eval=FALSE}
-    my_image(cor(y), zlim = c(-1,1))
-    range(cor(y))
-    axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
-    ```
+2\. You can examine the correlation between the test scores directly like this:
 
-    Which of the following best describes what you see?
+```{r, eval=FALSE}
+my_image(cor(y), zlim = c(-1,1))
+range(cor(y))
+axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+```
 
-    A. The test scores are independent.
-    
-    B. Math and science are highly correlated but the humanities are not.
-    
-    C. There is high correlation between tests in the same subject but no correlation across subjects.
-    
-    D. There is a correlation among all tests, but higher if the tests are in science and math and even higher within each subject.
-    
+Which of the following best describes what you see?
 
-3. Remember that orthogonality means that $U^{\top}U$ and  $V^{\top}V$ are equal to the identity matrix. This implies that we can also rewrite the decomposition as
+a. The test scores are independent.
+b. Math and science are highly correlated but the humanities are not.
+c. There is high correlation between tests in the same subject but no correlation across subjects.
+d. There is a correlation among all tests, but higher if the tests are in science and math and even higher within each subject.
 
-    $$ Y V = U D \mbox{ or } U^{\top}Y = D V^{\top}$$ 
 
-    We can think of $YV$ and $U^{\top}V$ as two transformations of Y that preserve the total variability of $Y$ since $U$ and $V$ are orthogonal. 
+3\. Remember that orthogonality means that $U^{\top}U$ and  $V^{\top}V$ are equal to the identity matrix. This implies that we can also rewrite the decomposition as
 
-    Use the function `svd` to compute the SVD of `y`. This function will return $U$, $V$ and the diagonal entries of $D$. 
+$$ Y V = U D \mbox{ or } U^{\top}Y = D V^{\top}$$ 
 
-    ```{r, eval=FALSE}
-    s <- svd(y)
-    names(s)
-    ```
-    
-    You can check that the SVD works by typing:
+We can think of $YV$ and $U^{\top}V$ as two transformations of Y that preserve the total variability of $Y$ since $U$ and $V$ are orthogonal. 
 
-    ```{r, eval=FALSE}
-    y_svd <- s$u %*% diag(s$d) %*% t(s$v)
-    max(abs(y - y_svd))
-    ```
+Use the function `svd` to compute the SVD of `y`. This function will return $U$, $V$ and the diagonal entries of $D$. 
 
-    Compute the sum of squares of the columns of $Y$ and store them in `ss_y`. Then compute the sum of squares of columns of the transformed $YV$ and store them in `ss_yv`. Confirm that `sum(ss_y)` is equal to `sum(ss_yv)`.
+```{r, eval=FALSE}
+s <- svd(y)
+names(s)
+```
 
- 
-4. We see that the total sum of squares is preserved. This is because $V$ is orthogonal. Now to start understanding how $YV$ is useful, 
+You can check that the SVD works by typing:
+
+```{r, eval=FALSE}
+y_svd <- s$u %*% diag(s$d) %*% t(s$v)
+max(abs(y - y_svd))
+```
+
+Compute the sum of squares of the columns of $Y$ and store them in `ss_y`. Then compute the sum of squares of columns of the transformed $YV$ and store them in `ss_yv`. Confirm that `sum(ss_y)` is equal to `sum(ss_yv)`.
+
+
+4\. We see that the total sum of squares is preserved. This is because $V$ is orthogonal. Now to start understanding how $YV$ is useful, 
 plot `ss_y` against the column number and then do the same for `ss_yv`. What do you observe?
 
-5. We see that the variability of the columns of $YV$ is decreasing. Furthermore, we see that, relative to the first three, the variability of the columns beyond the third is almost 0. Now notice that we didn't have to compute `ss_yv` because we already have the answer. How? Remember that $YV = UD$ and because $U$ is orthogonal, we know that the sum of squares of the columns of $UD$ are the diagonal entries of $D$ squared. Confirm this by plotting the square root of `ss_yv` versus the diagonal entries of $D$.
+5\. We see that the variability of the columns of $YV$ is decreasing. Furthermore, we see that, relative to the first three, the variability of the columns beyond the third is almost 0. Now notice that we didn't have to compute `ss_yv` because we already have the answer. How? Remember that $YV = UD$ and because $U$ is orthogonal, we know that the sum of squares of the columns of $UD$ are the diagonal entries of $D$ squared. Confirm this by plotting the square root of `ss_yv` versus the diagonal entries of $D$.
 
  
-6. From the above we know that the sum of squares of the columns of $Y$ (the total sum of squares) add up to the sum of `s$d^2` and that the transformation $YV$ gives us columns with sums of squares equal to `s$d^2`. Now compute what percent of the total variability is explained by just the first three columns of $YV$.
+6\. From the above we know that the sum of squares of the columns of $Y$ (the total sum of squares) add up to the sum of `s$d^2` and that the transformation $YV$ gives us columns with sums of squares equal to `s$d^2`. Now compute what percent of the total variability is explained by just the first three columns of $YV$.
 
     
-7. We see that almost 99% of the variability is explained by the first three columns of $YV  = UD$. So we get the sense that we should be able to explain much of the variability and structure we found while exploring the data with a few columns. Before we continue, let's show a useful computational trick to avoid creating the matrix `diag(s$d)`. To motivate this, we note that if we write $U$ out in its columns $[U_1, U_2, \dots, U_p]$ then $UD$ is equal to 
+7\. We see that almost 99% of the variability is explained by the first three columns of $YV  = UD$. So we get the sense that we should be able to explain much of the variability and structure we found while exploring the data with a few columns. Before we continue, let's show a useful computational trick to avoid creating the matrix `diag(s$d)`. To motivate this, we note that if we write $U$ out in its columns $[U_1, U_2, \dots, U_p]$ then $UD$ is equal to 
 
-    $$UD = [U_1 d_{1,1}, U_2 d_{2,2}, \dots, U_p d_{p,p}]$$
+$$UD = [U_1 d_{1,1}, U_2 d_{2,2}, \dots, U_p d_{p,p}]$$
 
-    Use the `sweep` function to compute $UD$ without constructing `diag(s$d)` nor matrix multiplication.
-
-    
-
-8. We know that $U_1 d_{1,1}$, the first column of $UD$, has the most variability of all the columns of $UD$. Earlier we saw an image of $Y$: 
-
-    ```{r, eval=FALSE}
-    my_image(y)
-    ```
-
-    in which we can see that the student to student variability is quite large and that it appears that students that are good in one subject are good in all. This implies that the average (across all subjects) for each student should explain a lot of the variability. Compute the average score for each student and plot it against $U_1 d_{1,1}$ and describe what you find.
-
- 
-
-9. We note that the signs in SVD are arbitrary because: 
-
-    $$ U D V^{\top} = (-U) D (-V)^{\top} $$
+Use the `sweep` function to compute $UD$ without constructing `diag(s$d)` nor matrix multiplication.
 
 
-    With this in mind we see that the first column of $UD$ is almost identical to the average score for each student except for the sign.
 
-    This implies that multiplying $Y$ by the first column of $V$ must be performing a similar operation to taking the average. Make an image plot of $V$ and describe the first column relative to others and how this relates to taking an average.
+8\. We know that $U_1 d_{1,1}$, the first column of $UD$, has the most variability of all the columns of $UD$. Earlier we saw an image of $Y$: 
 
- 
-10. We already saw that we can rewrite $UD$ as
+```{r, eval=FALSE}
+my_image(y)
+```
 
-    $$U_1 d_{1,1} + U_2 d_{2,2} + \dots + U_p d_{p,p}$$
-
-    with $U_j$ the j-th column of $U$. This implies that we can rewrite the entire SVD as:
-
-    $$Y = U_1 d_{1,1} V_1 ^{\top} + U_2 d_{2,2} V_2 ^{\top} + \dots + U_p d_{p,p} V_p ^{\top}$$
-
-    with $V_j$ the jth column of $V$. Plot $U_1$, then plot $V_1^{\top}$ using the same range for the y-axis limits, then make an image of $U_1 d_{1,1} V_1 ^{\top}$ and compare it to the image of $Y$. Hint: use the `my_image` function defined above and use the `drop=FALSE` argument to assure the subsets of matrices are matrices.
-
-  
-
-11. We see that with just a vector of length 100, a scalar, and a vector of length 24, we actually come close to reconstructing the original $100 \times 24$ matrix. This is our first matrix factorization:
-
-    $$ Y \approx d_{1,1} U_1 V_1^{\top}$$
-
-    We know it explains `s$d[1]^2/sum(s$d^2) * 100` percent of the total variability.  Our approximation only explains the observation that good students tend to be good in all subjects. But another aspect of the original data that our approximation does not explain was the higher similarity we observed within subjects. We can see this by computing the difference between our approximation and original data and then computing the correlations. You can see this by running this code:
-
-    ```{r, eval=FALSE}
-    resid <- y - with(s,(u[,1, drop=FALSE]*d[1]) %*% t(v[,1, drop=FALSE]))
-    my_image(cor(resid), zlim = c(-1,1))
-    axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
-    ```
-    
-    Now that we have removed the overall student effect, the correlation plot reveals that we have not yet explained the within subject correlation nor the fact that math and science are closer to each other than to the arts. So let's explore the second column of the SVD. Repeat the previous exercise but for the second column: Plot $U_2$, then plot $V_2^{\top}$ using the same range for the y-axis limits, then make an image of $U_2 d_{2,2} V_2 ^{\top}$ and compare it to the image of `resid`.
-
-  
-12. The second column clearly relates to a student's difference in ability in math/science versus the arts. We can see this most clearly from the plot of `s$v[,2]`. Adding the matrix we obtain with these two columns will help with our approximation:
-
-    $$ Y \approx d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} $$
-
-    We know it will explain 
-
-    ```{r,eval=FALSE}
-    sum(s$d[1:2]^2)/sum(s$d^2) * 100
-    ```
-
-    percent of the total variability. We can compute new residuals like this:
-    
-    ```{r,eval=FALSE}
-    resid <- y - with(s,sweep(u[,1:2], 2, d[1:2], FUN="*") %*% t(v[,1:2]))
-    my_image(cor(resid), zlim = c(-1,1))
-    axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
-    ```
-    
-    and see that the structure that is left is driven by the differences between math and science. Confirm this by plotting  $U_3$, then plot $V_3^{\top}$ using the same range for the y-axis limits, then make an image of $U_3 d_{3,3} V_3 ^{\top}$ and compare it to the image of `resid`.
+in which we can see that the student to student variability is quite large and that it appears that students that are good in one subject are good in all. This implies that the average (across all subjects) for each student should explain a lot of the variability. Compute the average score for each student and plot it against $U_1 d_{1,1}$ and describe what you find.
 
 
-  
-13. The third column clearly relates to a student's difference in ability in math and science. We can see this most clearly from the plot of `s$v[,3]`. Adding the matrix we obtain with these two columns will help with our approximation:
+
+9\. We note that the signs in SVD are arbitrary because: 
+
+$$ U D V^{\top} = (-U) D (-V)^{\top} $$
 
 
-    $$ Y \approx d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$$
+With this in mind we see that the first column of $UD$ is almost identical to the average score for each student except for the sign.
 
-    We know it will explain:
+This implies that multiplying $Y$ by the first column of $V$ must be performing a similar operation to taking the average. Make an image plot of $V$ and describe the first column relative to others and how this relates to taking an average.
 
-    ```{r,eval=FALSE}
-    sum(s$d[1:3]^2)/sum(s$d^2) * 100
-    ```
-    
-    percent of the total variability. We can compute new residuals like this:
 
-    ```{r,eval=FALSE}
-    resid <- y - with(s,sweep(u[,1:3], 2, d[1:3], FUN="*") %*% t(v[,1:3]))
-    my_image(cor(resid), zlim = c(-1,1))
-    axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
-    ```
+10\. We already saw that we can rewrite $UD$ as
 
-    We no longer see structure in the residuals: they seem to be independent of each other. This implies that we can describe the data with the following model:
+$$U_1 d_{1,1} + U_2 d_{2,2} + \dots + U_p d_{p,p}$$
 
-    $$ Y =  d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top} + \varepsilon$$
+with $U_j$ the j-th column of $U$. This implies that we can rewrite the entire SVD as:
 
-    with $\varepsilon$ a matrix of independent identically distributed errors. This model is useful because we summarize of $100 \times 24$ observations with $3 \times (100+24+1) = 375$ numbers. Furthermore, the three components of the model have useful interpretations: 1) the overall ability of a student, 2) the difference in ability between the math/sciences and arts, and 3) the remaining differences between the three subjects. The sizes $d_{1,1}, d_{2,2}$ and $d_{3,3}$ tell us the variability explained by each component. Finally, note that the components $d_{j,j} U_j V_j^{\top}$ are equivalent to the jth principal component.
-    
-    Finish the exercise by plotting an image of  $Y$, an image of $d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$ and an image of the residuals, all with the same `zlim`.
+$$Y = U_1 d_{1,1} V_1 ^{\top} + U_2 d_{2,2} V_2 ^{\top} + \dots + U_p d_{p,p} V_p ^{\top}$$
 
-  
+with $V_j$ the jth column of $V$. Plot $U_1$, then plot $V_1^{\top}$ using the same range for the y-axis limits, then make an image of $U_1 d_{1,1} V_1 ^{\top}$ and compare it to the image of $Y$. Hint: use the `my_image` function defined above and use the `drop=FALSE` argument to assure the subsets of matrices are matrices.
 
-14. Advanced. The `movielens` dataset included in the __dslabs__ package is a small subset of a larger dataset with millions of ratings. You can find the entire latest dataset here [https://grouplens.org/datasets/movielens/20m/](https://grouplens.org/datasets/movielens/20m/). Create your own recommendation system using all the tools we have shown you.
+
+
+11\. We see that with just a vector of length 100, a scalar, and a vector of length 24, we actually come close to reconstructing the original $100 \times 24$ matrix. This is our first matrix factorization:
+
+$$ Y \approx d_{1,1} U_1 V_1^{\top}$$
+
+We know it explains `s$d[1]^2/sum(s$d^2) * 100` percent of the total variability.  Our approximation only explains the observation that good students tend to be good in all subjects. But another aspect of the original data that our approximation does not explain was the higher similarity we observed within subjects. We can see this by computing the difference between our approximation and original data and then computing the correlations. You can see this by running this code:
+
+```{r, eval=FALSE}
+resid <- y - with(s,(u[,1, drop=FALSE]*d[1]) %*% t(v[,1, drop=FALSE]))
+my_image(cor(resid), zlim = c(-1,1))
+axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+```
+
+Now that we have removed the overall student effect, the correlation plot reveals that we have not yet explained the within subject correlation nor the fact that math and science are closer to each other than to the arts. So let's explore the second column of the SVD. Repeat the previous exercise but for the second column: Plot $U_2$, then plot $V_2^{\top}$ using the same range for the y-axis limits, then make an image of $U_2 d_{2,2} V_2 ^{\top}$ and compare it to the image of `resid`.
+
+
+12\. The second column clearly relates to a student's difference in ability in math/science versus the arts. We can see this most clearly from the plot of `s$v[,2]`. Adding the matrix we obtain with these two columns will help with our approximation:
+
+$$ Y \approx d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} $$
+
+We know it will explain 
+
+```{r,eval=FALSE}
+sum(s$d[1:2]^2)/sum(s$d^2) * 100
+```
+
+percent of the total variability. We can compute new residuals like this:
+
+```{r,eval=FALSE}
+resid <- y - with(s,sweep(u[,1:2], 2, d[1:2], FUN="*") %*% t(v[,1:2]))
+my_image(cor(resid), zlim = c(-1,1))
+axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+```
+
+and see that the structure that is left is driven by the differences between math and science. Confirm this by plotting  $U_3$, then plot $V_3^{\top}$ using the same range for the y-axis limits, then make an image of $U_3 d_{3,3} V_3 ^{\top}$ and compare it to the image of `resid`.
+
+
+
+13\. The third column clearly relates to a student's difference in ability in math and science. We can see this most clearly from the plot of `s$v[,3]`. Adding the matrix we obtain with these two columns will help with our approximation:
+
+
+$$ Y \approx d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$$
+
+We know it will explain:
+
+```{r,eval=FALSE}
+sum(s$d[1:3]^2)/sum(s$d^2) * 100
+```
+
+percent of the total variability. We can compute new residuals like this:
+
+```{r,eval=FALSE}
+resid <- y - with(s,sweep(u[,1:3], 2, d[1:3], FUN="*") %*% t(v[,1:3]))
+my_image(cor(resid), zlim = c(-1,1))
+axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+```
+
+We no longer see structure in the residuals: they seem to be independent of each other. This implies that we can describe the data with the following model:
+
+$$ Y =  d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top} + \varepsilon$$
+
+with $\varepsilon$ a matrix of independent identically distributed errors. This model is useful because we summarize of $100 \times 24$ observations with $3 \times (100+24+1) = 375$ numbers. Furthermore, the three components of the model have useful interpretations: 1) the overall ability of a student, 2) the difference in ability between the math/sciences and arts, and 3) the remaining differences between the three subjects. The sizes $d_{1,1}, d_{2,2}$ and $d_{3,3}$ tell us the variability explained by each component. Finally, note that the components $d_{j,j} U_j V_j^{\top}$ are equivalent to the jth principal component.
+
+Finish the exercise by plotting an image of  $Y$, an image of $d_{1,1} U_1 V_1^{\top} + d_{2,2} U_2 V_2^{\top} + d_{3,3} U_3 V_3^{\top}$ and an image of the residuals, all with the same `zlim`.
+
+
+
+14\. Advanced. The `movielens` dataset included in the __dslabs__ package is a small subset of a larger dataset with millions of ratings. You can find the entire latest dataset here [https://grouplens.org/datasets/movielens/20m/](https://grouplens.org/datasets/movielens/20m/). Create your own recommendation system using all the tools we have shown you.

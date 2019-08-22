@@ -217,7 +217,7 @@ $$
 
 This rule is intuitive: think of a Venn diagram. If we simply add the probabilities, we count the intersection twice so we need to substract one instance.
 
-```{r venn-diagram-addition-rule, echo=FALSE, warning=FALSE, message=FALSE, out.width="50%"}
+```{r venn-diagram-addition-rule, echo=FALSE, warning=FALSE, message=FALSE, out.width="35%"}
 library(VennDiagram)
 grid.newpage()
 tmp <- draw.pairwise.venn(22, 20, 11, category = c("A", "B"), 
@@ -256,27 +256,24 @@ expand.grid(pants = c("blue", "black"), shirt = c("white", "grey", "plaid"))
 Here is how we generate a deck of cards:
 ```{r}
 suits <- c("Diamonds", "Clubs", "Hearts", "Spades")
-numbers <- c("Ace", "Deuce", "Three", "Four", "Five", 
-             "Six", "Seven", "Eight", "Nine", "Ten", 
-             "Jack", "Queen", "King")
+numbers <- c("Ace", "Deuce", "Three", "Four", "Five", "Six", "Seven", 
+             "Eight", "Nine", "Ten", "Jack", "Queen", "King")
 deck <- expand.grid(number=numbers, suit=suits)
 deck <- paste(deck$number, deck$suit)
 ```
 
-With the deck constructed, we can now double check that the probability of a King in the first card is 1/13. We simply compute the proportion of possible outcomes that satisfy our condition:
+With the deck constructed, we can double check that the probability of a King in the first card is 1/13 by computing the proportion of possible outcomes that satisfy our condition:
 
 ```{r}
 kings <- paste("King", suits)
 mean(deck %in% kings)
 ```
 
-which is 1/13. 
-
 Now, how about the conditional probability of the second card being a King given that the first was a King? Earlier, we deduced that if one King is already out of the deck and there are 51 left, then this probability is 3/51. Let's confirm by listing out all possible outcomes. 
 
 To do this, we can use the `permutations` function from the __gtools__ package. For any list of size `n`, this function computes all the different combinations we can get when we select `r` items. Here are all the ways we can choose two numbers from a list consisting of `1,2,3`:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(gtools)
 permutations(3, 2)
 ```
@@ -316,15 +313,13 @@ sum(first_card %in% kings)
 To get the conditional probability, we compute what fraction of these have a King in the second card:
 
 ```{r}
-sum(first_card %in% kings & second_card %in% kings) /
-  sum(first_card %in% kings)
+sum(first_card %in% kings & second_card %in% kings) / sum(first_card %in% kings)
 ```
 
 which is exactly 3/51, as we had already deduced. Notice that the code above is equivalent to:
 
 ```{r}
-mean(first_card %in% kings & second_card %in% kings) /
-  mean(first_card %in% kings)
+mean(first_card %in% kings & second_card %in% kings) / mean(first_card %in% kings)
 ```
 
 which uses `mean` instead of `sum` and is an R version of: 
@@ -334,10 +329,9 @@ $$
 $$
 
 
-How about if the order doesn't matter? For example, in Blackjack if you get an Ace and a face card in the first draw, it is called a _Natural 21_ and you win automatically. If we wanted to compute the probability of this happening, we would enumerate the _combinations_, not the permutations, since the order does not matter. Below are the differences:
+How about if the order doesn't matter? For example, in Blackjack if you get an Ace and a face card in the first draw, it is called a _Natural 21_ and you win automatically. If we wanted to compute the probability of this happening, we would enumerate the _combinations_, not the permutations, since the order does not matter. 
 
 ```{r}
-permutations(3,2)
 combinations(3,2)
 ```
 
@@ -407,7 +401,7 @@ mean(results)
 
 ## Examples 
 
-In this section, we describe two popular examples related to discrete probability: the Monty Hall problem and the birthday problem. We use R code to help illustrate the mathematical concepts.
+In this section, we describe two discrete probability popular examples: the Monty Hall problem and the birthday problem. We use R to help illustrate the mathematical concepts.
 
 ### Monty Hall problem
 
@@ -419,7 +413,7 @@ Let's start with the stick strategy:
 
 ```{r}
 B <- 10000
-stick <- replicate(B, {
+monty_hall <- function(strategy){
   doors <- as.character(1:3)
   prize <- sample(c("car", "goat", "goat"))
   prize_door <- doors[prize == "car"]
@@ -427,30 +421,18 @@ stick <- replicate(B, {
   show <- sample(doors[!doors %in% c(my_pick, prize_door)],1)
   stick <- my_pick
   stick == prize_door
-})
-mean(stick)
-```
-
-As we write the code, we note that the lines starting with `my_pick` and `show` have no influence on the last logical operation since we stick to our original choice anyway. From this we should realize that the chance is 1 in 3, what we began with.
-
-Now let's repeat the exercise, but consider the switch strategy:
-
-```{r}
-switch <- replicate(B, {
-  doors <- as.character(1:3)
-  prize <- sample(c("car", "goat", "goat"))
-  prize_door <- doors[prize == "car"]
-  my_pick  <- sample(doors, 1)
-  show <- sample(doors[!doors %in% c(my_pick, prize_door)], 1)
-  stick <- my_pick
   switch <- doors[!doors%in%c(my_pick, show)]
-  switch == prize_door
-})
+  choice <- ifelse(strategy == "stick", stick, switch)
+  choice == prize_door
+}
+stick <- replicate(B, monty_hall("stick"))
+mean(stick)
+switch <- replicate(B, monty_hall("switch"))
 mean(switch)
 ```
 
-The Monte Carlo estimate confirms the 2/3 calculation. This helps us gain some insight by showing that we are removing a door, `show`, that is definitely not a winner from our choices. We also see that unless we get it right when we first pick, you win: 1 - 1/3 = 2/3. 
-
+As we write the code, we note that the lines starting with `my_pick` and `show` have no influence on the last logical operation when we stick to our original choice anyway. From this we should realize that the chance is 1 in 3, what we began with. When we switch, 
+the Monte Carlo estimate confirms the 2/3 calculation. This helps us gain some insight by showing that we are removing a door, `show`, that is definitely not a winner from our choices. We also see that unless we get it right when we first pick, you win: 1 - 1/3 = 2/3. 
 
 ### Birthday problem 
 
@@ -484,12 +466,11 @@ In this case, we see that it did happen. At least two people had the same birthd
 To estimate the probability of a shared birthday in the group, we repeat this experiment by sampling sets of 50 birthdays over and over:
 
 ```{r birthday-problem}
+B <- 10000
 same_birthday <- function(n){
   bdays <- sample(1:365, n, replace=TRUE)
   any(duplicated(bdays))
 }
-
-B <- 10000
 results <- replicate(B, same_birthday(50))
 mean(results)
 ```
@@ -544,9 +525,7 @@ exact_prob <- function(n){
   1 - prod( prob_unique)
 }
 eprob <- sapply(n, exact_prob)
-
-qplot(n, prob) + 
-  geom_line(aes(n, eprob), col = "red")
+qplot(n, prob) + geom_line(aes(n, eprob), col = "red")
 ```
 
 This plot shows that the Monte Carlo simulation provided a very good estimate of the exact probability. Had it not been possible to compute the exact probabilities, we would have still been able to accurately estimate the probabilities.
@@ -576,70 +555,67 @@ In this plot, we can see that the values start to stabilize (that is, they vary 
 ## Exercises
 
 
-1. One ball will be drawn at random from a box containing: 3 cyan balls, 5 magenta balls, and 7 yellow balls. What is the probability that the ball will be cyan?
+1\. One ball will be drawn at random from a box containing: 3 cyan balls, 5 magenta balls, and 7 yellow balls. What is the probability that the ball will be cyan?
 
 
-2. What is the probability that the ball will not be cyan?
+2\. What is the probability that the ball will not be cyan?
 
 
-3. Instead of taking just one draw, consider taking two draws. You take the second draw without returning the first draw to the box. We call this sampling **without** replacement. What is the probability that the first draw is cyan and that the second draw is not cyan?
+3\. Instead of taking just one draw, consider taking two draws. You take the second draw without returning the first draw to the box. We call this sampling **without** replacement. What is the probability that the first draw is cyan and that the second draw is not cyan?
 
 
-4. Now repeat the experiment, but this time, after taking the first draw and recording the color, return it to the box and shake the box. We call this sampling **with** replacement. What is the probability that the first draw is cyan and that the second draw is not cyan?
+4\. Now repeat the experiment, but this time, after taking the first draw and recording the color, return it to the box and shake the box. We call this sampling **with** replacement. What is the probability that the first draw is cyan and that the second draw is not cyan?
 
 
-5. Two events $A$ and $B$ are independent if $\mbox{Pr}(A \mbox{ and } B) = \mbox{Pr}(A) P(B)$. Under which situation are the draws independent?
+5\. Two events $A$ and $B$ are independent if $\mbox{Pr}(A \mbox{ and } B) = \mbox{Pr}(A) P(B)$. Under which situation are the draws independent?
 
-    A. You don't replace the draw.
+a. You don't replace the draw.
+b. You replace the draw.
+c. Neither
+d. Both
 
-    B. You replace the draw.
+6\. Say you’ve drawn 5 balls from the box, with replacement, and all have been yellow. What is the probability that the next one is yellow? 
 
-    C. Neither
+7\. If you roll a 6-sided die six times, what is the probability of not seeing a 6?
 
-    D. Both
+8\. Two teams, say the Celtics and the Cavs, are playing a seven game series. The Cavs are a better team and have a 60% chance of winning each game. What is the probability that the Celtics win **at least** one game?
 
-6. Say you’ve drawn 5 balls from the box, with replacement, and all have been yellow. What is the probability that the next one is yellow? 
+9\. Create a Monte Carlo simulation to confirm your answer to the previous problem. Use `B <- 10000` simulations. Hint: use the following code to generate the results of the first four games:
 
-7. If you roll a 6-sided die six times, what is the probability of not seeing a 6?
-
-8. Two teams, say the Celtics and the Cavs, are playing a seven game series. The Cavs are a better team and have a 60% chance of winning each game. What is the probability that the Celtics win **at least** one game?
-
-9. Create a Monte Carlo simulation to confirm your answer to the previous problem. Use `B <- 10000` simulations. Hint: use the following code to generate the results of the first four games:
-
-    ```{r, eval=FALSE}
+```{r, eval=FALSE}
 celtic_wins <- sample(c(0,1), 4, replace = TRUE, prob = c(0.6, 0.4))
 ```
-    The Celtics must win one of these 4 games.
+The Celtics must win one of these 4 games.
 
-10. Two teams, say the Cavs and the Warriors, are playing a seven game championship series. The first to win four games, therefore, wins the series. The teams are equally good so they each have a 50-50 chance of winning each game. If the Cavs lose the first game, what is the probability that they win the series?
+10\. Two teams, say the Cavs and the Warriors, are playing a seven game championship series. The first to win four games, therefore, wins the series. The teams are equally good so they each have a 50-50 chance of winning each game. If the Cavs lose the first game, what is the probability that they win the series?
 
-11. Confirm the results of the previous question with a Monte Carlo simulation.
+11\. Confirm the results of the previous question with a Monte Carlo simulation.
 
-12. Two teams, $A$ and $B$, are playing a seven game series. Team $A$ is better than team $B$ and has a $p>0.5$ chance of winning each game. Given a value $p$, the probability of winning the series for the underdog team $B$ can be computed with the following function based on a Monte Carlo simulation:
+12\. Two teams, $A$ and $B$, are playing a seven game series. Team $A$ is better than team $B$ and has a $p>0.5$ chance of winning each game. Given a value $p$, the probability of winning the series for the underdog team $B$ can be computed with the following function based on a Monte Carlo simulation:
 
-    ```{r, eval=FALSE}
-    prob_win <- function(p){
-      B <- 10000
-      result <- replicate(B, {
-        b_win <- sample(c(1,0), 7, replace = TRUE, prob = c(1-p, p))
-        sum(b_win)>=4
-      })
-      mean(result)
-    }
-    ```
+```{r, eval=FALSE}
+prob_win <- function(p){
+  B <- 10000
+  result <- replicate(B, {
+    b_win <- sample(c(1,0), 7, replace = TRUE, prob = c(1-p, p))
+    sum(b_win)>=4
+  })
+  mean(result)
+}
+```
 
-    Use the function `sapply` to compute the probability, call it `Pr`, of winning for `p <- seq(0.5, 0.95, 0.025)`. Then plot the result.
+Use the function `sapply` to compute the probability, call it `Pr`, of winning for `p <- seq(0.5, 0.95, 0.025)`. Then plot the result.
 
-13. Repeat the exercise above, but now keep the probability fixed at `p <- 0.75` and compute the probability for different series lengths: best of 1 game, 3 games, 5 games,... Specifically, `N <- seq(1, 25, 2)`. Hint: use this function:
+13\. Repeat the exercise above, but now keep the probability fixed at `p <- 0.75` and compute the probability for different series lengths: best of 1 game, 3 games, 5 games,... Specifically, `N <- seq(1, 25, 2)`. Hint: use this function:
 
-    ```{r, eval = FALSE}
-    prob_win <- function(N, p=0.75){
-      B <- 10000
-      result <- replicate(B, {
-        b_win <- sample(c(1,0), N, replace = TRUE, prob = c(1-p, p))
-        sum(b_win)>=(N+1)/2
-      })
-      mean(result)
-    }
-    ```
- 
+```{r, eval = FALSE}
+prob_win <- function(N, p=0.75){
+  B <- 10000
+  result <- replicate(B, {
+    b_win <- sample(c(1,0), N, replace = TRUE, prob = c(1-p, p))
+    sum(b_win)>=(N+1)/2
+  })
+  mean(result)
+}
+```
+

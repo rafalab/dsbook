@@ -75,7 +75,8 @@ If we performed regression on this group and interpreted the p-value, we would i
 library(broom)
 sim_data %>% 
   filter(group == res$group[which.max(res$r)]) %>%
-  do(tidy(lm(y ~ x, data = .)))
+  do(tidy(lm(y ~ x, data = .))) %>% 
+  filter(term == "x")
 ```
 
 This particular form of data dredging is referred to as _p-hacking_. P-hacking is a topic of much discussion because it is a problem in scientific publications. Because publishers tend to reward statistically significant results over negative results, there is an incentive to report significant results. In epidemiology and the social sciences, for example, researchers may look for associations between an adverse outcome and several exposures and report only the one exposure that resulted in a small p-value. Furthermore, they might try fitting several different models to account for confounding and pick the one that yields the smallest p-value. In experimental disciplines, an experiment might be repeated more than once, yet only the results of the one experiment with a small p-value reported. This does not necessarily happen due to unethical behavior, but rather as a result of statistical ignorance or wishful thinking. In advanced statistics courses, you can learn methods to adjust for these multiple comparisons.
@@ -172,16 +173,10 @@ Incorrect interpretation due to confounders is ubiquitous in the lay press and t
 
 ### Example: UC Berkeley admissions 
 
-Admission data from six U.C. Berkeley majors, from 1973, showed that more men were being admitted than women: 44% men were admitted compared to 30% women. PJ Bickel, EA Hammel, and JW O'Connell. Science (1975). Here is the data:
+Admission data from six U.C. Berkeley majors, from 1973, showed that more men were being admitted than women: 44% men were admitted compared to 30% women. PJ Bickel, EA Hammel, and JW O'Connell. Science (1975). We can load the data and compute the percent of men and women that were accepted like this:
 
 ```{r}
 data(admissions)
-admissions
-```
-
-The percent of men and women that were accepted was:
-
-```{r}
 admissions %>% group_by(gender) %>% 
   summarize(percentage = 
               round(sum(admitted*applicants)/sum(applicants),1))
@@ -194,7 +189,7 @@ admissions %>% group_by(gender) %>%
   summarize(total_admitted = round(sum(admitted / 100 * applicants)), 
             not_admitted = sum(applicants) - sum(total_admitted)) %>%
   select(-gender) %>% 
-  do(tidy(chisq.test(.)))
+  do(tidy(chisq.test(.))) %>% .$p.value
 ```
 
 But closer inspection shows a paradoxical result. Here are the percent admissions by major:
@@ -238,13 +233,16 @@ admissions %>%
   ggplot(aes(gender, number_of_students, fill = admission)) +
   geom_bar(stat = "identity", position = "stack") +
   facet_wrap(. ~ major)
+```
 
+<!--
+```{r confounding-2}
 admissions %>% 
   mutate(percent_admitted = admitted * applicants/sum(applicants)) %>%
   ggplot(aes(gender, y = percent_admitted, fill = major)) +
   geom_bar(stat = "identity", position = "stack")
 ```
-
+-->
 It also breaks down the acceptances by major. This breakdown allows us to see that the majority of accepted men came from two majors: A and B. It also lets us see that few women applied to these majors. 
 
 
@@ -324,35 +322,35 @@ A response^[http://www.pnas.org/content/112/51/E7036.extract] was published a fe
 
 Who is right here? The original paper or the response? Here, you will examine the data and come to your own conclusion.
 
-1. The main evidence for the conclusion of the original paper comes down to a comparison of the percentages. Table S1 in the paper includes the information we need:
+1\. The main evidence for the conclusion of the original paper comes down to a comparison of the percentages. Table S1 in the paper includes the information we need:
 
-    ```{r,eval=FALSE}
-    library(dslabs)
-    data("research_funding_rates")
-    research_funding_rates
-    ```
+```{r,eval=FALSE}
+library(dslabs)
+data("research_funding_rates")
+research_funding_rates
+```
 
-    Construct the two-by-two table used for the conclusion about differences in awards by gender.
-
-
-2. Compute the difference in percentage from the two-by-two table.
+Construct the two-by-two table used for the conclusion about differences in awards by gender.
 
 
-3. In the previous exercise, we noticed that the success rate is lower for women. But is it significant? Compute a p-value using a Chi-square test.
+2\. Compute the difference in percentage from the two-by-two table.
 
 
-4. We see that the p-value is about 0.05. So there appears to be some evidence of an association. But can we infer causation here? Is gender bias causing this observed difference? The response to the original paper claims that what we see here is similar to the UC Berkeley admissions example. Specifically they state that this "could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines, then an analysis across all disciplines could incorrectly show 'evidence' of gender inequality." To settle this dispute, create a dataset with number of applications, awards, and success rate for each gender. Re-order the disciplines by their overall success rate. Hint: use the `reorder` function to re-order the disciplines in a first step, then use `gather`, `separate`, and `spread` to create the desired table.
+3\. In the previous exercise, we noticed that the success rate is lower for women. But is it significant? Compute a p-value using a Chi-square test.
 
 
-5. To check if this is a case of Simpson's paradox, plot the success rates versus disciplines, which have been ordered by overall success, with colors to denote the genders and size to denote the number of applications.
+4\. We see that the p-value is about 0.05. So there appears to be some evidence of an association. But can we infer causation here? Is gender bias causing this observed difference? The response to the original paper claims that what we see here is similar to the UC Berkeley admissions example. Specifically they state that this "could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines, then an analysis across all disciplines could incorrectly show 'evidence' of gender inequality." To settle this dispute, create a dataset with number of applications, awards, and success rate for each gender. Re-order the disciplines by their overall success rate. Hint: use the `reorder` function to re-order the disciplines in a first step, then use `gather`, `separate`, and `spread` to create the desired table.
+
+
+5\. To check if this is a case of Simpson's paradox, plot the success rates versus disciplines, which have been ordered by overall success, with colors to denote the genders and size to denote the number of applications.
 
   
-6. We definitely do not see the same level of confounding as in the UC Berkeley example. It is hard to say there is a confounder here. However, we do see that, based on the observed rates, some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But, unlike the UC Berkeley example, women are not more likely to apply for the harder subjects. So perhaps some of the selection committees are biased and others are not.  
+6\. We definitely do not see the same level of confounding as in the UC Berkeley example. It is hard to say there is a confounder here. However, we do see that, based on the observed rates, some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But, unlike the UC Berkeley example, women are not more likely to apply for the harder subjects. So perhaps some of the selection committees are biased and others are not.  
 
-    But, before we conclude this, we must check if these differences are any different than what we get by chance. Are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. Perform a Chi-square test for each discipline. Hint: define a function that receives the total of a two-by-two table and returns a data frame with the p-value. Use the 0.5 correction. Then use the do function. 
+But, before we conclude this, we must check if these differences are any different than what we get by chance. Are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. Perform a Chi-square test for each discipline. Hint: define a function that receives the total of a two-by-two table and returns a data frame with the p-value. Use the 0.5 correction. Then use the do function. 
 
  
-7. For the medical sciences, there appears to be a statistically significant difference. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 might be considered an example of cherry picking. 
+7\. For the medical sciences, there appears to be a statistically significant difference. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 might be considered an example of cherry picking. 
 Repeat the exercise above, but instead of a p-value, compute a log odds ratio divided by their standard error. Then use qq-plot to see how much these log odds ratios deviate from the normal distribution we would expect: a standard normal distribution.
 
     
