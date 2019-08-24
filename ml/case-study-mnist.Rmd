@@ -67,7 +67,12 @@ nzv <- nearZeroVar(x)
 
 We can see the columns recommended for removal:
 
-```{r near-zero-image, fig.width = 4, fig.height = 4}
+```{r eval=FALSE}
+image(matrix(1:784 %in% nzv, 28, 28))
+```
+
+```{r near-zero-image, fig.width = 4, fig.height = 4, out.width="50%"}
+rafalib::mypar()
 image(matrix(1:784 %in% nzv, 28, 28))
 ```
 
@@ -181,7 +186,7 @@ y_hat_rf <- predict(fit_rf, x_test[ ,col_index])
 cm <- confusionMatrix(y_hat_rf, y_test)
 cm$overall["Accuracy"]
 ```
-
+<!--
 Here are some examples of the original images and our calls:
 ```{r mnist-examples-of-calls, echo=FALSE, out.width="100%"}
 rafalib::mypar(3,4)
@@ -191,6 +196,7 @@ for(i in 1:12){
         xaxt="n", yaxt="n")
 }
 ```
+-->
 
 With some further tuning, we can get even higher accuracy.
 
@@ -204,7 +210,15 @@ imp <- importance(fit_rf)
 
 We can see which features are being used most by plotting an image:
 
-```{r importance-image, fig.width = 4, fig.height = 4}
+
+```{r eval=FALSE}
+mat <- rep(0, ncol(x))
+mat[col_index] <- imp
+image(matrix(mat, 28, 28))
+```
+
+```{r importance-image, fig.width = 4, fig.height = 4, out.width="50%"}
+rafalib::mypar()
 mat <- rep(0, ncol(x))
 mat[col_index] <- imp
 image(matrix(mat, 28, 28))
@@ -215,7 +229,7 @@ image(matrix(mat, 28, 28))
 An important part of data analysis is visualizing results to determine why we are failing. How we do this depends on the application. Below we show the images of digits for which we made an incorrect prediction.
 We can compare what we get with kNN to random forest.
 
-Here are some errors for kNN:
+<!--Here are some errors for kNN:
 
 ```{r knn-images, echo=FALSE, out.width="100%", fig.width=6, fig.height=1.65}
 p_max <- predict(fit_knn, x_test[,col_index])
@@ -231,7 +245,9 @@ for(i in ind[1:4]){
 }
 ```
  
-And here are some errors for the random forest:
+And -->
+
+Here are some errors for the random forest:
 
 ```{r rf-images,, echo=FALSE, out.width="100%", fig.width=6, fig.height=1.65}
 p_max <- predict(fit_rf, x_test[,col_index], type = "prob") 
@@ -273,48 +289,44 @@ In the exercises we are going to build several machine learning models for the
 
 ## Exercises
 
-1. Use the `mnist_27` training set to build a model with several of the models available from the __caret__ package. For example, you can try these:
+1\. Use the `mnist_27` training set to build a model with several of the models available from the __caret__ package. For example, you can try these:
 
-    ```{r, eval = FALSE}
-    models <- c("glm", "lda",  "naive_bayes",  "svmLinear", 
-                "gamboost",  "gamLoess", "qda", 
-                "knn", "kknn", "loclda", "gam",
-                "rf", "ranger",  "wsrf", "Rborist", 
-                "avNNet", "mlp", "monmlp",
-                "adaboost", "gbm",
-                "svmRadial", "svmRadialCost", "svmRadialSigma")
-    ```
+```{r, eval = FALSE}
+models <- c("glm", "lda",  "naive_bayes",  "svmLinear", "gamboost",  "gamLoess", 
+            "qda", "knn", "kknn", "loclda", "gam", "rf", "ranger",  "wsrf", 
+            "Rborist", "avNNet", "mlp", "monmlp", "adaboost", "gbm",
+            "svmRadial", "svmRadialCost", "svmRadialSigma")
+```
 
-    We have not explained many of these, but apply them anyway using `train` with all the default parameters. Keep the results in a list. You might need to install some packages. Keep in mind that you will likely get some warnings.
+We have not explained many of these, but apply them anyway using `train` with all the default parameters. Keep the results in a list. You might need to install some packages. Keep in mind that you will likely get some warnings.
 
 
-2. Now that you have all the trained models in a list, use `sapply` or `map` to create a matrix of predictions for the test set. You should end up with a matrix with `length(mnist_27$test$y)` rows and `length(models)` columns. 
+2\. Now that you have all the trained models in a list, use `sapply` or `map` to create a matrix of predictions for the test set. You should end up with a matrix with `length(mnist_27$test$y)` rows and `length(models)` columns. 
 
 
-3. Now compute accuracy for each model on the test set.
+3\. Now compute accuracy for each model on the test set.
 
 
-4. Now build an ensemble prediction by majority vote and compute the accuracy of the ensemble.
+4\. Now build an ensemble prediction by majority vote and compute its accuracy.
 
-5. Earlier we computed the accuracy of each method on the training set and noticed they varied.  How many of the individual methods do better than the ensemble? Which methods are they?
+5\. Earlier we computed the accuracy of each method on the training set and noticed they varied.  Which individual methods do better than the ensemble? 
 
-
-6. It is tempting to remove the methods that do not perform well and re-do the ensemble. The problem with this approach is that we are using the test data to make a decision. However, we could use the accuracy estimates obtained from cross validation with the training data. Obtain these estimates and save them in an object.
-
-
-7. Now let's only consider the methods with an estimated accuracy of 0.8 when constructing the ensemble. What is the accuracy now?
+6\. It is tempting to remove the methods that do not perform well and re-do the ensemble. The problem with this approach is that we are using the test data to make a decision. However, we could use the accuracy estimates obtained from cross validation with the training data. Obtain these estimates and save them in an object.
 
 
-8. __Advanced__: If two methods give results that are the same, ensembling them will not change the results at all. For each pair of metrics compare the percent of time they call the same thing. Then use the `heatmap` function to visualize the results. Hint: use the `method = "binary"` argument in the `dist` function.
+7\. Now let's only consider the methods with an estimated accuracy of 0.8 when constructing the ensemble. What is the accuracy now?
 
 
-9. __Advanced__: Note that each method can also produce an estimated conditional probability. Instead of majority vote we can take the average of these estimated conditional probabilities. For most methods, we can the use the `type = "prob"` in the train function. However, some of the methods require you to use the argument `trControl=trainControl(classProbs=TRUE)` when calling train. Also these methods do not work if classes have numbers as names. Hint: change the levels like this:
+8\. __Advanced__: If two methods give results that are the same, ensembling them will not change the results at all. For each pair of metrics compare the percent of time they call the same thing. Then use the `heatmap` function to visualize the results. Hint: use the `method = "binary"` argument in the `dist` function.
 
 
-    ```{r, eval = FALSE}
-    dat$train$y <- recode_factor(dat$train$y, "2"="two", "7"="seven")
-    dat$test$y <- recode_factor(dat$test$y, "2"="two", "7"="seven")
-    ```
-    
+9\. __Advanced__: Note that each method can also produce an estimated conditional probability. Instead of majority vote we can take the average of these estimated conditional probabilities. For most methods, we can the use the `type = "prob"` in the train function. However, some of the methods require you to use the argument `trControl=trainControl(classProbs=TRUE)` when calling train. Also these methods do not work if classes have numbers as names. Hint: change the levels like this:
 
-10. In this chapter, we illustrated a couple of machine learning algorithms on a subset of the MNIST dataset. Try fitting a model to the entire dataset.
+
+```{r, eval = FALSE}
+dat$train$y <- recode_factor(dat$train$y, "2"="two", "7"="seven")
+dat$test$y <- recode_factor(dat$test$y, "2"="two", "7"="seven")
+```
+
+
+10\. In this chapter, we illustrated a couple of machine learning algorithms on a subset of the MNIST dataset. Try fitting a model to the entire dataset.

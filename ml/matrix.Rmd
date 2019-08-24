@@ -29,15 +29,15 @@ The main reason for using matrices is that certain mathematical operations neede
 
 To motivate the use of matrices, we will pose five questions/challenges:
 
-1. Do some digits require more ink than others? Study the distribution of the total pixel darkness and how it varies by digits.
+1\. Do some digits require more ink than others? Study the distribution of the total pixel darkness and how it varies by digits.
 
-2. Are some pixels uninformative? Study the variation of each pixel and remove predictors (columns) associated with pixels that don't change much and thus can't provide much information for classification.
+2\. Are some pixels uninformative? Study the variation of each pixel and remove predictors (columns) associated with pixels that don't change much and thus can't provide much information for classification.
 
-3. Can we remove smudges?  First, look at the distribution of all pixel values. Use this to pick a cutoff to define unwritten space. Then, set anything below that cutoff to 0. 
+3\. Can we remove smudges?  First, look at the distribution of all pixel values. Use this to pick a cutoff to define unwritten space. Then, set anything below that cutoff to 0. 
 
-4. Binarize the data. First, look at the distribution of all pixel values. Use this to pick a cutoff to distinguish between writing and no writing. Then, convert all entries into either 1 or 0, respectively.
+4\. Binarize the data. First, look at the distribution of all pixel values. Use this to pick a cutoff to distinguish between writing and no writing. Then, convert all entries into either 1 or 0, respectively.
 
-5. Scale each of the predictors in each entry to have the same average and standard deviation.
+5\. Scale each of the predictors in each entry to have the same average and standard deviation.
 
 To complete these, we will have to perform mathematical operations involving several variables. The __tidyverse__ is not developed to perform these types of mathematical operations. For this task, it is convenient to use matrices. 
 
@@ -169,7 +169,7 @@ identical(t(mat), mat_t)
 __Warning__: The `matrix` function recycles values in the vector **without warning** if the product of columns and rows does not match the length of the vector:
 
 ```{r}
-matrix(my_vector, 5, 5)
+matrix(my_vector, 4, 5)
 ```
 
 To put the pixel intensities of our, say, 3rd entry, which is a `r mnist$train$label[3]` into grid, we can use:
@@ -178,17 +178,19 @@ To put the pixel intensities of our, say, 3rd entry, which is a `r mnist$train$l
 grid <- matrix(x[3,], 28, 28)
 ```
 
-To confirm that in fact we have done this correctly, we can use the function `image` which shows an image of its third argument:
+To confirm that in fact we have done this correctly, we can use the function `image`, which shows an image of its third argument. The top of this plot is pixel 1, which is shown at the bottom so the image is flipped. To code below includes code showing how to flip it back:
 
-```{r matrix-image, fig.width = 3, fig.height = 3}
+```{r eval=FALSE}
 image(1:28, 1:28, grid)
-```
-
-The top of this plot is pixel 1, which is shown at the bottom so the image is flipped. To flip it back we can use:
-
-```{r flip-matrix-image, fig.width = 3, fig.height = 3}
 image(1:28, 1:28, grid[, 28:1])
 ```
+
+```{r matrix-image, fig.width = 8, fig.height = 4, echo=FALSE}
+rafalib::mypar(1,2)
+image(1:28, 1:28, grid)
+image(1:28, 1:28, grid[, 28:1])
+```
+
 
 ### Row and column summaries
 
@@ -252,7 +254,12 @@ qplot(sds, bins = "30", color = I("black"))
 
 This makes sense since we don't write in some parts of the box. Here is the variance plotted by location:
 
-```{r pixel-variance, fig.width = 3, fig.height = 3}
+```{r eval=FALSE}
+image(1:28, 1:28, matrix(sds, 28, 28)[, 28:1])
+```
+
+```{r pixel-variance, fig.width = 3, fig.height = 3, echo=FALSE, out.width="50%"}
+rafalib::mypar()
 image(1:28, 1:28, matrix(sds, 28, 28)[, 28:1])
 ```
 
@@ -346,7 +353,7 @@ We can also convert to a matrix of logicals and then coerce to numbers like this
 ```{r}
 bin_X <- (x > 255/2)*1
 ```
-
+<!--
 We can see that at least the entry we looked at before does not change much:
 
 ```{r binarized-image, echo=FALSE, out.width="100%", fig.width = 6, fig.height = 3.25}
@@ -356,6 +363,7 @@ columns <- 1:28
 image(rows, columns, matrix(-x[8,], 28, 28), main = "Original")
 image(rows, columns, matrix(-bin_x[8,], 28, 28), main ="Binarized")
 ```
+-->
 
 ### Vectorization for matrices
 
@@ -416,29 +424,29 @@ x_standardized <- sweep(x_mean_0, 2, colSds(x), FUN = "/")
 
 Finally, although we do not cover matrix algebra operations such as matrix multiplication, we share here the relevant commands for those that know the mathematics and want to learn the code:
 
-1. Matrix multiplication is done with `%*%`. For example, the cross product is:
+1\. Matrix multiplication is done with `%*%`. For example, the cross product is:
 
     ```{r, eval=FALSE}
     t(x) %*% x
     ```
 
-2. We can compute the cross product directly with the function:
+2\. We can compute the cross product directly with the function:
 
     ```{r, eval=FALSE}
     crossprod(x)
     ```
 
-3. To compute the inverse of a function, we use `solve`. Here it is applied to the cross product:
+3\. To compute the inverse of a function, we use `solve`. Here it is applied to the cross product:
 
-    ```{r, eval=FALSE}
-    solve(crossprod(x))
-    ```
+```{r, eval=FALSE}
+solve(crossprod(x))
+```
 
-4. The QR decomposition is readily available by using the `qr` function:
+4\. The QR decomposition is readily available by using the `qr` function:
 
-    ```{r, eval=FALSE}
-    qr(x)
-    ```
+```{r, eval=FALSE}
+qr(x)
+```
 
 
 ## Exercises 

@@ -131,8 +131,7 @@ The final code and  resulting estimate look like this:
 ```{r binsmoother-final}
 span <- 7 
 fit <- with(polls_2008, 
-            ksmooth(day, margin, 
-                    x.points = day, kernel="box", bandwidth = span))
+            ksmooth(day, margin, kernel = "box", bandwidth = span))
 
 polls_2008 %>% mutate(smooth = fit$y) %>%
   ggplot(aes(day, margin)) +
@@ -153,7 +152,7 @@ $$
 in which each point receives a weight of either $0$ or $1/N_0$, with $N_0$ the number of points in the week. In the code above, we used the argument `kernel="box"` in our call to the function `ksmooth`. This is because the weight function looks like a box.
 The `ksmooth` function provides a "smoother" option which uses the normal density to assign weights.
 
-```{r gaussian-kernel, echo=FALSE}
+```{r gaussian-kernel, echo=FALSE, out.width="80%", fig.height=3, fig.width=6}
 x_0 <- -125
 
 p1 <- data.frame(x = polls_2008$day) %>% mutate(w_0 = 1*I(abs(x - x_0)<=span/2)) %>%
@@ -223,7 +222,7 @@ The final code and resulting plot for the normal kerenl look like this:
 ```{r final-ksmooth-normal-kernel}
 span <- 7
 fit <- with(polls_2008, 
-            ksmooth(day, margin,  x.points = day, kernel="normal", bandwidth = span))
+            ksmooth(day, margin, kernel = "normal", bandwidth = span))
 
 polls_2008 %>% mutate(smooth = fit$y) %>%
   ggplot(aes(day, margin)) +
@@ -404,11 +403,23 @@ $$
 
 This kernel differs from the Gaussian kernel in that more points get values closer to the max:
 
-```{r triweight-kernel, echo=FALSE}
-data.frame(x = seq(min(polls_2008$day), max(polls_2008$day), length.out = 100)) %>%
+```{r triweight-kernel, echo=FALSE, out.width="80%", fig.height=3, fig.width=6}
+x_0 <- -125
+
+tmp <- with(data.frame(day = seq(min(polls_2008$day), max(polls_2008$day), .25)), 
+                       ksmooth(day, 1*I(day == x_0), kernel = "normal", x.points = day, bandwidth = 7))
+p1 <- data.frame(x = tmp$x, w_0 = tmp$y) %>%
+  mutate(w_0 = w_0/sum(w_0)) %>%
+  ggplot(aes(x, w_0)) +
+  geom_line() +
+  ggtitle("Normal")
+
+p2 <- data.frame(x = seq(min(polls_2008$day), max(polls_2008$day), length.out = 100)) %>%
   mutate(w_0 = (1 - (abs(x-x_0)/21)^3)^3*I(abs(x-x_0)<=21)) %>%
   ggplot(aes(x, w_0)) +
-  geom_line()
+  geom_line()  +
+  ggtitle("Tri-weight")
+gridExtra::grid.arrange(p1, p2, ncol = 3)
 ```
 
     

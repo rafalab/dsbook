@@ -19,8 +19,9 @@ mnist_27$train %>% ggplot(aes(x_1, x_2, color = y)) + geom_point()
 We can immediately see some patterns. For example, if $X_1$ (the upper left panel) is very large, then the digit is probably a 7. Also, for smaller values of $X_1$, the 2s appear to be in the mid range values of $X_2$.
 
 These are the images of the digits with the largest and smallest values for $X_1$:
+And here are the original images corresponding to the largest and smallest value of $X_2$:
 
-```{r two-or-seven-images-large-x1, echo=FALSE}
+```{r two-or-seven-images-large-x1, echo=FALSE, out.width="100%", fig.height=3, fig.width=6.5}
 if(!exists("mnist")) mnist <- read_mnist()
 is <- mnist_27$index_train[c(which.min(mnist_27$train$x_1), which.max(mnist_27$train$x_1))]
 titles <- c("smallest","largest")
@@ -30,18 +31,17 @@ tmp <- lapply(1:2, function(i){
              value = mnist$train$images[is[i],])
 })
 tmp <- Reduce(rbind, tmp)
-tmp %>% ggplot(aes(Row, Column, fill=value)) + 
-    geom_raster() + 
-    scale_y_reverse() +
-    scale_fill_gradient(low="white", high="black") +
-    facet_grid(.~label) + 
-    geom_vline(xintercept = 14.5) +
-    geom_hline(yintercept = 14.5)
-```
+p1 <- tmp %>% ggplot(aes(Row, Column, fill=value)) + 
+  geom_raster(show.legend = FALSE) + 
+  scale_y_reverse() +
+  scale_fill_gradient(low="white", high="black") +
+  facet_grid(.~label) + 
+  geom_vline(xintercept = 14.5) +
+  geom_hline(yintercept = 14.5) +
+  ggtitle("Largest and smallest x_1")
 
-And here are the original images corresponding to the largest and smallest value of $x_2$:
-
-```{r  two-or-seven-images-large-x2, echo=FALSE}
+    
+ 
 is <- mnist_27$index_train[c(which.min(mnist_27$train$x_2), which.max(mnist_27$train$x_2))]
 titles <- c("smallest","largest")
 tmp <- lapply(1:2, function(i){
@@ -50,13 +50,15 @@ tmp <- lapply(1:2, function(i){
              value = mnist$train$images[is[i],])
 })
 tmp <- Reduce(rbind, tmp)
-tmp %>% ggplot(aes(Row, Column, fill=value)) + 
-    geom_raster() + 
+p2 <- tmp %>% ggplot(aes(Row, Column, fill=value)) + 
+    geom_raster(show.legend = FALSE) + 
     scale_y_reverse() +
     scale_fill_gradient(low="white", high="black") +
     facet_grid(.~label) + 
     geom_vline(xintercept = 14.5) +
-    geom_hline(yintercept = 14.5)
+    geom_hline(yintercept = 14.5) +
+  ggtitle("Largest and smallest x_2")
+gridExtra::grid.arrange(p1, p2, ncol = 2)
 ```
 
 We can start getting a sense for why these predictors are useful, but also why the problem will be somewhat challenging.
@@ -107,7 +109,7 @@ x_2 = (0.5-\hat{\beta}_0)/\hat{\beta}_2  -\hat{\beta}_1/\hat{\beta}_2 x_1
 $$
 Note that for this boundary, $x_2$ is a linear function of $x_1$. This implies that our logistic regression approach has no chance of capturing the non-linear nature of the true $p(x_1,x_2)$. Below is a visual representation of $\hat{p}(x_1, x_2)$. We used the `squish` function from the **scales** package to constrain estimates to be between 0 and 1. We can see where the mistakes were made by also showing the data and the boundary. They mainly come from low values $x_1$ that have either high or low value of $x_2$. Regression can't catch this.
 
-```{r regression-p-hat, echo=FALSE, out.width="100%", fig.height=3, fig.height=7}
+```{r regression-p-hat, echo=FALSE, out.width="100%", fig.height=3, fig.width=7}
 p_hat <- predict(fit, newdata = mnist_27$true_p)
 p_hat <- scales::squish(p_hat, c(0, 1))
 p1 <- mnist_27$true_p %>% mutate(p_hat = p_hat) %>%

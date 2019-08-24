@@ -95,11 +95,6 @@ mean((y_hat - test_set$son)^2)
 
 ```{r, eval=FALSE}
 ?predict.lm
-```
-
-and
-
-```{r, eval=FALSE}
 ?predict.glm
 ```
 
@@ -108,105 +103,96 @@ There are many other versions of `predict` and many machine learning algorithms 
 
 ## Exercises 
 
-1. Create a dataset using the following code.
+1\. Create a dataset using the following code.
 
-    ```{r, eval=FALSE}
-    n <- 100
-    Sigma <- 9*matrix(c(1.0, 0.5, 0.5, 1.0), 2, 2)
-    dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) %>%
-      data.frame() %>% setNames(c("x", "y"))
-    ```
+```{r, eval=FALSE}
+n <- 100
+Sigma <- 9*matrix(c(1.0, 0.5, 0.5, 1.0), 2, 2)
+dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) %>%
+  data.frame() %>% setNames(c("x", "y"))
+```
 
-    Use the __caret__ package to partition into a test and training set of equal size. Train a linear model and report the RMSE. Repeat this exercise 100 times and make a histogram of the RMSEs and report the average and standard deviation. Hint: adapt the code shown earlier like this: 
-    
-    ```{r, eval=FALSE}
-    y <- dat$y
-    test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
-    train_set <- dat %>% slice(-test_index)
-    test_set <- dat %>% slice(test_index)
-    fit <- lm(y ~ x, data = train_set)
-    y_hat <- fit$coef[1] + fit$coef[2]*test_set$x
-    mean((y_hat - test_set$y)^2)
-    ```
-    
-    and put it inside a call to `replicate`.
+Use the __caret__ package to partition into a test and training set of equal size. Train a linear model and report the RMSE. Repeat this exercise 100 times and make a histogram of the RMSEs and report the average and standard deviation. Hint: adapt the code shown earlier like this: 
 
-    
-2. Now we will repeat the above but using larger datasets. Repeat exercise 1 but for datasets with `n <- c(100, 500, 1000, 5000, 10000)`. Save the average and standard deviation of RMSE from the 100 repetitions. Hint: use the `sapply` or `map` functions.
+```{r, eval=FALSE}
+y <- dat$y
+test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
+train_set <- dat %>% slice(-test_index)
+test_set <- dat %>% slice(test_index)
+fit <- lm(y ~ x, data = train_set)
+y_hat <- fit$coef[1] + fit$coef[2]*test_set$x
+mean((y_hat - test_set$y)^2)
+```
 
-    
-3. Describe what you observe with the RMSE as the size of the dataset becomes larger.
-
-    A. On average, the RMSE does not change much as `n` gets larger, while the variability of RMSE does decrease.
-    
-    B. Because of the law of large numbers, the RMSE decreases: more data, more precise estimates.
-    
-    C. `n = 10000` is not sufficiently large. To see a decrease in RMSE, we need to make it larger.
-    
-    D. The RMSE is not a random variable.
-
-    
-4. Now repeat exercise 1, but this time make the correlation between `x` and `y` larger by changing `Sigma` like this:
+and put it inside a call to `replicate`.
 
 
-    ```{r, eval=FALSE}
-    n <- 100
-    Sigma <- 9*matrix(c(1, 0.95, 0.95, 1), 2, 2)
-    dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) %>%
-      data.frame() %>% setNames(c("x", "y"))
-    ```
-    
-    Repeat the exercise and note what happens to the RMSE now.
+2\. Now we will repeat the above but using larger datasets. Repeat exercise 1 but for datasets with `n <- c(100, 500, 1000, 5000, 10000)`. Save the average and standard deviation of RMSE from the 100 repetitions. Hint: use the `sapply` or `map` functions.
 
-    
-5. Which of the following best explains why the RMSE in exercise 4 is so much lower than exercise 1.
 
-    A. It is just luck. If we do it again, it will be larger.
-    
-    B. The Central Limit Theorem tells us the RMSE is normal.
-    
-    C. When we increase the correlation between `x` and `y`, `x` has more predictive power and thus provides a better estimate of `y`. This correlation has a much bigger effect on RMSE than `n`. Large `n` simply provide us more precise estimates of the linear model coefficients.
-    
-    D. These are both examples of regression, so the RMSE has to be the same.
-    
+3\. Describe what you observe with the RMSE as the size of the dataset becomes larger.
 
-6.  Create a dataset using the following code:
+A. On average, the RMSE does not change much as `n` gets larger, while the variability of RMSE does decrease.
+B. Because of the law of large numbers, the RMSE decreases: more data, more precise estimates.
+C. `n = 10000` is not sufficiently large. To see a decrease in RMSE, we need to make it larger.
+D. The RMSE is not a random variable.
 
-    ```{r, eval=FALSE}
-    n <- 1000
-    Sigma <- matrix(c(1, 3/4, 3/4, 3/4, 1, 0, 3/4, 0, 1), 3, 3)
-    dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) %>%
-      data.frame() %>% setNames(c("y", "x_1", "x_2"))
-    ```
-    
-    Note that `y` is correlated with both `x_1` and `x_2`, but the two predictors are independent of each other.
-    ```{r, eval=FALSE}
-    cor(dat)
-    ```
 
-    Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2`, and both `x_1` and `x_2`. Train a linear model and report the RMSE. 
+4\. Now repeat exercise 1, but this time make the correlation between `x` and `y` larger by changing `Sigma` like this:
 
-    
-7.  Repeat exercise 6 but now create an example in which `x_1` and `x_2` are highly correlated:
 
-    ```{r, eval=FALSE}
-    n <- 1000
-    Sigma <- matrix(c(1.0, 0.75, 0.75, 0.75, 1.0, 0.95, 0.75, 0.95, 1.0), 3, 3)
-    dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) %>%
-      data.frame() %>% setNames(c("y", "x_1", "x_2"))
-    ```
-    
-    Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2`, and both `x_1` and `x_2` Train a linear model and report the RMSE. 
+```{r, eval=FALSE}
+n <- 100
+Sigma <- 9*matrix(c(1, 0.95, 0.95, 1), 2, 2)
+dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) %>%
+  data.frame() %>% setNames(c("x", "y"))
+```
 
-8. Compare the results in 6 and 7 and choose the statement you agree with:
+Repeat the exercise and note what happens to the RMSE now.
 
-    A. Adding extra predictors can improve RMSE substantially, but not when they are highly correlated with another predictor.
-    
-    B. Adding extra predictors improves predictions equally in both exercises.
-    
-    C. Adding extra predictors results in over fitting.
-    
-    D. Unless we include all predictors, we have no predicting power.
+
+5\. Which of the following best explains why the RMSE in exercise 4 is so much lower than exercise 1.
+
+A. It is just luck. If we do it again, it will be larger.
+B. The Central Limit Theorem tells us the RMSE is normal.
+C. When we increase the correlation between `x` and `y`, `x` has more predictive power and thus provides a better estimate of `y`. This correlation has a much bigger effect on RMSE than `n`. Large `n` simply provide us more precise estimates of the linear model coefficients.
+D. These are both examples of regression, so the RMSE has to be the same.
+
+
+6\.  Create a dataset using the following code:
+
+```{r, eval=FALSE}
+n <- 1000
+Sigma <- matrix(c(1, 3/4, 3/4, 3/4, 1, 0, 3/4, 0, 1), 3, 3)
+dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) %>%
+  data.frame() %>% setNames(c("y", "x_1", "x_2"))
+```
+
+Note that `y` is correlated with both `x_1` and `x_2`, but the two predictors are independent of each other.
+```{r, eval=FALSE}
+cor(dat)
+```
+
+Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2`, and both `x_1` and `x_2`. Train a linear model and report the RMSE. 
+
+
+7\.  Repeat exercise 6 but now create an example in which `x_1` and `x_2` are highly correlated:
+
+```{r, eval=FALSE}
+n <- 1000
+Sigma <- matrix(c(1.0, 0.75, 0.75, 0.75, 1.0, 0.95, 0.75, 0.95, 1.0), 3, 3)
+dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) %>%
+  data.frame() %>% setNames(c("y", "x_1", "x_2"))
+```
+
+Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2`, and both `x_1` and `x_2` Train a linear model and report the RMSE. 
+
+8\. Compare the results in 6 and 7 and choose the statement you agree with:
+
+A. Adding extra predictors can improve RMSE substantially, but not when they are highly correlated with another predictor.
+B. Adding extra predictors improves predictions equally in both exercises.
+C. Adding extra predictors results in over fitting.
+D. Unless we include all predictors, we have no predicting power.
 
 
 ## Logistic regression

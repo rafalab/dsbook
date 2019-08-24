@@ -56,8 +56,13 @@ h <- hclust(d)
 
 We can see the resulting groups using a _dendrogram_. 
 
-```{r dendrogram, out.width="100%", fig.height=5.25}
-plot(h, cex = 0.65)
+```{r, eval=FALSE}
+plot(h, cex = 0.65, main = "", xlab = "")
+```
+
+```{r dendrogram, out.width="100%", fig.width = 4, fig.height = 2.5, echo=FALSE}
+rafalib::mypar()
+plot(h, cex = 0.65, main = "", xlab = "")
 ```
 
 To interpret this graph we do the following. To find the distance between any two movies, find the first location from top to bottom that the movies split into two different groups. The height of this location is the distance between the groups. So the distance between the Star Wars movies is 8 or less, while the distance between Raiders of the Lost of Ark and Silence of the Lambs is about 17. 
@@ -66,20 +71,32 @@ To generate actual groups we can do one of two things: 1) decide on a minimum di
 
 ```{r}
 groups <- cutree(h, k = 10)
-split(names(groups), groups)
 ```
 
-Note that the clustering provides some insights into types of movies.
+Note that the clustering provides some insights into types of movies. Group 4 appears to be 
+blockbusters:
+
+```{r}
+names(groups)[groups==4]
+```
+
+And group 9 appears to be nerd movies:
+
+```{r}
+names(groups)[groups==9]
+```
+
 We can change the size of the group by either making `k` larger or `h` smaller. We can also explore the data to see if there are clusters of movie raters.
 
 ```{r}
 h_2 <- dist(t(x)) %>% hclust()
 ```
 
+<!--
 ```{r dendrogram-2, , out.width="100%", fig.height=4}
 plot(h_2, cex = 0.35)
 ```
-
+-->
 
 ## k-means
 
@@ -98,17 +115,13 @@ The cluster assignments are in the `cluster` component:
 
 ```{r}
 groups <- k$cluster
-split(names(groups), groups)
 ```
 
-Note that because the first center is chosen at random, the final clusters are random. We impose some stability by repeating the entire function several times and averaging the results.
+Note that because the first center is chosen at random, the final clusters are random. We impose some stability by repeating the entire function several times and averaging the results. The number of random starting values to use can be assigned through the `nstart` argument.
 
 ```{r}
 k <- kmeans(x_0, centers = 10, nstart = 25)
-groups <- k$cluster
-split(names(groups), groups)
 ```
-
 
 ## Heatmaps
 
@@ -125,12 +138,11 @@ h_2 <- hclust(dist(t(x)))
 
 Now we can use the results of this clustering to order the rows and columns.
 
-```{r heatmap, out.width="100%", fig.height=7}
-image(x[h_1$order, h_2$order], 
-      col = RColorBrewer::brewer.pal(11, "Spectral"))
+```{r heatmap, out.width="100%", fig.height=7, eval=FALSE}
+image(x[h_1$order, h_2$order])
 ```
 
-There is also `heatmap` function that you can use on the original matrix:
+But there is `heatmap` function that does it for us:
 
 ```{r heatmap-2, out.width="100%", fig.height=7, eval=FALSE}
 heatmap(x, col = RColorBrewer::brewer.pal(11, "Spectral"))
@@ -143,7 +155,7 @@ We do not show the results of the heatmap function because there are too many fe
 If the information about clusters in included in just a few features, including all the features can add enough noise that detecting clusters 
 becomes challenging. One simple approach to try to remove features with no information is to only include those with high variance. In the movie example, a user with low variance in their ratings is not really informative: all the movies seem about the same to them. Here is an example of how we can include only the features with high variance.
 
-```{r heatmap-3, out.width="100%", fig.height=7, message=FALSE, warning=FALSE}
+```{r heatmap-3, out.width="100%", fig.height=5, fig.width=6, message=FALSE, warning=FALSE}
 library(matrixStats)
 sds <- colSds(x, na.rm = TRUE)
 o <- order(sds, decreasing = TRUE)[1:25]

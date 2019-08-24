@@ -23,17 +23,15 @@ x <- rbind(mvrnorm(n / 2, c(69, 69), Sigma),
 
 A scatterplot quickly reveals that the correlation is high and that there are two groups of twins, the adults (upper right points) and the children (lower left points):
 
-```{r simulated-twin-heights, fig.width=3, fig.height=3, echo=FALSE, message=FALSE}
+<!--
+```{r simulated-twin-heights, fig.width=3, fig.height=3, echo=FALSE, message=FALSE, out.width="50%"}
 lim <- c(48, 78)
 rafalib::mypar()
 plot(x, xlim=lim, ylim=lim)
 ```
+-->
 
-Our features are $N$ two-dimensional points, the two heights, and, for illustrative purposes, we will act as if visualizing two dimensions is too challenging. We therefore want to reduce the dimensions from two to one, but still be able to understand important characteristics of the data, for example that the observations cluster into two groups: adults and children.
-
-Let's consider a specific challenge: we want a one-dimensional summary of our predictors from which we can approximate the distance between any two observations. In the figure below we show the distance between observation 1 and 2 (blue), and observation 1 and 51 (red). Note that the blue line is shorter, which implies 1 and 2 are closer:
-
-```{r distance-illustration, fig.width=3, fig.height=3, echo=FALSE}
+```{r distance-illustration, fig.width=3, fig.height=3, echo=FALSE, out.width="40%"}
 rafalib::mypar()
 plot(x, xlim=lim, ylim=lim)
 lines(x[c(1, 2),], col = "blue", lwd = 2)
@@ -41,6 +39,9 @@ lines(x[c(2, 51),], col = "red", lwd = 2)
 points(x[c(1, 2, 51),], pch = 16)
 ```
 
+Our features are $N$ two-dimensional points, the two heights, and, for illustrative purposes, we will act as if visualizing two dimensions is too challenging. We therefore want to reduce the dimensions from two to one, but still be able to understand important characteristics of the data, for example that the observations cluster into two groups: adults and children.
+
+Let's consider a specific challenge: we want a one-dimensional summary of our predictors from which we can approximate the distance between any two observations. In the figure above we show the distance between observation 1 and 2 (blue), and observation 1 and 51 (red). Note that the blue line is shorter, which implies 1 and 2 are closer.
 
 We can compute these distances using `dist`:
 ```{r}
@@ -58,7 +59,7 @@ z <- x[,1]
 ```
 
 Here are the approximate distances versus the original distances:
-```{r one-dim-approx-to-dist, echo = FALSE, fig.width=3, fig.height=3}
+```{r one-dim-approx-to-dist, echo = FALSE, fig.width=3, fig.height=3, out.width="40%"}
 rafalib::mypar()
 plot(dist(x), dist(z))
 abline(0,1, col = "red")
@@ -70,7 +71,7 @@ $$\sqrt{ \frac{1}{2} \sum_{j=1}^2 (X_{i,j}-X_{i,j})^2 },$$
 
 then the underestimation goes away. We divide the distance by $\sqrt{2}$ to achieve the correction.
 
-```{r distance-approx-1, echo = FALSE, fig.width=3, fig.height=3}
+```{r distance-approx-1, echo = FALSE, fig.width=3, fig.height=3, out.width="40%"}
 rafalib::mypar()
 plot(dist(x) / sqrt(2), dist(z))
 abline(0, 1, col = "red")
@@ -93,7 +94,7 @@ z  <- cbind((x[,2] + x[,1])/2,  x[,2] - x[,1])
 
 we can see how the distance between points is mostly explained by the first dimension: the average.
 
-```{r rotation, fig.width=3, fig.height=3, echo=FALSE}
+```{r rotation, fig.width=3, fig.height=3, echo=FALSE, out.width="40%"}
 rafalib::mypar()
 plot(z, xlim=lim, ylim = lim - mean(lim))
 lines(z[c(1,2),], col = "blue", lwd = 2)
@@ -103,10 +104,10 @@ points(z[c(1,2,51),], pch = 16)
 
 This means that we can ignore the second dimension and not lose too much information. If the line is completely flat, we lose no information at all. Using the first dimension of this transformed matrix we obtain an even better approximation:
 
-```{r distance-approx-2, echo=FALSE, fig.width=3, fig.height=3}
+```{r distance-approx-2, echo=FALSE, fig.width=3, fig.height=3, out.width="40%"}
 rafalib::mypar()
 plot(dist(x), dist(z[,1])*sqrt(2))
-abline(0,1)
+abline(0,1, col = "red")
 ```
 
 with the typical difference improved by about 35%:
@@ -191,11 +192,16 @@ z[,2] <- (x[,2] - x[,1]) / sqrt(2)
 
 This gives us a transformation that preserves the distance between any two points:
 
+```{r}
+max(dist(z) - dist(x))
+```
+<!--
 ```{r orthogonal-transformation, fig.width=3, fig.height=3, echo=FALSE}
 rafalib::mypar()
 plot(dist(x), dist(z))
 abline(0, 1, col = "red")
 ```
+-->
 
 and an improved approximation if we use just the first dimension:
 
@@ -287,10 +293,10 @@ max(abs(a - b))
 We can visualize these to see how the first component summarizes the data. In the plot below red represents high values and blue negative values (later we learn why we call these weights and patterns):
 
 
-```{r illustrate-pca-twin-heights, echo=FALSE, height = 5, out.width="100%"}
+```{r illustrate-pca-twin-heights, echo=FALSE, height = 5, out.width="70%"}
 illustrate_pca <- function(x, flip=1, 
                            pad = round((nrow(x)/2-ncol(x))*1/4), 
-                           cex = 10, center = TRUE){
+                           cex = 5, center = TRUE){
   rafalib::mypar(1,5)
   ## flip is because PCA chooses arbitrary sign for loadings and PC
   colors = rev(RColorBrewer::brewer.pal(9, "RdBu"))
@@ -343,7 +349,14 @@ If you print `iris$Species` you will see that the data is ordered by the species
 
 Let's compute the distance between each observation. You can clearly see the three species with one species very different from the other two:
 
-```{r iris-distances, fig.height = 4, fig.width = 4}
+```{r eval=FALSE}
+x <- iris[,1:4] %>% as.matrix()
+d <- dist(x)
+image(as.matrix(d), col = rev(RColorBrewer::brewer.pal(9, "RdBu")))
+```
+
+```{r iris-distances, fig.width = 4, fig.height = 4, out.width="50%", echo=FALSE}
+rafalib::mypar()
 x <- iris[,1:4] %>% as.matrix()
 d <- dist(x)
 image(as.matrix(d), col = rev(RColorBrewer::brewer.pal(9, "RdBu")))
@@ -366,7 +379,7 @@ summary(pca)
 
 The first two dimensions account for 97% of the variability. Thus we should be able to approximate the distance very well with two dimensions. We can visualize the results of PCA:
 
-```{r illustrate-pca-twin-heights-iris, echo=FALSE, fig.height = 6, out.width="100%"}
+```{r illustrate-pca-twin-heights-iris, echo=FALSE, fig.height = 6, out.width="70%"}
 rafalib::mypar()
 illustrate_pca(x)
 ```
@@ -385,7 +398,7 @@ data.frame(pca$x[,1:2], Species=iris$Species) %>%
 
 We see that the first two dimensions preserve the distance:
 
-```{r dist-approx-4, message = FALSE, fig.height = 4, fig.width = 4}
+```{r dist-approx-4, message = FALSE, fig.height = 3, fig.width = 3, out.width="50%"}
 d_approx <- dist(pca$x[, 1:2])
 qplot(d, d_approx) + geom_abline(color="red")
 ```
@@ -454,7 +467,7 @@ tmp %>% filter(id<5) %>%
 
 The lower variance PCs appear related to unimportant variability in the corners:
 
-```{r mnist-pca-last, out.width="100%", fig.height=3}
+```{r mnist-pca-last,, echo = FALSE, out.width="100%", fig.width=6, fig.height=1.75}
 tmp %>% filter(id>5) %>%
   ggplot(aes(Row, Column, fill=value)) +
   geom_raster() +

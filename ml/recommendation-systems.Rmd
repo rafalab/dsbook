@@ -57,7 +57,7 @@ tab %>% knitr::kable()
 
 You can think of the task of a recommendation system as filling in the `NA`s in the table above. To see how _sparse_ the matrix is, here is the matrix for a random sample of 100 movies and 100 users with yellow indicating a user/movie combination for which we have a rating.
 
-```{r sparsity-of-movie-recs, echo=FALSE, fig.width=3, fig.height=3}
+```{r sparsity-of-movie-recs, echo=FALSE, fig.width=3, fig.height=3, out.width="40%"}
 users <- sample(unique(movielens$userId), 100)
 rafalib::mypar()
 movielens %>% filter(userId %in% users) %>% 
@@ -104,7 +104,8 @@ To see how this is a type of machine learning, notice that we need to build an a
 ```{r, message=FALSE, warning=FALSE}
 library(caret)
 set.seed(755)
-test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.2, list = FALSE)
+test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.2, 
+                                  list = FALSE)
 train_set <- movielens[-test_index,]
 test_set <- movielens[test_index,]
 ```
@@ -216,12 +217,14 @@ Let's see how much our prediction improves once we use $\hat{y}_{u,i} = \hat{\mu
 predicted_ratings <- mu + test_set %>% 
   left_join(movie_avgs, by='movieId') %>%
   pull(b_i)
+RMSE(predicted_ratings, test_set$rating)
+```
 
+```{r echo=FALSE}
 model_1_rmse <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           tibble(method="Movie Effect Model",  
                                  RMSE = model_1_rmse))
-rmse_results 
 ```
 
 We already see an improvement. But can we make it better?
@@ -272,80 +275,72 @@ predicted_ratings <- test_set %>%
   left_join(user_avgs, by='userId') %>%
   mutate(pred = mu + b_i + b_u) %>%
   pull(pred)
+RMSE(predicted_ratings, test_set$rating)
+```
 
-
+```{r echo=FALSE}
 model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           tibble(method="Movie + User Effects Model",  
                                  RMSE = model_2_rmse))
-rmse_results
 ```
 
 ## Exercises 
 
-1. Load the `movielens` data. 
+1\. Load the `movielens` data. 
 
-    ```{r, eval=FALSE}
-    data("movielens")
-    ```
+```{r, eval=FALSE}
+data("movielens")
+```
 
-    Compute the number of ratings for each movie and then plot it against the year the movie came out. Use the square root transformation on the counts.
-
-  
-2. We see that, on average, movies that came out after 1993 get more ratings. We also see that with newer movies, starting in 1993, the number of ratings decreases with year: the more recent a movie is, the less time users have had to rate it. 
-
-    Among movies that came out in 1993 or later, what are the 25 movies with the most ratings per year? Also report their average rating.
- 
-  
-3. From the table constructed in the previous example, we see that the most rated movies tend to have above average ratings. This is not surprising: more people watch popular movies. To confirm this, stratify the post 1993 movies by ratings per year and compute their average ratings. Make a plot of average rating versus ratings per year and show an estimate of the trend.
-
-  
-
-4. In the previous exercise, we see that the more a movie is rated, the higher the rating. Suppose you are doing a predictive analysis in which you need to fill in the missing ratings with some value. Which of the following strategies would you use?
-
-    A. Fill in the missing values with average rating of all movies.
-    
-    B. Fill in the missing values with 0.
-    
-    C. Fill in the value with a lower value than the average since lack of rating is associated with lower ratings. Try out different values and evaluate prediction in a test set.
-    
-    D. None of the above.
-    
-  
-5. The `movielens` dataset also includes a time stamp. This variable represents the time and data in which the rating was provided. The units are seconds since January 1, 1970. Create a new column `date` with the date. Hint: use the `as_datetime` function in the __lubridate__ package.
+Compute the number of ratings for each movie and then plot it against the year the movie came out. Use the square root transformation on the counts.
 
 
-    
-6. Compute the average rating for each week and plot this average against day. Hint: use the `round_date` function before you `group_by`.
+2\. We see that, on average, movies that came out after 1993 get more ratings. We also see that with newer movies, starting in 1993, the number of ratings decreases with year: the more recent a movie is, the less time users have had to rate it. 
 
-  
-7. The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day for user's $u$ rating of movie $i$, which of the following models is most appropriate:
+Among movies that came out in 1993 or later, what are the 25 movies with the most ratings per year? Also report their average rating.
 
 
-    A. $Y_{u,i} = \mu + b_i + b_u + d_{u,i} + \varepsilon_{u,i}$.
-    
-    B. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
-    
-    C. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta_i + \varepsilon_{u,i}$.
-    
-    D. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
-    
-  
-8. The `movielens` data also has a `genres` column. This column includes every genre that applies to the movie. Some movies fall under several genres. Define a category as whatever combination appears in this column. Keep only categories with more than 1,000 ratings. Then compute the average and standard error for each category. Plot these as error bar plots.
-
-  
-9. The plot shows strong evidence of a genre effect. If we define $g_{u,i}$ as the genre for user's $u$ rating of movie $i$, which of the following models is most appropriate:
+3\. From the table constructed in the previous example, we see that the most rated movies tend to have above average ratings. This is not surprising: more people watch popular movies. To confirm this, stratify the post 1993 movies by ratings per year and compute their average ratings. Make a plot of average rating versus ratings per year and show an estimate of the trend.
 
 
-    A. $Y_{u,i} = \mu + b_i + b_u + d_{u,i} + \varepsilon_{u,i}$.
-    
-    B. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
-    
-    C. $Y_{u,i} = \mu + b_i + b_u + \sum_{k=1}^K x_{u,i} \beta_k + \varepsilon_{u,i}$, with $x^k_{u,i} = 1$ if $g_{u,i}$ is genre $k$.
-    
-    D. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
 
-  
+4\. In the previous exercise, we see that the more a movie is rated, the higher the rating. Suppose you are doing a predictive analysis in which you need to fill in the missing ratings with some value. Which of the following strategies would you use?
+
+a. Fill in the missing values with average rating of all movies.
+b. Fill in the missing values with 0.
+c. Fill in the value with a lower value than the average since lack of rating is associated with lower ratings. Try out different values and evaluate prediction in a test set.
+d. None of the above.
+
+
+5\. The `movielens` dataset also includes a time stamp. This variable represents the time and data in which the rating was provided. The units are seconds since January 1, 1970. Create a new column `date` with the date. Hint: use the `as_datetime` function in the __lubridate__ package.
+
+
+
+6\. Compute the average rating for each week and plot this average against day. Hint: use the `round_date` function before you `group_by`.
+
+
+7\. The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day for user's $u$ rating of movie $i$, which of the following models is most appropriate:
+
+
+a. $Y_{u,i} = \mu + b_i + b_u + d_{u,i} + \varepsilon_{u,i}$.
+b. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
+c. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta_i + \varepsilon_{u,i}$.
+d. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
+
+
+8\. The `movielens` data also has a `genres` column. This column includes every genre that applies to the movie. Some movies fall under several genres. Define a category as whatever combination appears in this column. Keep only categories with more than 1,000 ratings. Then compute the average and standard error for each category. Plot these as error bar plots.
+
+
+9\. The plot shows strong evidence of a genre effect. If we define $g_{u,i}$ as the genre for user's $u$ rating of movie $i$, which of the following models is most appropriate:
+
+
+a. $Y_{u,i} = \mu + b_i + b_u + d_{u,i} + \varepsilon_{u,i}$.
+b. $Y_{u,i} = \mu + b_i + b_u + d_{u,i}\beta + \varepsilon_{u,i}$.
+c. $Y_{u,i} = \mu + b_i + b_u + \sum_{k=1}^K x_{u,i} \beta_k + \varepsilon_{u,i}$, with $x^k_{u,i} = 1$ if $g_{u,i}$ is genre $k$.
+d. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smooth function of $d_{u,i}$.
+
+
 
 
 ## Regularization
@@ -360,7 +355,7 @@ test_set %>%
   left_join(movie_avgs, by='movieId') %>%
   mutate(residual = rating - (mu + b_i)) %>%
   arrange(desc(abs(residual))) %>% 
-  select(title,  residual) %>% slice(1:10) 
+  select(title,  residual) %>% slice(1:10) %>% pull(title)
 ```
 
 These all seem like obscure movies. Many of them have large predictions. Let's look at the top 10 worst and best movies based on $\hat{b}_i$. First, let's create a database that connects `movieId` to movie title:
@@ -377,7 +372,7 @@ Here are the 10 best movies according to our estimate:
 movie_avgs %>% left_join(movie_titles, by="movieId") %>%
   arrange(desc(b_i)) %>% 
   select(title, b_i) %>% 
-  slice(1:10) 
+  slice(1:10)  %>% pull(title)
 ```
 
 And here are the 10 worst:
@@ -386,7 +381,7 @@ And here are the 10 worst:
 movie_avgs %>% left_join(movie_titles, by="movieId") %>%
   arrange(b_i) %>% 
   select(title, b_i) %>% 
-  slice(1:10) 
+  slice(1:10)  %>% pull(title)
 ```
 
 They all seem to be quite obscure. Let's look at how often they are rated.
@@ -397,7 +392,7 @@ train_set %>% count(movieId) %>%
   left_join(movie_titles, by="movieId") %>%
   arrange(desc(b_i)) %>% 
   select(title, b_i, n) %>% 
-  slice(1:10) 
+  slice(1:10)  
 
 train_set %>% count(movieId) %>% 
   left_join(movie_avgs) %>%
@@ -468,8 +463,7 @@ train_set %>%
   left_join(movie_reg_avgs, by = "movieId") %>%
   left_join(movie_titles, by = "movieId") %>%
   arrange(desc(b_i)) %>% 
-  select(title, b_i, n) %>% 
-  slice(1:10)
+  select(title, b_i, n) 
 ```
 
 These make much more sense! Here are the top 10 worst movies:
@@ -480,8 +474,7 @@ train_set %>%
   left_join(movie_reg_avgs, by = "movieId") %>%
   left_join(movie_titles, by="movieId") %>%
   arrange(b_i) %>% 
-  select(title, b_i, n) %>% 
-  slice(1:10) 
+  select(title, b_i, n)
 ```
 
 Do we improve our results?
@@ -491,7 +484,10 @@ predicted_ratings <- test_set %>%
   left_join(movie_reg_avgs, by = "movieId") %>%
   mutate(pred = mu + b_i) %>%
   pull(pred)
+RMSE(predicted_ratings, test_set$rating)
+```
 
+```{r echo=FALSE}
 model_3_rmse <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           tibble(method="Regularized Movie Effect Model",  
@@ -573,7 +569,7 @@ lambda
 ```
 
 
-```{r}
+```{r, echo=FALSE}
 rmse_results <- bind_rows(
   rmse_results,
   tibble(method="Regularized Movie + User Effect Model",  
@@ -620,35 +616,35 @@ schools <- schools %>% mutate(score = sapply(scores, mean))
 ```
 
 
-1. What are the top schools based on the average score? Show just the ID, size, and the average score.
+1\. What are the top schools based on the average score? Show just the ID, size, and the average score.
 
 
-2. Compare the median school size to the median school size of the top 10 schools based on the score.
+2\. Compare the median school size to the median school size of the top 10 schools based on the score.
 
 
-3. According to this test, it appears small schools are better than large schools. Five out of the top 10 schools have 100 or fewer students. But how can this be? We constructed the simulation so that quality and size are independent. Repeat the exercise for the worst 10 schools.
+3\. According to this test, it appears small schools are better than large schools. Five out of the top 10 schools have 100 or fewer students. But how can this be? We constructed the simulation so that quality and size are independent. Repeat the exercise for the worst 10 schools.
 
 
-4. The same is true for the worst schools! They are small as well. Plot the average score versus school size to see what's going on. Highlight the top 10 schools based on the _true_ quality. Use the log scale transform for the size.
+4\. The same is true for the worst schools! They are small as well. Plot the average score versus school size to see what's going on. Highlight the top 10 schools based on the _true_ quality. Use the log scale transform for the size.
 
 
-5. We can see that the standard error of the score has larger variability when the school is smaller. This is a basic statistical reality we learned in the probability and inference sections. In fact, note that 4 of the top 10 schools are in the top 10 schools based on the exam score.
+5\. We can see that the standard error of the score has larger variability when the school is smaller. This is a basic statistical reality we learned in the probability and inference sections. In fact, note that 4 of the top 10 schools are in the top 10 schools based on the exam score.
 
-    Let's use regularization to pick the best schools. Remember regularization _shrinks_ deviations from the average towards 0. So to apply regularization here, we first need to define the overall average for all schools:
+Let's use regularization to pick the best schools. Remember regularization _shrinks_ deviations from the average towards 0. So to apply regularization here, we first need to define the overall average for all schools:
 
-    ```{r, eval=FALSE}
-    overall <- mean(sapply(scores, mean))
-    ```
-    
-    and then define, for each school, how it deviates from that average. Write code that estimates the score above average for each school but dividing by $n + \lambda$ instead of $n$, with $n$ the school size and $\lambda$ a regularization parameter. Try $\lambda = 3$.
+```{r, eval=FALSE}
+overall <- mean(sapply(scores, mean))
+```
 
-6. Notice that this improves things a bit. The number of small schools that are not highly ranked is now 4.  Is there a better $\lambda$? Find the $\lambda$ that minimizes the RMSE = $1/100 \sum_{i=1}^{100} (\mbox{quality} - \mbox{estimate})^2$.
+and then define, for each school, how it deviates from that average. Write code that estimates the score above average for each school but dividing by $n + \lambda$ instead of $n$, with $n$ the school size and $\lambda$ a regularization parameter. Try $\lambda = 3$.
 
-
-7. Rank the schools based on the average obtained with the best $\alpha$. Note that no small school is incorrectly included.
+6\. Notice that this improves things a bit. The number of small schools that are not highly ranked is now 4.  Is there a better $\lambda$? Find the $\lambda$ that minimizes the RMSE = $1/100 \sum_{i=1}^{100} (\mbox{quality} - \mbox{estimate})^2$.
 
 
-8.  A common mistake to make when using regularization is shrinking values towards 0 that are not centered around 0. For example, if we don't subtract the overall average before shrinking, we actually obtain a very similar result. Confirm this by re-running the code from exercise 6 but without removing the overall mean. 
+7\. Rank the schools based on the average obtained with the best $\alpha$. Note that no small school is incorrectly included.
+
+
+8\.  A common mistake to make when using regularization is shrinking values towards 0 that are not centered around 0. For example, if we don't subtract the overall average before shrinking, we actually obtain a very similar result. Confirm this by re-running the code from exercise 6 but without removing the overall mean. 
 
 ## Matrix factorization
 
@@ -701,29 +697,25 @@ y <- sweep(y, 2, colMeans(y, na.rm=TRUE))
 y <- sweep(y, 1, rowMeans(y, na.rm=TRUE))
 ```
 
-If the model above explains all the signals, and the $\varepsilon$ are just noise, then the residuals for different movies should be independent from each other. But they are not. Here is an example:
+If the model above explains all the signals, and the $\varepsilon$ are just noise, then the residuals for different movies should be independent from each other. But they are not. Here are some examples:
 
-```{r godfathers-cor, warning=FALSE, message=FALSE}
+```{r movie-cor, warning=FALSE, message=FALSE, out.width="100%", fig.width=9, fig.height=3}
 m_1 <- "Godfather, The"
 m_2 <- "Godfather: Part II, The"
-qplot(y[ ,m_1], y[,m_2], xlab = m_1, ylab = m_2)
-```
+p1 <- qplot(y[ ,m_1], y[,m_2], xlab = m_1, ylab = m_2)
 
-This plot says that users that liked The Godfather more than what the model expects them to, based on the movie and user effects, also liked The Godfather II more than expected. A similar relationship is seen when comparing The Godfather and Goodfellas:
-
-```{r godfather-goodfellas-cor, warning=FALSE, message=FALSE}
 m_1 <- "Godfather, The"
 m_3 <- "Goodfellas"
-qplot(y[ ,m_1], y[,m_3], xlab = m_1, ylab = m_3)
-```
+p2 <- qplot(y[ ,m_1], y[,m_3], xlab = m_1, ylab = m_3)
 
-Although not as strong, there is still correlation. We see correlations between other movies as well:
-
-```{r got-mail-sleepless-in-sea-cor, warning=FALSE, message=FALSE}
 m_4 <- "You've Got Mail" 
 m_5 <- "Sleepless in Seattle" 
-qplot(y[ ,m_4], y[,m_5], xlab = m_4, ylab = m_5)
+p3 <- qplot(y[ ,m_4], y[,m_5], xlab = m_4, ylab = m_5)
+
+gridExtra::grid.arrange(p1, p2 ,p3, ncol = 3)
 ```
+
+This plot says that users that liked The Godfather more than what the model expects them to, based on the movie and user effects, also liked The Godfather II more than expected. A similar relationship is seen when comparing The Godfather and Goodfellas. Although not as strong, there is still correlation. We see correlations between You've Got Mail and Sleepless in Seattle as well
 
 By looking at the correlation between movies, we can see a pattern (we rename the columns to save print space):
 
@@ -882,23 +874,25 @@ dim(pca$x)
 We can see the variability of each of the vectors:
 
 ```{r, pca-sds}
-pc <- 1:nrow(x)
-qplot(pc, pca$sdev)
+qplot(1:nrow(x), pca$sdev, xlab = "PC")
 ```
 
+<!--
 and see that just the first few already explain a large percent:
 
 ```{r var-expained-pca}
 var_explained <- cumsum(pca$sdev^2 / sum(pca$sdev^2))
-qplot(pc, var_explained)
+qplot(1:nrow(x), var_explained, xlab = "PC")
 ```
+-->
 
 We also notice that the first two principal components are related to the structure in opinions about movies:
 
-```{r movies-pca, out.width="100%", height = 5}
+```{r movies-pca, out.width="100%", height = 5, echo=FALSE}
 library(ggrepel)
 
-pcs <- data.frame(pca$rotation, name = str_trunc(colnames(y), 30))
+pcs <- data.frame(pca$rotation, name = str_trunc(colnames(y), 30), 
+                  stringsAsFactors = FALSE)
 
 highlight <- filter(pcs, PC1 < -0.1 | PC1 > 0.1 | PC2 < -0.075 | PC2 > 0.1)
 
@@ -909,26 +903,26 @@ pcs %>%  ggplot(aes(PC1, PC2)) + geom_point() +
 
 Just by looking at the top 10 in each direction, we see a meaningful pattern. The first PC shows the difference between critically acclaimed movies on one side:
 
-```{r}
-pcs %>% select(name, PC1) %>% arrange(PC1) %>% slice(1:10)
+```{r, echo=FALSE}
+pcs %>% select(name, PC1) %>% arrange(PC1) %>% slice(1:10) %>% pull(name)
 ```
 
 and Hollywood blockbusters on the other:
 
-```{r}
-pcs %>% select(name, PC1) %>% arrange(desc(PC1)) %>% slice(1:10)
+```{r, echo=FALSE}
+pcs %>% select(name, PC1) %>% arrange(desc(PC1)) %>% slice(1:10)  %>% pull(name)
 ```
 
 While the second PC seems to go from artsy, independent films:
 
-```{r}
-pcs %>% select(name, PC2) %>% arrange(PC2) %>% slice(1:10)
+```{r, echo=FALSE}
+pcs %>% select(name, PC2) %>% arrange(PC2) %>% slice(1:10) %>% pull(name)
 ```
 
 to nerd favorites:
 
-```{r}
-pcs %>% select(name, PC2) %>% arrange(desc(PC2)) %>% slice(1:10)
+```{r, echo=FALSE}
+pcs %>% select(name, PC2) %>% arrange(desc(PC2)) %>% slice(1:10) %>% pull(name)
 ```
 
 Fitting a model that incorporates these estimates is complicated. For those interested in implementing an approach that incorporates these ideas, we recommend trying the __recommenderlab__ package. The details are beyond the scope of this book.

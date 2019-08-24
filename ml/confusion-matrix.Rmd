@@ -208,10 +208,17 @@ specificity | TNR | 1-FPR | $\frac{\mbox{TN}}{\mbox{TN}+\mbox{FP}}$ | $\mbox{Pr}
 specificity |  PPV | Precision | $\frac{\mbox{TP}}{\mbox{TP}+\mbox{FP}}$ | $\mbox{Pr}(Y=1 \mid \hat{Y}=1)$|
 
 Here TPR is True Positive Rate, FPR is False Positive Rate, and PPV is Positive Predictive Value.
-The __caret__ function `confusionMatrix` computes all these metrics for us once we define what category "positive" is. The function expects factors as input, and the first level is considered the positive outcome or $Y=1$. In our example, `Female` is the first level because it comes before `Male` alphabetically:
+The __caret__ function `confusionMatrix` computes all these metrics for us once we define what category "positive" is. The function expects factors as input, and the first level is considered the positive outcome or $Y=1$. In our example, `Female` is the first level because it comes before `Male` alphabetically. If you type this into R you will see several metrics including accuracy, sensitivity, specificity, and PPV.
 
 ```{r}
-confusionMatrix(data = y_hat, reference = test_set$sex)
+cm <- confusionMatrix(data = y_hat, reference = test_set$sex)
+```
+
+You can acceess these directly, for example, like this:
+
+```{r}
+cm$overall["Accuracy"]
+cm$byClass[c("Sensitivity","Specificity", "Prevalence")]
 ```
 
 We can see that the high overall accuracy is possible despite relatively low sensitivity. As we hinted at above, the reason this happens is because of the low prevalence (0.23): the proportion of females is low. Because prevalence is low, failing to predict actual females as females (low sensitivity) does not lower the accuracy as much as failing to predict actual males as males (low specificity). This is an example of why it is important to examine sensitivity and specificity and not just accuracy. Before applying this algorithm to general datasets, we need to ask ourselves if prevalence will be the same.
@@ -378,6 +385,8 @@ map_df(cutoffs, function(x){
 ```
 
 
+The packages __pROC__ and __plotROC__ are useful for generating these plots.
+
 ROC curves have one weakness and it is that neither of the measures plotted depends on prevalence. In cases in which prevalence matters, we may instead make a precision-recall plot. The idea is similar, but we instead plot precision against recall:
 
 
@@ -431,6 +440,7 @@ bind_rows(guessing, height_cutoff) %>%
   geom_line() +
   geom_point()
 ```
+
 
 ### The loss function {#loss-function}
 
