@@ -10,4 +10,7 @@ For updates follow
   href="https://twitter.com/rafalab">
  @rafalab</a>
 
+
+The book can be locally 'compiled' into a web version or standalone file (pdf, epub...). This is useful to understand how to create your bookdown's in the future, or produce documents in different paper formats. Please refer to the Install.Rmd for instructions.
+
 This work is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0)
