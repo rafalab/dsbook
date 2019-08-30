@@ -108,7 +108,8 @@ Smooth density plots are aesthetically more appealing than histograms. Here is w
 heights %>% 
   filter(sex=="Male") %>% 
   ggplot(aes(height)) + 
-  geom_density(alpha=.2, fill= "#00BFC4")  
+  geom_density(alpha = .2, fill= "#00BFC4", color = 0)  +
+  geom_line(stat='density')
 ```
 
 In this plot, we no longer have sharp edges at the interval boundaries and many of the local peaks have been removed. Also, the scale of the y-axis changed from counts to _density_.
@@ -140,8 +141,8 @@ The smooth density is basically the curve that goes through the top of the histo
 
 ```{r, simulated-density-1, echo=FALSE}
 x %>% ggplot(aes(height)) + 
-  geom_histogram(aes(y=..density..), binwidth = 0.1) +
-  geom_density(col="#00BFC4", lwd = 2)
+  geom_histogram(aes(y=..density..), binwidth = 0.1, color = I("black")) +
+  geom_line(stat='density')
 ```
 
 Now, back to reality. We don't have millions of measurements. Instead, we have `r sum(heights$sex=="Male")` and we can't make a histogram with very small bins. 
@@ -154,16 +155,19 @@ hist1 <- heights %>%
   ggplot(aes(height)) +
   geom_histogram(aes(y=..density..), binwidth = 1, color="black") 
 hist2 <- hist1 +
-  geom_density(col="#00BFC4")
+  geom_line(stat='density')
 hist3 <- hist1 + 
-  geom_point(data = ggplot_build(hist2)$data[[1]], aes(x,y), col = 4)
-hist4 <- ggplot() + geom_point(data = ggplot_build(hist2)$data[[1]], aes(x,y), col = 4) + 
+  geom_point(data = ggplot_build(hist2)$data[[1]], aes(x,y), col = "blue")
+hist4 <- ggplot() + geom_point(data = ggplot_build(hist2)$data[[1]], aes(x,y), col = "blue") + 
   xlab("height") + ylab("density")
-hist5 <- hist4 + geom_line(data = ggplot_build(hist2)$data[[2]], aes(x,y), col="#00BFC4")
+hist5 <- hist4 + geom_line(data = ggplot_build(hist2)$data[[2]], aes(x,y))
 hist6 <- heights %>% 
   filter(sex=="Male") %>% 
   ggplot(aes(height)) +
-  geom_density(alpha = 0.2, fill="#00BFC4")
+  geom_density(alpha = 0.2, fill="#00BFC4", col = 0) +
+  geom_line(stat='density') +
+  scale_y_continuous(limits = layer_scales(hist2)$y$range$range)
+  
 grid.arrange(hist1, hist3, hist4, hist5, hist2, hist6, nrow=2)
 ```
 
@@ -173,13 +177,13 @@ However, remember that _smooth_ is a relative term. We can actually control the 
 ```{r densities-different-smoothness, echo = FALSE, out.width = "100%", fig.width = 6, fig.height = 3}
 p1 <- heights %>% 
   filter(sex=="Male")%>% ggplot(aes(height)) +
-  geom_histogram(aes(y=..density..), binwidth = 1) + 
-  geom_density(col="#00BFC4", adjust = 0.5)
+  geom_histogram(aes(y=..density..), binwidth = 1, alpha = 0.5) + 
+  geom_line(stat='density', adjust = 0.5)
 
 p2 <- heights %>% 
   filter(sex=="Male") %>% ggplot(aes(height)) +
-  geom_histogram(aes(y=..density..), binwidth = 1) + 
-  geom_density(col="#00BFC4", adjust = 2)
+  geom_histogram(aes(y=..density..), binwidth = 1, alpha = 0.5) + 
+  geom_line(stat='density', adjust = 2)
 
 grid.arrange(p1,p2, ncol=2)
 ```
@@ -208,7 +212,8 @@ By understanding this, we are ready to use the smooth density as a summary. For 
 heights %>% 
   filter(sex=="Male") %>% 
   ggplot(aes(height)) + 
-  geom_density(alpha=.2, fill= "#00BFC4")  
+  geom_density(alpha=.2, fill= "#00BFC4", color = 0)  +
+  geom_line(stat='density')
 ```
 
 
@@ -219,7 +224,8 @@ As a final note, we point out that an advantage of smooth densities over histogr
 ```{r two-densities-one-plot, echo=FALSE}
 heights %>% 
   ggplot(aes(height, fill=sex)) + 
-  geom_density(alpha = 0.2)
+  geom_density(alpha = 0.2, color = 0) +
+  geom_line(stat='density')
 ```
 
 With the right argument, `ggplot` automatically shades the intersecting region with a different color. We will show examples of __ggplot2__ code for densities in Section \@ref(gapminder) as well as Section \@ref(other-geometries).
