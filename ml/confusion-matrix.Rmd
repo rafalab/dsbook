@@ -354,7 +354,7 @@ height_cutoff <- map_df(cutoffs, function(x){
         TPR = sensitivity(y_hat, test_set$sex))
 })
 ```
-
+<!--
 ```{r roc-2, echo=FALSE}
 bind_rows(guessing, height_cutoff) %>%
   ggplot(aes(FPR, TPR, color = method)) +
@@ -363,27 +363,36 @@ bind_rows(guessing, height_cutoff) %>%
   xlab("1 - Specificity") +
   ylab("Sensitivity")
 ```
+-->
 
-We can see that we obtain higher sensitivity with this approach for all values of specificity, which implies it is in fact a better method. Note that ROC curves for guessing always fall on the identiy line.
-
-When making ROC curves, it is often nice to add the cutoff used to the points:
-
-```{r roc-3, echo=FALSE}
+```{r roc-3, echo=FALSE, fig.width=6, fig.height=3}
 library(ggrepel)
-map_df(cutoffs, function(x){
+tmp_1 <- map_df(cutoffs, function(x){
   y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
     factor(levels = c("Female", "Male"))
    list(method = "Height cutoff",
         cutoff = x, 
         FPR = 1-specificity(y_hat, test_set$sex),
         TPR = sensitivity(y_hat, test_set$sex))
-}) %>%
-  ggplot(aes(FPR, TPR, label = cutoff)) +
+}) 
+tmp_2 <- map_df(probs, function(p){
+  y_hat <- 
+    sample(c("Male", "Female"), n, replace = TRUE, prob=c(p, 1-p)) %>% 
+    factor(levels = c("Female", "Male"))
+  list(method = "Guessing",
+       cutoff = round(p,1),
+       FPR = 1 - specificity(y_hat, test_set$sex),
+       TPR = sensitivity(y_hat, test_set$sex))
+})
+
+bind_rows(tmp_1, tmp_2) %>%
+  ggplot(aes(FPR, TPR, label = cutoff, color = method)) +
   geom_line() +
   geom_point() +
   geom_text_repel(nudge_x = 0.01, nudge_y = -0.01)
 ```
 
+We can see that we obtain higher sensitivity with this approach for all values of specificity, which implies it is in fact a better method. Note that ROC curves for guessing always fall on the identiy line. Also note that when making ROC curves, it is often nice to add the cutoff associated with each point.
 
 The packages __pROC__ and __plotROC__ are useful for generating these plots.
 
@@ -407,18 +416,8 @@ height_cutoff <- map_df(cutoffs, function(x){
        recall = sensitivity(y_hat, test_set$sex),
     precision = precision(y_hat, test_set$sex))
 })
-bind_rows(guessing, height_cutoff) %>%
-  ggplot(aes(recall, precision, color = method)) +
-  geom_line() +
-  geom_point()
-```
+tmp_1 <- bind_rows(guessing, height_cutoff) %>% mutate(Positive = "Y = 1 if Female") 
 
-From this plot we immediately see that the precision of guessing is not high. This is because the prevalence is low. 
-
-If we change positives to mean Male instead of Female, the ROC curve remains the same, but the precision recall plot changes:
-
-
-```{r precision-recall-2, warning=FALSE, message=FALSE, echo=FALSE}
 guessing <- map_df(probs, function(p){
   y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, 
                   prob=c(p, 1-p)) %>% 
@@ -435,11 +434,16 @@ height_cutoff <- map_df(cutoffs, function(x){
        recall = sensitivity(y_hat, relevel(test_set$sex, "Male", "Female")),
     precision = precision(y_hat, relevel(test_set$sex, "Male", "Female")))
 })
-bind_rows(guessing, height_cutoff) %>%
+tmp_2 <- bind_rows(guessing, height_cutoff) %>% mutate(Positive = "Y = 1 if Male") 
+
+bind_rows(tmp_1, tmp_2) %>%
   ggplot(aes(recall, precision, color = method)) +
   geom_line() +
-  geom_point()
+  geom_point() +
+  facet_wrap(~ Positive)
 ```
+
+From this plot we immediately see that the precision of guessing is not high. This is because the prevalence is low. We also see that if we change positives to mean Male instead of Female, the ROC curve remains the same, but the precision recall plot changes.
 
 
 ### The loss function {#loss-function}

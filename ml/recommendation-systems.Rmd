@@ -1,3 +1,8 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 ## Recommendation systems
 
 Recommendation systems use ratings that _users_ have given _items_ to make specific recommendations. Companies that sell many products to many customers and permit these customers to rate their products, like Amazon, are able to collect massive datasets that can be used to predict what rating a particular user will give a specific item. Items for which a high rating is predicted for a given user are then recommended to that user. 
@@ -72,28 +77,23 @@ This machine learning challenge is more complicated than what we have studied up
 
 Let's look at some of the general properties of the data to better understand the challenges.
 
-The first thing we notice is that some movies get rated more than others. Here is the distribution:
+The first thing we notice is that some movies get rated more than others. Below is the distribution. This should not surprise us given that there are blockbuster movies watched by millions and artsy, independent movies watched by just a few. Our second observation is that some users are more active than others at rating movies:
 
-```{r movie-id-hist, echo=FALSE}
-movielens %>% 
+```{r movie-id-and-user-hists, echo=FALSE, fig.width=6, fig.height=3}
+p1 <- movielens %>% 
   count(movieId) %>% 
   ggplot(aes(n)) + 
   geom_histogram(bins = 30, color = "black") + 
   scale_x_log10() + 
   ggtitle("Movies")
-```
 
-This should not surprise us given that there are blockbuster movies watched by millions and artsy, independent movies watched by just a few. 
-
-Our second observation is that some users are more active than others at rating movies:
-
-```{r movie-user-hist, echo=FALSE}
-movielens %>% 
+p2 <- movielens %>% 
   count(userId) %>% 
   ggplot(aes(n)) + 
   geom_histogram(bins = 30, color = "black") + 
   scale_x_log10() + 
   ggtitle("Users")
+gridExtra::grid.arrange(p1, p2, ncol = 2)
 ```
 
 
@@ -354,8 +354,9 @@ Despite the large movie to movie variation, our improvement in RMSE was only abo
 test_set %>% 
   left_join(movie_avgs, by='movieId') %>%
   mutate(residual = rating - (mu + b_i)) %>%
-  arrange(desc(abs(residual))) %>% 
-  select(title,  residual) %>% slice(1:10) %>% pull(title)
+  arrange(desc(abs(residual))) %>%  
+  slice(1:10) %>% 
+  pull(title)
 ```
 
 These all seem like obscure movies. Many of them have large predictions. Let's look at the top 10 worst and best movies based on $\hat{b}_i$. First, let's create a database that connects `movieId` to movie title:
@@ -371,8 +372,8 @@ Here are the 10 best movies according to our estimate:
 ```{r}
 movie_avgs %>% left_join(movie_titles, by="movieId") %>%
   arrange(desc(b_i)) %>% 
-  select(title, b_i) %>% 
-  slice(1:10)  %>% pull(title)
+  slice(1:10)  %>% 
+  pull(title)
 ```
 
 And here are the 10 worst:
@@ -380,26 +381,26 @@ And here are the 10 worst:
 ```{r}
 movie_avgs %>% left_join(movie_titles, by="movieId") %>%
   arrange(b_i) %>% 
-  select(title, b_i) %>% 
-  slice(1:10)  %>% pull(title)
+  slice(1:10)  %>% 
+  pull(title)
 ```
 
 They all seem to be quite obscure. Let's look at how often they are rated.
 
 ```{r}
 train_set %>% count(movieId) %>% 
-  left_join(movie_avgs) %>%
+  left_join(movie_avgs, by="movieId") %>%
   left_join(movie_titles, by="movieId") %>%
   arrange(desc(b_i)) %>% 
-  select(title, b_i, n) %>% 
-  slice(1:10)  
-
+  slice(1:10) %>% 
+  pull(n)
+ 
 train_set %>% count(movieId) %>% 
   left_join(movie_avgs) %>%
   left_join(movie_titles, by="movieId") %>%
   arrange(b_i) %>% 
-  select(title, b_i, n) %>% 
-  slice(1:10)
+  slice(1:10) %>% 
+  pull(n)
 ```
 
 The supposed "best" and "worst" movies were rated by very few users, in most cases just 1. These movies were mostly obscure ones. This is because with just a few users, we have more uncertainty. Therefore, larger estimates of $b_i$, negative or positive, are more likely. 
@@ -463,10 +464,11 @@ train_set %>%
   left_join(movie_reg_avgs, by = "movieId") %>%
   left_join(movie_titles, by = "movieId") %>%
   arrange(desc(b_i)) %>% 
-  select(title, b_i, n) 
+  slice(1:10) %>% 
+  pull(title)
 ```
 
-These make much more sense! Here are the top 10 worst movies:
+These make much more sense! These movies are wathced more and have more ratings. Here are the top 10 worst movies:
 
 ```{r}
 train_set %>%
@@ -474,7 +476,9 @@ train_set %>%
   left_join(movie_reg_avgs, by = "movieId") %>%
   left_join(movie_titles, by="movieId") %>%
   arrange(b_i) %>% 
-  select(title, b_i, n)
+  select(title, b_i, n) %>% 
+  slice(1:10) %>% 
+  pull(title)
 ```
 
 Do we improve our results?
@@ -888,7 +892,7 @@ qplot(1:nrow(x), var_explained, xlab = "PC")
 
 We also notice that the first two principal components are related to the structure in opinions about movies:
 
-```{r movies-pca, out.width="100%", height = 5, echo=FALSE}
+```{r movies-pca, echo=FALSE}
 library(ggrepel)
 
 pcs <- data.frame(pca$rotation, name = str_trunc(colnames(y), 30), 
