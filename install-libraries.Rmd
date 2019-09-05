@@ -1,0 +1,159 @@
+---
+title: "Installation of Data Science"
+author: Emmanuel-R8
+---
+
+# Intro
+
+Following are installation steps to locally 'compile' this bookdown. The instructions are targeted for linux users. Instructions will be added for Windows and Mac users at a later stage.
+
+Each installation of R and RStudio are different, so it is likely that those steps will fail for some of them.
+
+# Installation of the required packages
+
+## Environment
+
+R and RStudio are expected to be installed. An internet connection is required ;-). 
+
+OPTIONAL: To render this installation file, the `rmarkdown` package is required, but the instructions can be read on a normal text editor. 
+
+On a linux system, some packages/tools are required:
+
+- Normal development environment, e.g. what the `build-essential` package provides on Debian/Ubuntu.
+
+- curl, git, [...]
+
+- development headers for libpoppler-cpp-dev
+
+Make sure that the current working directory is the top of the tree, that is, just under `dsbook`. 
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+# This is a small utility function to avoid re-installing packages
+install_pkg <- function(name, ...) {
+  if (!requireNamespace(name, quietly = TRUE)){
+    install.packages(name, ...)
+  }
+}
+```
+
+Now that `packrat` is installed and initialised, `devtools` can be re-installed within the `packrat` environment.
+
+The instructions list only a few packages, but they will in turn pull many others. During installation, a number of packages will require some development headers from your Linux distribution. 
+
+## Installation of the relevant packages
+
+The tidyverse packages is the central platform the book builds on.
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+install_pkg("tidyverse")
+install_pkg("tidytext")
+```
+
+Machine learning packages:
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+install_pkg("caret")
+install_pkg("lpSolve")
+install_pkg("randomForest")
+```
+
+Additional visualisation packages and `ggplot2` addins:
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+install_pkg("scatterplot3d")
+install_pkg("VennDiagram")
+install_pkg("maps")
+install_pkg("mapproj")
+install_pkg("animation")
+
+install_pkg("gridExtra")
+install_pkg("ggthemes")
+install_pkg("ggrepel")
+install_pkg("ggridges")
+install_pkg("gganimate")
+devtools::install_github("rensa/ggflags")
+```
+
+Some various utilities:
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+install_pkg("devtools")
+install_pkg("matrixStats")
+install_pkg("gtools")
+install_pkg("pdftools")
+install_pkg("english")
+```
+
+Now the `dslab` package that provides the information and scripts presented in the book can be downloaded.
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+install_pkg("dslabs")
+install_pkg("rafalib")
+```
+
+A package from the BioConductor repository:
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+install_pkg("BiocManager")
+BiocManager::install("genefilter")
+```
+
+A number of datasets are used throughout the book.
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+install_pkg("gutenbergr")
+install_pkg("Lahman")
+install_pkg("countrycode")
+install_pkg("NHANES")
+install_pkg("HistData")
+install_pkg("textdata")
+```
+
+Finally, the `tidytext` text mining package requires external dictionaries for sentiment analysis. Those require agreeing to licenses.
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+tidytext::get_sentiments(lexicon = "afinn")
+tidytext::get_sentiments(lexicon = "bing")
+tidytext::get_sentiments(lexicon = "nrc")
+```
+
+## Book creation packages
+
+`bookdown` generates the final output. `tufte` provides a style that Edward Tufte uses in his books and handouts. It is not the default style.
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+install_pkg("bookdown")
+install_pkg("tufte")
+```
+
+# Book generation
+
+**The whole generation process is sometimes hit and miss. Re-running the generation commands sometimes solves prolems.**
+
+The following is to generate a pdf version. The format can be customised by changing options at the top of the `index.Rmd` file.
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+bookdown::render_book("index.Rmd", output_format = "bookdown::pdf_book")
+```
+
+If the first build succeeds, you could in principle to speed up the next generation, add `clean_envir = FALSE` to the options passed to `render_book`. 
+
+Likewise, this generates a Gitbook...
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+bookdown::render_book("index.Rmd", output_format = "bookdown::gitbook", clean_envir=FALSE)
+```
+
+... or an e-book.
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+bookdown::render_book("index.Rmd", output_format = "bookdown::epub_book", clean_envir=FALSE)
+```
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+# Not working yet
+# bookdown::render_book("index.Rmd", output_format="tufte::tufte_book", clean_envir=FALSE)
+```
+
+
+
