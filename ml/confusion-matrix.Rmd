@@ -191,7 +191,14 @@ mat <- matrix(c("True positives (TP)", "False negatives (FN)",
                 "False positives (FP)", "True negatives (TN)"), 2, 2)
 colnames(mat) <- c("Actually Positive", "Actually Negative")
 rownames(mat) <- c("Predicted positive", "Predicted negative")
-as.data.frame(mat) %>% knitr::kable()
+tmp <- as.data.frame(mat)
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 Sensitivity is typically quantified by $TP/(TP+FN)$, the proportion of actual positives (the first column = $TP+FN$) that are called positives ($TP$). This quantity is referred to as the _true positive rate_ (TPR) or _recall_. 
@@ -479,7 +486,7 @@ $$
 \frac{1}{B} \sum_{b=1}^B \frac{1}{N}\sum_{i=1}^N \left(\hat{y}_i^b - y_i^b\right)^2 
 $$
 
-with $y_{i}^b$ denoting the $i$th observation in the $b$th random sample and $\hat{y}_i^b$ the resulting prediction obtained from applying the exact same algorithm to the $b$th random sample. Again, in practice we only observe one random sample, so the expected MSE is only theoretical. However, in Section \@ref(cross-validation) we describe an approach to estimating the MSE that tries to mimic this theoretical quantity.
+with $y_{i}^b$ denoting the $i$th observation in the $b$th random sample and $\hat{y}_i^b$ the resulting prediction obtained from applying the exact same algorithm to the $b$th random sample. Again, in practice we only observe one random sample, so the expected MSE is only theoretical. However, in Chapter \@ref(cross-validation) we describe an approach to estimating the MSE that tries to mimic this theoretical quantity.
 
 Note that there are loss functions other than the squared loss. For example, the _Mean Absolute Error_  uses absolute values, $|\hat{Y}_i - Y_i|$ instead of squaring the errors 
 $(\hat{Y}_i - Y_i)^2$. However, in this book we focus on minimizing square loss since it is the most widely used.

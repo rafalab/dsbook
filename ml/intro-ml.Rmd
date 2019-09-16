@@ -33,7 +33,13 @@ tmp <- tibble(outcome="?",
               'feature 3' = "$X_3$",
               'feature 4' = "$X_4$",
               'feature 5' = "$X_5$")
-if(knitr::is_html_output()) tmp %>% kable(align="c") else tmp %>% kable(align="c",escape = FALSE, booktabs = TRUE)
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html", align = "c") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", align="c", escape = FALSE, booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 To _build a model_ that provides a prediction for any set of observed values $X_1=x_1, X_2=x_2, \dots X_5=x_5$, we collect data for which we know the outcome:
@@ -50,7 +56,13 @@ tmp_2 <- rbind(c("$\\vdots$", "$\\vdots$", "$\\vdots$", "$\\vdots$", "$\\vdots$"
                c("$y_n$", "$x_{n,1}$","$x_{n,2}$","$x_{n,3}$","$x_{n,4}$","$x_{n,5}$"))
 colnames(tmp_2) <- names(tmp)
 tmp <- bind_rows(tmp, as_tibble(tmp_2))
-if(knitr::is_html_output()) tmp %>% knitr::kable() else tmp %>% knitr::kable(escape = FALSE)
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", escape = FALSE, booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 When the output is continuous we refer to the machine learning task as _prediction_, and the main output of the model is a function $f$ that automatically produces a prediction, denoted with $\hat{y}$, for any set of predictors: $\hat{y} = f(x_1, x_2, \dots, x_p)$.  We use the term _actual outcome_ to denote what we ended up observing. So we want the prediction $\hat{y}$ to match the actual outcome $y$ as well as possible. Because our outcome is continuous, our predictions $\hat{y}$ will not be either exactly right or wrong, but instead we will determine an _error_ defined as the difference between the prediction and the actual outcome $y - \hat{y}$.

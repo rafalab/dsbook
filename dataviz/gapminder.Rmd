@@ -56,7 +56,15 @@ tmp <- gapminder %>%
   
 tab <- inner_join(comp_table, tmp, by = "country") %>% select(-comparison)
   
-bind_cols(slice(tab,seq(1,9,2)), slice(tab,seq(2,10,2))) %>% knitr::kable()
+tmp <- bind_cols(slice(tab,seq(1,9,2)), slice(tab,seq(2,10,2)))
+names(tmp) <- c("country", "infant mortality", "country", "infant mortality")
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 We see that the European countries on this list have higher child mortality rates: Poland has a higher rate than South Korea, and Russia has a higher rate than Malaysia. We also see that Pakistan has a much higher rate than Vietnam, and South Africa has a much higher rate than Thailand. It turns out that when Hans Rosling gave this quiz to educated groups of people, the average score was less than 2.5 out of 5, worse than what they would have obtained had they guessed randomly. This implies that more than ignorant, we are misinformed. In this chapter we see how data visualization helps inform us.
@@ -146,7 +154,7 @@ In the plot above, we have to pay special attention to the range to notice that 
 
 ## Time series plots
 
-The visualizations above effectively illustrates that data no longer supports the western versus developing world view. Once we see these plots, new questions emerge. For example, which countries are improving more and which ones less? Was the improvement constant during the last 50 years or was it more accelerated during certain periods? For a closer look that may help answer these questions, we introduce _time series plots_.
+The visualizations above effectively illustrate that data no longer supports the western versus developing world view. Once we see these plots, new questions emerge. For example, which countries are improving more and which ones less? Was the improvement constant during the last 50 years or was it more accelerated during certain periods? For a closer look that may help answer these questions, we introduce _time series plots_.
 
 Time series plots have time in the x-axis and an outcome or measurement of interest on the y-axis. For example, here is a trend plot of United States fertility rates:
 
@@ -297,11 +305,11 @@ In the above, we quickly see that country populations range between ten thousand
 
 There are two ways we can use log transformations in plots. We can log the values before plotting them or use log scales in the axes. Both approaches are useful and have different strengths. If we log the data, we can more easily interpret intermediate values in the scale. For example, if we see:  
 
->> ----1----x----2--------3----
+`----1----x----2--------3----`
 
 for log transformed data, we know that the value of $x$ is about 1.5. If the scales are logged:
 
->> ----1----x----10------100---
+`----1----x----10------100---`
 
 then, to determine `x`, we need to compute $10^{1.5}$, which is not easy to do in our heads. The advantage of using logged scales is that we see the original values on the axes. However, the advantage of showing logged scales is that the original values are displayed in the plot, which are easier to interpret. For example, we would see "32 dollars a day" instead of "5 log base 2 dollars a day".
 
@@ -370,7 +378,7 @@ In the next section we demonstrate how to visualize and compare distributions ac
 
 ### Boxplots 
 
-The exploratory data analysis above has revealed two characteristics about average income distribution in 1970. Using a histogram, we found a bimodal distribution with the modes relating to poor and rich countries. We now want to compare the distribution across these five groups to confirm the "west versus the rest" dichotomy. The number of points in each category is large enough that a summary plot may be useful. We could generate five histograms or five density plots, but it may be more practical to have all the visual summaries in one plot. We therefore start by stacking boxplots next to each other. Note that we add the layer `theme(axis.text.x = element_text(angle = 90, hjust = 1))` to turn the group labels vertica, since they do not fit if show them horizontally, and remove the axis label to make space.
+The exploratory data analysis above has revealed two characteristics about average income distribution in 1970. Using a histogram, we found a bimodal distribution with the modes relating to poor and rich countries. We now want to compare the distribution across these five groups to confirm the "west versus the rest" dichotomy. The number of points in each category is large enough that a summary plot may be useful. We could generate five histograms or five density plots, but it may be more practical to have all the visual summaries in one plot. We therefore start by stacking boxplots next to each other. Note that we add the layer `theme(axis.text.x = element_text(angle = 90, hjust = 1))` to turn the group labels vertical, since they do not fit if we show them horizontally, and remove the axis label to make space.
 
 
 ```{r dollars-per-day-boxplot}
@@ -552,13 +560,19 @@ The next message we need to convey is that the reason for this change in distrib
 However, we first need to learn how to make these smooth densities in a way that preserves information on the number of countries in each group. To understand why we need this, note the discrepancy in the size of each group:
 
 ```{r, echo=FALSE}
-gapminder %>% 
+tmp <- gapminder %>% 
   filter(year == past_year & country %in% country_list) %>%
   mutate(group = ifelse(group == "West", "West", "Developing")) %>% 
   group_by(group) %>% 
   summarize(n=n()) %>%
-  spread(group, n) %>%
-  knitr::kable()
+  spread(group, n)
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 But when we overlay two densities, the default is to have the area represented by each distribution add up to 1, regardless of the size of each group:

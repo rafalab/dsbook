@@ -57,7 +57,7 @@ Or even worse, this version from [everytown.org](https://everytownresearch.org):
 # from https://everytownresearch.org/wp-content/uploads/2016/07/GunTrends_murders_per_1000.png
 # knitr::include_graphics(file.path(img_path,"GunTrends_murders_per_1000.png"))
 
-dat <- tibble(country = toupper(c("United States", "Canada", "Portugal", "Ireland", "Italy", "Belgium", "Finland", "France", "Netherlands", "Denmark", "Sweden", "Slovakia", "Austria", "New Zealand", "Australia", "Spain", "Czech Republic", "Hungry", "Germany", "United Kingdom", "Norway", "Japan", "Republic of Korea")),
+dat <- tibble(country = toupper(c("United States", "Canada", "Portugal", "Ireland", "Italy", "Belgium", "Finland", "France", "Netherlands", "Denmark", "Sweden", "Slovakia", "Austria", "New Zealand", "Australia", "Spain", "Czech Republic", "Hungary", "Germany", "United Kingdom", "Norway", "Japan", "Republic of Korea")),
               count = c(3.61, 0.5, 0.48, 0.35, 0.35, 0.33, 0.26, 0.20, 0.20, 0.20, 0.19, 0.19, 0.18, 0.16, 0.16, 0.15, 0.12, 0.10, 0.06, 0.04, 0.04, 0.01, 0.01))
 
 dat %>% 
@@ -298,7 +298,7 @@ For more advice, we highly recommend studying Hadley Wickham's style guide^[http
 
 ### Saving your workspace
 
-Values remain in the workspace until you end your session or erase them with the function `rm`. But workspaces also can be saved for later use. In fact, when you quit R, the programs asks you if you want to save your workspace. If you do save it, the next time you start R, the program will restore the workspace. 
+Values remain in the workspace until you end your session or erase them with the function `rm`. But workspaces also can be saved for later use. In fact, when you quit R, the program asks you if you want to save your workspace. If you do save it, the next time you start R, the program will restore the workspace. 
 
 We actually recommend against saving the workspace this way because, as you start working on different projects, it will become harder to keep track of what is saved. Instead, we recommend you assign the workspace a specific name. You can do this by using the function `save` or `save.image`. To load, use the function `load`. When saving a workspace, we recommend the suffix `rda` or `RData`. In RStudio, you can also do this by navigating to the _Session_ tab and choosing _Save Workspace as_. You can later load it using the _Load Workspace_ options in the same tab.
 You can read the help pages on  `save`, `save.image`, and  `load` to learn more. 
@@ -578,7 +578,7 @@ We won't be using lists until later, but you might encounter one in your own exp
 
 Matrices are another type of object that are common in R. Matrices are similar to data frames in that they are two-dimensional: they have rows and columns. However, like numeric, character and logical vectors, entries in matrices have to be all the same type. For this reason data frames are much more useful for storing data, since we can have characters, factors, and numbers in them. 
 
-Yet matrices have a major advantage over data frames: we can perform a matrix algebra operations, a powerful type of mathematical technique. We do not describe these operations in this book, but much of what happens in the background when you perform a data analysis involves matrices. We cover matrices in more detail in Chapter \@ref(matrix-algebra) but describe them briefly here since some of the functions we will learn return matrices. 
+Yet matrices have a major advantage over data frames: we can perform matrix algebra operations, a powerful type of mathematical technique. We do not describe these operations in this book, but much of what happens in the background when you perform a data analysis involves matrices. We cover matrices in more detail in Chapter \@ref(matrix-algebra) but describe them briefly here since some of the functions we will learn return matrices. 
 
 We can define a matrix using the `matrix` function. We need to specify the number of rows and columns.
 
@@ -862,7 +862,7 @@ As a data scientist you will encounter the `NA`s often as they are generally use
    
 7\. Create a vector containing all the positive odd numbers smaller than 100.
 
-8\. Create a vector of numbers that starts at 6, does not pass 55, and adds numbers in increments of 4/7: 6, 6+4/7, 6+8/7, etc.. How many numbers does the list have? Hint: use `seq` and `length`.
+8\. Create a vector of numbers that starts at 6, does not pass 55, and adds numbers in increments of 4/7: 6, 6 + 4/7, 6 + 8/7, and so on. How many numbers does the list have? Hint: use `seq` and `length`.
  
 9\. What is the class of the following object `a <- seq(1, 10, 0.5)`?
 
@@ -973,8 +973,14 @@ rank(x)
 To summarize, let's look at the results of the three functions we have introduced:
 
 ```{r, echo=FALSE}
-knitr::kable(data.frame(original=x, sort=sort(x), order=order(x), rank=rank(x)))
-
+tmp <- data.frame(original=x, sort=sort(x), order=order(x), rank=rank(x))
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 

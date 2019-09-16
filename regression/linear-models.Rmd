@@ -136,7 +136,7 @@ In this analysis, referred to as _multivariate regression_, you will often hear 
 
 We have described how if data is bivariate normal then the conditional expectations follow the regression line. The fact that the conditional expectation is a line is not an extra assumption but rather a derived result. However, in practice it is common to explicitly write down a model that describes the relationship between two or more variables using a _linear model_. 
 
-We note that "linear" here does not refer to lines exclusively, but rather to the fact that the conditional expectation is a linear combinations of known quantities. In mathematics, when we multiply each variable by a constant and then add them together, we say we formed a linear combination of the variables. For example, $3x - 4y + 5z$ is a linear combination of $x$, $y$, and $z$. We can also add a constant so $2 + 3x - 4y + 5z$ is also linear combination of $x$, $y$, and $z$. 
+We note that "linear" here does not refer to lines exclusively, but rather to the fact that the conditional expectation is a linear combination of known quantities. In mathematics, when we multiply each variable by a constant and then add them together, we say we formed a linear combination of the variables. For example, $3x - 4y + 5z$ is a linear combination of $x$, $y$, and $z$. We can also add a constant so $2 + 3x - 4y + 5z$ is also linear combination of $x$, $y$, and $z$. 
 
 So $\beta_0 + \beta_1 x_1 + \beta_2 x_2$, is a linear combination of $x_1$ and $x_2$. 
 The simplest linear model is a constant $\beta_0$; the second simplest is a line $\beta_0 + \beta_1 x$. If we were to specify a linear model for Galton's data, we would denote the $N$ observed father heights with $x_1, \dots, x_n$, then we model the $N$ son heights we are trying to predict with: 
@@ -285,7 +285,7 @@ Although we do not show examples in this book, hypothesis testing with regressio
 
 ### Predicted values are random variables 
 
-Once we fit our model, we can obtain prediction of $Y$ by plugging in the estimates into the regression model. For example, if the father's height is $x$, then our prediction $\hat{Y}$ for the son's height we will be:
+Once we fit our model, we can obtain prediction of $Y$ by plugging in the estimates into the regression model. For example, if the father's height is $x$, then our prediction $\hat{Y}$ for the son's height will be:
 
 $$\hat{Y} = \hat{\beta}_0 + \hat{\beta}_1 x$$
 
@@ -327,7 +327,7 @@ dat <- Batting %>% filter(yearID == 2002) %>%
 
 Now compute a similar table but with rates computed over 1999-2001. 
 
-2\. In Section \@ref(joins) we learn about th the `inner_join`, which you can use to have the 2001 data and averages in the same table: 
+2\. In Section \@ref(joins) we learn about the `inner_join`, which you can use to have the 2001 data and averages in the same table: 
 
 ```{r, eval = FALSE}
 dat <- inner_join(dat, avg, by = "playerID")
@@ -418,7 +418,7 @@ dat %>%
   do(get_slope(.))
 ```
 
-If we name the output, then we get something we do not want, a column containing a data frames:
+If we name the output, then we get something we do not want, a column containing  data frames:
 
 ```{r}
 dat %>%  
@@ -736,7 +736,7 @@ players %>% filter(year(debut) < 1998) %>%
   scale_x_log10()
 ```
 -->
-We can search for good deals by looking at players produce many more runs than others with similar salaries. We can use this table to decide what players to pick and keep our total salary below the 40 million dollars Billy Beane had to work with. This can be done using what computer scientists call linear programming. This is not something we teach, but here are the position players selected with this approach:
+We can search for good deals by looking at players who produce many more runs than others with similar salaries. We can use this table to decide what players to pick and keep our total salary below the 40 million dollars Billy Beane had to work with. This can be done using what computer scientists call linear programming. This is not something we teach, but here are the position players selected with this approach:
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
 library(reshape2)
@@ -754,15 +754,22 @@ lp_solution <- lp("max", players$R_hat,
 our_team <- players %>%
   filter(lp_solution$solution == 1) %>%
   arrange(desc(R_hat))
-our_team %>% select(nameFirst, nameLast, POS, salary, R_hat) %>%
-  knitr::kable()
+tmp <- our_team %>% select(nameFirst, nameLast, POS, salary, R_hat) 
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
+
 ```
 
 We see that all these players have above average BB and most have above average HR rates, while the same is not true for singles. Here is a table with statistics standardized across players so that, for example, above average HR hitters have values above 0.
 
 ```{r, echo=FALSE}
 my_scale <- function(x) (x - median(x))/mad(x)
-players %>% mutate(BB = my_scale(BB), 
+tmp <- players %>% mutate(BB = my_scale(BB), 
                    singles = my_scale(singles),
                    doubles = my_scale(doubles),
                    triples = my_scale(triples),
@@ -771,8 +778,14 @@ players %>% mutate(BB = my_scale(BB),
                    R_hat = my_scale(R_hat)) %>%
   filter(playerID %in% our_team$playerID) %>%
   select(nameLast, BB, singles, doubles, triples, HR, AVG, R_hat) %>%
-  arrange(desc(R_hat)) %>%
-  knitr::kable()
+  arrange(desc(R_hat)) 
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 ## The regression fallacy
@@ -830,9 +843,15 @@ Finally, we will use the `spread` function to have one column for the rookie and
 
 ```{r, eacho=FALSE}
 ROY <- ROY %>% spread(rookie, AVG) %>% arrange(desc(rookie)) 
-ROY %>% slice(1:5) %>%
-  select(nameFirst, nameLast, rookie_year, rookie, sophomore)%>%
-  knitr::kable()
+tmp <- ROY %>% slice(1:5) %>%
+  select(nameFirst, nameLast, rookie_year, rookie, sophomore)
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 In fact, the proportion of players that have a lower batting average their sophomore year is `r mean(ROY$sophomore - ROY$rookie <= 0)`.
@@ -857,16 +876,30 @@ two_years <- Batting %>%
   select(nameFirst, nameLast, `2013`, `2014`)
 ```  
 
-The same pattern arises when we look at the top performers: batting averages go down for the most of the top performers.
+The same pattern arises when we look at the top performers: batting averages go down for most of the top performers.
 
 ```{r, echo=FALSE}
-two_years %>% slice(1:5) %>%knitr::kable()
+tmp <- two_years %>% slice(1:5) 
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 But these are not rookies! Also, look at what happens to the worst performers of 2013:
 
 ```{r, echo=FALSE}
-arrange(two_years, `2013`) %>% slice(1:5) %>%knitr::kable()
+tmp <- arrange(two_years, `2013`) %>% slice(1:5)
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 Their batting averages mostly go up! Is this some sort of reverse sophomore slump? It is not. There is no such thing as the sophomore slump. This is all explained with a simple statistical fact: the correlation for performance in two separate years is high, but not perfect:
@@ -914,7 +947,7 @@ $$ Y_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \varepsilon_i, i=1,\dots,n $$
 
 with $Y_i$ representing distance in meters, $x_i$ representing time in seconds, and $\varepsilon$ accounting for measurement error. The measurement error is assumed to be random, independent from each other, and having the same distribution for each $i$. We also assume that there is no bias, which means the expected value $\mbox{E}[\varepsilon] = 0$.
 
-Note that this is a linear model because it is a linear combination of known quantities ($x$ and $x^2$ are known) and unknown parameters (the $\beta$ s are unknown parameters to Galileo). Unlike our previous examples, here $x$ is a fixed quantity; we are not conditioning.
+Note that this is a linear model because it is a linear combination of known quantities ($x$ and $x^2$ are known) and unknown parameters (the $\beta$s are unknown parameters to Galileo). Unlike our previous examples, here $x$ is a fixed quantity; we are not conditioning.
 
 To pose a new physical theory and start making predictions about other falling objects, Galileo needs actual numbers, rather than unknown parameters. Using LSE seems like a reasonable approach. How do we find the LSE?
 
@@ -968,7 +1001,7 @@ They called this on-base-percentage plus slugging percentage (OPS). Although the
 
 
 
-3\. Note that we can rewrite OPS as a weighted average of BBs, singles, doubles, triples, and HRs. We know that the weights for doubles, triples, and HR are 2, 3, and 4 times that of singles. But what about BB? What is the weight for BB relative to singles? Hint: the weight for BB relative to singles will be a function of AB and PA.
+3\. Note that we can rewrite OPS as a weighted average of BBs, singles, doubles, triples, and HRs. We know that the weights for doubles, triples, and HRs are 2, 3, and 4 times that of singles. But what about BB? What is the weight for BB relative to singles? Hint: the weight for BB relative to singles will be a function of AB and PA.
 
    
 4\. Note that the weight for BB, $\frac{\mbox{AB}}{\mbox{PA}}$, will change from team to team. To see how variable it is, compute and plot this quantity for each team for each year since 1961. Then plot it again, but instead of computing it for every team, compute and plot the ratio for the entire year. Then, once you are convinced that there is not much of a time or team trend, report the overall average.

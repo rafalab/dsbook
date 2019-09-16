@@ -192,7 +192,13 @@ We often see two-by-two tables written out as
 mat <- cbind(c(" a "," c "), c(" b "," d "))
 colnames(mat) <- c("Men","Women")
 rownames(mat) <- c("Awarded", "Not Awarded")
-mat %>% knitr::kable()
+if(knitr::is_html_output()){
+  knitr::kable(mat, "html", align = "c") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(mat, "latex", booktabs = TRUE, align = "c") %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 In this case, the odds ratio is $\frac{a/c}{b/d}$

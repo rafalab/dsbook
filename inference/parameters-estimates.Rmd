@@ -1,6 +1,6 @@
 # Statistical inference {#inference}
 
-In Chapter \@ref(models) we will describe, in some detail, how poll aggregators such as FiveThirtyEight use data to predict election outcomes. To understand how they do this, we first need to learn the basics of _Statistical Inference_, the part of statistics that helps distinguish patterns arising from signal from those arising from chance. Statistical inference is a broad topic and here we go over the very basics using polls as a motivating examples. To describe the concepts, we complement the mathematical formulas with Monte Carlo simulations and R code.   
+In Chapter \@ref(models) we will describe, in some detail, how poll aggregators such as FiveThirtyEight use data to predict election outcomes. To understand how they do this, we first need to learn the basics of _Statistical Inference_, the part of statistics that helps distinguish patterns arising from signal from those arising from chance. Statistical inference is a broad topic and here we go over the very basics using polls as a motivating example. To describe the concepts, we complement the mathematical formulas with Monte Carlo simulations and R code.   
 
 ```{r, echo=FALSE}
 img_path <- "inference/img/"
@@ -31,7 +31,13 @@ tab <- tab %>% mutate(Poll = stringr::str_remove(Poll, "\\/.*")) %>%
     Poll == "CBS NewsCBS News" ~ "CBS News",
     TRUE ~ Poll))
 names(tab) <- stringr::str_remove_all(names(tab), "\\s(.*)")    
-tab %>% knitr::kable()
+if(knitr::is_html_output()){
+  knitr::kable(tab, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tab, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 <!-- (Source: [Real Clear Politics](https://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html)) -->

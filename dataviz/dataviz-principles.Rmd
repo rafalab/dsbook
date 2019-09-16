@@ -69,7 +69,14 @@ To see how hard it is to quantify angles and area, note that the rankings and al
 In this case, simply showing the numbers is not only clearer, but would also save on printing costs if printing a paper copy:
 
 ```{r, echo=FALSE}
-browsers %>% spread(Year, Percentage) %>% knitr::kable()
+if(knitr::is_html_output()){
+  browsers %>% spread(Year, Percentage) %>% knitr::kable("html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+   browsers %>% spread(Year, Percentage) %>% 
+    knitr::kable("latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 The preferred way to plot these quantities is to use length and position as visual cues, since humans are much better at judging linear measures. The barplot uses this approach by using bars of length proportional to the quantities of interest. By adding horizontal lines at strategically chosen values, in this case at every multiple of 10, we ease the visual burden of quantifying through the position of the top of the bars. Compare and contrast the information we can extract from the two figures.
@@ -337,7 +344,7 @@ heights %>%
   facet_grid(.~sex, scales = "free_x")
 ```
 
-However, from this plot it is not immediately obvious that males are, on average, taller than females. We have to look carefully to notice that the x-axis has a higher range of values in the male histogram. An important principle here is to **keep the axes the same** when comparing data across to plots. Below we see how the comparison becomes easier:
+However, from this plot it is not immediately obvious that males are, on average, taller than females. We have to look carefully to notice that the x-axis has a higher range of values in the male histogram. An important principle here is to **keep the axes the same** when comparing data across two plots. Below we see how the comparison becomes easier:
 
 ```{r common-axes-histograms-right, echo=FALSE}
 heights %>% 
@@ -736,16 +743,28 @@ dat <- us_contagious_diseases %>%
   mutate(state = reorder(state, rate)) %>% 
   select(state, year, disease, rate) %>%
   spread(disease, rate)
-dat %>% knitr::kable()
+if(knitr::is_html_output()){
+  knitr::kable(dat, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(dat, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 options(digits=tmp)
 ```
 
 We are reporting precision up to 0.00001 cases per 10,000, a very small value in the context of the changes that are occurring across the dates. In this case, two significant figures is more than enough and clearly makes the point that rates are decreasing:
 
 ```{r, echo = FALSE}
-dat %>% 
-  mutate_at(c("Measles", "Pertussis", "Polio"), ~round(., digits=1)) %>%
-  knitr::kable()
+dat <- dat %>% 
+  mutate_at(c("Measles", "Pertussis", "Polio"), ~round(., digits=1))
+if(knitr::is_html_output()){
+  knitr::kable(dat, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(dat, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size=8)
+}
 ```
 
 Useful ways to change the number of significant digits or to round numbers are `signif` and `round`. You can define the number of significant digits globally by setting options like this: `options(digits = 3)`. 
@@ -760,10 +779,15 @@ dat <- us_contagious_diseases %>%
   mutate(rate = count / population * 10000) %>% 
   mutate(state = reorder(state, rate)) %>% 
   select(state, year, disease, rate) %>%
-  spread(year, rate)
-dat %>% 
-  mutate_if(is.numeric, round, digits=1) %>%
-  knitr::kable()
+  spread(year, rate) %>% 
+  mutate_if(is.numeric, round, digits=1) 
+if(knitr::is_html_output()){
+  knitr::kable(dat, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(dat, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 ## Know your audience
@@ -947,7 +971,7 @@ d. Scatterplots should not be used to compare two variables when we have access 
 10\. Now reproduce the time series plot we previously made, but this time following the instructions of the previous question.
 
   
-11\. For the state of California, make a time series plots showing rates for all diseases. Include only years with 10 or more weeks reporting. Use a different color for each disease.
+11\. For the state of California, make time series plots showing rates for all diseases. Include only years with 10 or more weeks reporting. Use a different color for each disease.
 
   
 12\. Now do the same for the rates for the US. Hint: compute the US rate by using summarize, the total divided by total population.

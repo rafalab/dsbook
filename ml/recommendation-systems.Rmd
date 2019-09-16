@@ -1,8 +1,3 @@
----
-output:
-  pdf_document: default
-  html_document: default
----
 ## Recommendation systems
 
 Recommendation systems use ratings that _users_ have given _items_ to make specific recommendations. Companies that sell many products to many customers and permit these customers to rate their products, like Amazon, are able to collect massive datasets that can be used to predict what rating a particular user will give a specific item. Items for which a high rating is predicted for a given user are then recommended to that user. 
@@ -57,7 +52,13 @@ tab <- movielens %>%
          title = str_remove(title, ":.*")) %>%
   spread(title, rating)
 
-tab %>% knitr::kable()
+if(knitr::is_html_output()){
+  knitr::kable(tab, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tab, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 You can think of the task of a recommendation system as filling in the `NA`s in the table above. To see how _sparse_ the matrix is, here is the matrix for a random sample of 100 movies and 100 users with yellow indicating a user/movie combination for which we have a rating.
@@ -186,7 +187,7 @@ $$
 Y_{u,i} = \mu + b_i + \varepsilon_{u,i}
 $$
 
-Statistics textbooks refer to to the $b$s as effects. However, in the Netflix challenge papers, they refer to them as "bias", thus the $b$ notation.
+Statistics textbooks refer to the $b$s as effects. However, in the Netflix challenge papers, they refer to them as "bias", thus the $b$ notation.
 
 We can again use least squares to estimate the $b_i$ in the following way:
 
@@ -578,8 +579,13 @@ rmse_results <- bind_rows(
   rmse_results,
   tibble(method="Regularized Movie + User Effect Model",  
          RMSE = min(rmses)))
-rmse_results %>% knitr::kable()
-
+if(knitr::is_html_output()){
+  knitr::kable(rmse_results, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(rmse_results, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 ## Exercises 
@@ -942,7 +948,7 @@ $$ Y = U D V^{\top} $$
 
 With $U$ and $V$ _orthogonal_ of dimensions $N\times p$ and $p\times p$, respectively, and $D$ a $p \times p$ _diagonal_ matrix with the values of the diagonal decreasing: 
 
-$$d_{1,1} \geq d_{2,2} \geq \dots d_{p,p}$$. 
+$$d_{1,1} \geq d_{2,2} \geq \dots d_{p,p}.$$ 
 
 In this exercise, we will see one of the ways that this decomposition can be useful. To do this, we will construct a dataset that represents grade scores for 100 students in 24 different subjects. The overall average has been removed so this data represents the percentage point each student received above or below the average test score. So a 0 represents an average grade (C), a 25 is a high grade (A+), and a -25 represents a low grade (F). You can simulate the data like this:
 

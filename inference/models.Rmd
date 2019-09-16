@@ -1,6 +1,6 @@
 # Statistical models {#models}
 
->>"All models are wrong, but some are useful" -George E. P. Box
+>>"All models are wrong, but some are useful." --George E. P. Box
 
 The day before the 2008 presidential election, Nate Silver's FiveThirtyEight stated that "Barack Obama appears poised for a decisive electoral victory". They went further and predicted that Obama would win the election with 349 electoral votes to 189, and the popular vote by a margin of 6.1%. FiveThirtyEight also attached a probabilistic statement to their prediction claiming that Obama had a 91% chance of winning the election. The predictions were quite accurate since, in the final results, Obama won the electoral college 365 to 173 and the popular vote by a 7.2% difference. Their performance in the 2008 election brought FiveThirtyEight to the attention of political pundits and TV personalities. Four years later, the week before the 2012 presidential election, FiveThirtyEight's Nate Silver was giving Obama a 90% chance of winning despite many of the experts thinking the final results would be closer. Political commentator Joe Scarborough said during his show^[https://www.youtube.com/watch?v=TbKkjm-gheY]:
 
@@ -98,13 +98,19 @@ ggplot(polls2, aes(poll, estimate, ymin=low, ymax=high, color=col)) +
 
 Of course, this was just a simulation to illustrate the idea. The actual data science exercise of forecasting elections is much more complicated and it involves modeling. Below we explain how pollsters fit multilevel models to the data and use this to forecast election results. In the 2008 and 2012 US presidential elections, Nate Silver used this approach to make an almost perfect prediction and silence the pundits.
 
-Since the 2008 elections, other organizations have started their own election forecasting group that, like Nate Silver's, aggregates polling data and uses statistical models to make predictions. In 2016, forecasters underestimated Trump's chances of winning greatly. The day before the election the New York Times reported^[https://www.nytimes.com/interactive/2016/upshot/presidential-polls-forecast.html] the following probabilities for Hillary Clinton winning the presidency:
+Since the 2008 elections, other organizations have started their own election forecasting group that, like Nate Silver's, aggregates polling data and uses statistical models to make predictions. In 2016, forecasters underestimated Trump's chances of winning greatly. The day before the election the _New York Times_ reported^[https://www.nytimes.com/interactive/2016/upshot/presidential-polls-forecast.html] the following probabilities for Hillary Clinton winning the presidency:
 
 
 ```{r, echo=FALSE, out.width="100%"}
 #knitr::include_graphics(file.path(img_path, "pollster-2016-predictions.png"))
 tmp <- data.frame(NYT = "  85%", `538` = "  71%", HuffPost = "  98%", PW = "  89%", PEC = " >99%", DK = "  92%", Cook = " Lean Dem", Roth = " Lean Dem", check.names = FALSE, row.names = "Win Prob")
-knitr::kable(tmp)
+if(knitr::is_html_output()){
+  knitr::kable(tmp, "html") %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+} else{
+  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(font_size = 8)
+}
 ```
 
 <!--(Source: [New York Times](https://www.nytimes.com/interactive/2016/upshot/presidential-polls-forecast.html))-->
@@ -182,7 +188,7 @@ We introduce actual data from the 2016 US presidential election to show how mode
 
 ### Poll data
 
-We use public polling data organized by FiveThirtyEight for the 2016 presidential election. The data is included as part of of the __dslabs__ package:
+We use public polling data organized by FiveThirtyEight for the 2016 presidential election. The data is included as part of the __dslabs__ package:
 
 ```{r}
 data(polls_us_election_2016)
@@ -413,7 +419,7 @@ What is the expected values $\bar{Y}_1$?
 16\. The answer to the question above depends on $\sigma_1$ and $\sigma_2$, which we don't know. We learned that we can estimate these with the sample standard deviation. Write code that computes these two estimates.
 
 
-17\. What does the CLT tells us about the distribution of $\bar{Y}_2 - \bar{Y}_1$?
+17\. What does the CLT tell us about the distribution of $\bar{Y}_2 - \bar{Y}_1$?
 
 a. Nothing because this is not the average of a sample.
 b. Because the $Y_{ij}$ are approximately normal, so are the averages.
