@@ -8,7 +8,8 @@ The data we need to answer a question is not always in a spreadsheet ready for u
 
 ```{r}
 url <- paste0("https://en.wikipedia.org/w/index.php?title=",
-              "Gun_violence_in_the_United_States_by_state&oldid=843135608")
+              "Gun_violence_in_the_United_States_by_state",
+              "&direction=prev&oldid=810166167")
 ```
 
 You can see the data table when you visit the webpage:
@@ -17,7 +18,7 @@ You can see the data table when you visit the webpage:
 knitr::include_graphics(file.path(img_path,"murders-data-wiki-page.png"))
 ```
 
-(Web page courtesy of Wikipedia^[https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state]. CC-BY-SA-3.0 license^[https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License]. Screenshot of part of the page.)
+(Web page courtesy of Wikipedia^[https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&direction=prev&oldid=810166167]. CC-BY-SA-3.0 license^[https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License]. Screenshot of part of the page.)
 
 Unfortunately, there is no link to a data file. To make the data frame that is loaded when we type `data(murders)`, we had to do some _web scraping_. 
 
@@ -115,10 +116,10 @@ Now, instead of the entire webpage, we just have the html code for the tables in
 tab
 ```
 
-The table we are interested is the third one:
+The table we are interested is the first one:
 
 ```{r}
-tab[[3]]
+tab[[1]]
 ```
 
 
@@ -126,16 +127,16 @@ This is clearly not a tidy dataset, not even a data frame. In the code above, yo
 
 
 ```{r}
-tab <- tab[[3]] %>% html_table
+tab <- tab[[1]] %>% html_table
 class(tab)
 ```
 
 We are now much closer to having a usable data table:
 
 ```{r}
-tab <- tab %>% setNames(c("state", "population", "total", "murder_rate"))
+tab <- tab %>% setNames(c("state", "population", "total", "murder_rate")) 
 head(tab)
-```
+  ```
 
 We still have some wrangling to do. For example, we need to remove the commas and turn characters into numbers. Before continuing with this, we will learn a more general approach to extracting information from web sites.
 
