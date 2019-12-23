@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2019-11-03" />
+<meta name="date" content="2019-12-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -925,12 +925,12 @@ y_hat_knn &lt;-<span class="st"> </span><span class="kw">predict</span>(knn_fit,
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knn_fit_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">knn3</span>(y <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> mnist_<span class="dv">27</span><span class="op">$</span>train, <span class="dt">k =</span> <span class="dv">1</span>)
 y_hat_knn_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">predict</span>(knn_fit_<span class="dv">1</span>, mnist_<span class="dv">27</span><span class="op">$</span>train, <span class="dt">type =</span> <span class="st">&quot;class&quot;</span>)
 <span class="kw">confusionMatrix</span>(y_hat_knn_<span class="dv">1</span>, mnist_<span class="dv">27</span><span class="op">$</span>train<span class="op">$</span>y)<span class="op">$</span>overall[[<span class="st">&quot;Accuracy&quot;</span>]]
-<span class="co">#&gt; [1] 0.995</span></code></pre></div>
+<span class="co">#&gt; [1] 0.996</span></code></pre></div>
 <p>However, the test set accuracy is actually worse than logistic regression:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">y_hat_knn_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">predict</span>(knn_fit_<span class="dv">1</span>, mnist_<span class="dv">27</span><span class="op">$</span>test, <span class="dt">type =</span> <span class="st">&quot;class&quot;</span>)
 <span class="kw">confusionMatrix</span>(y_hat_knn_<span class="dv">1</span>, mnist_<span class="dv">27</span><span class="op">$</span>test<span class="op">$</span>y)<span class="op">$</span>overall[<span class="st">&quot;Accuracy&quot;</span>]
 <span class="co">#&gt; Accuracy </span>
-<span class="co">#&gt;    0.735</span></code></pre></div>
+<span class="co">#&gt;     0.74</span></code></pre></div>
 <p>We can see the over-fitting problem in this figure. <img src="book_files/figure-html/knn-1-overfit-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>The black curves denote the decision rule boundaries.</p>
 <p>The estimate <span class="math inline">\(\hat{p}(x_1, x_2)\)</span> follows the training data too closely (left). You can see that in the training set, boundaries have been drawn to perfectly surround a single red point in a sea of blue. Because most points <span class="math inline">\((x_1, x_2)\)</span> are unique, the prediction is either 1 or 0 and the prediction for that point is the associated label. However, once we introduce the training set (right), we see that many of these small islands now have the opposite color and we end up making several incorrect predictions.</p>
@@ -998,12 +998,12 @@ accuracy &lt;-<span class="st"> </span><span class="kw">map_df</span>(ks, <span 
 <div id="k-fold-cross-validation" class="section level2">
 <h2><span class="header-section-number">29.3</span> K-fold cross validation</h2>
 <p>The first one we describe is <em>K-fold cross validation</em>. Generally speaking, a machine learning challenge starts with a dataset (blue in the image below). We need to build an algorithm using this dataset that will eventually be used in completely independent datasets (yellow).</p>
-<p><img src="ml/img/cv-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p><img src="ml/img/cv-1.png" width="500px" style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;" style="display: block; margin: auto;" /></p>
 <p>But we don’t get to see these independent datasets.</p>
-<p><img src="ml/img/cv-2.png" width="70%" style="display: block; margin: auto;" /></p>
+<p><img src="ml/img/cv-2.png" width="500px" style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;" style="display: block; margin: auto;" /></p>
 <p>So to imitate this situation, we carve out a piece of our dataset and pretend it is an independent dataset: we divide the dataset into a <em>training set</em> (blue) and a <em>test set</em> (red). We will train our algorithm exclusively on the training set and use the test set only for evaluation purposes.</p>
 <p>We usually try to select a small piece of the dataset so that we have as much data as possible to train. However, we also want the test set to be large so that we obtain a stable estimate of the loss without fitting an impractical number of models. Typical choices are to use 10%-20% of the data for testing.</p>
-<p><img src="ml/img/cv-3.png" width="70%" style="display: block; margin: auto;" /></p>
+<p><img src="ml/img/cv-3.png" width="500px" style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;" style="display: block; margin: auto;" /></p>
 <p>Let’s reiterate that it is indispensable that we not use the test set at all: not for filtering out rows, not for selecting features, nothing!</p>
 <p>Now this presents a new problem because for most machine learning algorithms we need to select parameters, for example the number of neighbors <span class="math inline">\(k\)</span> in k-nearest neighbors. Here, we will refer to the set of parameters as <span class="math inline">\(\lambda\)</span>. We need to optimize algorithm parameters without using our test set and we know that if we optimize and evaluate on the same dataset, we will overtrain. This is where cross validation is most useful.</p>
 <p>For each set of algorithm parameters being considered, we want an estimate of the MSE and then we will choose the parameters with the smallest MSE. Cross validation provides this estimate.</p>
@@ -1014,25 +1014,25 @@ accuracy &lt;-<span class="st"> </span><span class="kw">map_df</span>(ks, <span 
 \]</span></p>
 <p>we want to consider datasets that can be thought of as an independent random sample and we want to do this several times. With K-fold cross validation, we do it <span class="math inline">\(K\)</span> times. In the cartoons, we are showing an example that uses <span class="math inline">\(K=5\)</span>.</p>
 <p>We will eventually end up with <span class="math inline">\(K\)</span> samples, but let’s start by describing how to construct the first: we simply pick <span class="math inline">\(M=N/K\)</span> observations at random (we round if <span class="math inline">\(M\)</span> is not a round number) and think of these as a random sample <span class="math inline">\(y_1^b, \dots, y_M^b\)</span>, with <span class="math inline">\(b=1\)</span>. We call this the validation set:</p>
-<p><img src="ml/img/cv-4.png" width="70%" style="display: block; margin: auto;" /></p>
+<p><img src="ml/img/cv-4.png" width="500px" style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;" style="display: block; margin: auto;" /></p>
 <p>Now we can fit the model in the training set, then compute the apparent error on the independent set:</p>
 <p><span class="math display">\[
 \hat{\mbox{MSE}}_b(\lambda) = \frac{1}{M}\sum_{i=1}^M \left(\hat{y}_i^b(\lambda) - y_i^b\right)^2 
 \]</span></p>
 <p>Note that this is just one sample and will therefore return a noisy estimate of the true error. This is why we take <span class="math inline">\(K\)</span> samples, not just one. In K-cross validation, we randomly split the observations into <span class="math inline">\(K\)</span> non-overlapping sets:</p>
-<p><img src="ml/img/cv-5.png" width="70%" style="display: block; margin: auto;" /></p>
+<p><img src="ml/img/cv-5.png" width="500px" style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;" style="display: block; margin: auto;" /></p>
 <p>Now we repeat the calculation above for each of these sets <span class="math inline">\(b=1,\dots,K\)</span> and obtain <span class="math inline">\(\hat{\mbox{MSE}}_1(\lambda),\dots, \hat{\mbox{MSE}}_K(\lambda)\)</span>. Then, for our final estimate, we compute the average:</p>
 <p><span class="math display">\[
 \hat{\mbox{MSE}}(\lambda) = \frac{1}{B} \sum_{b=1}^K \hat{\mbox{MSE}}_b(\lambda)
 \]</span></p>
 <p>and obtain an estimate of our loss. A final step would be to select the <span class="math inline">\(\lambda\)</span> that minimizes the MSE.</p>
 <p>We have described how to use cross validation to optimize parameters. However, we now have to take into account the fact that the optimization occurred on the training data and therefore we need an estimate of our final algorithm based on data that was not used to optimize the choice. Here is where we use the test set we separated early on:</p>
-<p><img src="ml/img/cv-6.png" width="70%" style="display: block; margin: auto;" /></p>
+<p><img src="ml/img/cv-6.png" width="500px" style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;" style="display: block; margin: auto;" /></p>
 <p>We can do cross validation again:</p>
-<p><img src="ml/img/cv-7.png" width="70%" style="display: block; margin: auto;" /></p>
+<p><img src="ml/img/cv-7.png" width="500px" style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;" style="display: block; margin: auto;" /></p>
 <p>and obtain a final estimate of our expected loss. However, note that this means that our entire compute time gets multiplied by <span class="math inline">\(K\)</span>. You will soon learn that performing this task takes time because we are performing many complex computations. As a result, we are always looking for ways to reduce this time. For the final evaluation, we often just use the one test set.</p>
 <p>Once we are satisfied with this model and want to make it available to others, we could refit the model on the entire dataset, without changing the optimized parameters.</p>
-<p><img src="ml/img/cv-8.png" width="70%" style="display: block; margin: auto;" /></p>
+<p><img src="ml/img/cv-8.png" width="500px" style="display: block; margin-left: auto; margin-right: auto; background-color: #000; padding:3px;" style="display: block; margin: auto;" /></p>
 <p>Now how do we pick the cross validation <span class="math inline">\(K\)</span>? Large values of <span class="math inline">\(K\)</span> are preferable because the training data better imitates the original dataset. However, larger values of <span class="math inline">\(K\)</span> will have much slower computation time: for example, 100-fold cross validation will be 10 times slower than 10-fold cross validation. For this reason, the choices of <span class="math inline">\(K=5\)</span> and <span class="math inline">\(K=10\)</span> are popular.</p>
 <p>One way we can improve the variance of our final estimate is to take more samples. To do this, we would no longer require the training set to be partitioned into non-overlapping sets. Instead, we would just pick <span class="math inline">\(K\)</span> sets of some size at random.</p>
 <p>One popular version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages (not discussed here) and is generally referred to as the <em>bootstrap</em>. In fact, this is the default approach in the <strong>caret</strong> package. We describe how to implement cross validation with the <strong>caret</strong> package in the next chapter. In the next section, we include an explanation of how the bootstrap works in general.</p>
