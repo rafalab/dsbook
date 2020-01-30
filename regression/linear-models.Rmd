@@ -5,12 +5,12 @@ Previously, we noted a strong relationship between Runs and BB. If we find the r
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(Lahman)
-get_slope <- function(x, y) cor(x, y) * (sd(x) / sd(y))
+get_slope <- function(x, y) cor(x, y) * sd(y) / sd(x)
 
 bb_slope <- Teams %>% 
   filter(yearID %in% 1961:2001 ) %>% 
   mutate(BB_per_game = BB/G, R_per_game = R/G) %>% 
-  summarize(slope = get_slope(R_per_game, BB_per_game))
+  summarize(slope = get_slope(BB_per_game, R_per_game))
 
 bb_slope 
 ```
@@ -24,7 +24,7 @@ Note that if we compute the regression line slope for singles we get:
 singles_slope <- Teams %>% 
   filter(yearID %in% 1961:2001 ) %>%
   mutate(Singles_per_game = (H-HR-X2B-X3B)/G, R_per_game = R/G) %>%
-  summarize(slope = get_slope(R_per_game, Singles_per_game))
+  summarize(slope = get_slope(Singles_per_game, R_per_game))
 
 singles_slope 
 ```
@@ -105,7 +105,7 @@ They are reduced a bit, which is consistent with the fact that BB do in fact cau
 hr_slope <- Teams %>% 
   filter(yearID %in% 1961:2001 ) %>% 
   mutate(HR_per_game = HR/G, R_per_game = R/G) %>% 
-  summarize(slope = get_slope(R_per_game, HR_per_game))
+  summarize(slope = get_slope(HR_per_game, R_per_game))
 
 hr_slope
 ```
@@ -358,7 +358,7 @@ dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
 Since we didn't know the `lm` function, to compute the regression line in each strata, we used the formula directly like this:
 
 ```{r, eval=FALSE}
-get_slope <- function(x, y) cor(x, y) / (sd(x) * sd(y))
+get_slope <- function(x, y) cor(x, y) * sd(y) / sd(x)
 dat %>%  
   group_by(HR) %>%
   summarize(slope = get_slope(BB, R))

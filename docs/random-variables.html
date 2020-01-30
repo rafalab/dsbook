@@ -1162,7 +1162,7 @@ loss_per_foreclosure &lt;-<span class="st"> </span><span class="op">-</span><spa
 p &lt;-<span class="st"> </span><span class="fl">0.02</span> 
 defaults &lt;-<span class="st"> </span><span class="kw">sample</span>( <span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), n, <span class="dt">prob=</span><span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p), <span class="dt">replace =</span> <span class="ot">TRUE</span>)
 <span class="kw">sum</span>(defaults <span class="op">*</span><span class="st"> </span>loss_per_foreclosure)
-<span class="co">#&gt; [1] -3600000</span></code></pre></div>
+<span class="co">#&gt; [1] -5e+06</span></code></pre></div>
 <p>Note that the total loss defined by the final sum is a random variable. Every time you run the above code, you get a different answer. We can easily construct a Monte Carlo simulation to get an idea of the distribution of this random variable.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">B &lt;-<span class="st"> </span><span class="dv">10000</span>
 losses &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
@@ -1235,7 +1235,7 @@ profit &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
     <span class="kw">sum</span>(draws)
 })
 <span class="kw">mean</span>(profit)
-<span class="co">#&gt; [1] 2129181</span>
+<span class="co">#&gt; [1] 2118548</span>
 <span class="kw">mean</span>(profit<span class="op">&lt;</span><span class="dv">0</span>)
 <span class="co">#&gt; [1] 0.0124</span></code></pre></div>
 </div>
@@ -1279,7 +1279,7 @@ profit &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
     <span class="kw">sum</span>(draws)
 })
 <span class="kw">mean</span>(profit)
-<span class="co">#&gt; [1] 14182684</span></code></pre></div>
+<span class="co">#&gt; [1] 14190233</span></code></pre></div>
 <p>This seems like a no brainer. As a result, your colleague decides to leave your bank and start his own high-risk mortgage company. A few months later, your colleague’s bank has gone bankrupt. A book is written and eventually a movie is made relating the mistake your friend, and many others, made. What happened?</p>
 <p>Your colleague’s scheme was mainly based on this mathematical formula: <span class="math display">\[
     \mbox{SE}[(X_1+X_2+\dots+X_n) / n] = \sigma / \sqrt{n}    
@@ -1298,13 +1298,13 @@ profit &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {
 })</code></pre></div>
 <p>Note that our expected profit is still large:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(profit)
-<span class="co">#&gt; [1] 14176443</span></code></pre></div>
+<span class="co">#&gt; [1] 14152573</span></code></pre></div>
 <p>However, the probability of the bank having negative earnings shoots up to:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(profit<span class="op">&lt;</span><span class="dv">0</span>)
 <span class="co">#&gt; [1] 0.348</span></code></pre></div>
 <p>Even scarier is that the probability of losing more than 10 million dollars is:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(profit <span class="op">&lt;</span><span class="st"> </span><span class="op">-</span><span class="dv">10000000</span>)
-<span class="co">#&gt; [1] 0.24</span></code></pre></div>
+<span class="co">#&gt; [1] 0.242</span></code></pre></div>
 <p>To understand how this happens look at the distribution:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data.frame</span>(<span class="dt">profit_in_millions=</span>profit<span class="op">/</span><span class="dv">10</span><span class="op">^</span><span class="dv">6</span>) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(profit_in_millions)) <span class="op">+</span><span class="st"> </span>

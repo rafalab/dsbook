@@ -995,12 +995,12 @@ p <span class="op">+</span><span class="st"> </span><span class="kw">geom_abline
 <p>Previously, we noted a strong relationship between Runs and BB. If we find the regression line for predicting runs from bases on balls, we a get slope of:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(tidyverse)
 <span class="kw">library</span>(Lahman)
-get_slope &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">cor</span>(x, y) <span class="op">*</span><span class="st"> </span>(<span class="kw">sd</span>(x) <span class="op">/</span><span class="st"> </span><span class="kw">sd</span>(y))
+get_slope &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">cor</span>(x, y) <span class="op">*</span><span class="st"> </span><span class="kw">sd</span>(y) <span class="op">/</span><span class="st"> </span><span class="kw">sd</span>(x)
 
 bb_slope &lt;-<span class="st"> </span>Teams <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">filter</span>(yearID <span class="op">%in%</span><span class="st"> </span><span class="dv">1961</span><span class="op">:</span><span class="dv">2001</span> ) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">mutate</span>(<span class="dt">BB_per_game =</span> BB<span class="op">/</span>G, <span class="dt">R_per_game =</span> R<span class="op">/</span>G) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">slope =</span> <span class="kw">get_slope</span>(R_per_game, BB_per_game))
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">slope =</span> <span class="kw">get_slope</span>(BB_per_game, R_per_game))
 
 bb_slope 
 <span class="co">#&gt;   slope</span>
@@ -1011,11 +1011,11 @@ bb_slope
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">singles_slope &lt;-<span class="st"> </span>Teams <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">filter</span>(yearID <span class="op">%in%</span><span class="st"> </span><span class="dv">1961</span><span class="op">:</span><span class="dv">2001</span> ) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Singles_per_game =</span> (H<span class="op">-</span>HR<span class="op">-</span>X2B<span class="op">-</span>X3B)<span class="op">/</span>G, <span class="dt">R_per_game =</span> R<span class="op">/</span>G) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">slope =</span> <span class="kw">get_slope</span>(R_per_game, Singles_per_game))
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">slope =</span> <span class="kw">get_slope</span>(Singles_per_game, R_per_game))
 
 singles_slope 
 <span class="co">#&gt;   slope</span>
-<span class="co">#&gt; 1   1.3</span></code></pre></div>
+<span class="co">#&gt; 1 0.449</span></code></pre></div>
 <p>which is a lower value than what we obtain for BB.</p>
 <p>Also, notice that a single gets you to first base just like a BB. Those that know about baseball will tell you that with a single, runners on base have a better chance of scoring than with a BB. So how can BB be more predictive of runs? The reason this happen is because of confounding. Here we show the correlation between HR, BB, and singles:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Teams <span class="op">%&gt;%</span><span class="st"> </span>
@@ -1047,13 +1047,13 @@ singles_slope
 <span class="co">#&gt; # A tibble: 9 x 2</span>
 <span class="co">#&gt;   HR_strata slope</span>
 <span class="co">#&gt;       &lt;dbl&gt; &lt;dbl&gt;</span>
-<span class="co">#&gt; 1       0.4  4.19</span>
-<span class="co">#&gt; 2       0.5  3.30</span>
-<span class="co">#&gt; 3       0.6  2.55</span>
-<span class="co">#&gt; 4       0.7  2.03</span>
-<span class="co">#&gt; 5       0.8  2.47</span>
+<span class="co">#&gt; 1       0.4 0.734</span>
+<span class="co">#&gt; 2       0.5 0.566</span>
+<span class="co">#&gt; 3       0.6 0.412</span>
+<span class="co">#&gt; 4       0.7 0.285</span>
+<span class="co">#&gt; 5       0.8 0.365</span>
 <span class="co">#&gt; # … with 4 more rows</span></code></pre></div>
-<p>The slopes are reduced, but they are not 0, which indicates that BBs are helpful for producing runs, just not as much as previously thought. In fact, the values above are closer to the slope we obtained from singles, 1.3, which is more consistent with our intuition. Since both singles and BB get us to first base, they should have about the same predictive power.</p>
+<p>The slopes are reduced, but they are not 0, which indicates that BBs are helpful for producing runs, just not as much as previously thought. In fact, the values above are closer to the slope we obtained from singles, 0.45, which is more consistent with our intuition. Since both singles and BB get us to first base, they should have about the same predictive power.</p>
 <p>Although our understanding of the application tells us that HR cause BB but not the other way around, we can still check if stratifying by BB makes the effect of BB go down. To do this, we use the same code except that we swap HR and BBs to get this plot:</p>
 <p><img src="book_files/figure-html/runs-vs-hr-by-bb-strata-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>In this case, the slopes do not change much from the original:</p>
@@ -1062,21 +1062,21 @@ singles_slope
 <span class="co">#&gt; # A tibble: 12 x 2</span>
 <span class="co">#&gt;   BB_strata slope</span>
 <span class="co">#&gt;       &lt;dbl&gt; &lt;dbl&gt;</span>
-<span class="co">#&gt; 1       2.8  6.47</span>
-<span class="co">#&gt; 2       2.9  8.87</span>
-<span class="co">#&gt; 3       3    7.40</span>
-<span class="co">#&gt; 4       3.1  7.34</span>
-<span class="co">#&gt; 5       3.2  5.89</span>
+<span class="co">#&gt; 1       2.8  1.52</span>
+<span class="co">#&gt; 2       2.9  1.57</span>
+<span class="co">#&gt; 3       3    1.52</span>
+<span class="co">#&gt; 4       3.1  1.49</span>
+<span class="co">#&gt; 5       3.2  1.58</span>
 <span class="co">#&gt; # … with 7 more rows</span></code></pre></div>
 <p>They are reduced a bit, which is consistent with the fact that BB do in fact cause some runs.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">hr_slope &lt;-<span class="st"> </span>Teams <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">filter</span>(yearID <span class="op">%in%</span><span class="st"> </span><span class="dv">1961</span><span class="op">:</span><span class="dv">2001</span> ) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">mutate</span>(<span class="dt">HR_per_game =</span> HR<span class="op">/</span>G, <span class="dt">R_per_game =</span> R<span class="op">/</span>G) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">slope =</span> <span class="kw">get_slope</span>(R_per_game, HR_per_game))
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">slope =</span> <span class="kw">get_slope</span>(HR_per_game, R_per_game))
 
 hr_slope
 <span class="co">#&gt;   slope</span>
-<span class="co">#&gt; 1  5.33</span></code></pre></div>
+<span class="co">#&gt; 1  1.84</span></code></pre></div>
 <p>Regardless, it seems that if we stratify by HR, we have bivariate distributions for runs versus BB. Similarly, if we stratify by BB, we have approximate bivariate normal distributions for HR versus runs.</p>
 </div>
 <div id="multivariate-regression" class="section level3">
@@ -1254,7 +1254,7 @@ dat &lt;-<span class="st"> </span>Batting <span class="op">%&gt;%</span><span cl
 <span class="st">  </span><span class="kw">select</span>(HR, BB, R) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">filter</span>(HR <span class="op">&gt;=</span><span class="st"> </span><span class="fl">0.4</span> <span class="op">&amp;</span><span class="st"> </span>HR<span class="op">&lt;=</span><span class="fl">1.2</span>) </code></pre></div>
 <p>Since we didn’t know the <code>lm</code> function, to compute the regression line in each strata, we used the formula directly like this:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">get_slope &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">cor</span>(x, y) <span class="op">/</span><span class="st"> </span>(<span class="kw">sd</span>(x) <span class="op">*</span><span class="st"> </span><span class="kw">sd</span>(y))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">get_slope &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">cor</span>(x, y) <span class="op">*</span><span class="st"> </span><span class="kw">sd</span>(y) <span class="op">/</span><span class="st"> </span><span class="kw">sd</span>(x)
 dat <span class="op">%&gt;%</span><span class="st">  </span>
 <span class="st">  </span><span class="kw">group_by</span>(HR) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">slope =</span> <span class="kw">get_slope</span>(BB, R))</code></pre></div>
@@ -1436,7 +1436,7 @@ Y_i = \beta_0 + \beta_1 x_{i,1} + \beta_2 x_{i,2} + \varepsilon_i
 <span class="co">#&gt; 1 (Intercept)    1.74     0.0824      21.2 7.62e- 83    1.58      1.91 </span>
 <span class="co">#&gt; 2 BB             0.387    0.0270      14.3 1.20e- 42    0.334     0.440</span>
 <span class="co">#&gt; 3 HR             1.56     0.0490      31.9 1.78e-155    1.47      1.66</span></code></pre></div>
-<p>When we fit the model with only one variable, the estimated slopes were 0.735 and 5.325 for BB and HR, respectively. Note that when fitting the multivariate model both go down, with the BB effect decreasing much more.</p>
+<p>When we fit the model with only one variable, the estimated slopes were 0.735 and 1.845 for BB and HR, respectively. Note that when fitting the multivariate model both go down, with the BB effect decreasing much more.</p>
 <p>Now we want to construct a metric to pick players, we need to consider singles, doubles, and triples as well. Can we build a model that predicts runs based on all these outcomes?</p>
 <p>We now are going to take somewhat of a “leap of faith” and assume that these five variables are jointly normal. This means that if we pick any one of them, and hold the other four fixed, the relationship with the outcome is linear and the slope does not depend on the four values held constant. If this is true, then a linear model for our data is:</p>
 <p><span class="math display">\[
