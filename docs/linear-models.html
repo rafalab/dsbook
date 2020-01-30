@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-01-29" />
+<meta name="date" content="2020-01-30" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -995,7 +995,7 @@ p <span class="op">+</span><span class="st"> </span><span class="kw">geom_abline
 <p>Previously, we noted a strong relationship between Runs and BB. If we find the regression line for predicting runs from bases on balls, we a get slope of:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(tidyverse)
 <span class="kw">library</span>(Lahman)
-get_slope &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">cor</span>(x, y) <span class="op">/</span><span class="st"> </span>(<span class="kw">sd</span>(x) <span class="op">*</span><span class="st"> </span><span class="kw">sd</span>(y))
+get_slope &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">cor</span>(x, y) <span class="op">*</span><span class="st"> </span>(<span class="kw">sd</span>(x) <span class="op">/</span><span class="st"> </span><span class="kw">sd</span>(y))
 
 bb_slope &lt;-<span class="st"> </span>Teams <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">filter</span>(yearID <span class="op">%in%</span><span class="st"> </span><span class="dv">1961</span><span class="op">:</span><span class="dv">2001</span> ) <span class="op">%&gt;%</span><span class="st"> </span>
@@ -1004,9 +1004,9 @@ bb_slope &lt;-<span class="st"> </span>Teams <span class="op">%&gt;%</span><span
 
 bb_slope 
 <span class="co">#&gt;   slope</span>
-<span class="co">#&gt; 1  2.12</span></code></pre></div>
-<p>So does this mean that if we go and hire low salary players with many BB, and who therefore increase the number of walks per game by 2, our team will score 4.2 more runs per game?</p>
-<p>We are again reminded that association is not causation. The data does provide strong evidence that a team with two more BB per game than the average team, scores 4.2 runs per game. But this does not mean that BB are the cause.</p>
+<span class="co">#&gt; 1 0.735</span></code></pre></div>
+<p>So does this mean that if we go and hire low salary players with many BB, and who therefore increase the number of walks per game by 2, our team will score 1.5 more runs per game?</p>
+<p>We are again reminded that association is not causation. The data does provide strong evidence that a team with two more BB per game than the average team, scores 1.5 runs per game. But this does not mean that BB are the cause.</p>
 <p>Note that if we compute the regression line slope for singles we get:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">singles_slope &lt;-<span class="st"> </span>Teams <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">filter</span>(yearID <span class="op">%in%</span><span class="st"> </span><span class="dv">1961</span><span class="op">:</span><span class="dv">2001</span> ) <span class="op">%&gt;%</span>
@@ -1040,7 +1040,7 @@ singles_slope
 <span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">facet_wrap</span>( <span class="op">~</span><span class="st"> </span>HR_strata) </code></pre></div>
 <p><img src="book_files/figure-html/runs-vs-bb-by-hr-strata-1.png" width="80%" style="display: block; margin: auto;" /></p>
-<p>Remember that the regression slope for predicting runs with BB was 2.1. Once we stratify by HR, these slopes are substantially reduced:</p>
+<p>Remember that the regression slope for predicting runs with BB was 0.7. Once we stratify by HR, these slopes are substantially reduced:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dat <span class="op">%&gt;%</span><span class="st">  </span>
 <span class="st">  </span><span class="kw">group_by</span>(HR_strata) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">slope =</span> <span class="kw">get_slope</span>(BB_per_game, R_per_game))
@@ -1436,7 +1436,7 @@ Y_i = \beta_0 + \beta_1 x_{i,1} + \beta_2 x_{i,2} + \varepsilon_i
 <span class="co">#&gt; 1 (Intercept)    1.74     0.0824      21.2 7.62e- 83    1.58      1.91 </span>
 <span class="co">#&gt; 2 BB             0.387    0.0270      14.3 1.20e- 42    0.334     0.440</span>
 <span class="co">#&gt; 3 HR             1.56     0.0490      31.9 1.78e-155    1.47      1.66</span></code></pre></div>
-<p>When we fit the model with only one variable, the estimated slopes were 2.123 and 5.325 for BB and HR, respectively. Note that when fitting the multivariate model both go down, with the BB effect decreasing much more.</p>
+<p>When we fit the model with only one variable, the estimated slopes were 0.735 and 5.325 for BB and HR, respectively. Note that when fitting the multivariate model both go down, with the BB effect decreasing much more.</p>
 <p>Now we want to construct a metric to pick players, we need to consider singles, doubles, and triples as well. Can we build a model that predicts runs based on all these outcomes?</p>
 <p>We now are going to take somewhat of a “leap of faith” and assume that these five variables are jointly normal. This means that if we pick any one of them, and hold the other four fixed, the relationship with the outcome is linear and the slope does not depend on the four values held constant. If this is true, then a linear model for our data is:</p>
 <p><span class="math display">\[
