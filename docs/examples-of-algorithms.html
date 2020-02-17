@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-02-14" />
+<meta name="date" content="2020-02-17" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1093,11 +1093,11 @@ g\{p(x_1, x_2)\}= g\{\mbox{Pr}(Y=1 \mid X_1=x_1 , X_2 = x_2)\} =
 \beta_0 + \beta_1 x_1 + \beta_2 x_2
 \]</span> with <span class="math inline">\(g(p) = \log \frac{p}{1-p}\)</span> the logistic function described in the previous section. To fit the model we use the following code:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit_glm &lt;-<span class="st"> </span><span class="kw">glm</span>(y <span class="op">~</span><span class="st"> </span>x_<span class="dv">1</span> <span class="op">+</span><span class="st"> </span>x_<span class="dv">2</span>, <span class="dt">data=</span>mnist_<span class="dv">27</span><span class="op">$</span>train, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)
-p_hat_glm &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_glm, mnist_<span class="dv">27</span><span class="op">$</span>test)
+p_hat_glm &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_glm, mnist_<span class="dv">27</span><span class="op">$</span>test, <span class="dt">type=</span><span class="st">&quot;response&quot;</span>)
 y_hat_glm &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw">ifelse</span>(p_hat_glm <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>, <span class="dv">7</span>, <span class="dv">2</span>))
 <span class="kw">confusionMatrix</span>(y_hat_glm, mnist_<span class="dv">27</span><span class="op">$</span>test<span class="op">$</span>y)<span class="op">$</span>overall[<span class="st">&quot;Accuracy&quot;</span>]
 <span class="co">#&gt; Accuracy </span>
-<span class="co">#&gt;     0.76</span></code></pre></div>
+<span class="co">#&gt;     0.75</span></code></pre></div>
 <p>Comparing to the results we obtained in Section <a href="introduction-to-machine-learning.html#two-or-seven">27.8</a>, we see that logistic regression performs similarly to regression. This is not surprising, given that the estimate of <span class="math inline">\(\hat{p}(x_1, x_2)\)</span> looks similar as well:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p_hat &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_glm, <span class="dt">newdata =</span> mnist_<span class="dv">27</span><span class="op">$</span>true_p, <span class="dt">type =</span> <span class="st">&quot;response&quot;</span>)
 mnist_<span class="dv">27</span><span class="op">$</span>true_p <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">p_hat =</span> p_hat) <span class="op">%&gt;%</span>
