@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-02-17" />
+<meta name="date" content="2020-02-24" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1270,7 +1270,7 @@ us_murder_rate
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(region) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">class</span>()
 <span class="co">#&gt; [1] &quot;grouped_df&quot; &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</span></code></pre></div>
 <p>The <code>tbl</code>, pronounced tibble, is a special kind of data frame. The functions <code>group_by</code> and <code>summarize</code> always return this type of data frame. The <code>group_by</code> function returns a special kind of <code>tbl</code>, the <code>grouped_df</code>. We will say more about these later. For consistency, the <strong>dplyr</strong> manipulation verbs (<code>select</code>, <code>filter</code>, <code>mutate</code>, and <code>arrange</code>) preserve the class of the input: if they receive a regular data frame they return a regular data frame, while if they receive a tibble they return a tibble. But tibbles are the preferred format in the tidyverse and as a result tidyverse functions that produce a data frame from scratch return a tibble. For example, in Chapter <a href="importing-data.html#importing-data">5</a> we will see that tidyverse functions used to import data create tibbles.</p>
-<p>Tibbles are very similar to data frames. In fact, you can think of them as a modern version of data frames. Nonetheless there are three important differences which we describe in the next.</p>
+<p>Tibbles are very similar to data frames. In fact, you can think of them as a modern version of data frames. Nonetheless there are three important differences which we describe next.</p>
 <div id="tibbles-display-better" class="section level3">
 <h3><span class="header-section-number">4.10.1</span> Tibbles display better</h3>
 <p>The print method for tibbles is more readable than that of a data frame. To see this, compare the outputs of typing <code>murders</code> and the output of murders if we convert it to a tibble. We can do this using <code>as_tibble(murders)</code>. If using RStudio, output for a tibble adjusts to your window size. To see this, change the width of your R console and notice how more/less columns are shown.</p>
@@ -1350,7 +1350,7 @@ rates &lt;-<span class="st"> </span>tab_<span class="dv">2</span><span class="op
 <span class="co">#&gt; [1] 3.4</span></code></pre></div>
 <p>We can do this because each of these functions takes a data frame as the first argument. But what if we want to access a component of the data frame. For example, what if the <code>pull</code> function was not available and we wanted to access <code>tab_2$rate</code>? What data frame name would we use? The answer is the dot operator.</p>
 <p>For example to access the rate vector without the <code>pull</code> function we could use</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rates &lt;-<span class="kw">filter</span>(murders, region <span class="op">==</span><span class="st"> &quot;South&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rates &lt;-<span class="st">   </span><span class="kw">filter</span>(murders, region <span class="op">==</span><span class="st"> &quot;South&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">mutate</span>(<span class="dt">rate =</span> total <span class="op">/</span><span class="st"> </span>population <span class="op">*</span><span class="st"> </span><span class="dv">10</span><span class="op">^</span><span class="dv">5</span>) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span>.<span class="op">$</span>rate
 <span class="kw">median</span>(rates)
@@ -1389,7 +1389,7 @@ heights <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="co">#&gt;   &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;</span>
 <span class="co">#&gt; 1 Female    51   65.0  79  </span>
 <span class="co">#&gt; 2 Male      50   69    82.7</span></code></pre></div>
-<p>Note that here we need to use the dot operator. The tibble created by <code>group_by</code> is piped to <code>do</code>. Within the call to <code>do</code>, the name of this tibble is <code>.</code> and we want to send it to <code>my_summary</code>. If you do not use the dot, then <code>my_summary</code> has __no argument and returns an error telling us that <code>argument &quot;dat&quot;</code> is missing. You can see the error by typing:</p>
+<p>Note that here we need to use the dot operator. The tibble created by <code>group_by</code> is piped to <code>do</code>. Within the call to <code>do</code>, the name of this tibble is <code>.</code> and we want to send it to <code>my_summary</code>. If you do not use the dot, then <code>my_summary</code> has <em>no argument</em> and returns an error telling us that <code>argument &quot;dat&quot;</code> is missing. You can see the error by typing:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">heights <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">group_by</span>(sex) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">do</span>(<span class="kw">my_summary</span>())</code></pre></div>
@@ -1435,7 +1435,9 @@ s_n &lt;-<span class="st"> </span><span class="kw">map_df</span>(n, compute_s_n)
 <h3><span class="header-section-number">4.14.1</span> <code>case_when</code></h3>
 <p>The <code>case_when</code> function is useful for vectorizing conditional statements. It is similar to <code>ifelse</code> but can output any number of values, as opposed to just <code>TRUE</code> or <code>FALSE</code>. Here is an example splitting numbers into negative, positive, and 0:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>)
-<span class="kw">case_when</span>(x <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span> <span class="op">~</span><span class="st"> &quot;Negative&quot;</span>, x <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span> <span class="op">~</span><span class="st"> &quot;Positive&quot;</span>, <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> &quot;Zero&quot;</span>)
+<span class="kw">case_when</span>(x <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span> <span class="op">~</span><span class="st"> &quot;Negative&quot;</span>, 
+          x <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span> <span class="op">~</span><span class="st"> &quot;Positive&quot;</span>, 
+          <span class="ot">TRUE</span>  <span class="op">~</span><span class="st"> &quot;Zero&quot;</span>)
 <span class="co">#&gt; [1] &quot;Negative&quot; &quot;Negative&quot; &quot;Zero&quot;     &quot;Positive&quot; &quot;Positive&quot;</span></code></pre></div>
 <p>A common use for this function is to define categorical variables based on existing variables. For example, suppose we want to compare the murder rates in three groups of states: <em>New England</em>, <em>West Coast</em>, <em>South</em>, and <em>other</em>. For each state, we need to ask if it is in New England, if it is not we ask if it is in the West Coast, if not we ask if it is in the South, and if not we assign <em>other</em>. Here is how we use <code>case_when</code> to do this:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">murders <span class="op">%&gt;%</span><span class="st"> </span>
