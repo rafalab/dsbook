@@ -434,7 +434,7 @@ murders %>%
   head()
 ```
 
-With `arrange` we get to decide which column to sort by. To see the states by population, from smallest to largest, we arrange by `rate` instead:
+With `arrange` we get to decide which column to sort by. To see the states by murder rate, from lowest to highest, we arrange by `rate` instead:
 
 ```{r}
 murders %>% 
@@ -536,7 +536,7 @@ murders %>% group_by(region) %>% class()
 
 The `tbl`, pronounced tibble, is a special kind of data frame. The functions `group_by` and `summarize` always return this type of data frame. The `group_by` function returns a special kind of `tbl`, the `grouped_df`. We will say more about these later. For consistency, the __dplyr__ manipulation verbs (`select`, `filter`, `mutate`, and `arrange`) preserve the class of the input: if they receive a regular data frame they return a regular data frame, while if they receive a tibble they return a tibble. But tibbles are the preferred format in the tidyverse and as a result tidyverse functions that produce a data frame from scratch return a tibble. For example, in Chapter \@ref(importing-data) we will see that tidyverse functions used to import data create tibbles.
 
-Tibbles are very similar to data frames. In fact, you can think of them as a modern version of data frames. Nonetheless there are three important differences which we describe in the next.
+Tibbles are very similar to data frames. In fact, you can think of them as a modern version of data frames. Nonetheless there are three important differences which we describe next.
 
 
 ### Tibbles display better 
@@ -651,7 +651,7 @@ We can do this because each of these functions takes a data frame as the first a
 For example to access the rate vector without the `pull` function we could use
 
 ```{r}
-rates <-filter(murders, region == "South") %>% 
+rates <-   filter(murders, region == "South") %>% 
   mutate(rate = total / population * 10^5) %>% 
   .$rate
 median(rates)
@@ -699,7 +699,7 @@ heights %>%
   do(my_summary(.))
 ```
 
-Note that here we need to use the dot operator. The tibble created by `group_by`  is piped to `do`. Within the call to `do`, the name of this tibble is `.` and we want to send it to `my_summary`. If you do not use the dot, then `my_summary` has __no argument and returns an error telling us that `argument "dat"` is missing. You can see the error by typing:
+Note that here we need to use the dot operator. The tibble created by `group_by`  is piped to `do`. Within the call to `do`, the name of this tibble is `.` and we want to send it to `my_summary`. If you do not use the dot, then `my_summary` has _no argument_ and returns an error telling us that `argument "dat"` is missing. You can see the error by typing:
 
 ```{r, eval=FALSE}
 heights %>% 
@@ -777,7 +777,9 @@ The `case_when` function is useful for vectorizing conditional statements. It is
 
 ```{r}
 x <- c(-2, -1, 0, 1, 2)
-case_when(x < 0 ~ "Negative", x > 0 ~ "Positive", TRUE ~ "Zero")
+case_when(x < 0 ~ "Negative", 
+          x > 0 ~ "Positive", 
+          TRUE  ~ "Zero")
 ```
 
 A common use for this function is to define categorical variables based on existing variables. For example, suppose we want to compare the murder rates in three groups of states: _New England_, _West Coast_, _South_,  and _other_. For each state, we need to ask if it is in New England, if it is not we ask if it is in the West Coast, if not we ask if it is in the South, and if not we assign _other_. Here is how we use `case_when` to do this:
