@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-03-18" />
+<meta name="date" content="2020-03-22" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1173,7 +1173,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb191-9" data-line-number="9"><span class="co">#&gt; 4 Male      74</span></a>
 <a class="sourceLine" id="cb191-10" data-line-number="10"><span class="co">#&gt; 5 Male      61</span></a>
 <a class="sourceLine" id="cb191-11" data-line-number="11"><span class="co">#&gt; # … with 1,045 more rows</span></a></code></pre></div>
-<p>The result does not look very different from <code>heights</code>, except we see <code>Groups: sex [2]</code> when we print the object. Although not immediately obvious from its appearance, this is now a special data frame called a <em>grouped data frame</em> and <strong>dplyr</strong> functions, in particular <code>summarize</code>, will behave differently when acting on this object. Conceptually, you can think of this table as many tables, with the same columns but not necessarily the same number of rows, stacked together in one object. When we summarize the data after grouping, this is what happens:</p>
+<p>The result does not look very different from <code>heights</code>, except we see <code>Groups: sex [2]</code> when we print the object. Although not immediately obvious from its appearance, this is now a special data frame called a <em>grouped data frame</em>, and <strong>dplyr</strong> functions, in particular <code>summarize</code>, will behave differently when acting on this object. Conceptually, you can think of this table as many tables, with the same columns but not necessarily the same number of rows, stacked together in one object. When we summarize the data after grouping, this is what happens:</p>
 <div class="sourceCode" id="cb192"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb192-1" data-line-number="1">heights <span class="op">%&gt;%</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb192-2" data-line-number="2"><span class="st">  </span><span class="kw">group_by</span>(sex) <span class="op">%&gt;%</span></a>
 <a class="sourceLine" id="cb192-3" data-line-number="3"><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">average =</span> <span class="kw">mean</span>(height), <span class="dt">standard_deviation =</span> <span class="kw">sd</span>(height))</a>
@@ -1248,7 +1248,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb198-6" data-line-number="6"><span class="co">#&gt; 4             Missouri  MO North Central    5988927   321  5.36</span></a>
 <a class="sourceLine" id="cb198-7" data-line-number="7"><span class="co">#&gt; 5       South Carolina  SC         South    4625364   207  4.48</span></a></code></pre></div>
 <p>Note that rows are not sorted by <code>rate</code>, only filtered. If we want to sort, we need to use <code>arrange</code>.
-Note that if the third argument is left blank, <code>top_n</code>, filters by the last column.</p>
+Note that if the third argument is left blank, <code>top_n</code> filters by the last column.</p>
 </div>
 </div>
 <div id="exercises-11" class="section level2">
@@ -1465,7 +1465,7 @@ Note that if the third argument is left blank, <code>top_n</code>, filters by th
 <a class="sourceLine" id="cb228-3" data-line-number="3">          x <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span> <span class="op">~</span><span class="st"> &quot;Positive&quot;</span>, </a>
 <a class="sourceLine" id="cb228-4" data-line-number="4">          <span class="ot">TRUE</span>  <span class="op">~</span><span class="st"> &quot;Zero&quot;</span>)</a>
 <a class="sourceLine" id="cb228-5" data-line-number="5"><span class="co">#&gt; [1] &quot;Negative&quot; &quot;Negative&quot; &quot;Zero&quot;     &quot;Positive&quot; &quot;Positive&quot;</span></a></code></pre></div>
-<p>A common use for this function is to define categorical variables based on existing variables. For example, suppose we want to compare the murder rates in three groups of states: <em>New England</em>, <em>West Coast</em>, <em>South</em>, and <em>other</em>. For each state, we need to ask if it is in New England, if it is not we ask if it is in the West Coast, if not we ask if it is in the South, and if not we assign <em>other</em>. Here is how we use <code>case_when</code> to do this:</p>
+<p>A common use for this function is to define categorical variables based on existing variables. For example, suppose we want to compare the murder rates in four groups of states: <em>New England</em>, <em>West Coast</em>, <em>South</em>, and <em>other</em>. For each state, we need to ask if it is in New England, if it is not we ask if it is in the West Coast, if not we ask if it is in the South, and if not we assign <em>other</em>. Here is how we use <code>case_when</code> to do this:</p>
 <div class="sourceCode" id="cb229"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb229-1" data-line-number="1">murders <span class="op">%&gt;%</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb229-2" data-line-number="2"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">group =</span> <span class="kw">case_when</span>(</a>
 <a class="sourceLine" id="cb229-3" data-line-number="3">    abb <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ME&quot;</span>, <span class="st">&quot;NH&quot;</span>, <span class="st">&quot;VT&quot;</span>, <span class="st">&quot;MA&quot;</span>, <span class="st">&quot;RI&quot;</span>, <span class="st">&quot;CT&quot;</span>) <span class="op">~</span><span class="st"> &quot;New England&quot;</span>,</a>
@@ -1484,7 +1484,7 @@ Note that if the third argument is left blank, <code>top_n</code>, filters by th
 </div>
 <div id="between" class="section level3">
 <h3><span class="header-section-number">4.14.2</span> <code>between</code></h3>
-<p>A common operation in data analysis is to determine if a value falls inside an interval. We can check this using conditionals. For example to check if the elements of a vector <code>x</code> are between <code>a</code> and <code>b</code> we can type</p>
+<p>A common operation in data analysis is to determine if a value falls inside an interval. We can check this using conditionals. For example, to check if the elements of a vector <code>x</code> are between <code>a</code> and <code>b</code> we can type</p>
 <div class="sourceCode" id="cb230"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb230-1" data-line-number="1">x <span class="op">&gt;=</span><span class="st"> </span>a <span class="op">&amp;</span><span class="st"> </span>x <span class="op">&lt;=</span><span class="st"> </span>b</a></code></pre></div>
 <p>However, this can become cumbersome, especially within the tidyverse approach. The <code>between</code> function performs the same operation.</p>
 <div class="sourceCode" id="cb231"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb231-1" data-line-number="1"><span class="kw">between</span>(x, a, b)</a></code></pre></div>
@@ -1500,7 +1500,7 @@ Note that if the third argument is left blank, <code>top_n</code>, filters by th
 <li><code>murders</code> is not in tidy format and is stored in a data frame.</li>
 </ol>
 <p>2. Use <code>as_tibble</code> to convert the <code>murders</code> data table into a tibble and save it in an object called <code>murders_tibble</code>.</p>
-<p>3. Use the <code>group_by</code> function to convert murders into a tibble that is grouped by region.</p>
+<p>3. Use the <code>group_by</code> function to convert <code>murders</code> into a tibble that is grouped by region.</p>
 <p>4. Write tidyverse code that is equivalent to this code:</p>
 <div class="sourceCode" id="cb232"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb232-1" data-line-number="1"><span class="kw">exp</span>(<span class="kw">mean</span>(<span class="kw">log</span>(murders<span class="op">$</span>population)))</a></code></pre></div>
 <p>Write it using the pipe so that each function is called without arguments. Use the dot operator to access the population. Hint: The code should start with <code>murders %&gt;%</code>.</p>
