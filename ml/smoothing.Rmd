@@ -333,7 +333,7 @@ fits <- tibble(span = spans) %>%
   do(broom::augment(loess(margin ~ day, degree=1, span = .$span, data=polls_2008)))
 
 tmp <- fits %>%
-  crossing(span = spans, center = polls_2008$day) %>%
+  crossing(center = polls_2008$day) %>%
   mutate(dist = abs(day - center)) %>%
   filter(rank(dist) / n() <= span) %>%
   mutate(weight = (1 - (dist / max(dist)) ^ 3) ^ 3)

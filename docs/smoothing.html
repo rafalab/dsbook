@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<html lang="" xml:lang="">
 <head>
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Chapter 28 Smoothing | Introduction to Data Science</title>
   <meta name="description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown." />
-  <meta name="generator" content="bookdown 0.12 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
 
   <meta property="og:title" content="Chapter 28 Smoothing | Introduction to Data Science" />
   <meta property="og:type" content="book" />
@@ -24,15 +24,15 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-04-01" />
+<meta name="date" content="2020-05-04" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="introduction-to-machine-learning.html">
-<link rel="next" href="cross-validation.html">
+<link rel="prev" href="introduction-to-machine-learning.html"/>
+<link rel="next" href="cross-validation.html"/>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -40,6 +40,9 @@
 <link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
 
 
 
@@ -903,10 +906,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Part of what we explain in this section are the assumptions that permit us to extract the trend from the noise.</p>
 <p><strong>To understand why we cover this topic, remember that the concepts behind smoothing techniques are extremely useful in machine learning because conditional expectations/probabilities can be thought of as <em>trends</em> of unknown shapes that we need to estimate in the presence of uncertainty.</strong></p>
 <p>To explain these concepts, we will focus first on a problem with just one predictor. Specifically, we try to estimate the time trend in the 2008 US popular vote poll margin (difference between Obama and McCain).</p>
-<div class="sourceCode" id="cb1020"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1020-1" data-line-number="1"><span class="kw">library</span>(tidyverse)</a>
-<a class="sourceLine" id="cb1020-2" data-line-number="2"><span class="kw">library</span>(dslabs)</a>
-<a class="sourceLine" id="cb1020-3" data-line-number="3"><span class="kw">data</span>(<span class="st">&quot;polls_2008&quot;</span>)</a>
-<a class="sourceLine" id="cb1020-4" data-line-number="4"><span class="kw">qplot</span>(day, margin, <span class="dt">data =</span> polls_<span class="dv">2008</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1024"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1024-1" data-line-number="1"><span class="kw">library</span>(tidyverse)</a>
+<a class="sourceLine" id="cb1024-2" data-line-number="2"><span class="kw">library</span>(dslabs)</a>
+<a class="sourceLine" id="cb1024-3" data-line-number="3"><span class="kw">data</span>(<span class="st">&quot;polls_2008&quot;</span>)</a>
+<a class="sourceLine" id="cb1024-4" data-line-number="4"><span class="kw">qplot</span>(day, margin, <span class="dt">data =</span> polls_<span class="dv">2008</span>)</a></code></pre></div>
 <p><img src="book_files/figure-html/polls-2008-data-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>For the purposes of this example, do not think of it as a forecasting problem. Instead, we are simply interested in learning the shape of the trend <em>after</em> the election is over.</p>
 <p>We assume that for any given day <span class="math inline">\(x\)</span>, there is a true preference among the electorate <span class="math inline">\(f(x)\)</span>, but due to the uncertainty introduced by the polling, each data point comes with an error <span class="math inline">\(\varepsilon\)</span>. A mathematical model for the observed poll margin <span class="math inline">\(Y_i\)</span> is:</p>
@@ -914,6 +917,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 Y_i = f(x_i) + \varepsilon_i
 \]</span></p>
 <p>To think of this as a machine learning problem, consider that we want to predict <span class="math inline">\(Y\)</span> given a day <span class="math inline">\(x\)</span>. If we knew the conditional expectation <span class="math inline">\(f(x) = \mbox{E}(Y \mid X=x)\)</span>, we would use it. But since we don’t know this conditional expectation, we have to estimate it. Let’s use regression, since it is the only method we have learned up to now.</p>
+<pre><code>#&gt; `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="book_files/figure-html/linear-regression-not-flexible-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>The line we see does not appear to describe the trend very well. For example, on September 4 (day -62), the Republican Convention was held and the data suggest that it gave John McCain a boost in the polls. However, the regression line does not capture this potential trend. To see the <em>lack of fit</em> more clearly, we note that points above the fitted line (blue) and those below (red) are not evenly distributed across days. We therefore need an alternative, more flexible approach.</p>
 <div id="bin-smoothing" class="section level2">
@@ -933,14 +937,14 @@ E[Y_i | X_i = x_i ] \approx \mu \mbox{   if   }  |x_i - x_0| \leq 3.5
 <p>By computing this mean for every point, we form an estimate of the underlying curve <span class="math inline">\(f(x)\)</span>. Below we show the procedure happening as we move from the -155 up to 0. At each value of <span class="math inline">\(x_0\)</span>, we keep the estimate <span class="math inline">\(\hat{f}(x_0)\)</span> and move on to the next point:</p>
 <p><img src="ml/img/binsmoother-animation.gif" width="70%" style="display: block; margin: auto;" /></p>
 <p>The final code and resulting estimate look like this:</p>
-<div class="sourceCode" id="cb1021"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1021-1" data-line-number="1">span &lt;-<span class="st"> </span><span class="dv">7</span> </a>
-<a class="sourceLine" id="cb1021-2" data-line-number="2">fit &lt;-<span class="st"> </span><span class="kw">with</span>(polls_<span class="dv">2008</span>, </a>
-<a class="sourceLine" id="cb1021-3" data-line-number="3">            <span class="kw">ksmooth</span>(day, margin, <span class="dt">kernel =</span> <span class="st">&quot;box&quot;</span>, <span class="dt">bandwidth =</span> span))</a>
-<a class="sourceLine" id="cb1021-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb1021-5" data-line-number="5">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">smooth =</span> fit<span class="op">$</span>y) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1021-6" data-line-number="6"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1021-7" data-line-number="7"><span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">alpha =</span> <span class="fl">.5</span>, <span class="dt">color =</span> <span class="st">&quot;grey&quot;</span>) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb1021-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(day, smooth), <span class="dt">color=</span><span class="st">&quot;red&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1026"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1026-1" data-line-number="1">span &lt;-<span class="st"> </span><span class="dv">7</span> </a>
+<a class="sourceLine" id="cb1026-2" data-line-number="2">fit &lt;-<span class="st"> </span><span class="kw">with</span>(polls_<span class="dv">2008</span>, </a>
+<a class="sourceLine" id="cb1026-3" data-line-number="3">            <span class="kw">ksmooth</span>(day, margin, <span class="dt">kernel =</span> <span class="st">&quot;box&quot;</span>, <span class="dt">bandwidth =</span> span))</a>
+<a class="sourceLine" id="cb1026-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb1026-5" data-line-number="5">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">smooth =</span> fit<span class="op">$</span>y) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1026-6" data-line-number="6"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1026-7" data-line-number="7"><span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">alpha =</span> <span class="fl">.5</span>, <span class="dt">color =</span> <span class="st">&quot;grey&quot;</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb1026-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(day, smooth), <span class="dt">color=</span><span class="st">&quot;red&quot;</span>)</a></code></pre></div>
 <p><img src="book_files/figure-html/binsmoother-final-1.png" width="70%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="kernels" class="section level2">
@@ -959,14 +963,14 @@ With this animation, we see that points on the edge get less weight (the size of
 <img src="ml/img/kernel-animation.gif" width="70%" style="display: block; margin: auto;" />
 -->
 <p>The final code and resulting plot for the normal kerenl look like this:</p>
-<div class="sourceCode" id="cb1022"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1022-1" data-line-number="1">span &lt;-<span class="st"> </span><span class="dv">7</span></a>
-<a class="sourceLine" id="cb1022-2" data-line-number="2">fit &lt;-<span class="st"> </span><span class="kw">with</span>(polls_<span class="dv">2008</span>, </a>
-<a class="sourceLine" id="cb1022-3" data-line-number="3">            <span class="kw">ksmooth</span>(day, margin, <span class="dt">kernel =</span> <span class="st">&quot;normal&quot;</span>, <span class="dt">bandwidth =</span> span))</a>
-<a class="sourceLine" id="cb1022-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb1022-5" data-line-number="5">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">smooth =</span> fit<span class="op">$</span>y) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1022-6" data-line-number="6"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1022-7" data-line-number="7"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">alpha =</span> <span class="fl">.5</span>, <span class="dt">color =</span> <span class="st">&quot;grey&quot;</span>) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb1022-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(day, smooth), <span class="dt">color=</span><span class="st">&quot;red&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1027"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1027-1" data-line-number="1">span &lt;-<span class="st"> </span><span class="dv">7</span></a>
+<a class="sourceLine" id="cb1027-2" data-line-number="2">fit &lt;-<span class="st"> </span><span class="kw">with</span>(polls_<span class="dv">2008</span>, </a>
+<a class="sourceLine" id="cb1027-3" data-line-number="3">            <span class="kw">ksmooth</span>(day, margin, <span class="dt">kernel =</span> <span class="st">&quot;normal&quot;</span>, <span class="dt">bandwidth =</span> span))</a>
+<a class="sourceLine" id="cb1027-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb1027-5" data-line-number="5">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">smooth =</span> fit<span class="op">$</span>y) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1027-6" data-line-number="6"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1027-7" data-line-number="7"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">alpha =</span> <span class="fl">.5</span>, <span class="dt">color =</span> <span class="st">&quot;grey&quot;</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb1027-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(day, smooth), <span class="dt">color=</span><span class="st">&quot;red&quot;</span>)</a></code></pre></div>
 <p><img src="book_files/figure-html/final-ksmooth-normal-kernel-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>Notice that the final estimate now looks smoother.</p>
 <p>There are several functions in R that implement bin smoothers. One example is <code>ksmooth</code>, shown above. In practice, however, we typically prefer methods that use slightly more complex models than fitting a constant. The final result above, for example, is still somewhat wiggly in parts we don’t expect it to be (between -125 and -75, for example). Methods such as <code>loess</code>, which we explain next, improve on this.</p>
@@ -981,19 +985,20 @@ With this animation, we see that points on the edge get less weight (the size of
 E[Y_i | X_i = x_i ] = \beta_0 + \beta_1 (x_i-x_0) \mbox{   if   }  |x_i - x_0| \leq 21
 \]</span></p>
 <p>For every point <span class="math inline">\(x_0\)</span>, loess defines a window and fits a line within that window. Here is an example showing the fits for <span class="math inline">\(x_0=-125\)</span> and <span class="math inline">\(x_0 = -55\)</span>:</p>
+<pre><code>#&gt; `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="book_files/figure-html/loess-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>The fitted value at <span class="math inline">\(x_0\)</span> becomes our estimate <span class="math inline">\(\hat{f}(x_0)\)</span>. Below we show the procedure happening as we move from the -155 up to 0.</p>
 <p><img src="ml/img/loess-animation.gif" width="70%" style="display: block; margin: auto;" /></p>
 <p>The final result is a smoother fit than the bin smoother since we use larger sample sizes to estimate our local parameters:</p>
-<div class="sourceCode" id="cb1023"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1023-1" data-line-number="1">total_days &lt;-<span class="st"> </span><span class="kw">diff</span>(<span class="kw">range</span>(polls_<span class="dv">2008</span><span class="op">$</span>day))</a>
-<a class="sourceLine" id="cb1023-2" data-line-number="2">span &lt;-<span class="st"> </span><span class="dv">21</span><span class="op">/</span>total_days</a>
-<a class="sourceLine" id="cb1023-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb1023-4" data-line-number="4">fit &lt;-<span class="st"> </span><span class="kw">loess</span>(margin <span class="op">~</span><span class="st"> </span>day, <span class="dt">degree=</span><span class="dv">1</span>, <span class="dt">span =</span> span, <span class="dt">data=</span>polls_<span class="dv">2008</span>)</a>
-<a class="sourceLine" id="cb1023-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb1023-6" data-line-number="6">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">smooth =</span> fit<span class="op">$</span>fitted) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1023-7" data-line-number="7"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1023-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">alpha =</span> <span class="fl">.5</span>, <span class="dt">color =</span> <span class="st">&quot;grey&quot;</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1023-9" data-line-number="9"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(day, smooth), <span class="dt">color=</span><span class="st">&quot;red&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1029"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1029-1" data-line-number="1">total_days &lt;-<span class="st"> </span><span class="kw">diff</span>(<span class="kw">range</span>(polls_<span class="dv">2008</span><span class="op">$</span>day))</a>
+<a class="sourceLine" id="cb1029-2" data-line-number="2">span &lt;-<span class="st"> </span><span class="dv">21</span><span class="op">/</span>total_days</a>
+<a class="sourceLine" id="cb1029-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb1029-4" data-line-number="4">fit &lt;-<span class="st"> </span><span class="kw">loess</span>(margin <span class="op">~</span><span class="st"> </span>day, <span class="dt">degree=</span><span class="dv">1</span>, <span class="dt">span =</span> span, <span class="dt">data=</span>polls_<span class="dv">2008</span>)</a>
+<a class="sourceLine" id="cb1029-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb1029-6" data-line-number="6">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">smooth =</span> fit<span class="op">$</span>fitted) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1029-7" data-line-number="7"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1029-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">alpha =</span> <span class="fl">.5</span>, <span class="dt">color =</span> <span class="st">&quot;grey&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1029-9" data-line-number="9"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(day, smooth), <span class="dt">color=</span><span class="st">&quot;red&quot;</span>)</a></code></pre></div>
 <p><img src="book_files/figure-html/final-loess-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>Different spans give us different estimates. We can see how different window sizes lead to different estimates:</p>
 <p><img src="ml/img/loess-multi-span-animation.gif" width="70%" style="display: block; margin: auto;" /></p>
@@ -1023,33 +1028,33 @@ w_0(x_i) = W\left(\frac{x_i - x_0}{h}\right)
 E[Y_i | X_i = x_i ] = \beta_0 + \beta_1 (x_i-x_0) + \beta_2 (x_i-x_0)^2 \mbox{   if   }  |x_i - x_0| \leq h
 \]</span></p>
 <p>This is actually the default procedure of the function <code>loess</code>. You may have noticed that when we showed the code for using loess, we set <code>degree = 1</code>. This tells loess to fit polynomials of degree 1, a fancy name for lines. If you read the help page for loess, you will see that the argument <code>degree</code> defaults to 2. By default, loess fits parabolas not lines. Here is a comparison of the fitting lines (red dashed) and fitting parabolas (orange solid):</p>
-<div class="sourceCode" id="cb1024"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1024-1" data-line-number="1">total_days &lt;-<span class="st"> </span><span class="kw">diff</span>(<span class="kw">range</span>(polls_<span class="dv">2008</span><span class="op">$</span>day))</a>
-<a class="sourceLine" id="cb1024-2" data-line-number="2">span &lt;-<span class="st"> </span><span class="dv">28</span><span class="op">/</span>total_days</a>
-<a class="sourceLine" id="cb1024-3" data-line-number="3">fit_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">loess</span>(margin <span class="op">~</span><span class="st"> </span>day, <span class="dt">degree=</span><span class="dv">1</span>, <span class="dt">span =</span> span, <span class="dt">data=</span>polls_<span class="dv">2008</span>)</a>
-<a class="sourceLine" id="cb1024-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb1024-5" data-line-number="5">fit_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">loess</span>(margin <span class="op">~</span><span class="st"> </span>day, <span class="dt">span =</span> span, <span class="dt">data=</span>polls_<span class="dv">2008</span>)</a>
-<a class="sourceLine" id="cb1024-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb1024-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb1024-8" data-line-number="8">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">smooth_1 =</span> fit_<span class="dv">1</span><span class="op">$</span>fitted, <span class="dt">smooth_2 =</span> fit_<span class="dv">2</span><span class="op">$</span>fitted) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1024-9" data-line-number="9"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1024-10" data-line-number="10"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">alpha =</span> <span class="fl">.5</span>, <span class="dt">color =</span> <span class="st">&quot;grey&quot;</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1024-11" data-line-number="11"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(day, smooth_<span class="dv">1</span>), <span class="dt">color=</span><span class="st">&quot;red&quot;</span>, <span class="dt">lty =</span> <span class="dv">2</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1024-12" data-line-number="12"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(day, smooth_<span class="dv">2</span>), <span class="dt">color=</span><span class="st">&quot;orange&quot;</span>, <span class="dt">lty =</span> <span class="dv">1</span>) </a></code></pre></div>
+<div class="sourceCode" id="cb1030"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1030-1" data-line-number="1">total_days &lt;-<span class="st"> </span><span class="kw">diff</span>(<span class="kw">range</span>(polls_<span class="dv">2008</span><span class="op">$</span>day))</a>
+<a class="sourceLine" id="cb1030-2" data-line-number="2">span &lt;-<span class="st"> </span><span class="dv">28</span><span class="op">/</span>total_days</a>
+<a class="sourceLine" id="cb1030-3" data-line-number="3">fit_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">loess</span>(margin <span class="op">~</span><span class="st"> </span>day, <span class="dt">degree=</span><span class="dv">1</span>, <span class="dt">span =</span> span, <span class="dt">data=</span>polls_<span class="dv">2008</span>)</a>
+<a class="sourceLine" id="cb1030-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb1030-5" data-line-number="5">fit_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">loess</span>(margin <span class="op">~</span><span class="st"> </span>day, <span class="dt">span =</span> span, <span class="dt">data=</span>polls_<span class="dv">2008</span>)</a>
+<a class="sourceLine" id="cb1030-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb1030-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb1030-8" data-line-number="8">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">smooth_1 =</span> fit_<span class="dv">1</span><span class="op">$</span>fitted, <span class="dt">smooth_2 =</span> fit_<span class="dv">2</span><span class="op">$</span>fitted) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1030-9" data-line-number="9"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1030-10" data-line-number="10"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">alpha =</span> <span class="fl">.5</span>, <span class="dt">color =</span> <span class="st">&quot;grey&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1030-11" data-line-number="11"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(day, smooth_<span class="dv">1</span>), <span class="dt">color=</span><span class="st">&quot;red&quot;</span>, <span class="dt">lty =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1030-12" data-line-number="12"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(day, smooth_<span class="dv">2</span>), <span class="dt">color=</span><span class="st">&quot;orange&quot;</span>, <span class="dt">lty =</span> <span class="dv">1</span>) </a></code></pre></div>
 <p><img src="book_files/figure-html/polls-2008-parabola-line-loess-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>The <code>degree = 2</code> gives us more wiggly results. We actually prefer <code>degree = 1</code> as it is less prone to this kind of noise.</p>
 </div>
 <div id="beware-of-default-smoothing-parameters" class="section level3">
 <h3><span class="header-section-number">28.3.2</span> Beware of default smoothing parameters</h3>
 <p><code>ggplot</code> uses loess in its <code>geom_smooth</code> function:</p>
-<div class="sourceCode" id="cb1025"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1025-1" data-line-number="1">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1025-2" data-line-number="2"><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb1025-3" data-line-number="3"><span class="st">  </span><span class="kw">geom_smooth</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb1031"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1031-1" data-line-number="1">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1031-2" data-line-number="2"><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb1031-3" data-line-number="3"><span class="st">  </span><span class="kw">geom_smooth</span>()</a></code></pre></div>
 <p><img src="book_files/figure-html/ggplot-loess-default-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>But be careful with default parameters as they are rarely optimal.
 However, you can conveniently change them:</p>
-<div class="sourceCode" id="cb1026"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1026-1" data-line-number="1">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1026-2" data-line-number="2"><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb1026-3" data-line-number="3"><span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">span =</span> <span class="fl">0.15</span>, <span class="dt">method.args =</span> <span class="kw">list</span>(<span class="dt">degree=</span><span class="dv">1</span>))</a></code></pre></div>
+<div class="sourceCode" id="cb1032"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1032-1" data-line-number="1">polls_<span class="dv">2008</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(day, margin)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1032-2" data-line-number="2"><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb1032-3" data-line-number="3"><span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">span =</span> <span class="fl">0.15</span>, <span class="dt">method.args =</span> <span class="kw">list</span>(<span class="dt">degree=</span><span class="dv">1</span>))</a></code></pre></div>
 <p><img src="book_files/figure-html/ggplot-loess-degree-1-1.png" width="70%" style="display: block; margin: auto;" /></p>
 </div>
 </div>
@@ -1064,48 +1069,48 @@ with <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_
 <div id="exercises-47" class="section level2">
 <h2><span class="header-section-number">28.5</span> Exercises</h2>
 <p>1. In the wrangling part of this book, we used the code below to obtain mortality counts for Puerto Rico for 2015-2018.</p>
-<div class="sourceCode" id="cb1027"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1027-1" data-line-number="1"><span class="kw">library</span>(tidyverse)</a>
-<a class="sourceLine" id="cb1027-2" data-line-number="2"><span class="kw">library</span>(purrr)</a>
-<a class="sourceLine" id="cb1027-3" data-line-number="3"><span class="kw">library</span>(pdftools)</a>
-<a class="sourceLine" id="cb1027-4" data-line-number="4"><span class="kw">library</span>(dslabs)</a>
-<a class="sourceLine" id="cb1027-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb1027-6" data-line-number="6">fn &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;RD-Mortality-Report_2015-18-180531.pdf&quot;</span>,</a>
-<a class="sourceLine" id="cb1027-7" data-line-number="7">                  <span class="dt">package=</span><span class="st">&quot;dslabs&quot;</span>)</a>
-<a class="sourceLine" id="cb1027-8" data-line-number="8">dat &lt;-<span class="st"> </span><span class="kw">map_df</span>(<span class="kw">str_split</span>(<span class="kw">pdf_text</span>(fn), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>), <span class="cf">function</span>(s){</a>
-<a class="sourceLine" id="cb1027-9" data-line-number="9">  s &lt;-<span class="st"> </span><span class="kw">str_trim</span>(s)</a>
-<a class="sourceLine" id="cb1027-10" data-line-number="10">  header_index &lt;-<span class="st"> </span><span class="kw">str_which</span>(s, <span class="st">&quot;2015&quot;</span>)[<span class="dv">1</span>]</a>
-<a class="sourceLine" id="cb1027-11" data-line-number="11">  tmp &lt;-<span class="st"> </span><span class="kw">str_split</span>(s[header_index], <span class="st">&quot;</span><span class="ch">\\</span><span class="st">s+&quot;</span>, <span class="dt">simplify =</span> <span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb1027-12" data-line-number="12">  month &lt;-<span class="st"> </span>tmp[<span class="dv">1</span>]</a>
-<a class="sourceLine" id="cb1027-13" data-line-number="13">  header &lt;-<span class="st"> </span>tmp[<span class="op">-</span><span class="dv">1</span>]</a>
-<a class="sourceLine" id="cb1027-14" data-line-number="14">  tail_index  &lt;-<span class="st"> </span><span class="kw">str_which</span>(s, <span class="st">&quot;Total&quot;</span>)</a>
-<a class="sourceLine" id="cb1027-15" data-line-number="15">  n &lt;-<span class="st"> </span><span class="kw">str_count</span>(s, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">d+&quot;</span>)</a>
-<a class="sourceLine" id="cb1027-16" data-line-number="16">  out &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span>header_index, <span class="kw">which</span>(n <span class="op">==</span><span class="st"> </span><span class="dv">1</span>), </a>
-<a class="sourceLine" id="cb1027-17" data-line-number="17">           <span class="kw">which</span>(n <span class="op">&gt;=</span><span class="st"> </span><span class="dv">28</span>), tail_index<span class="op">:</span><span class="kw">length</span>(s))</a>
-<a class="sourceLine" id="cb1027-18" data-line-number="18">  s[<span class="op">-</span>out] <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">str_remove_all</span>(<span class="st">&quot;[^</span><span class="ch">\\</span><span class="st">d</span><span class="ch">\\</span><span class="st">s]&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">str_trim</span>() <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1027-19" data-line-number="19"><span class="st">    </span><span class="kw">str_split_fixed</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">s+&quot;</span>, <span class="dt">n =</span> <span class="dv">6</span>) <span class="op">%&gt;%</span><span class="st"> </span>.[,<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>] <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_tibble</span>() <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb1027-20" data-line-number="20"><span class="st">    </span><span class="kw">setNames</span>(<span class="kw">c</span>(<span class="st">&quot;day&quot;</span>, header)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1027-21" data-line-number="21"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">month =</span> month, <span class="dt">day =</span> <span class="kw">as.numeric</span>(day)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1027-22" data-line-number="22"><span class="st">    </span><span class="kw">gather</span>(year, deaths, <span class="op">-</span><span class="kw">c</span>(day, month)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1027-23" data-line-number="23"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">deaths =</span> <span class="kw">as.numeric</span>(deaths))</a>
-<a class="sourceLine" id="cb1027-24" data-line-number="24">}) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1027-25" data-line-number="25"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">month =</span> <span class="kw">recode</span>(month, </a>
-<a class="sourceLine" id="cb1027-26" data-line-number="26">                        <span class="st">&quot;JAN&quot;</span> =<span class="st"> </span><span class="dv">1</span>, <span class="st">&quot;FEB&quot;</span> =<span class="st"> </span><span class="dv">2</span>, <span class="st">&quot;MAR&quot;</span> =<span class="st"> </span><span class="dv">3</span>, </a>
-<a class="sourceLine" id="cb1027-27" data-line-number="27">                        <span class="st">&quot;APR&quot;</span> =<span class="st"> </span><span class="dv">4</span>, <span class="st">&quot;MAY&quot;</span> =<span class="st"> </span><span class="dv">5</span>, <span class="st">&quot;JUN&quot;</span> =<span class="st"> </span><span class="dv">6</span>, </a>
-<a class="sourceLine" id="cb1027-28" data-line-number="28">                        <span class="st">&quot;JUL&quot;</span> =<span class="st"> </span><span class="dv">7</span>, <span class="st">&quot;AGO&quot;</span> =<span class="st"> </span><span class="dv">8</span>, <span class="st">&quot;SEP&quot;</span> =<span class="st"> </span><span class="dv">9</span>, </a>
-<a class="sourceLine" id="cb1027-29" data-line-number="29">                        <span class="st">&quot;OCT&quot;</span> =<span class="st"> </span><span class="dv">10</span>, <span class="st">&quot;NOV&quot;</span> =<span class="st"> </span><span class="dv">11</span>, <span class="st">&quot;DEC&quot;</span> =<span class="st"> </span><span class="dv">12</span>)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1027-30" data-line-number="30"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">date =</span> <span class="kw">make_date</span>(year, month, day)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb1027-31" data-line-number="31"><span class="st">  </span><span class="kw">filter</span>(date <span class="op">&lt;=</span><span class="st"> &quot;2018-05-01&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1033"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1033-1" data-line-number="1"><span class="kw">library</span>(tidyverse)</a>
+<a class="sourceLine" id="cb1033-2" data-line-number="2"><span class="kw">library</span>(purrr)</a>
+<a class="sourceLine" id="cb1033-3" data-line-number="3"><span class="kw">library</span>(pdftools)</a>
+<a class="sourceLine" id="cb1033-4" data-line-number="4"><span class="kw">library</span>(dslabs)</a>
+<a class="sourceLine" id="cb1033-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb1033-6" data-line-number="6">fn &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;RD-Mortality-Report_2015-18-180531.pdf&quot;</span>,</a>
+<a class="sourceLine" id="cb1033-7" data-line-number="7">                  <span class="dt">package=</span><span class="st">&quot;dslabs&quot;</span>)</a>
+<a class="sourceLine" id="cb1033-8" data-line-number="8">dat &lt;-<span class="st"> </span><span class="kw">map_df</span>(<span class="kw">str_split</span>(<span class="kw">pdf_text</span>(fn), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>), <span class="cf">function</span>(s){</a>
+<a class="sourceLine" id="cb1033-9" data-line-number="9">  s &lt;-<span class="st"> </span><span class="kw">str_trim</span>(s)</a>
+<a class="sourceLine" id="cb1033-10" data-line-number="10">  header_index &lt;-<span class="st"> </span><span class="kw">str_which</span>(s, <span class="st">&quot;2015&quot;</span>)[<span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb1033-11" data-line-number="11">  tmp &lt;-<span class="st"> </span><span class="kw">str_split</span>(s[header_index], <span class="st">&quot;</span><span class="ch">\\</span><span class="st">s+&quot;</span>, <span class="dt">simplify =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb1033-12" data-line-number="12">  month &lt;-<span class="st"> </span>tmp[<span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb1033-13" data-line-number="13">  header &lt;-<span class="st"> </span>tmp[<span class="op">-</span><span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb1033-14" data-line-number="14">  tail_index  &lt;-<span class="st"> </span><span class="kw">str_which</span>(s, <span class="st">&quot;Total&quot;</span>)</a>
+<a class="sourceLine" id="cb1033-15" data-line-number="15">  n &lt;-<span class="st"> </span><span class="kw">str_count</span>(s, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">d+&quot;</span>)</a>
+<a class="sourceLine" id="cb1033-16" data-line-number="16">  out &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span>header_index, <span class="kw">which</span>(n <span class="op">==</span><span class="st"> </span><span class="dv">1</span>), </a>
+<a class="sourceLine" id="cb1033-17" data-line-number="17">           <span class="kw">which</span>(n <span class="op">&gt;=</span><span class="st"> </span><span class="dv">28</span>), tail_index<span class="op">:</span><span class="kw">length</span>(s))</a>
+<a class="sourceLine" id="cb1033-18" data-line-number="18">  s[<span class="op">-</span>out] <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">str_remove_all</span>(<span class="st">&quot;[^</span><span class="ch">\\</span><span class="st">d</span><span class="ch">\\</span><span class="st">s]&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">str_trim</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1033-19" data-line-number="19"><span class="st">    </span><span class="kw">str_split_fixed</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">s+&quot;</span>, <span class="dt">n =</span> <span class="dv">6</span>) <span class="op">%&gt;%</span><span class="st"> </span>.[,<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>] <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_tibble</span>() <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb1033-20" data-line-number="20"><span class="st">    </span><span class="kw">setNames</span>(<span class="kw">c</span>(<span class="st">&quot;day&quot;</span>, header)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1033-21" data-line-number="21"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">month =</span> month, <span class="dt">day =</span> <span class="kw">as.numeric</span>(day)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1033-22" data-line-number="22"><span class="st">    </span><span class="kw">gather</span>(year, deaths, <span class="op">-</span><span class="kw">c</span>(day, month)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1033-23" data-line-number="23"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">deaths =</span> <span class="kw">as.numeric</span>(deaths))</a>
+<a class="sourceLine" id="cb1033-24" data-line-number="24">}) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1033-25" data-line-number="25"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">month =</span> <span class="kw">recode</span>(month, </a>
+<a class="sourceLine" id="cb1033-26" data-line-number="26">                        <span class="st">&quot;JAN&quot;</span> =<span class="st"> </span><span class="dv">1</span>, <span class="st">&quot;FEB&quot;</span> =<span class="st"> </span><span class="dv">2</span>, <span class="st">&quot;MAR&quot;</span> =<span class="st"> </span><span class="dv">3</span>, </a>
+<a class="sourceLine" id="cb1033-27" data-line-number="27">                        <span class="st">&quot;APR&quot;</span> =<span class="st"> </span><span class="dv">4</span>, <span class="st">&quot;MAY&quot;</span> =<span class="st"> </span><span class="dv">5</span>, <span class="st">&quot;JUN&quot;</span> =<span class="st"> </span><span class="dv">6</span>, </a>
+<a class="sourceLine" id="cb1033-28" data-line-number="28">                        <span class="st">&quot;JUL&quot;</span> =<span class="st"> </span><span class="dv">7</span>, <span class="st">&quot;AGO&quot;</span> =<span class="st"> </span><span class="dv">8</span>, <span class="st">&quot;SEP&quot;</span> =<span class="st"> </span><span class="dv">9</span>, </a>
+<a class="sourceLine" id="cb1033-29" data-line-number="29">                        <span class="st">&quot;OCT&quot;</span> =<span class="st"> </span><span class="dv">10</span>, <span class="st">&quot;NOV&quot;</span> =<span class="st"> </span><span class="dv">11</span>, <span class="st">&quot;DEC&quot;</span> =<span class="st"> </span><span class="dv">12</span>)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1033-30" data-line-number="30"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">date =</span> <span class="kw">make_date</span>(year, month, day)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1033-31" data-line-number="31"><span class="st">  </span><span class="kw">filter</span>(date <span class="op">&lt;=</span><span class="st"> &quot;2018-05-01&quot;</span>)</a></code></pre></div>
 <p>Use the <code>loess</code> function to obtain a smooth estimate of the expected number of deaths as a function of date. Plot this resulting smooth function. Make the span about two months long.</p>
 <p>2. Plot the smooth estimates against day of the year, all on the same plot but with different colors.</p>
 <p>3. Suppose we want to predict 2s and 7s in our <code>mnist_27</code> dataset with just the second covariate. Can we do this? On first inspection it appears the data does not have much predictive power. In fact, if we fit a regular logistic regression, the coefficient for <code>x_2</code> is not significant!</p>
-<div class="sourceCode" id="cb1028"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1028-1" data-line-number="1"><span class="kw">library</span>(broom)</a>
-<a class="sourceLine" id="cb1028-2" data-line-number="2"><span class="kw">library</span>(dslabs)</a>
-<a class="sourceLine" id="cb1028-3" data-line-number="3"><span class="kw">data</span>(<span class="st">&quot;mnist_27&quot;</span>)</a>
-<a class="sourceLine" id="cb1028-4" data-line-number="4">mnist_<span class="dv">27</span><span class="op">$</span>train <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb1028-5" data-line-number="5"><span class="st">  </span><span class="kw">glm</span>(y <span class="op">~</span><span class="st"> </span>x_<span class="dv">2</span>, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="dt">data =</span> .) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb1028-6" data-line-number="6"><span class="st">  </span><span class="kw">tidy</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb1034"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1034-1" data-line-number="1"><span class="kw">library</span>(broom)</a>
+<a class="sourceLine" id="cb1034-2" data-line-number="2"><span class="kw">library</span>(dslabs)</a>
+<a class="sourceLine" id="cb1034-3" data-line-number="3"><span class="kw">data</span>(<span class="st">&quot;mnist_27&quot;</span>)</a>
+<a class="sourceLine" id="cb1034-4" data-line-number="4">mnist_<span class="dv">27</span><span class="op">$</span>train <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb1034-5" data-line-number="5"><span class="st">  </span><span class="kw">glm</span>(y <span class="op">~</span><span class="st"> </span>x_<span class="dv">2</span>, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="dt">data =</span> .) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb1034-6" data-line-number="6"><span class="st">  </span><span class="kw">tidy</span>()</a></code></pre></div>
 <p>Plotting a scatterplot here is not useful since <code>y</code> is binary:</p>
-<div class="sourceCode" id="cb1029"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1029-1" data-line-number="1"><span class="kw">qplot</span>(x_<span class="dv">2</span>, y, <span class="dt">data =</span> mnist_<span class="dv">27</span><span class="op">$</span>train)</a></code></pre></div>
+<div class="sourceCode" id="cb1035"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1035-1" data-line-number="1"><span class="kw">qplot</span>(x_<span class="dv">2</span>, y, <span class="dt">data =</span> mnist_<span class="dv">27</span><span class="op">$</span>train)</a></code></pre></div>
 <p>Fit a loess line to the data above and plot the results. Notice that there is predictive power, except the conditional probability is not linear.</p>
 
 </div>
@@ -1129,11 +1134,13 @@ with <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
 <script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
 <script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
 <script>
 gitbook.require(["gitbook"], function(gitbook) {
 gitbook.start({
@@ -1141,12 +1148,11 @@ gitbook.start({
 "github": false,
 "facebook": true,
 "twitter": true,
-"google": false,
 "linkedin": false,
 "weibo": false,
 "instapaper": false,
 "vk": false,
-"all": ["facebook", "google", "twitter", "linkedin", "weibo", "instapaper"]
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
 },
 "fontsettings": {
 "theme": "white",
@@ -1158,6 +1164,10 @@ gitbook.start({
 "text": "Edit"
 },
 "history": {
+"link": null,
+"text": null
+},
+"view": {
 "link": null,
 "text": null
 },
@@ -1176,8 +1186,9 @@ gitbook.start({
     script.type = "text/javascript";
     var src = "true";
     if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
-    if (location.protocol !== "file:" && /^https?:/.test(src))
-      src = src.replace(/^https?:/, '');
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
     script.src = src;
     document.getElementsByTagName("head")[0].appendChild(script);
   })();

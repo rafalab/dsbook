@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<html lang="" xml:lang="">
 <head>
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Chapter 16 Statistical models | Introduction to Data Science</title>
   <meta name="description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown." />
-  <meta name="generator" content="bookdown 0.12 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
 
   <meta property="og:title" content="Chapter 16 Statistical models | Introduction to Data Science" />
   <meta property="og:type" content="book" />
@@ -24,15 +24,15 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-04-01" />
+<meta name="date" content="2020-05-04" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="inference.html">
-<link rel="next" href="regression.html">
+<link rel="prev" href="inference.html"/>
+<link rel="next" href="regression.html"/>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -40,6 +40,9 @@
 <link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
 
 
 
@@ -1692,8 +1695,10 @@ A similar prediction was made by the Princeton Election Consortium. We now know 
 <p>But the empirical standard deviation is higher than the highest possible theoretical estimate. Furthermore, the spread data does not look normal as the theory would predict:</p>
 <p><img src="book_files/figure-html/time-trend-variability-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>The models we have described include pollster-to-pollster variability and sampling error. But this plot is for one pollster and the variability we see is certainly not explained by sampling error. Where is the extra variability coming from? The following plots make a strong case that it comes from time fluctuations not accounted for by the theory that assumes <span class="math inline">\(p\)</span> is fixed:</p>
+<pre><code>#&gt; `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="book_files/figure-html/time-trend-estimate-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>Some of the peaks and valleys we see coincide with events such as the party conventions, which tend to give the candidate a boost. We can see the peaks and valleys are consistent across several pollsters:</p>
+<pre><code>#&gt; `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="book_files/figure-html/time-trend-estimate-several-pollsters-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>This implies that, if we are going to forecast, our model must include a term to accounts for the time effect. We need to write a model including a bias term for time:</p>
 <p><span class="math display">\[
@@ -1713,20 +1718,20 @@ Y_{i,j,t} = d + b + h_j + b_t + f(t) + \varepsilon_{i,jt,}
 <div id="exercises-32" class="section level2">
 <h2><span class="header-section-number">16.9</span> Exercises</h2>
 <p>1. Create this table:</p>
-<div class="sourceCode" id="cb622"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb622-1" data-line-number="1"><span class="kw">library</span>(tidyverse)</a>
-<a class="sourceLine" id="cb622-2" data-line-number="2"><span class="kw">library</span>(dslabs)</a>
-<a class="sourceLine" id="cb622-3" data-line-number="3"><span class="kw">data</span>(<span class="st">&quot;polls_us_election_2016&quot;</span>)</a>
-<a class="sourceLine" id="cb622-4" data-line-number="4">polls &lt;-<span class="st"> </span>polls_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb622-5" data-line-number="5"><span class="st">  </span><span class="kw">filter</span>(state <span class="op">!=</span><span class="st"> &quot;U.S.&quot;</span> <span class="op">&amp;</span><span class="st"> </span>enddate <span class="op">&gt;=</span><span class="st"> &quot;2016-10-31&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb622-6" data-line-number="6"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">spread =</span> rawpoll_clinton<span class="op">/</span><span class="dv">100</span> <span class="op">-</span><span class="st"> </span>rawpoll_trump<span class="op">/</span><span class="dv">100</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb624"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb624-1" data-line-number="1"><span class="kw">library</span>(tidyverse)</a>
+<a class="sourceLine" id="cb624-2" data-line-number="2"><span class="kw">library</span>(dslabs)</a>
+<a class="sourceLine" id="cb624-3" data-line-number="3"><span class="kw">data</span>(<span class="st">&quot;polls_us_election_2016&quot;</span>)</a>
+<a class="sourceLine" id="cb624-4" data-line-number="4">polls &lt;-<span class="st"> </span>polls_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb624-5" data-line-number="5"><span class="st">  </span><span class="kw">filter</span>(state <span class="op">!=</span><span class="st"> &quot;U.S.&quot;</span> <span class="op">&amp;</span><span class="st"> </span>enddate <span class="op">&gt;=</span><span class="st"> &quot;2016-10-31&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb624-6" data-line-number="6"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">spread =</span> rawpoll_clinton<span class="op">/</span><span class="dv">100</span> <span class="op">-</span><span class="st"> </span>rawpoll_trump<span class="op">/</span><span class="dv">100</span>)</a></code></pre></div>
 <p>Now for each poll use the CLT to create a 95% confidence interval for the spread reported by each poll. Call the resulting object cis with columns lower and upper for the limits of the confidence intervals. Use the <code>select</code> function to keep the columns <code>state, startdate, end date, pollster, grade, spread, lower, upper</code>.</p>
 <p>2. You can add the final result to the <code>cis</code> table you just created using the <code>right_join</code> function like this:</p>
-<div class="sourceCode" id="cb623"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb623-1" data-line-number="1">add &lt;-<span class="st"> </span>results_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb623-2" data-line-number="2"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">actual_spread =</span> clinton<span class="op">/</span><span class="dv">100</span> <span class="op">-</span><span class="st"> </span>trump<span class="op">/</span><span class="dv">100</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb623-3" data-line-number="3"><span class="st">  </span><span class="kw">select</span>(state, actual_spread)</a>
-<a class="sourceLine" id="cb623-4" data-line-number="4">cis &lt;-<span class="st"> </span>cis <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb623-5" data-line-number="5"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">state =</span> <span class="kw">as.character</span>(state)) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb623-6" data-line-number="6"><span class="st">  </span><span class="kw">left_join</span>(add, <span class="dt">by =</span> <span class="st">&quot;state&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb625"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb625-1" data-line-number="1">add &lt;-<span class="st"> </span>results_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb625-2" data-line-number="2"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">actual_spread =</span> clinton<span class="op">/</span><span class="dv">100</span> <span class="op">-</span><span class="st"> </span>trump<span class="op">/</span><span class="dv">100</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb625-3" data-line-number="3"><span class="st">  </span><span class="kw">select</span>(state, actual_spread)</a>
+<a class="sourceLine" id="cb625-4" data-line-number="4">cis &lt;-<span class="st"> </span>cis <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb625-5" data-line-number="5"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">state =</span> <span class="kw">as.character</span>(state)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb625-6" data-line-number="6"><span class="st">  </span><span class="kw">left_join</span>(add, <span class="dt">by =</span> <span class="st">&quot;state&quot;</span>)</a></code></pre></div>
 <p>Now determine how often the 95% confidence interval includes the actual result.</p>
 <p>3. Repeat this, but show the proportion of hits for each pollster. Show only pollsters with more than 5 polls and order them from best to worst. Show the number of polls conducted by each pollster and the FiveThirtyEight grade of each pollster. Hint: use <code>n=n(), grade = grade[1]</code> in the call to summarize.</p>
 <p>4. Repeat exercise 3, but instead of pollster, stratify by state. Note that here we can’t show grades.</p>
@@ -1753,39 +1758,39 @@ Z = \frac{\bar{X} - d}{s/\sqrt{N}}
 <p>By substituting <span class="math inline">\(\sigma\)</span> with <span class="math inline">\(s\)</span> we introduce some variability. The theory tells us that <span class="math inline">\(Z\)</span> follows a t-distribution with <span class="math inline">\(N-1\)</span> <em>degrees of freedom</em>. The degrees of freedom is a parameter that controls the variability via fatter tails:</p>
 <p><img src="book_files/figure-html/t-distribution-examples-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>If we are willing to assume the pollster effect data is normally distributed, based on the sample data <span class="math inline">\(X_1, \dots, X_N\)</span>,</p>
-<div class="sourceCode" id="cb624"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb624-1" data-line-number="1">one_poll_per_pollster <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb624-2" data-line-number="2"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">sample=</span>spread)) <span class="op">+</span><span class="st"> </span><span class="kw">stat_qq</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb626"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb626-1" data-line-number="1">one_poll_per_pollster <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb626-2" data-line-number="2"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">sample=</span>spread)) <span class="op">+</span><span class="st"> </span><span class="kw">stat_qq</span>()</a></code></pre></div>
 <p><img src="book_files/figure-html/poll-spread-qq-1.png" width="70%" style="display: block; margin: auto;" />
 then <span class="math inline">\(Z\)</span> follows a t-distribution with <span class="math inline">\(N-1\)</span> degrees of freedom. So perhaps a better confidence interval for <span class="math inline">\(d\)</span> is:</p>
-<div class="sourceCode" id="cb625"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb625-1" data-line-number="1">z &lt;-<span class="st"> </span><span class="kw">qt</span>(<span class="fl">0.975</span>,  <span class="kw">nrow</span>(one_poll_per_pollster)<span class="op">-</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb625-2" data-line-number="2">one_poll_per_pollster <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb625-3" data-line-number="3"><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">avg =</span> <span class="kw">mean</span>(spread), <span class="dt">moe =</span> z<span class="op">*</span><span class="kw">sd</span>(spread)<span class="op">/</span><span class="kw">sqrt</span>(<span class="kw">length</span>(spread))) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb625-4" data-line-number="4"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">start =</span> avg <span class="op">-</span><span class="st"> </span>moe, <span class="dt">end =</span> avg <span class="op">+</span><span class="st"> </span>moe) </a>
-<a class="sourceLine" id="cb625-5" data-line-number="5"><span class="co">#&gt; # A tibble: 1 x 4</span></a>
-<a class="sourceLine" id="cb625-6" data-line-number="6"><span class="co">#&gt;      avg    moe  start    end</span></a>
-<a class="sourceLine" id="cb625-7" data-line-number="7"><span class="co">#&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;</span></a>
-<a class="sourceLine" id="cb625-8" data-line-number="8"><span class="co">#&gt; 1 0.0290 0.0134 0.0156 0.0424</span></a></code></pre></div>
+<div class="sourceCode" id="cb627"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb627-1" data-line-number="1">z &lt;-<span class="st"> </span><span class="kw">qt</span>(<span class="fl">0.975</span>,  <span class="kw">nrow</span>(one_poll_per_pollster)<span class="op">-</span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb627-2" data-line-number="2">one_poll_per_pollster <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb627-3" data-line-number="3"><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">avg =</span> <span class="kw">mean</span>(spread), <span class="dt">moe =</span> z<span class="op">*</span><span class="kw">sd</span>(spread)<span class="op">/</span><span class="kw">sqrt</span>(<span class="kw">length</span>(spread))) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb627-4" data-line-number="4"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">start =</span> avg <span class="op">-</span><span class="st"> </span>moe, <span class="dt">end =</span> avg <span class="op">+</span><span class="st"> </span>moe) </a>
+<a class="sourceLine" id="cb627-5" data-line-number="5"><span class="co">#&gt; # A tibble: 1 x 4</span></a>
+<a class="sourceLine" id="cb627-6" data-line-number="6"><span class="co">#&gt;      avg    moe  start    end</span></a>
+<a class="sourceLine" id="cb627-7" data-line-number="7"><span class="co">#&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;</span></a>
+<a class="sourceLine" id="cb627-8" data-line-number="8"><span class="co">#&gt; 1 0.0290 0.0134 0.0156 0.0424</span></a></code></pre></div>
 <p>A bit larger than the one using normal is</p>
-<div class="sourceCode" id="cb626"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb626-1" data-line-number="1"><span class="kw">qt</span>(<span class="fl">0.975</span>, <span class="dv">14</span>)</a>
-<a class="sourceLine" id="cb626-2" data-line-number="2"><span class="co">#&gt; [1] 2.14</span></a></code></pre></div>
+<div class="sourceCode" id="cb628"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb628-1" data-line-number="1"><span class="kw">qt</span>(<span class="fl">0.975</span>, <span class="dv">14</span>)</a>
+<a class="sourceLine" id="cb628-2" data-line-number="2"><span class="co">#&gt; [1] 2.14</span></a></code></pre></div>
 <p>is bigger than</p>
-<div class="sourceCode" id="cb627"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb627-1" data-line-number="1"><span class="kw">qnorm</span>(<span class="fl">0.975</span>)</a>
-<a class="sourceLine" id="cb627-2" data-line-number="2"><span class="co">#&gt; [1] 1.96</span></a></code></pre></div>
+<div class="sourceCode" id="cb629"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb629-1" data-line-number="1"><span class="kw">qnorm</span>(<span class="fl">0.975</span>)</a>
+<a class="sourceLine" id="cb629-2" data-line-number="2"><span class="co">#&gt; [1] 1.96</span></a></code></pre></div>
 <p>The t-distribution can also be used to model errors in bigger deviations that are more likely than with the normal distribution, as seen in the densities we previously saw. Fivethirtyeight uses the t-distribution to generate errors that better model the deviations we see in election data. For example, in Wisconsin the average of six polls was 7% in favor of Clinton with a standard deviation of 1%, but Trump won by 0.7%. Even after taking into account the overall bias, this 7.7% residual is more in line with t-distributed data than the normal distribution.</p>
-<div class="sourceCode" id="cb628"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb628-1" data-line-number="1"><span class="kw">data</span>(<span class="st">&quot;polls_us_election_2016&quot;</span>)</a>
-<a class="sourceLine" id="cb628-2" data-line-number="2">polls_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb628-3" data-line-number="3"><span class="st">  </span><span class="kw">filter</span>(state <span class="op">==</span><span class="st">&quot;Wisconsin&quot;</span> <span class="op">&amp;</span></a>
-<a class="sourceLine" id="cb628-4" data-line-number="4"><span class="st">           </span>enddate <span class="op">&gt;=</span><span class="st">&quot;2016-10-31&quot;</span> <span class="op">&amp;</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb628-5" data-line-number="5"><span class="st">           </span>(grade <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;A+&quot;</span>,<span class="st">&quot;A&quot;</span>,<span class="st">&quot;A-&quot;</span>,<span class="st">&quot;B+&quot;</span>) <span class="op">|</span><span class="st"> </span><span class="kw">is.na</span>(grade))) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb628-6" data-line-number="6"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">spread =</span> rawpoll_clinton<span class="op">/</span><span class="dv">100</span> <span class="op">-</span><span class="st"> </span>rawpoll_trump<span class="op">/</span><span class="dv">100</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb628-7" data-line-number="7"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">state =</span> <span class="kw">as.character</span>(state)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb628-8" data-line-number="8"><span class="st">  </span><span class="kw">left_join</span>(results_us_election_<span class="dv">2016</span>, <span class="dt">by =</span> <span class="st">&quot;state&quot;</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb628-9" data-line-number="9"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">actual =</span> clinton<span class="op">/</span><span class="dv">100</span> <span class="op">-</span><span class="st"> </span>trump<span class="op">/</span><span class="dv">100</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb628-10" data-line-number="10"><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">actual =</span> <span class="kw">first</span>(actual), <span class="dt">avg =</span> <span class="kw">mean</span>(spread), </a>
-<a class="sourceLine" id="cb628-11" data-line-number="11">            <span class="dt">sd =</span> <span class="kw">sd</span>(spread), <span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb628-12" data-line-number="12"><span class="st">  </span><span class="kw">select</span>(actual, avg, sd, n)</a>
-<a class="sourceLine" id="cb628-13" data-line-number="13"><span class="co">#&gt;   actual    avg     sd n</span></a>
-<a class="sourceLine" id="cb628-14" data-line-number="14"><span class="co">#&gt; 1 -0.007 0.0711 0.0104 6</span></a></code></pre></div>
+<div class="sourceCode" id="cb630"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb630-1" data-line-number="1"><span class="kw">data</span>(<span class="st">&quot;polls_us_election_2016&quot;</span>)</a>
+<a class="sourceLine" id="cb630-2" data-line-number="2">polls_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb630-3" data-line-number="3"><span class="st">  </span><span class="kw">filter</span>(state <span class="op">==</span><span class="st">&quot;Wisconsin&quot;</span> <span class="op">&amp;</span></a>
+<a class="sourceLine" id="cb630-4" data-line-number="4"><span class="st">           </span>enddate <span class="op">&gt;=</span><span class="st">&quot;2016-10-31&quot;</span> <span class="op">&amp;</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb630-5" data-line-number="5"><span class="st">           </span>(grade <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;A+&quot;</span>,<span class="st">&quot;A&quot;</span>,<span class="st">&quot;A-&quot;</span>,<span class="st">&quot;B+&quot;</span>) <span class="op">|</span><span class="st"> </span><span class="kw">is.na</span>(grade))) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb630-6" data-line-number="6"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">spread =</span> rawpoll_clinton<span class="op">/</span><span class="dv">100</span> <span class="op">-</span><span class="st"> </span>rawpoll_trump<span class="op">/</span><span class="dv">100</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb630-7" data-line-number="7"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">state =</span> <span class="kw">as.character</span>(state)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb630-8" data-line-number="8"><span class="st">  </span><span class="kw">left_join</span>(results_us_election_<span class="dv">2016</span>, <span class="dt">by =</span> <span class="st">&quot;state&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb630-9" data-line-number="9"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">actual =</span> clinton<span class="op">/</span><span class="dv">100</span> <span class="op">-</span><span class="st"> </span>trump<span class="op">/</span><span class="dv">100</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb630-10" data-line-number="10"><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">actual =</span> <span class="kw">first</span>(actual), <span class="dt">avg =</span> <span class="kw">mean</span>(spread), </a>
+<a class="sourceLine" id="cb630-11" data-line-number="11">            <span class="dt">sd =</span> <span class="kw">sd</span>(spread), <span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb630-12" data-line-number="12"><span class="st">  </span><span class="kw">select</span>(actual, avg, sd, n)</a>
+<a class="sourceLine" id="cb630-13" data-line-number="13"><span class="co">#&gt;   actual    avg     sd n</span></a>
+<a class="sourceLine" id="cb630-14" data-line-number="14"><span class="co">#&gt; 1 -0.007 0.0711 0.0104 6</span></a></code></pre></div>
 
 </div>
 </div>
@@ -1810,11 +1815,13 @@ then <span class="math inline">\(Z\)</span> follows a t-distribution with <span 
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
 <script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
 <script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
 <script>
 gitbook.require(["gitbook"], function(gitbook) {
 gitbook.start({
@@ -1822,12 +1829,11 @@ gitbook.start({
 "github": false,
 "facebook": true,
 "twitter": true,
-"google": false,
 "linkedin": false,
 "weibo": false,
 "instapaper": false,
 "vk": false,
-"all": ["facebook", "google", "twitter", "linkedin", "weibo", "instapaper"]
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
 },
 "fontsettings": {
 "theme": "white",
@@ -1839,6 +1845,10 @@ gitbook.start({
 "text": "Edit"
 },
 "history": {
+"link": null,
+"text": null
+},
+"view": {
 "link": null,
 "text": null
 },
@@ -1857,8 +1867,9 @@ gitbook.start({
     script.type = "text/javascript";
     var src = "true";
     if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
-    if (location.protocol !== "file:" && /^https?:/.test(src))
-      src = src.replace(/^https?:/, '');
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
     script.src = src;
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
