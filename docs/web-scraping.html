@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Chapter 23 Web scraping | Introduction to Data Science</title>
   <meta name="description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown." />
-  <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.20.2 and GitBook 2.6.7" />
 
   <meta property="og:title" content="Chapter 23 Web scraping | Introduction to Data Science" />
   <meta property="og:type" content="book" />
@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-07-16" />
+<meta name="date" content="2020-08-15" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -50,13 +50,14 @@
 
 
 
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 <script src="libs/kePrint-0.0.1/kePrint.js"></script>
 
 
 <style type="text/css">
-a.sourceLine { display: inline-block; line-height: 1.25; }
-a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; }
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 pre.sourceCode { margin: 0; }
@@ -65,14 +66,16 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 code.sourceCode { white-space: pre-wrap; }
-a.sourceLine { text-indent: -1em; padding-left: 1em; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
-pre.numberSource a.sourceLine
-  { position: relative; left: -4em; }
-pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all; display: inline-block;
+    border: none; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -81,9 +84,9 @@ pre.numberSource a.sourceLine::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {  }
+  {   }
 @media screen {
-a.sourceLine::before { text-decoration: underline; }
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -902,9 +905,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="web-scraping" class="section level1">
 <h1><span class="header-section-number">Chapter 23</span> Web scraping</h1>
 <p>The data we need to answer a question is not always in a spreadsheet ready for us to read. For example, the US murders dataset we used in the R Basics chapter originally comes from this Wikipedia page:</p>
-<div class="sourceCode" id="cb789"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb789-1" data-line-number="1">url &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;https://en.wikipedia.org/w/index.php?title=&quot;</span>,</a>
-<a class="sourceLine" id="cb789-2" data-line-number="2">              <span class="st">&quot;Gun_violence_in_the_United_States_by_state&quot;</span>,</a>
-<a class="sourceLine" id="cb789-3" data-line-number="3">              <span class="st">&quot;&amp;direction=prev&amp;oldid=810166167&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb799"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb799-1"><a href="web-scraping.html#cb799-1"></a>url &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;https://en.wikipedia.org/w/index.php?title=&quot;</span>,</span>
+<span id="cb799-2"><a href="web-scraping.html#cb799-2"></a>              <span class="st">&quot;Gun_violence_in_the_United_States_by_state&quot;</span>,</span>
+<span id="cb799-3"><a href="web-scraping.html#cb799-3"></a>              <span class="st">&quot;&amp;direction=prev&amp;oldid=810166167&quot;</span>)</span></code></pre></div>
 <p>You can see the data table when you visit the webpage:</p>
 <p><img src="wrangling/img/murders-data-wiki-page.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>(Web page courtesy of Wikipedia<a href="#fn81" class="footnote-ref" id="fnref81"><sup>81</sup></a>. CC-BY-SA-3.0 license<a href="#fn82" class="footnote-ref" id="fnref82"><sup>82</sup></a>. Screenshot of part of the page.)</p>
@@ -953,47 +956,47 @@ title=&quot;List of U.S. states and territories by population&quot;&gt;Populatio
 <div id="the-rvest-package" class="section level2">
 <h2><span class="header-section-number">23.2</span> The rvest package</h2>
 <p>The <strong>tidyverse</strong> provides a web harvesting package called <strong>rvest</strong>. The first step using this package is to import the webpage into R. The package makes this quite simple:</p>
-<div class="sourceCode" id="cb791"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb791-1" data-line-number="1"><span class="kw">library</span>(tidyverse)</a>
-<a class="sourceLine" id="cb791-2" data-line-number="2"><span class="kw">library</span>(rvest)</a>
-<a class="sourceLine" id="cb791-3" data-line-number="3">h &lt;-<span class="st"> </span><span class="kw">read_html</span>(url)</a></code></pre></div>
+<div class="sourceCode" id="cb801"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb801-1"><a href="web-scraping.html#cb801-1"></a><span class="kw">library</span>(tidyverse)</span>
+<span id="cb801-2"><a href="web-scraping.html#cb801-2"></a><span class="kw">library</span>(rvest)</span>
+<span id="cb801-3"><a href="web-scraping.html#cb801-3"></a>h &lt;-<span class="st"> </span><span class="kw">read_html</span>(url)</span></code></pre></div>
 <p>Note that the entire Murders in the US Wikipedia webpage is now contained in <code>h</code>. The class of this object is:</p>
-<div class="sourceCode" id="cb792"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb792-1" data-line-number="1"><span class="kw">class</span>(h)</a>
-<a class="sourceLine" id="cb792-2" data-line-number="2"><span class="co">#&gt; [1] &quot;xml_document&quot; &quot;xml_node&quot;</span></a></code></pre></div>
+<div class="sourceCode" id="cb802"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb802-1"><a href="web-scraping.html#cb802-1"></a><span class="kw">class</span>(h)</span>
+<span id="cb802-2"><a href="web-scraping.html#cb802-2"></a><span class="co">#&gt; [1] &quot;xml_document&quot; &quot;xml_node&quot;</span></span></code></pre></div>
 <p>The <strong>rvest</strong> package is actually more general; it handles XML documents. XML is a general markup language (that’s what the ML stands for) that can be used to represent any kind of data. HTML is a specific type of XML specifically developed for representing webpages. Here we focus on HTML documents.</p>
 <p>Now, how do we extract the table from the object <code>h</code>? If we print <code>h</code>, we don’t really see much:</p>
-<div class="sourceCode" id="cb793"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb793-1" data-line-number="1">h</a>
-<a class="sourceLine" id="cb793-2" data-line-number="2"><span class="co">#&gt; {html_document}</span></a>
-<a class="sourceLine" id="cb793-3" data-line-number="3"><span class="co">#&gt; &lt;html class=&quot;client-nojs&quot; lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;</span></a>
-<a class="sourceLine" id="cb793-4" data-line-number="4"><span class="co">#&gt; [1] &lt;head&gt;\n&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; chars ...</span></a>
-<a class="sourceLine" id="cb793-5" data-line-number="5"><span class="co">#&gt; [2] &lt;body class=&quot;mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns- ...</span></a></code></pre></div>
+<div class="sourceCode" id="cb803"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb803-1"><a href="web-scraping.html#cb803-1"></a>h</span>
+<span id="cb803-2"><a href="web-scraping.html#cb803-2"></a><span class="co">#&gt; {html_document}</span></span>
+<span id="cb803-3"><a href="web-scraping.html#cb803-3"></a><span class="co">#&gt; &lt;html class=&quot;client-nojs&quot; lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;</span></span>
+<span id="cb803-4"><a href="web-scraping.html#cb803-4"></a><span class="co">#&gt; [1] &lt;head&gt;\n&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; chars ...</span></span>
+<span id="cb803-5"><a href="web-scraping.html#cb803-5"></a><span class="co">#&gt; [2] &lt;body class=&quot;mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns- ...</span></span></code></pre></div>
 <p>We can see all the code that defines the downloaded webpage using the <code>html_text</code> function like this:</p>
-<div class="sourceCode" id="cb794"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb794-1" data-line-number="1"><span class="kw">html_text</span>(h)</a></code></pre></div>
-<p>We don’t show the output here because it includes thousands of characters, but if we look at it, we can see the data we are after are stored in an HTML table: you can see this in this line of the HTML code above <code>&lt;table class=&quot;wikitable sortable&quot;&gt;</code>. The different parts of an HTML document, often defined with a message in between <code>&lt;</code> and <code>&gt;</code> are referred to as <em>nodes</em>. The <strong>rvest</strong> package includes functions to extract nodes of an HTML document: <code>html_nodes</code> extracts all nodes of different types and <code>html_node</code> extracts the first one. To extract the tables from the html code we use:</p>
-<div class="sourceCode" id="cb795"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb795-1" data-line-number="1">tab &lt;-<span class="st"> </span>h <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">html_nodes</span>(<span class="st">&quot;table&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb804"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb804-1"><a href="web-scraping.html#cb804-1"></a><span class="kw">html_text</span>(h)</span></code></pre></div>
+<p>We don’t show the output here because it includes thousands of characters, but if we look at it, we can see the data we are after are stored in an HTML table: you can see this in this line of the HTML code above <code>&lt;table class="wikitable sortable"&gt;</code>. The different parts of an HTML document, often defined with a message in between <code>&lt;</code> and <code>&gt;</code> are referred to as <em>nodes</em>. The <strong>rvest</strong> package includes functions to extract nodes of an HTML document: <code>html_nodes</code> extracts all nodes of different types and <code>html_node</code> extracts the first one. To extract the tables from the html code we use:</p>
+<div class="sourceCode" id="cb805"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb805-1"><a href="web-scraping.html#cb805-1"></a>tab &lt;-<span class="st"> </span>h <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">html_nodes</span>(<span class="st">&quot;table&quot;</span>)</span></code></pre></div>
 <p>Now, instead of the entire webpage, we just have the html code for the tables in the page:</p>
-<div class="sourceCode" id="cb796"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb796-1" data-line-number="1">tab</a>
-<a class="sourceLine" id="cb796-2" data-line-number="2"><span class="co">#&gt; {xml_nodeset (2)}</span></a>
-<a class="sourceLine" id="cb796-3" data-line-number="3"><span class="co">#&gt; [1] &lt;table class=&quot;wikitable sortable&quot;&gt;&lt;tbody&gt;\n&lt;tr&gt;\n&lt;th&gt;State\n&lt;/th&gt; ...</span></a>
-<a class="sourceLine" id="cb796-4" data-line-number="4"><span class="co">#&gt; [2] &lt;table class=&quot;nowraplinks hlist mw-collapsible mw-collapsed navbo ...</span></a></code></pre></div>
+<div class="sourceCode" id="cb806"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb806-1"><a href="web-scraping.html#cb806-1"></a>tab</span>
+<span id="cb806-2"><a href="web-scraping.html#cb806-2"></a><span class="co">#&gt; {xml_nodeset (2)}</span></span>
+<span id="cb806-3"><a href="web-scraping.html#cb806-3"></a><span class="co">#&gt; [1] &lt;table class=&quot;wikitable sortable&quot;&gt;&lt;tbody&gt;\n&lt;tr&gt;\n&lt;th&gt;State\n&lt;/th&gt; ...</span></span>
+<span id="cb806-4"><a href="web-scraping.html#cb806-4"></a><span class="co">#&gt; [2] &lt;table class=&quot;nowraplinks hlist mw-collapsible mw-collapsed navbo ...</span></span></code></pre></div>
 <p>The table we are interested is the first one:</p>
-<div class="sourceCode" id="cb797"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb797-1" data-line-number="1">tab[[<span class="dv">1</span>]]</a>
-<a class="sourceLine" id="cb797-2" data-line-number="2"><span class="co">#&gt; {html_node}</span></a>
-<a class="sourceLine" id="cb797-3" data-line-number="3"><span class="co">#&gt; &lt;table class=&quot;wikitable sortable&quot;&gt;</span></a>
-<a class="sourceLine" id="cb797-4" data-line-number="4"><span class="co">#&gt; [1] &lt;tbody&gt;\n&lt;tr&gt;\n&lt;th&gt;State\n&lt;/th&gt;\n&lt;th&gt;\n&lt;a href=&quot;/wiki/List_of_U.S ...</span></a></code></pre></div>
+<div class="sourceCode" id="cb807"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb807-1"><a href="web-scraping.html#cb807-1"></a>tab[[<span class="dv">1</span>]]</span>
+<span id="cb807-2"><a href="web-scraping.html#cb807-2"></a><span class="co">#&gt; {html_node}</span></span>
+<span id="cb807-3"><a href="web-scraping.html#cb807-3"></a><span class="co">#&gt; &lt;table class=&quot;wikitable sortable&quot;&gt;</span></span>
+<span id="cb807-4"><a href="web-scraping.html#cb807-4"></a><span class="co">#&gt; [1] &lt;tbody&gt;\n&lt;tr&gt;\n&lt;th&gt;State\n&lt;/th&gt;\n&lt;th&gt;\n&lt;a href=&quot;/wiki/List_of_U.S ...</span></span></code></pre></div>
 <p>This is clearly not a tidy dataset, not even a data frame. In the code above, you can definitely see a pattern and writing code to extract just the data is very doable. In fact, <strong>rvest</strong> includes a function just for converting HTML tables into data frames:</p>
-<div class="sourceCode" id="cb798"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb798-1" data-line-number="1">tab &lt;-<span class="st"> </span>tab[[<span class="dv">1</span>]] <span class="op">%&gt;%</span><span class="st"> </span>html_table</a>
-<a class="sourceLine" id="cb798-2" data-line-number="2"><span class="kw">class</span>(tab)</a>
-<a class="sourceLine" id="cb798-3" data-line-number="3"><span class="co">#&gt; [1] &quot;data.frame&quot;</span></a></code></pre></div>
+<div class="sourceCode" id="cb808"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb808-1"><a href="web-scraping.html#cb808-1"></a>tab &lt;-<span class="st"> </span>tab[[<span class="dv">1</span>]] <span class="op">%&gt;%</span><span class="st"> </span>html_table</span>
+<span id="cb808-2"><a href="web-scraping.html#cb808-2"></a><span class="kw">class</span>(tab)</span>
+<span id="cb808-3"><a href="web-scraping.html#cb808-3"></a><span class="co">#&gt; [1] &quot;data.frame&quot;</span></span></code></pre></div>
 <p>We are now much closer to having a usable data table:</p>
-<div class="sourceCode" id="cb799"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb799-1" data-line-number="1">tab &lt;-<span class="st"> </span>tab <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">setNames</span>(<span class="kw">c</span>(<span class="st">&quot;state&quot;</span>, <span class="st">&quot;population&quot;</span>, <span class="st">&quot;total&quot;</span>, <span class="st">&quot;murder_rate&quot;</span>)) </a>
-<a class="sourceLine" id="cb799-2" data-line-number="2"><span class="kw">head</span>(tab)</a>
-<a class="sourceLine" id="cb799-3" data-line-number="3"><span class="co">#&gt;        state population total murder_rate</span></a>
-<a class="sourceLine" id="cb799-4" data-line-number="4"><span class="co">#&gt; 1    Alabama  4,853,875   348         7.2</span></a>
-<a class="sourceLine" id="cb799-5" data-line-number="5"><span class="co">#&gt; 2     Alaska    737,709    59         8.0</span></a>
-<a class="sourceLine" id="cb799-6" data-line-number="6"><span class="co">#&gt; 3    Arizona  6,817,565   309         4.5</span></a>
-<a class="sourceLine" id="cb799-7" data-line-number="7"><span class="co">#&gt; 4   Arkansas  2,977,853   181         6.1</span></a>
-<a class="sourceLine" id="cb799-8" data-line-number="8"><span class="co">#&gt; 5 California 38,993,940 1,861         4.8</span></a>
-<a class="sourceLine" id="cb799-9" data-line-number="9"><span class="co">#&gt; 6   Colorado  5,448,819   176         3.2</span></a></code></pre></div>
+<div class="sourceCode" id="cb809"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb809-1"><a href="web-scraping.html#cb809-1"></a>tab &lt;-<span class="st"> </span>tab <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">setNames</span>(<span class="kw">c</span>(<span class="st">&quot;state&quot;</span>, <span class="st">&quot;population&quot;</span>, <span class="st">&quot;total&quot;</span>, <span class="st">&quot;murder_rate&quot;</span>)) </span>
+<span id="cb809-2"><a href="web-scraping.html#cb809-2"></a><span class="kw">head</span>(tab)</span>
+<span id="cb809-3"><a href="web-scraping.html#cb809-3"></a><span class="co">#&gt;        state population total murder_rate</span></span>
+<span id="cb809-4"><a href="web-scraping.html#cb809-4"></a><span class="co">#&gt; 1    Alabama  4,853,875   348         7.2</span></span>
+<span id="cb809-5"><a href="web-scraping.html#cb809-5"></a><span class="co">#&gt; 2     Alaska    737,709    59         8.0</span></span>
+<span id="cb809-6"><a href="web-scraping.html#cb809-6"></a><span class="co">#&gt; 3    Arizona  6,817,565   309         4.5</span></span>
+<span id="cb809-7"><a href="web-scraping.html#cb809-7"></a><span class="co">#&gt; 4   Arkansas  2,977,853   181         6.1</span></span>
+<span id="cb809-8"><a href="web-scraping.html#cb809-8"></a><span class="co">#&gt; 5 California 38,993,940 1,861         4.8</span></span>
+<span id="cb809-9"><a href="web-scraping.html#cb809-9"></a><span class="co">#&gt; 6   Colorado  5,448,819   176         3.2</span></span></code></pre></div>
 <p>We still have some wrangling to do. For example, we need to remove the commas and turn characters into numbers. Before continuing with this, we will learn a more general approach to extracting information from web sites.</p>
 </div>
 <div id="css-selectors" class="section level2">
@@ -1039,27 +1042,15 @@ vignette<a href="#fn86" class="footnote-ref" id="fnref86"><sup>86</sup></a> and 
 #&gt;   }
 #&gt; ]</code></pre>
 <p>The file above actually represents a data frame. To read it, we can use the function <code>fromJSON</code> from the <strong>jsonlite</strong> package. Note that JSON files are often made available via the internet. Several organizations provide a JSON API or a web service that you can connect directly to and obtain data. Here is an example:</p>
-<div class="sourceCode" id="cb801"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb801-1" data-line-number="1"><span class="kw">library</span>(jsonlite)</a>
-<a class="sourceLine" id="cb801-2" data-line-number="2">citi_bike &lt;-<span class="st"> </span><span class="kw">fromJSON</span>(<span class="st">&quot;http://citibikenyc.com/stations/json&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb811"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb811-1"><a href="web-scraping.html#cb811-1"></a><span class="kw">library</span>(jsonlite)</span>
+<span id="cb811-2"><a href="web-scraping.html#cb811-2"></a>res &lt;-<span class="st"> </span><span class="kw">fromJSON</span>(<span class="st">&#39;http://ergast.com/api/f1/2004/1/results.json&#39;</span>)</span>
+<span id="cb811-3"><a href="web-scraping.html#cb811-3"></a></span>
+<span id="cb811-4"><a href="web-scraping.html#cb811-4"></a>citi_bike &lt;-<span class="st"> </span><span class="kw">fromJSON</span>(<span class="st">&quot;http://citibikenyc.com/stations/json&quot;</span>)</span></code></pre></div>
 <p>This downloads a list. The first argument tells you when you downloaded it:</p>
-<div class="sourceCode" id="cb802"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb802-1" data-line-number="1">citi_bike<span class="op">$</span>executionTime</a>
-<a class="sourceLine" id="cb802-2" data-line-number="2"><span class="co">#&gt; [1] &quot;2020-05-04 01:31:16 PM&quot;</span></a></code></pre></div>
+<div class="sourceCode" id="cb812"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb812-1"><a href="web-scraping.html#cb812-1"></a>citi_bike<span class="op">$</span>executionTime</span></code></pre></div>
 <p>and the second is a data table:</p>
-<div class="sourceCode" id="cb803"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb803-1" data-line-number="1">citi_bike<span class="op">$</span>stationBeanList <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_tibble</span>() </a>
-<a class="sourceLine" id="cb803-2" data-line-number="2"><span class="co">#&gt; # A tibble: 938 x 18</span></a>
-<a class="sourceLine" id="cb803-3" data-line-number="3"><span class="co">#&gt;      id stationName availableDocks totalDocks latitude longitude</span></a>
-<a class="sourceLine" id="cb803-4" data-line-number="4"><span class="co">#&gt;   &lt;int&gt; &lt;chr&gt;                &lt;int&gt;      &lt;int&gt;    &lt;dbl&gt;     &lt;dbl&gt;</span></a>
-<a class="sourceLine" id="cb803-5" data-line-number="5"><span class="co">#&gt; 1    72 W 52 St &amp; …             38         55     40.8     -74.0</span></a>
-<a class="sourceLine" id="cb803-6" data-line-number="6"><span class="co">#&gt; 2    79 Franklin S…             24         33     40.7     -74.0</span></a>
-<a class="sourceLine" id="cb803-7" data-line-number="7"><span class="co">#&gt; 3    82 St James P…              4         27     40.7     -74.0</span></a>
-<a class="sourceLine" id="cb803-8" data-line-number="8"><span class="co">#&gt; 4    83 Atlantic A…             10         62     40.7     -74.0</span></a>
-<a class="sourceLine" id="cb803-9" data-line-number="9"><span class="co">#&gt; 5   116 W 17 St &amp; …             28         50     40.7     -74.0</span></a>
-<a class="sourceLine" id="cb803-10" data-line-number="10"><span class="co">#&gt; # … with 933 more rows, and 12 more variables: statusValue &lt;chr&gt;,</span></a>
-<a class="sourceLine" id="cb803-11" data-line-number="11"><span class="co">#&gt; #   statusKey &lt;int&gt;, availableBikes &lt;int&gt;, stAddress1 &lt;chr&gt;,</span></a>
-<a class="sourceLine" id="cb803-12" data-line-number="12"><span class="co">#&gt; #   stAddress2 &lt;chr&gt;, city &lt;chr&gt;, postalCode &lt;chr&gt;, location &lt;chr&gt;,</span></a>
-<a class="sourceLine" id="cb803-13" data-line-number="13"><span class="co">#&gt; #   altitude &lt;chr&gt;, testStation &lt;lgl&gt;, lastCommunicationTime &lt;chr&gt;,</span></a>
-<a class="sourceLine" id="cb803-14" data-line-number="14"><span class="co">#&gt; #   landMark &lt;chr&gt;</span></a></code></pre></div>
-<p>You can learn much more by examining tutorials and help files from the <strong>jsonlite</strong> package. This package is intended for relatively simple tasks such as converging data into tables. For more flexibility, we recommend <code>rjson</code>.</p>
+<div class="sourceCode" id="cb813"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb813-1"><a href="web-scraping.html#cb813-1"></a>citi_bike<span class="op">$</span>stationBeanList <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_tibble</span>() </span></code></pre></div>
+<p>You can learn much more by examining tutorials and help files from the <strong>jsonlite</strong> package. This package is intended for relatively simple tasks such as converting data into tables. For more flexibility, we recommend <code>rjson</code>.</p>
 </div>
 <div id="exercises-40" class="section level2">
 <h2><span class="header-section-number">23.5</span> Exercises</h2>
@@ -1067,10 +1058,10 @@ vignette<a href="#fn86" class="footnote-ref" id="fnref86"><sup>86</sup></a> and 
 <p>Notice there are several tables. Say we are interested in comparing the payrolls of teams across the years. The next few exercises take us through the steps needed to do this.</p>
 <p>Start by applying what you learned to read in the website into an object called <code>h</code>.</p>
 <p>2. Note that, although not very useful, we can actually see the content of the page by typing:</p>
-<div class="sourceCode" id="cb804"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb804-1" data-line-number="1"><span class="kw">html_text</span>(h)</a></code></pre></div>
+<div class="sourceCode" id="cb814"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb814-1"><a href="web-scraping.html#cb814-1"></a><span class="kw">html_text</span>(h)</span></code></pre></div>
 <p>The next step is to extract the tables. For this, we can use the <code>html_nodes</code> function. We learned that tables in html are associated with the <code>table</code> node. Use the <code>html_nodes</code> function and the <code>table</code> node to extract the first table. Store it in an object <code>nodes</code>.</p>
 <p>3. The <code>html_nodes</code> function returns a list of objects of class <code>xml_node</code>. We can see the content of each one using, for example, the <code>html_text</code> function. You can see the content for an arbitrarily picked component like this:</p>
-<div class="sourceCode" id="cb805"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb805-1" data-line-number="1"><span class="kw">html_text</span>(nodes[[<span class="dv">8</span>]])</a></code></pre></div>
+<div class="sourceCode" id="cb815"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb815-1"><a href="web-scraping.html#cb815-1"></a><span class="kw">html_text</span>(nodes[[<span class="dv">8</span>]])</span></code></pre></div>
 <p>If the content of this object is an html table, we can use the <code>html_table</code> function to convert it to a data frame. Use the <code>html_table</code> function to convert the 8th entry of <code>nodes</code> into a table.</p>
 <p>4. Repeat the above for the first 4 components of <code>nodes</code>. Which of the following are payroll tables:</p>
 <ol style="list-style-type: lower-alpha">
@@ -1094,8 +1085,8 @@ Remove the first component and then use <code>sapply</code> and <code>html_table
 <p>10. Use a <code>full_join</code> function to combine these two tables. Before you do this you will have to fix the missing header problem. You will also need to make the names match.</p>
 <p>11. After joining the tables, you see several NAs. This is because some teams are in one table and not the other. Use the <code>anti_join</code> function to get a better idea of why this is happening.</p>
 <p>12. We see see that one of the problems is that Yankees are listed as both <em>N.Y. Yankees</em> and <em>NY Yankees</em>. In the next section, we will learn efficient approaches to fixing problems like this. Here we can do it “by hand” as follows:</p>
-<div class="sourceCode" id="cb806"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb806-1" data-line-number="1">tab_<span class="dv">1</span> &lt;-<span class="st"> </span>tab_<span class="dv">1</span> <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb806-2" data-line-number="2"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Team =</span> <span class="kw">ifelse</span>(Team <span class="op">==</span><span class="st"> &quot;N.Y. Yankees&quot;</span>, <span class="st">&quot;NY Yankees&quot;</span>, Team))</a></code></pre></div>
+<div class="sourceCode" id="cb816"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb816-1"><a href="web-scraping.html#cb816-1"></a>tab_<span class="dv">1</span> &lt;-<span class="st"> </span>tab_<span class="dv">1</span> <span class="op">%&gt;%</span></span>
+<span id="cb816-2"><a href="web-scraping.html#cb816-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Team =</span> <span class="kw">ifelse</span>(Team <span class="op">==</span><span class="st"> &quot;N.Y. Yankees&quot;</span>, <span class="st">&quot;NY Yankees&quot;</span>, Team))</span></code></pre></div>
 <p>Now join the tables and show only Oakland and the Yankees and the payroll columns.</p>
 <p>13. Advanced: extract the titles of the movies that won Best Picture from this website: <a href="https://m.imdb.com/chart/bestpicture/">https://m.imdb.com/chart/bestpicture/</a></p>
 
@@ -1104,14 +1095,14 @@ Remove the first component and then use <code>sapply</code> and <code>html_table
 <div class="footnotes">
 <hr />
 <ol start="81">
-<li id="fn81"><p><a href="https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&amp;direction=prev&amp;oldid=810166167" class="uri">https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&amp;direction=prev&amp;oldid=810166167</a><a href="web-scraping.html#fnref81" class="footnote-back">↩</a></p></li>
-<li id="fn82"><p><a href="https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License" class="uri">https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License</a><a href="web-scraping.html#fnref82" class="footnote-back">↩</a></p></li>
-<li id="fn83"><p><a href="https://www.codecademy.com/learn/learn-html" class="uri">https://www.codecademy.com/learn/learn-html</a><a href="web-scraping.html#fnref83" class="footnote-back">↩</a></p></li>
-<li id="fn84"><p><a href="https://www.w3schools.com/" class="uri">https://www.w3schools.com/</a><a href="web-scraping.html#fnref84" class="footnote-back">↩</a></p></li>
-<li id="fn85"><p><a href="http://selectorgadget.com/" class="uri">http://selectorgadget.com/</a><a href="web-scraping.html#fnref85" class="footnote-back">↩</a></p></li>
-<li id="fn86"><p><a href="https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html" class="uri">https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html</a><a href="web-scraping.html#fnref86" class="footnote-back">↩</a></p></li>
-<li id="fn87"><p><a href="https://stat4701.github.io/edav/2015/04/02/rvest_tutorial/" class="uri">https://stat4701.github.io/edav/2015/04/02/rvest_tutorial/</a><a href="web-scraping.html#fnref87" class="footnote-back">↩</a></p></li>
-<li id="fn88"><p><a href="https://www.analyticsvidhya.com/blog/2017/03/beginners-guide-on-web-scraping-in-r-using-rvest-with-hands-on-knowledge/" class="uri">https://www.analyticsvidhya.com/blog/2017/03/beginners-guide-on-web-scraping-in-r-using-rvest-with-hands-on-knowledge/</a><a href="web-scraping.html#fnref88" class="footnote-back">↩</a></p></li>
+<li id="fn81"><p><a href="https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&amp;direction=prev&amp;oldid=810166167" class="uri">https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&amp;direction=prev&amp;oldid=810166167</a><a href="web-scraping.html#fnref81" class="footnote-back">↩︎</a></p></li>
+<li id="fn82"><p><a href="https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License" class="uri">https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License</a><a href="web-scraping.html#fnref82" class="footnote-back">↩︎</a></p></li>
+<li id="fn83"><p><a href="https://www.codecademy.com/learn/learn-html" class="uri">https://www.codecademy.com/learn/learn-html</a><a href="web-scraping.html#fnref83" class="footnote-back">↩︎</a></p></li>
+<li id="fn84"><p><a href="https://www.w3schools.com/" class="uri">https://www.w3schools.com/</a><a href="web-scraping.html#fnref84" class="footnote-back">↩︎</a></p></li>
+<li id="fn85"><p><a href="http://selectorgadget.com/" class="uri">http://selectorgadget.com/</a><a href="web-scraping.html#fnref85" class="footnote-back">↩︎</a></p></li>
+<li id="fn86"><p><a href="https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html" class="uri">https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html</a><a href="web-scraping.html#fnref86" class="footnote-back">↩︎</a></p></li>
+<li id="fn87"><p><a href="https://stat4701.github.io/edav/2015/04/02/rvest_tutorial/" class="uri">https://stat4701.github.io/edav/2015/04/02/rvest_tutorial/</a><a href="web-scraping.html#fnref87" class="footnote-back">↩︎</a></p></li>
+<li id="fn88"><p><a href="https://www.analyticsvidhya.com/blog/2017/03/beginners-guide-on-web-scraping-in-r-using-rvest-with-hands-on-knowledge/" class="uri">https://www.analyticsvidhya.com/blog/2017/03/beginners-guide-on-web-scraping-in-r-using-rvest-with-hands-on-knowledge/</a><a href="web-scraping.html#fnref88" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>

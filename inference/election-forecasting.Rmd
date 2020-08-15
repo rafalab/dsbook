@@ -113,12 +113,13 @@ The simulated data does not really seem to capture the features of the actual da
 
 ```{r simulated-data-without-bias, echo=FALSE, message=FALSE, warning=FALSE}
 polls %>% group_by(pollster) %>% 
-  filter(n() >= 6) %>% ungroup() %>%
+  filter(n() >= 6) %>% 
+  ungroup() %>%
   select(pollster, spread) %>%
   mutate(type = "Observed data", pollster = as.character(pollster)) %>%
-  bind_rows(data.frame(spread = as.vector(X) , 
-                      pollster = I(rep(as.character(1:I), each=J)),
-                      type = I("Simulated data"))) %>%
+  bind_rows(tibble(spread = as.vector(X) , 
+                      pollster = rep(as.character(1:I), each=J),
+                      type = "Simulated data")) %>%
   mutate(type = factor(type, levels = c("Simulated data", "Observed data"))) %>%
   ggplot(aes(pollster, spread)) + 
   geom_point() + 

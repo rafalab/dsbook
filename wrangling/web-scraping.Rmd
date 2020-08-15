@@ -136,13 +136,12 @@ We are now much closer to having a usable data table:
 ```{r}
 tab <- tab %>% setNames(c("state", "population", "total", "murder_rate")) 
 head(tab)
-  ```
+```
 
 We still have some wrangling to do. For example, we need to remove the commas and turn characters into numbers. Before continuing with this, we will learn a more general approach to extracting information from web sites.
 
 
 ## CSS selectors {#css-selectors}
-
 The default look of a webpage made with the most basic HTML is quite unattractive. The aesthetically pleasing pages we see today are made using CSS to define the look and style of webpages. The fact that all pages for a company have the same style usually results from their use of the same CSS file to define the style. The general way these CSS files work is by defining how each of the elements of a webpage will look. The title, headings, itemized lists, tables, and links, for example, each receive their own style including font, color, size, and distance from the margin. CSS does this by leveraging patterns used to define these elements, referred to as _selectors_. An example of such a pattern, which we used above, is `table`, but there are many, many more. 
 
 If we want to grab data from a webpage and we happen to know a selector that is unique to the part of the page containing this data, we can use the `html_nodes` function. However, knowing which selector can be quite complicated. 
@@ -164,25 +163,27 @@ json
 
 The file above actually represents a data frame. To read it, we can use the function `fromJSON` from the __jsonlite__ package. Note that JSON files are often made available via the internet. Several organizations provide a JSON API or a web service that you can connect directly to and obtain data. Here is an example:
 
-```{r}
+```{r, eval=FALSE}
 library(jsonlite)
+res <- fromJSON('http://ergast.com/api/f1/2004/1/results.json')
+
 citi_bike <- fromJSON("http://citibikenyc.com/stations/json")
 ```
 
 This downloads a list. The first argument tells you when you downloaded it:
 
-```{r}
+```{r,eval=FALSE}
 citi_bike$executionTime
 ```
 
 and the second is a data table:
 
-```{r}
+```{r,eval=FALSE}
 citi_bike$stationBeanList %>% as_tibble() 
 ```
 
 
-You can learn much more by examining tutorials and help files from the __jsonlite__ package. This package is intended for relatively simple tasks such as converging data into tables. For more flexibility, we recommend `rjson`.
+You can learn much more by examining tutorials and help files from the __jsonlite__ package. This package is intended for relatively simple tasks such as converting data into tables. For more flexibility, we recommend `rjson`.
 
 
 
