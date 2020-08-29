@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-08-15" />
+<meta name="date" content="2020-08-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1990,8 +1990,8 @@ Bayesian approach that shrunk predictions described in Section <a href="models.h
 Y_{u,i} = \mu + b_i + \varepsilon_{u,i}
 \]</span></p>
 <p>Suppose we know the average rating is, say, <span class="math inline">\(\mu = 3\)</span>. If we use least squares, the estimate for the first movie effect <span class="math inline">\(b_1\)</span> is the average of the 100 user ratings, <span class="math inline">\(1/100 \sum_{i=1}^{100} (Y_{i,1} - \mu)\)</span>, which we expect to be a quite precise. However, the estimate for movies 2, 3, 4, and 5 will simply be the observed deviation from the average rating <span class="math inline">\(\hat{b}_i = Y_{u,i} - \hat{\mu}\)</span> which is an estimate based on just one number so it won’t be precise at all. Note these estimates make the error <span class="math inline">\(Y_{u,i} - \mu + \hat{b}_i\)</span> equal to 0 for <span class="math inline">\(i=2,3,4,5\)</span>, but this is a case of over-training. In fact, ignoring the one user and guessing that movies 2,3,4, and 5 are just average movies (<span class="math inline">\(b_i = 0\)</span>) might provide a better prediction. The general idea of penalized regression is to control the total variability of the movie effects: <span class="math inline">\(\sum_{i=1}^5 b_i^2\)</span>. Specifically, instead of minimizing the least squares equation, we minimize an equation that adds a penalty:</p>
-<p><span class="math display">\[\frac{1}{N} \sum_{u,i} \left(y_{u,i} - \mu - b_i\right)^2 + \lambda \sum_{i} b_i^2\]</span>
-The first term is just least squares and the second is a penalty that gets larger when many <span class="math inline">\(b_i\)</span> are large. Using calculus we can actually show that the values of <span class="math inline">\(b_i\)</span> that minimize this equation are:</p>
+<p><span class="math display">\[ \sum_{u,i} \left(y_{u,i} - \mu - b_i\right)^2 + \lambda \sum_{i} b_i^2 \]</span>
+The first term is just the sum of squares and the second is a penalty that gets larger when many <span class="math inline">\(b_i\)</span> are large. Using calculus we can actually show that the values of <span class="math inline">\(b_i\)</span> that minimize this equation are:</p>
 <p><span class="math display">\[
 \hat{b}_i(\lambda) = \frac{1}{\lambda + n_i} \sum_{u=1}^{n_i} \left(Y_{u,i} - \hat{\mu}\right)
 \]</span></p>
@@ -2085,7 +2085,7 @@ The first term is just least squares and the second is a penalty that gets large
 <p>However, while we show this as an illustration, in practice we should be using full cross-validation just on the train set, without using the test set until the final assessment. The test set should never be used for tuning.</p>
 <p>We can use regularization for the estimate user effects as well. We are minimizing:</p>
 <p><span class="math display">\[
-\frac{1}{N} \sum_{u,i} \left(y_{u,i} - \mu - b_i - b_u \right)^2 + 
+\sum_{u,i} \left(y_{u,i} - \mu - b_i - b_u \right)^2 + 
 \lambda \left(\sum_{i} b_i^2 + \sum_{u} b_u^2\right)
 \]</span></p>
 <p>The estimates that minimize this can be found similarly to what we did above. Here we use cross-validation to pick a <span class="math inline">\(\lambda\)</span>:</p>
