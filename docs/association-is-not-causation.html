@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-09-04" />
+<meta name="date" content="2020-09-06" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -914,77 +914,77 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>You can see many more absurd examples on the Spurious Correlations website<a href="#fn73" class="footnote-ref" id="fnref73"><sup>73</sup></a>.</p>
 <p>The cases presented in the spurious correlation site are all instances of what is generally called <em>data dredging</em>, <em>data fishing</em>, or <em>data snooping</em>. It’s basically a form of what in the US they call <em>cherry picking</em>. An example of data dredging would be if you look through many results produced by a random process and pick the one that shows a relationship that supports a theory you want to defend.</p>
 <p>A Monte Carlo simulation can be used to show how data dredging can result in finding high correlations among uncorrelated variables. We will save the results of our simulation into a tibble:</p>
-<div class="sourceCode" id="cb726"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb726-1"><a href="association-is-not-causation.html#cb726-1"></a>N &lt;-<span class="st"> </span><span class="dv">25</span></span>
-<span id="cb726-2"><a href="association-is-not-causation.html#cb726-2"></a>g &lt;-<span class="st"> </span><span class="dv">1000000</span></span>
-<span id="cb726-3"><a href="association-is-not-causation.html#cb726-3"></a>sim_data &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">group =</span> <span class="kw">rep</span>(<span class="dv">1</span><span class="op">:</span>g, <span class="dt">each=</span>N), </span>
-<span id="cb726-4"><a href="association-is-not-causation.html#cb726-4"></a>                   <span class="dt">x =</span> <span class="kw">rnorm</span>(N <span class="op">*</span><span class="st"> </span>g), </span>
-<span id="cb726-5"><a href="association-is-not-causation.html#cb726-5"></a>                   <span class="dt">y =</span> <span class="kw">rnorm</span>(N <span class="op">*</span><span class="st"> </span>g))</span></code></pre></div>
+<div class="sourceCode" id="cb727"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb727-1"><a href="association-is-not-causation.html#cb727-1"></a>N &lt;-<span class="st"> </span><span class="dv">25</span></span>
+<span id="cb727-2"><a href="association-is-not-causation.html#cb727-2"></a>g &lt;-<span class="st"> </span><span class="dv">1000000</span></span>
+<span id="cb727-3"><a href="association-is-not-causation.html#cb727-3"></a>sim_data &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">group =</span> <span class="kw">rep</span>(<span class="dv">1</span><span class="op">:</span>g, <span class="dt">each=</span>N), </span>
+<span id="cb727-4"><a href="association-is-not-causation.html#cb727-4"></a>                   <span class="dt">x =</span> <span class="kw">rnorm</span>(N <span class="op">*</span><span class="st"> </span>g), </span>
+<span id="cb727-5"><a href="association-is-not-causation.html#cb727-5"></a>                   <span class="dt">y =</span> <span class="kw">rnorm</span>(N <span class="op">*</span><span class="st"> </span>g))</span></code></pre></div>
 <p>The first column denotes group. We created groups and for each one we generated a pair of independent vectors, <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, with 25 observations each, stored in the second and third columns. Because we constructed the simulation, we know that <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are not correlated.</p>
 <p>Next, we compute the correlation between <code>X</code> and <code>Y</code> for each group and look at the max:</p>
-<div class="sourceCode" id="cb727"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb727-1"><a href="association-is-not-causation.html#cb727-1"></a>res &lt;-<span class="st"> </span>sim_data <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb727-2"><a href="association-is-not-causation.html#cb727-2"></a><span class="st">  </span><span class="kw">group_by</span>(group) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb727-3"><a href="association-is-not-causation.html#cb727-3"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">r =</span> <span class="kw">cor</span>(x, y)) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb727-4"><a href="association-is-not-causation.html#cb727-4"></a><span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(r))</span>
-<span id="cb727-5"><a href="association-is-not-causation.html#cb727-5"></a><span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span></span>
-<span id="cb727-6"><a href="association-is-not-causation.html#cb727-6"></a>res</span>
-<span id="cb727-7"><a href="association-is-not-causation.html#cb727-7"></a><span class="co">#&gt; # A tibble: 1,000,000 x 2</span></span>
-<span id="cb727-8"><a href="association-is-not-causation.html#cb727-8"></a><span class="co">#&gt;    group     r</span></span>
-<span id="cb727-9"><a href="association-is-not-causation.html#cb727-9"></a><span class="co">#&gt;    &lt;int&gt; &lt;dbl&gt;</span></span>
-<span id="cb727-10"><a href="association-is-not-causation.html#cb727-10"></a><span class="co">#&gt; 1 481515 0.818</span></span>
-<span id="cb727-11"><a href="association-is-not-causation.html#cb727-11"></a><span class="co">#&gt; 2 533065 0.789</span></span>
-<span id="cb727-12"><a href="association-is-not-causation.html#cb727-12"></a><span class="co">#&gt; 3 520516 0.781</span></span>
-<span id="cb727-13"><a href="association-is-not-causation.html#cb727-13"></a><span class="co">#&gt; 4 361037 0.759</span></span>
-<span id="cb727-14"><a href="association-is-not-causation.html#cb727-14"></a><span class="co">#&gt; 5 348558 0.758</span></span>
-<span id="cb727-15"><a href="association-is-not-causation.html#cb727-15"></a><span class="co">#&gt; # … with 999,995 more rows</span></span></code></pre></div>
-<p>We see a maximum correlation of 0.818 and if you just plot the data from the group achieving this correlation, it shows a convincing plot that <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are in fact correlated:</p>
-<div class="sourceCode" id="cb728"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb728-1"><a href="association-is-not-causation.html#cb728-1"></a>sim_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(group <span class="op">==</span><span class="st"> </span>res<span class="op">$</span>group[<span class="kw">which.max</span>(res<span class="op">$</span>r)]) <span class="op">%&gt;%</span></span>
-<span id="cb728-2"><a href="association-is-not-causation.html#cb728-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(x, y)) <span class="op">+</span></span>
-<span id="cb728-3"><a href="association-is-not-causation.html#cb728-3"></a><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></span>
-<span id="cb728-4"><a href="association-is-not-causation.html#cb728-4"></a><span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>)</span>
-<span id="cb728-5"><a href="association-is-not-causation.html#cb728-5"></a><span class="co">#&gt; `geom_smooth()` using formula &#39;y ~ x&#39;</span></span></code></pre></div>
+<div class="sourceCode" id="cb728"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb728-1"><a href="association-is-not-causation.html#cb728-1"></a>res &lt;-<span class="st"> </span>sim_data <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb728-2"><a href="association-is-not-causation.html#cb728-2"></a><span class="st">  </span><span class="kw">group_by</span>(group) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb728-3"><a href="association-is-not-causation.html#cb728-3"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">r =</span> <span class="kw">cor</span>(x, y)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb728-4"><a href="association-is-not-causation.html#cb728-4"></a><span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(r))</span>
+<span id="cb728-5"><a href="association-is-not-causation.html#cb728-5"></a><span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span></span>
+<span id="cb728-6"><a href="association-is-not-causation.html#cb728-6"></a>res</span>
+<span id="cb728-7"><a href="association-is-not-causation.html#cb728-7"></a><span class="co">#&gt; # A tibble: 1,000,000 x 2</span></span>
+<span id="cb728-8"><a href="association-is-not-causation.html#cb728-8"></a><span class="co">#&gt;    group     r</span></span>
+<span id="cb728-9"><a href="association-is-not-causation.html#cb728-9"></a><span class="co">#&gt;    &lt;int&gt; &lt;dbl&gt;</span></span>
+<span id="cb728-10"><a href="association-is-not-causation.html#cb728-10"></a><span class="co">#&gt; 1 673060 0.794</span></span>
+<span id="cb728-11"><a href="association-is-not-causation.html#cb728-11"></a><span class="co">#&gt; 2 549823 0.791</span></span>
+<span id="cb728-12"><a href="association-is-not-causation.html#cb728-12"></a><span class="co">#&gt; 3 919385 0.787</span></span>
+<span id="cb728-13"><a href="association-is-not-causation.html#cb728-13"></a><span class="co">#&gt; 4 778382 0.782</span></span>
+<span id="cb728-14"><a href="association-is-not-causation.html#cb728-14"></a><span class="co">#&gt; 5 180569 0.781</span></span>
+<span id="cb728-15"><a href="association-is-not-causation.html#cb728-15"></a><span class="co">#&gt; # … with 999,995 more rows</span></span></code></pre></div>
+<p>We see a maximum correlation of 0.794 and if you just plot the data from the group achieving this correlation, it shows a convincing plot that <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are in fact correlated:</p>
+<div class="sourceCode" id="cb729"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb729-1"><a href="association-is-not-causation.html#cb729-1"></a>sim_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(group <span class="op">==</span><span class="st"> </span>res<span class="op">$</span>group[<span class="kw">which.max</span>(res<span class="op">$</span>r)]) <span class="op">%&gt;%</span></span>
+<span id="cb729-2"><a href="association-is-not-causation.html#cb729-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(x, y)) <span class="op">+</span></span>
+<span id="cb729-3"><a href="association-is-not-causation.html#cb729-3"></a><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></span>
+<span id="cb729-4"><a href="association-is-not-causation.html#cb729-4"></a><span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>)</span>
+<span id="cb729-5"><a href="association-is-not-causation.html#cb729-5"></a><span class="co">#&gt; `geom_smooth()` using formula &#39;y ~ x&#39;</span></span></code></pre></div>
 <p><img src="book_files/figure-html/dredging-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>Remember that the correlation summary is a random variable. Here is the distribution generated by the Monte Carlo simulation:</p>
-<div class="sourceCode" id="cb729"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb729-1"><a href="association-is-not-causation.html#cb729-1"></a>res <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>r)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth =</span> <span class="fl">0.1</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb730"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb730-1"><a href="association-is-not-causation.html#cb730-1"></a>res <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>r)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth =</span> <span class="fl">0.1</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>)</span></code></pre></div>
 <p><img src="book_files/figure-html/null-corr-hist-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>It’s just a mathematical fact that if we observe random correlations that are expected to be 0, but have a standard error of 0.204, the largest one will be close to 1.</p>
 <p>If we performed regression on this group and interpreted the p-value, we would incorrectly claim this was a statistically significant relation:</p>
-<div class="sourceCode" id="cb730"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb730-1"><a href="association-is-not-causation.html#cb730-1"></a><span class="kw">library</span>(broom)</span>
-<span id="cb730-2"><a href="association-is-not-causation.html#cb730-2"></a>sim_data <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb730-3"><a href="association-is-not-causation.html#cb730-3"></a><span class="st">  </span><span class="kw">filter</span>(group <span class="op">==</span><span class="st"> </span>res<span class="op">$</span>group[<span class="kw">which.max</span>(res<span class="op">$</span>r)]) <span class="op">%&gt;%</span></span>
-<span id="cb730-4"><a href="association-is-not-causation.html#cb730-4"></a><span class="st">  </span><span class="kw">do</span>(<span class="kw">tidy</span>(<span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> .))) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb730-5"><a href="association-is-not-causation.html#cb730-5"></a><span class="st">  </span><span class="kw">filter</span>(term <span class="op">==</span><span class="st"> &quot;x&quot;</span>)</span>
-<span id="cb730-6"><a href="association-is-not-causation.html#cb730-6"></a><span class="co">#&gt; # A tibble: 1 x 5</span></span>
-<span id="cb730-7"><a href="association-is-not-causation.html#cb730-7"></a><span class="co">#&gt;   term  estimate std.error statistic     p.value</span></span>
-<span id="cb730-8"><a href="association-is-not-causation.html#cb730-8"></a><span class="co">#&gt;   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;</span></span>
-<span id="cb730-9"><a href="association-is-not-causation.html#cb730-9"></a><span class="co">#&gt; 1 x        0.762     0.112      6.83 0.000000582</span></span></code></pre></div>
+<div class="sourceCode" id="cb731"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb731-1"><a href="association-is-not-causation.html#cb731-1"></a><span class="kw">library</span>(broom)</span>
+<span id="cb731-2"><a href="association-is-not-causation.html#cb731-2"></a>sim_data <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb731-3"><a href="association-is-not-causation.html#cb731-3"></a><span class="st">  </span><span class="kw">filter</span>(group <span class="op">==</span><span class="st"> </span>res<span class="op">$</span>group[<span class="kw">which.max</span>(res<span class="op">$</span>r)]) <span class="op">%&gt;%</span></span>
+<span id="cb731-4"><a href="association-is-not-causation.html#cb731-4"></a><span class="st">  </span><span class="kw">do</span>(<span class="kw">tidy</span>(<span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> .))) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb731-5"><a href="association-is-not-causation.html#cb731-5"></a><span class="st">  </span><span class="kw">filter</span>(term <span class="op">==</span><span class="st"> &quot;x&quot;</span>)</span>
+<span id="cb731-6"><a href="association-is-not-causation.html#cb731-6"></a><span class="co">#&gt; # A tibble: 1 x 5</span></span>
+<span id="cb731-7"><a href="association-is-not-causation.html#cb731-7"></a><span class="co">#&gt;   term  estimate std.error statistic    p.value</span></span>
+<span id="cb731-8"><a href="association-is-not-causation.html#cb731-8"></a><span class="co">#&gt;   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span id="cb731-9"><a href="association-is-not-causation.html#cb731-9"></a><span class="co">#&gt; 1 x        0.659     0.105      6.27 0.00000212</span></span></code></pre></div>
 <p>This particular form of data dredging is referred to as <em>p-hacking</em>. P-hacking is a topic of much discussion because it is a problem in scientific publications. Because publishers tend to reward statistically significant results over negative results, there is an incentive to report significant results. In epidemiology and the social sciences, for example, researchers may look for associations between an adverse outcome and several exposures and report only the one exposure that resulted in a small p-value. Furthermore, they might try fitting several different models to account for confounding and pick the one that yields the smallest p-value. In experimental disciplines, an experiment might be repeated more than once, yet only the results of the one experiment with a small p-value reported. This does not necessarily happen due to unethical behavior, but rather as a result of statistical ignorance or wishful thinking. In advanced statistics courses, you can learn methods to adjust for these multiple comparisons.</p>
 </div>
 <div id="outliers-1" class="section level2">
 <h2><span class="header-section-number">19.2</span> Outliers</h2>
 <p>Suppose we take measurements from two independent outcomes, <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, and we standardize the measurements. However, imagine we make a mistake and forget to standardize entry 23. We can simulate such data using:</p>
-<div class="sourceCode" id="cb731"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb731-1"><a href="association-is-not-causation.html#cb731-1"></a><span class="kw">set.seed</span>(<span class="dv">1985</span>)</span>
-<span id="cb731-2"><a href="association-is-not-causation.html#cb731-2"></a>x &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>,<span class="dv">100</span>,<span class="dv">1</span>)</span>
-<span id="cb731-3"><a href="association-is-not-causation.html#cb731-3"></a>y &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>,<span class="dv">84</span>,<span class="dv">1</span>)</span>
-<span id="cb731-4"><a href="association-is-not-causation.html#cb731-4"></a>x[<span class="op">-</span><span class="dv">23</span>] &lt;-<span class="st"> </span><span class="kw">scale</span>(x[<span class="op">-</span><span class="dv">23</span>])</span>
-<span id="cb731-5"><a href="association-is-not-causation.html#cb731-5"></a>y[<span class="op">-</span><span class="dv">23</span>] &lt;-<span class="st"> </span><span class="kw">scale</span>(y[<span class="op">-</span><span class="dv">23</span>])</span></code></pre></div>
+<div class="sourceCode" id="cb732"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb732-1"><a href="association-is-not-causation.html#cb732-1"></a><span class="kw">set.seed</span>(<span class="dv">1985</span>)</span>
+<span id="cb732-2"><a href="association-is-not-causation.html#cb732-2"></a>x &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>,<span class="dv">100</span>,<span class="dv">1</span>)</span>
+<span id="cb732-3"><a href="association-is-not-causation.html#cb732-3"></a>y &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>,<span class="dv">84</span>,<span class="dv">1</span>)</span>
+<span id="cb732-4"><a href="association-is-not-causation.html#cb732-4"></a>x[<span class="op">-</span><span class="dv">23</span>] &lt;-<span class="st"> </span><span class="kw">scale</span>(x[<span class="op">-</span><span class="dv">23</span>])</span>
+<span id="cb732-5"><a href="association-is-not-causation.html#cb732-5"></a>y[<span class="op">-</span><span class="dv">23</span>] &lt;-<span class="st"> </span><span class="kw">scale</span>(y[<span class="op">-</span><span class="dv">23</span>])</span></code></pre></div>
 <p>The data look like this:</p>
-<div class="sourceCode" id="cb732"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb732-1"><a href="association-is-not-causation.html#cb732-1"></a><span class="kw">qplot</span>(x, y)</span></code></pre></div>
+<div class="sourceCode" id="cb733"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb733-1"><a href="association-is-not-causation.html#cb733-1"></a><span class="kw">qplot</span>(x, y)</span></code></pre></div>
 <p><img src="book_files/figure-html/outlier-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>Not surprisingly, the correlation is very high:</p>
-<div class="sourceCode" id="cb733"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb733-1"><a href="association-is-not-causation.html#cb733-1"></a><span class="kw">cor</span>(x,y)</span>
-<span id="cb733-2"><a href="association-is-not-causation.html#cb733-2"></a><span class="co">#&gt; [1] 0.988</span></span></code></pre></div>
+<div class="sourceCode" id="cb734"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb734-1"><a href="association-is-not-causation.html#cb734-1"></a><span class="kw">cor</span>(x,y)</span>
+<span id="cb734-2"><a href="association-is-not-causation.html#cb734-2"></a><span class="co">#&gt; [1] 0.988</span></span></code></pre></div>
 <p>But this is driven by the one outlier. If we remove this outlier, the correlation is greatly reduced to almost 0, which is what it should be:</p>
-<div class="sourceCode" id="cb734"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb734-1"><a href="association-is-not-causation.html#cb734-1"></a><span class="kw">cor</span>(x[<span class="op">-</span><span class="dv">23</span>], y[<span class="op">-</span><span class="dv">23</span>])</span>
-<span id="cb734-2"><a href="association-is-not-causation.html#cb734-2"></a><span class="co">#&gt; [1] -0.0442</span></span></code></pre></div>
+<div class="sourceCode" id="cb735"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb735-1"><a href="association-is-not-causation.html#cb735-1"></a><span class="kw">cor</span>(x[<span class="op">-</span><span class="dv">23</span>], y[<span class="op">-</span><span class="dv">23</span>])</span>
+<span id="cb735-2"><a href="association-is-not-causation.html#cb735-2"></a><span class="co">#&gt; [1] -0.0442</span></span></code></pre></div>
 <p>In Section <a href="robust-summaries.html#robust-summaries">11</a> we described alternatives to the average and standard deviation that are robust to outliers. There is also an alternative to the sample correlation for estimating the population correlation that is robust to outliers. It is called <em>Spearman correlation</em>. The idea is simple: compute the correlation on the ranks of the values. Here is a plot of the ranks plotted against each other:</p>
-<div class="sourceCode" id="cb735"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb735-1"><a href="association-is-not-causation.html#cb735-1"></a><span class="kw">qplot</span>(<span class="kw">rank</span>(x), <span class="kw">rank</span>(y))</span></code></pre></div>
+<div class="sourceCode" id="cb736"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb736-1"><a href="association-is-not-causation.html#cb736-1"></a><span class="kw">qplot</span>(<span class="kw">rank</span>(x), <span class="kw">rank</span>(y))</span></code></pre></div>
 <p><img src="book_files/figure-html/scatter-plot-of-ranks-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>The outlier is no longer associated with a very large value and the correlation comes way down:</p>
-<div class="sourceCode" id="cb736"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb736-1"><a href="association-is-not-causation.html#cb736-1"></a><span class="kw">cor</span>(<span class="kw">rank</span>(x), <span class="kw">rank</span>(y))</span>
-<span id="cb736-2"><a href="association-is-not-causation.html#cb736-2"></a><span class="co">#&gt; [1] 0.00251</span></span></code></pre></div>
-<p>Spearman correlation can also be calculated like this:</p>
-<div class="sourceCode" id="cb737"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb737-1"><a href="association-is-not-causation.html#cb737-1"></a><span class="kw">cor</span>(x, y, <span class="dt">method =</span> <span class="st">&quot;spearman&quot;</span>)</span>
+<div class="sourceCode" id="cb737"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb737-1"><a href="association-is-not-causation.html#cb737-1"></a><span class="kw">cor</span>(<span class="kw">rank</span>(x), <span class="kw">rank</span>(y))</span>
 <span id="cb737-2"><a href="association-is-not-causation.html#cb737-2"></a><span class="co">#&gt; [1] 0.00251</span></span></code></pre></div>
+<p>Spearman correlation can also be calculated like this:</p>
+<div class="sourceCode" id="cb738"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb738-1"><a href="association-is-not-causation.html#cb738-1"></a><span class="kw">cor</span>(x, y, <span class="dt">method =</span> <span class="st">&quot;spearman&quot;</span>)</span>
+<span id="cb738-2"><a href="association-is-not-causation.html#cb738-2"></a><span class="co">#&gt; [1] 0.00251</span></span></code></pre></div>
 <p>There are also methods for robust fitting of linear models which you can learn about in, for instance, this book: Robust Statistics: Edition 2 by Peter J. Huber &amp; Elvezio M. Ronchetti.</p>
 </div>
 <div id="reversing-cause-and-effect" class="section level2">
@@ -1000,18 +1000,18 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>We can easily construct an example of cause and effect reversal using the father and son height data. If we fit the model:</p>
 <p><span class="math display">\[X_i = \beta_0 + \beta_1 y_i + \varepsilon_i, i=1, \dots, N\]</span></p>
 <p>to the father and son height data, with <span class="math inline">\(X_i\)</span> the father height and <span class="math inline">\(y_i\)</span> the son height, we do get a statistically significant result:</p>
-<div class="sourceCode" id="cb738"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb738-1"><a href="association-is-not-causation.html#cb738-1"></a><span class="kw">library</span>(HistData)</span>
-<span id="cb738-2"><a href="association-is-not-causation.html#cb738-2"></a><span class="kw">data</span>(<span class="st">&quot;GaltonFamilies&quot;</span>)</span>
-<span id="cb738-3"><a href="association-is-not-causation.html#cb738-3"></a>GaltonFamilies <span class="op">%&gt;%</span></span>
-<span id="cb738-4"><a href="association-is-not-causation.html#cb738-4"></a><span class="st">  </span><span class="kw">filter</span>(childNum <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>gender <span class="op">==</span><span class="st"> &quot;male&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb738-5"><a href="association-is-not-causation.html#cb738-5"></a><span class="st">  </span><span class="kw">select</span>(father, childHeight) <span class="op">%&gt;%</span></span>
-<span id="cb738-6"><a href="association-is-not-causation.html#cb738-6"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">son =</span> childHeight) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb738-7"><a href="association-is-not-causation.html#cb738-7"></a><span class="st">  </span><span class="kw">do</span>(<span class="kw">tidy</span>(<span class="kw">lm</span>(father <span class="op">~</span><span class="st"> </span>son, <span class="dt">data =</span> .)))</span>
-<span id="cb738-8"><a href="association-is-not-causation.html#cb738-8"></a><span class="co">#&gt; # A tibble: 2 x 5</span></span>
-<span id="cb738-9"><a href="association-is-not-causation.html#cb738-9"></a><span class="co">#&gt;   term        estimate std.error statistic  p.value</span></span>
-<span id="cb738-10"><a href="association-is-not-causation.html#cb738-10"></a><span class="co">#&gt;   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span></span>
-<span id="cb738-11"><a href="association-is-not-causation.html#cb738-11"></a><span class="co">#&gt; 1 (Intercept)   34.0      4.57        7.44 4.31e-12</span></span>
-<span id="cb738-12"><a href="association-is-not-causation.html#cb738-12"></a><span class="co">#&gt; 2 son            0.499    0.0648      7.70 9.47e-13</span></span></code></pre></div>
+<div class="sourceCode" id="cb739"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb739-1"><a href="association-is-not-causation.html#cb739-1"></a><span class="kw">library</span>(HistData)</span>
+<span id="cb739-2"><a href="association-is-not-causation.html#cb739-2"></a><span class="kw">data</span>(<span class="st">&quot;GaltonFamilies&quot;</span>)</span>
+<span id="cb739-3"><a href="association-is-not-causation.html#cb739-3"></a>GaltonFamilies <span class="op">%&gt;%</span></span>
+<span id="cb739-4"><a href="association-is-not-causation.html#cb739-4"></a><span class="st">  </span><span class="kw">filter</span>(childNum <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>gender <span class="op">==</span><span class="st"> &quot;male&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb739-5"><a href="association-is-not-causation.html#cb739-5"></a><span class="st">  </span><span class="kw">select</span>(father, childHeight) <span class="op">%&gt;%</span></span>
+<span id="cb739-6"><a href="association-is-not-causation.html#cb739-6"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">son =</span> childHeight) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb739-7"><a href="association-is-not-causation.html#cb739-7"></a><span class="st">  </span><span class="kw">do</span>(<span class="kw">tidy</span>(<span class="kw">lm</span>(father <span class="op">~</span><span class="st"> </span>son, <span class="dt">data =</span> .)))</span>
+<span id="cb739-8"><a href="association-is-not-causation.html#cb739-8"></a><span class="co">#&gt; # A tibble: 2 x 5</span></span>
+<span id="cb739-9"><a href="association-is-not-causation.html#cb739-9"></a><span class="co">#&gt;   term        estimate std.error statistic  p.value</span></span>
+<span id="cb739-10"><a href="association-is-not-causation.html#cb739-10"></a><span class="co">#&gt;   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span></span>
+<span id="cb739-11"><a href="association-is-not-causation.html#cb739-11"></a><span class="co">#&gt; 1 (Intercept)   34.0      4.57        7.44 4.31e-12</span></span>
+<span id="cb739-12"><a href="association-is-not-causation.html#cb739-12"></a><span class="co">#&gt; 2 son            0.499    0.0648      7.70 9.47e-13</span></span></code></pre></div>
 <p>The model fits the data very well. If we look at the mathematical formulation of the model above, it could easily be incorrectly interpreted so as to suggest that the son being tall caused the father to be tall. But given what we know about genetics and biology, we know it’s the other way around. The model is technically correct. The estimates and p-values were obtained correctly as well. What is wrong here is the interpretation.</p>
 </div>
 <div id="confounders" class="section level2">
@@ -1039,37 +1039,37 @@ admissions %>% group_by(gender) %>%
 ```
 -->
 a statistical test, which clearly rejects the hypothesis that gender and admission are independent:</p>
-<div class="sourceCode" id="cb739"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb739-1"><a href="association-is-not-causation.html#cb739-1"></a><span class="kw">data</span>(admissions)</span>
-<span id="cb739-2"><a href="association-is-not-causation.html#cb739-2"></a>admissions <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(gender) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb739-3"><a href="association-is-not-causation.html#cb739-3"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">total_admitted =</span> <span class="kw">round</span>(<span class="kw">sum</span>(admitted <span class="op">/</span><span class="st"> </span><span class="dv">100</span> <span class="op">*</span><span class="st"> </span>applicants)), </span>
-<span id="cb739-4"><a href="association-is-not-causation.html#cb739-4"></a>            <span class="dt">not_admitted =</span> <span class="kw">sum</span>(applicants) <span class="op">-</span><span class="st"> </span><span class="kw">sum</span>(total_admitted)) <span class="op">%&gt;%</span></span>
-<span id="cb739-5"><a href="association-is-not-causation.html#cb739-5"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>gender) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb739-6"><a href="association-is-not-causation.html#cb739-6"></a><span class="st">  </span><span class="kw">do</span>(<span class="kw">tidy</span>(<span class="kw">chisq.test</span>(.))) <span class="op">%&gt;%</span><span class="st"> </span>.<span class="op">$</span>p.value</span>
-<span id="cb739-7"><a href="association-is-not-causation.html#cb739-7"></a><span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span></span>
-<span id="cb739-8"><a href="association-is-not-causation.html#cb739-8"></a><span class="co">#&gt; [1] 1.06e-21</span></span></code></pre></div>
+<div class="sourceCode" id="cb740"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb740-1"><a href="association-is-not-causation.html#cb740-1"></a><span class="kw">data</span>(admissions)</span>
+<span id="cb740-2"><a href="association-is-not-causation.html#cb740-2"></a>admissions <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(gender) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb740-3"><a href="association-is-not-causation.html#cb740-3"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">total_admitted =</span> <span class="kw">round</span>(<span class="kw">sum</span>(admitted <span class="op">/</span><span class="st"> </span><span class="dv">100</span> <span class="op">*</span><span class="st"> </span>applicants)), </span>
+<span id="cb740-4"><a href="association-is-not-causation.html#cb740-4"></a>            <span class="dt">not_admitted =</span> <span class="kw">sum</span>(applicants) <span class="op">-</span><span class="st"> </span><span class="kw">sum</span>(total_admitted)) <span class="op">%&gt;%</span></span>
+<span id="cb740-5"><a href="association-is-not-causation.html#cb740-5"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>gender) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb740-6"><a href="association-is-not-causation.html#cb740-6"></a><span class="st">  </span><span class="kw">do</span>(<span class="kw">tidy</span>(<span class="kw">chisq.test</span>(.))) <span class="op">%&gt;%</span><span class="st"> </span>.<span class="op">$</span>p.value</span>
+<span id="cb740-7"><a href="association-is-not-causation.html#cb740-7"></a><span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span></span>
+<span id="cb740-8"><a href="association-is-not-causation.html#cb740-8"></a><span class="co">#&gt; [1] 1.06e-21</span></span></code></pre></div>
 <p>But closer inspection shows a paradoxical result. Here are the percent admissions by major:</p>
-<div class="sourceCode" id="cb740"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb740-1"><a href="association-is-not-causation.html#cb740-1"></a>admissions <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(major, gender, admitted) <span class="op">%&gt;%</span></span>
-<span id="cb740-2"><a href="association-is-not-causation.html#cb740-2"></a><span class="st">  </span><span class="kw">spread</span>(gender, admitted) <span class="op">%&gt;%</span></span>
-<span id="cb740-3"><a href="association-is-not-causation.html#cb740-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">women_minus_men =</span> women <span class="op">-</span><span class="st"> </span>men)</span>
-<span id="cb740-4"><a href="association-is-not-causation.html#cb740-4"></a><span class="co">#&gt;   major men women women_minus_men</span></span>
-<span id="cb740-5"><a href="association-is-not-causation.html#cb740-5"></a><span class="co">#&gt; 1     A  62    82              20</span></span>
-<span id="cb740-6"><a href="association-is-not-causation.html#cb740-6"></a><span class="co">#&gt; 2     B  63    68               5</span></span>
-<span id="cb740-7"><a href="association-is-not-causation.html#cb740-7"></a><span class="co">#&gt; 3     C  37    34              -3</span></span>
-<span id="cb740-8"><a href="association-is-not-causation.html#cb740-8"></a><span class="co">#&gt; 4     D  33    35               2</span></span>
-<span id="cb740-9"><a href="association-is-not-causation.html#cb740-9"></a><span class="co">#&gt; 5     E  28    24              -4</span></span>
-<span id="cb740-10"><a href="association-is-not-causation.html#cb740-10"></a><span class="co">#&gt; 6     F   6     7               1</span></span></code></pre></div>
+<div class="sourceCode" id="cb741"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb741-1"><a href="association-is-not-causation.html#cb741-1"></a>admissions <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(major, gender, admitted) <span class="op">%&gt;%</span></span>
+<span id="cb741-2"><a href="association-is-not-causation.html#cb741-2"></a><span class="st">  </span><span class="kw">spread</span>(gender, admitted) <span class="op">%&gt;%</span></span>
+<span id="cb741-3"><a href="association-is-not-causation.html#cb741-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">women_minus_men =</span> women <span class="op">-</span><span class="st"> </span>men)</span>
+<span id="cb741-4"><a href="association-is-not-causation.html#cb741-4"></a><span class="co">#&gt;   major men women women_minus_men</span></span>
+<span id="cb741-5"><a href="association-is-not-causation.html#cb741-5"></a><span class="co">#&gt; 1     A  62    82              20</span></span>
+<span id="cb741-6"><a href="association-is-not-causation.html#cb741-6"></a><span class="co">#&gt; 2     B  63    68               5</span></span>
+<span id="cb741-7"><a href="association-is-not-causation.html#cb741-7"></a><span class="co">#&gt; 3     C  37    34              -3</span></span>
+<span id="cb741-8"><a href="association-is-not-causation.html#cb741-8"></a><span class="co">#&gt; 4     D  33    35               2</span></span>
+<span id="cb741-9"><a href="association-is-not-causation.html#cb741-9"></a><span class="co">#&gt; 5     E  28    24              -4</span></span>
+<span id="cb741-10"><a href="association-is-not-causation.html#cb741-10"></a><span class="co">#&gt; 6     F   6     7               1</span></span></code></pre></div>
 <p>Four out of the six majors favor women. More importantly, all the differences are much smaller than the 14.2 difference that we see when examining the totals.</p>
 <p>The paradox is that analyzing the totals suggests a dependence between admission and gender, but when the data is grouped by major, this dependence seems to disappear. What’s going on? This actually can happen if an uncounted confounder is driving most of the variability.</p>
 <p>So let’s define three variables: <span class="math inline">\(X\)</span> is 1 for men and 0 for women, <span class="math inline">\(Y\)</span> is 1 for those admitted and 0 otherwise, and <span class="math inline">\(Z\)</span> quantifies the selectivity of the major. A gender bias claim would be based on the fact that <span class="math inline">\(\mbox{Pr}(Y=1 | X = x)\)</span> is higher for <span class="math inline">\(x=1\)</span> than <span class="math inline">\(x=0\)</span>. However, <span class="math inline">\(Z\)</span> is an important confounder to consider. Clearly <span class="math inline">\(Z\)</span> is associated with <span class="math inline">\(Y\)</span>, as the more selective a major, the lower <span class="math inline">\(\mbox{Pr}(Y=1 | Z = z)\)</span>. But is major selectivity <span class="math inline">\(Z\)</span> associated with gender <span class="math inline">\(X\)</span>?</p>
 <p>One way to see this is to plot the total percent admitted to a major versus the percent of women that made up the applicants:</p>
-<div class="sourceCode" id="cb741"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb741-1"><a href="association-is-not-causation.html#cb741-1"></a>admissions <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb741-2"><a href="association-is-not-causation.html#cb741-2"></a><span class="st">  </span><span class="kw">group_by</span>(major) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb741-3"><a href="association-is-not-causation.html#cb741-3"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">major_selectivity =</span> <span class="kw">sum</span>(admitted <span class="op">*</span><span class="st"> </span>applicants)<span class="op">/</span><span class="kw">sum</span>(applicants),</span>
-<span id="cb741-4"><a href="association-is-not-causation.html#cb741-4"></a>            <span class="dt">percent_women_applicants =</span> <span class="kw">sum</span>(applicants <span class="op">*</span><span class="st"> </span>(gender<span class="op">==</span><span class="st">&quot;women&quot;</span>)) <span class="op">/</span></span>
-<span id="cb741-5"><a href="association-is-not-causation.html#cb741-5"></a><span class="st">                                             </span><span class="kw">sum</span>(applicants) <span class="op">*</span><span class="st"> </span><span class="dv">100</span>) <span class="op">%&gt;%</span></span>
-<span id="cb741-6"><a href="association-is-not-causation.html#cb741-6"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(major_selectivity, percent_women_applicants, <span class="dt">label =</span> major)) <span class="op">+</span></span>
-<span id="cb741-7"><a href="association-is-not-causation.html#cb741-7"></a><span class="st">  </span><span class="kw">geom_text</span>()</span>
-<span id="cb741-8"><a href="association-is-not-causation.html#cb741-8"></a><span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span></span></code></pre></div>
+<div class="sourceCode" id="cb742"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb742-1"><a href="association-is-not-causation.html#cb742-1"></a>admissions <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb742-2"><a href="association-is-not-causation.html#cb742-2"></a><span class="st">  </span><span class="kw">group_by</span>(major) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb742-3"><a href="association-is-not-causation.html#cb742-3"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">major_selectivity =</span> <span class="kw">sum</span>(admitted <span class="op">*</span><span class="st"> </span>applicants)<span class="op">/</span><span class="kw">sum</span>(applicants),</span>
+<span id="cb742-4"><a href="association-is-not-causation.html#cb742-4"></a>            <span class="dt">percent_women_applicants =</span> <span class="kw">sum</span>(applicants <span class="op">*</span><span class="st"> </span>(gender<span class="op">==</span><span class="st">&quot;women&quot;</span>)) <span class="op">/</span></span>
+<span id="cb742-5"><a href="association-is-not-causation.html#cb742-5"></a><span class="st">                                             </span><span class="kw">sum</span>(applicants) <span class="op">*</span><span class="st"> </span><span class="dv">100</span>) <span class="op">%&gt;%</span></span>
+<span id="cb742-6"><a href="association-is-not-causation.html#cb742-6"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(major_selectivity, percent_women_applicants, <span class="dt">label =</span> major)) <span class="op">+</span></span>
+<span id="cb742-7"><a href="association-is-not-causation.html#cb742-7"></a><span class="st">  </span><span class="kw">geom_text</span>()</span>
+<span id="cb742-8"><a href="association-is-not-causation.html#cb742-8"></a><span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span></span></code></pre></div>
 <p><img src="book_files/figure-html/uc-berkeley-majors-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>There seems to be association. The plot suggests that women were much more likely to apply to the two “hard” majors: gender and major’s selectivity are confounded. Compare, for example, major B and major E. Major E is much harder to enter than major B and over 60% of applicants to major E were women, while less than 30% of the applicants of major B were women.</p>
 </div>
@@ -1093,19 +1093,19 @@ admissions %>%
 <div id="average-after-stratifying" class="section level3">
 <h3><span class="header-section-number">19.4.3</span> Average after stratifying</h3>
 <p>In this plot, we can see that if we condition or stratify by major, and then look at differences, we control for the confounder and this effect goes away:</p>
-<div class="sourceCode" id="cb742"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb742-1"><a href="association-is-not-causation.html#cb742-1"></a>admissions <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb742-2"><a href="association-is-not-causation.html#cb742-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(major, admitted, <span class="dt">col =</span> gender, <span class="dt">size =</span> applicants)) <span class="op">+</span></span>
-<span id="cb742-3"><a href="association-is-not-causation.html#cb742-3"></a><span class="st">  </span><span class="kw">geom_point</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb743"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb743-1"><a href="association-is-not-causation.html#cb743-1"></a>admissions <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb743-2"><a href="association-is-not-causation.html#cb743-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(major, admitted, <span class="dt">col =</span> gender, <span class="dt">size =</span> applicants)) <span class="op">+</span></span>
+<span id="cb743-3"><a href="association-is-not-causation.html#cb743-3"></a><span class="st">  </span><span class="kw">geom_point</span>()</span></code></pre></div>
 <p><img src="book_files/figure-html/admission-by-major-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>Now we see that major by major, there is not much difference. The size of the dot represents the number of applicants, and explains the paradox: we see large red dots and small blue dots for the easiest majors, A and B.</p>
 <p>If we average the difference by major, we find that the percent is actually 3.5% higher for women.</p>
-<div class="sourceCode" id="cb743"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb743-1"><a href="association-is-not-causation.html#cb743-1"></a>admissions <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">group_by</span>(gender) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">average =</span> <span class="kw">mean</span>(admitted))</span>
-<span id="cb743-2"><a href="association-is-not-causation.html#cb743-2"></a><span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span></span>
-<span id="cb743-3"><a href="association-is-not-causation.html#cb743-3"></a><span class="co">#&gt; # A tibble: 2 x 2</span></span>
-<span id="cb743-4"><a href="association-is-not-causation.html#cb743-4"></a><span class="co">#&gt;   gender average</span></span>
-<span id="cb743-5"><a href="association-is-not-causation.html#cb743-5"></a><span class="co">#&gt;   &lt;chr&gt;    &lt;dbl&gt;</span></span>
-<span id="cb743-6"><a href="association-is-not-causation.html#cb743-6"></a><span class="co">#&gt; 1 men       38.2</span></span>
-<span id="cb743-7"><a href="association-is-not-causation.html#cb743-7"></a><span class="co">#&gt; 2 women     41.7</span></span></code></pre></div>
+<div class="sourceCode" id="cb744"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb744-1"><a href="association-is-not-causation.html#cb744-1"></a>admissions <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">group_by</span>(gender) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">average =</span> <span class="kw">mean</span>(admitted))</span>
+<span id="cb744-2"><a href="association-is-not-causation.html#cb744-2"></a><span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span></span>
+<span id="cb744-3"><a href="association-is-not-causation.html#cb744-3"></a><span class="co">#&gt; # A tibble: 2 x 2</span></span>
+<span id="cb744-4"><a href="association-is-not-causation.html#cb744-4"></a><span class="co">#&gt;   gender average</span></span>
+<span id="cb744-5"><a href="association-is-not-causation.html#cb744-5"></a><span class="co">#&gt;   &lt;chr&gt;    &lt;dbl&gt;</span></span>
+<span id="cb744-6"><a href="association-is-not-causation.html#cb744-6"></a><span class="co">#&gt; 1 men       38.2</span></span>
+<span id="cb744-7"><a href="association-is-not-causation.html#cb744-7"></a><span class="co">#&gt; 2 women     41.7</span></span></code></pre></div>
 </div>
 </div>
 <div id="simpsons-paradox" class="section level2">
@@ -1129,9 +1129,9 @@ admissions %>%
 </blockquote>
 <p>Who is right here? The original paper or the response? Here, you will examine the data and come to your own conclusion.</p>
 <p>1. The main evidence for the conclusion of the original paper comes down to a comparison of the percentages. Table S1 in the paper includes the information we need:</p>
-<div class="sourceCode" id="cb745"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb745-1"><a href="association-is-not-causation.html#cb745-1"></a><span class="kw">library</span>(dslabs)</span>
-<span id="cb745-2"><a href="association-is-not-causation.html#cb745-2"></a><span class="kw">data</span>(<span class="st">&quot;research_funding_rates&quot;</span>)</span>
-<span id="cb745-3"><a href="association-is-not-causation.html#cb745-3"></a>research_funding_rates</span></code></pre></div>
+<div class="sourceCode" id="cb746"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb746-1"><a href="association-is-not-causation.html#cb746-1"></a><span class="kw">library</span>(dslabs)</span>
+<span id="cb746-2"><a href="association-is-not-causation.html#cb746-2"></a><span class="kw">data</span>(<span class="st">&quot;research_funding_rates&quot;</span>)</span>
+<span id="cb746-3"><a href="association-is-not-causation.html#cb746-3"></a>research_funding_rates</span></code></pre></div>
 <p>Construct the two-by-two table used for the conclusion about differences in awards by gender.</p>
 <p>2. Compute the difference in percentage from the two-by-two table.</p>
 <p>3. In the previous exercise, we noticed that the success rate is lower for women. But is it significant? Compute a p-value using a Chi-square test.</p>
