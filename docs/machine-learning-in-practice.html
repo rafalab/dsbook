@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-10-27" />
+<meta name="date" content="2020-11-16" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -906,130 +906,130 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h1><span class="header-section-number">Chapter 32</span> Machine learning in practice</h1>
 <p>Now that we have learned several methods and explored them with illustrative examples, we are going to try them out on a real example: the MNIST digits.</p>
 <p>We can load this data using the following <strong>dslabs</strong> package:</p>
-<div class="sourceCode" id="cb1182"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1182-1"><a href="machine-learning-in-practice.html#cb1182-1"></a><span class="kw">library</span>(tidyverse)</span>
-<span id="cb1182-2"><a href="machine-learning-in-practice.html#cb1182-2"></a><span class="kw">library</span>(dslabs)</span>
-<span id="cb1182-3"><a href="machine-learning-in-practice.html#cb1182-3"></a>mnist &lt;-<span class="st"> </span><span class="kw">read_mnist</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb1181"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1181-1"><a href="machine-learning-in-practice.html#cb1181-1"></a><span class="kw">library</span>(tidyverse)</span>
+<span id="cb1181-2"><a href="machine-learning-in-practice.html#cb1181-2"></a><span class="kw">library</span>(dslabs)</span>
+<span id="cb1181-3"><a href="machine-learning-in-practice.html#cb1181-3"></a>mnist &lt;-<span class="st"> </span><span class="kw">read_mnist</span>()</span></code></pre></div>
 <p>The dataset includes two components, a training set and test set:</p>
-<div class="sourceCode" id="cb1183"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1183-1"><a href="machine-learning-in-practice.html#cb1183-1"></a><span class="kw">names</span>(mnist)</span>
-<span id="cb1183-2"><a href="machine-learning-in-practice.html#cb1183-2"></a><span class="co">#&gt; [1] &quot;train&quot; &quot;test&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb1182"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1182-1"><a href="machine-learning-in-practice.html#cb1182-1"></a><span class="kw">names</span>(mnist)</span>
+<span id="cb1182-2"><a href="machine-learning-in-practice.html#cb1182-2"></a><span class="co">#&gt; [1] &quot;train&quot; &quot;test&quot;</span></span></code></pre></div>
 <p>Each of these components includes a matrix with features in the columns:</p>
-<div class="sourceCode" id="cb1184"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1184-1"><a href="machine-learning-in-practice.html#cb1184-1"></a><span class="kw">dim</span>(mnist<span class="op">$</span>train<span class="op">$</span>images)</span>
-<span id="cb1184-2"><a href="machine-learning-in-practice.html#cb1184-2"></a><span class="co">#&gt; [1] 60000   784</span></span></code></pre></div>
+<div class="sourceCode" id="cb1183"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1183-1"><a href="machine-learning-in-practice.html#cb1183-1"></a><span class="kw">dim</span>(mnist<span class="op">$</span>train<span class="op">$</span>images)</span>
+<span id="cb1183-2"><a href="machine-learning-in-practice.html#cb1183-2"></a><span class="co">#&gt; [1] 60000   784</span></span></code></pre></div>
 <p>and vector with the classes as integers:</p>
-<div class="sourceCode" id="cb1185"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1185-1"><a href="machine-learning-in-practice.html#cb1185-1"></a><span class="kw">class</span>(mnist<span class="op">$</span>train<span class="op">$</span>labels)</span>
-<span id="cb1185-2"><a href="machine-learning-in-practice.html#cb1185-2"></a><span class="co">#&gt; [1] &quot;integer&quot;</span></span>
-<span id="cb1185-3"><a href="machine-learning-in-practice.html#cb1185-3"></a><span class="kw">table</span>(mnist<span class="op">$</span>train<span class="op">$</span>labels)</span>
-<span id="cb1185-4"><a href="machine-learning-in-practice.html#cb1185-4"></a><span class="co">#&gt; </span></span>
-<span id="cb1185-5"><a href="machine-learning-in-practice.html#cb1185-5"></a><span class="co">#&gt;    0    1    2    3    4    5    6    7    8    9 </span></span>
-<span id="cb1185-6"><a href="machine-learning-in-practice.html#cb1185-6"></a><span class="co">#&gt; 5923 6742 5958 6131 5842 5421 5918 6265 5851 5949</span></span></code></pre></div>
+<div class="sourceCode" id="cb1184"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1184-1"><a href="machine-learning-in-practice.html#cb1184-1"></a><span class="kw">class</span>(mnist<span class="op">$</span>train<span class="op">$</span>labels)</span>
+<span id="cb1184-2"><a href="machine-learning-in-practice.html#cb1184-2"></a><span class="co">#&gt; [1] &quot;integer&quot;</span></span>
+<span id="cb1184-3"><a href="machine-learning-in-practice.html#cb1184-3"></a><span class="kw">table</span>(mnist<span class="op">$</span>train<span class="op">$</span>labels)</span>
+<span id="cb1184-4"><a href="machine-learning-in-practice.html#cb1184-4"></a><span class="co">#&gt; </span></span>
+<span id="cb1184-5"><a href="machine-learning-in-practice.html#cb1184-5"></a><span class="co">#&gt;    0    1    2    3    4    5    6    7    8    9 </span></span>
+<span id="cb1184-6"><a href="machine-learning-in-practice.html#cb1184-6"></a><span class="co">#&gt; 5923 6742 5958 6131 5842 5421 5918 6265 5851 5949</span></span></code></pre></div>
 <p>Because we want this example to run on a small laptop and in less than one hour, we will consider a subset of the dataset. We will sample 10,000 random rows from the training set and 1,000 random rows from the test set:</p>
-<div class="sourceCode" id="cb1186"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1186-1"><a href="machine-learning-in-practice.html#cb1186-1"></a><span class="kw">set.seed</span>(<span class="dv">1990</span>)</span>
-<span id="cb1186-2"><a href="machine-learning-in-practice.html#cb1186-2"></a>index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">nrow</span>(mnist<span class="op">$</span>train<span class="op">$</span>images), <span class="dv">10000</span>)</span>
-<span id="cb1186-3"><a href="machine-learning-in-practice.html#cb1186-3"></a>x &lt;-<span class="st"> </span>mnist<span class="op">$</span>train<span class="op">$</span>images[index,]</span>
-<span id="cb1186-4"><a href="machine-learning-in-practice.html#cb1186-4"></a>y &lt;-<span class="st"> </span><span class="kw">factor</span>(mnist<span class="op">$</span>train<span class="op">$</span>labels[index])</span>
-<span id="cb1186-5"><a href="machine-learning-in-practice.html#cb1186-5"></a></span>
-<span id="cb1186-6"><a href="machine-learning-in-practice.html#cb1186-6"></a>index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">nrow</span>(mnist<span class="op">$</span>test<span class="op">$</span>images), <span class="dv">1000</span>)</span>
-<span id="cb1186-7"><a href="machine-learning-in-practice.html#cb1186-7"></a>x_test &lt;-<span class="st"> </span>mnist<span class="op">$</span>test<span class="op">$</span>images[index,]</span>
-<span id="cb1186-8"><a href="machine-learning-in-practice.html#cb1186-8"></a>y_test &lt;-<span class="st"> </span><span class="kw">factor</span>(mnist<span class="op">$</span>test<span class="op">$</span>labels[index])</span></code></pre></div>
+<div class="sourceCode" id="cb1185"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1185-1"><a href="machine-learning-in-practice.html#cb1185-1"></a><span class="kw">set.seed</span>(<span class="dv">1990</span>)</span>
+<span id="cb1185-2"><a href="machine-learning-in-practice.html#cb1185-2"></a>index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">nrow</span>(mnist<span class="op">$</span>train<span class="op">$</span>images), <span class="dv">10000</span>)</span>
+<span id="cb1185-3"><a href="machine-learning-in-practice.html#cb1185-3"></a>x &lt;-<span class="st"> </span>mnist<span class="op">$</span>train<span class="op">$</span>images[index,]</span>
+<span id="cb1185-4"><a href="machine-learning-in-practice.html#cb1185-4"></a>y &lt;-<span class="st"> </span><span class="kw">factor</span>(mnist<span class="op">$</span>train<span class="op">$</span>labels[index])</span>
+<span id="cb1185-5"><a href="machine-learning-in-practice.html#cb1185-5"></a></span>
+<span id="cb1185-6"><a href="machine-learning-in-practice.html#cb1185-6"></a>index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">nrow</span>(mnist<span class="op">$</span>test<span class="op">$</span>images), <span class="dv">1000</span>)</span>
+<span id="cb1185-7"><a href="machine-learning-in-practice.html#cb1185-7"></a>x_test &lt;-<span class="st"> </span>mnist<span class="op">$</span>test<span class="op">$</span>images[index,]</span>
+<span id="cb1185-8"><a href="machine-learning-in-practice.html#cb1185-8"></a>y_test &lt;-<span class="st"> </span><span class="kw">factor</span>(mnist<span class="op">$</span>test<span class="op">$</span>labels[index])</span></code></pre></div>
 <div id="preprocessing" class="section level2">
 <h2><span class="header-section-number">32.1</span> Preprocessing</h2>
 <p>In machine learning, we often transform predictors before running the machine algorithm. We also remove predictors that are clearly not useful. We call these steps <em>preprocessing</em>.</p>
 <p>Examples of preprocessing include standardizing the predictors, taking the log transform of some predictors, removing predictors that are highly correlated with others, and removing predictors with very few non-unique values or close to zero variation. We show an example below.</p>
 <p>We can run the <code>nearZero</code> function from the <strong>caret</strong> package to see that several features do not vary much from observation to observation. We can see that there is a large number of features with 0 variability:</p>
-<div class="sourceCode" id="cb1187"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1187-1"><a href="machine-learning-in-practice.html#cb1187-1"></a><span class="kw">library</span>(matrixStats)</span>
-<span id="cb1187-2"><a href="machine-learning-in-practice.html#cb1187-2"></a>sds &lt;-<span class="st"> </span><span class="kw">colSds</span>(x)</span>
-<span id="cb1187-3"><a href="machine-learning-in-practice.html#cb1187-3"></a><span class="kw">qplot</span>(sds, <span class="dt">bins =</span> <span class="dv">256</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1186"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1186-1"><a href="machine-learning-in-practice.html#cb1186-1"></a><span class="kw">library</span>(matrixStats)</span>
+<span id="cb1186-2"><a href="machine-learning-in-practice.html#cb1186-2"></a>sds &lt;-<span class="st"> </span><span class="kw">colSds</span>(x)</span>
+<span id="cb1186-3"><a href="machine-learning-in-practice.html#cb1186-3"></a><span class="kw">qplot</span>(sds, <span class="dt">bins =</span> <span class="dv">256</span>)</span></code></pre></div>
 <p><img src="book_files/figure-html/pixel-sds-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>This is expected because there are parts of the image that rarely contain writing (dark pixels).</p>
 <p>The <strong>caret</strong> packages includes a function that recommends features to be removed due to <em>near zero variance</em>:</p>
-<div class="sourceCode" id="cb1188"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1188-1"><a href="machine-learning-in-practice.html#cb1188-1"></a><span class="kw">library</span>(caret)</span>
-<span id="cb1188-2"><a href="machine-learning-in-practice.html#cb1188-2"></a>nzv &lt;-<span class="st"> </span><span class="kw">nearZeroVar</span>(x)</span></code></pre></div>
+<div class="sourceCode" id="cb1187"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1187-1"><a href="machine-learning-in-practice.html#cb1187-1"></a><span class="kw">library</span>(caret)</span>
+<span id="cb1187-2"><a href="machine-learning-in-practice.html#cb1187-2"></a>nzv &lt;-<span class="st"> </span><span class="kw">nearZeroVar</span>(x)</span></code></pre></div>
 <p>We can see the columns recommended for removal:</p>
-<div class="sourceCode" id="cb1189"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1189-1"><a href="machine-learning-in-practice.html#cb1189-1"></a><span class="kw">image</span>(<span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">784</span> <span class="op">%in%</span><span class="st"> </span>nzv, <span class="dv">28</span>, <span class="dv">28</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb1190"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1190-1"><a href="machine-learning-in-practice.html#cb1190-1"></a>rafalib<span class="op">::</span><span class="kw">mypar</span>()</span>
-<span id="cb1190-2"><a href="machine-learning-in-practice.html#cb1190-2"></a><span class="kw">image</span>(<span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">784</span> <span class="op">%in%</span><span class="st"> </span>nzv, <span class="dv">28</span>, <span class="dv">28</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1188"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1188-1"><a href="machine-learning-in-practice.html#cb1188-1"></a><span class="kw">image</span>(<span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">784</span> <span class="op">%in%</span><span class="st"> </span>nzv, <span class="dv">28</span>, <span class="dv">28</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1189"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1189-1"><a href="machine-learning-in-practice.html#cb1189-1"></a>rafalib<span class="op">::</span><span class="kw">mypar</span>()</span>
+<span id="cb1189-2"><a href="machine-learning-in-practice.html#cb1189-2"></a><span class="kw">image</span>(<span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">784</span> <span class="op">%in%</span><span class="st"> </span>nzv, <span class="dv">28</span>, <span class="dv">28</span>))</span></code></pre></div>
 <p><img src="book_files/figure-html/near-zero-image-1.png" width="50%" style="display: block; margin: auto;" /></p>
 <p>So we end up keeping this number of columns:</p>
-<div class="sourceCode" id="cb1191"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1191-1"><a href="machine-learning-in-practice.html#cb1191-1"></a>col_index &lt;-<span class="st"> </span><span class="kw">setdiff</span>(<span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(x), nzv)</span>
-<span id="cb1191-2"><a href="machine-learning-in-practice.html#cb1191-2"></a><span class="kw">length</span>(col_index)</span>
-<span id="cb1191-3"><a href="machine-learning-in-practice.html#cb1191-3"></a><span class="co">#&gt; [1] 252</span></span></code></pre></div>
+<div class="sourceCode" id="cb1190"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1190-1"><a href="machine-learning-in-practice.html#cb1190-1"></a>col_index &lt;-<span class="st"> </span><span class="kw">setdiff</span>(<span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(x), nzv)</span>
+<span id="cb1190-2"><a href="machine-learning-in-practice.html#cb1190-2"></a><span class="kw">length</span>(col_index)</span>
+<span id="cb1190-3"><a href="machine-learning-in-practice.html#cb1190-3"></a><span class="co">#&gt; [1] 252</span></span></code></pre></div>
 <p>Now we are ready to fit some models. Before we start, we need to add column names to the feature matrices as these are required by <strong>caret</strong>:</p>
-<div class="sourceCode" id="cb1192"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1192-1"><a href="machine-learning-in-practice.html#cb1192-1"></a><span class="kw">colnames</span>(x) &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(mnist<span class="op">$</span>train<span class="op">$</span>images)</span>
-<span id="cb1192-2"><a href="machine-learning-in-practice.html#cb1192-2"></a><span class="kw">colnames</span>(x_test) &lt;-<span class="st"> </span><span class="kw">colnames</span>(x)</span></code></pre></div>
+<div class="sourceCode" id="cb1191"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1191-1"><a href="machine-learning-in-practice.html#cb1191-1"></a><span class="kw">colnames</span>(x) &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(mnist<span class="op">$</span>train<span class="op">$</span>images)</span>
+<span id="cb1191-2"><a href="machine-learning-in-practice.html#cb1191-2"></a><span class="kw">colnames</span>(x_test) &lt;-<span class="st"> </span><span class="kw">colnames</span>(x)</span></code></pre></div>
 </div>
 <div id="k-nearest-neighbor-and-random-forest" class="section level2">
 <h2><span class="header-section-number">32.2</span> k-nearest neighbor and random forest</h2>
 <p>Let’s start with kNN. The first step is to optimize for <span class="math inline">\(k\)</span>. Keep in mind that when we run the algorithm, we will have to compute a distance between each observation in the test set and each observation in the training set. There are a lot of computations. We will therefore use k-fold cross validation to improve speed.</p>
 <p>If we run the following code, the computing time on a standard laptop will be several minutes.</p>
-<div class="sourceCode" id="cb1193"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1193-1"><a href="machine-learning-in-practice.html#cb1193-1"></a>control &lt;-<span class="st"> </span><span class="kw">trainControl</span>(<span class="dt">method =</span> <span class="st">&quot;cv&quot;</span>, <span class="dt">number =</span> <span class="dv">10</span>, <span class="dt">p =</span> <span class="fl">.9</span>)</span>
-<span id="cb1193-2"><a href="machine-learning-in-practice.html#cb1193-2"></a>train_knn &lt;-<span class="st"> </span><span class="kw">train</span>(x[ ,col_index], y, </span>
-<span id="cb1193-3"><a href="machine-learning-in-practice.html#cb1193-3"></a>                   <span class="dt">method =</span> <span class="st">&quot;knn&quot;</span>, </span>
-<span id="cb1193-4"><a href="machine-learning-in-practice.html#cb1193-4"></a>                   <span class="dt">tuneGrid =</span> <span class="kw">data.frame</span>(<span class="dt">k =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">7</span>)),</span>
-<span id="cb1193-5"><a href="machine-learning-in-practice.html#cb1193-5"></a>                   <span class="dt">trControl =</span> control)</span>
-<span id="cb1193-6"><a href="machine-learning-in-practice.html#cb1193-6"></a>train_knn</span></code></pre></div>
+<div class="sourceCode" id="cb1192"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1192-1"><a href="machine-learning-in-practice.html#cb1192-1"></a>control &lt;-<span class="st"> </span><span class="kw">trainControl</span>(<span class="dt">method =</span> <span class="st">&quot;cv&quot;</span>, <span class="dt">number =</span> <span class="dv">10</span>, <span class="dt">p =</span> <span class="fl">.9</span>)</span>
+<span id="cb1192-2"><a href="machine-learning-in-practice.html#cb1192-2"></a>train_knn &lt;-<span class="st"> </span><span class="kw">train</span>(x[ ,col_index], y, </span>
+<span id="cb1192-3"><a href="machine-learning-in-practice.html#cb1192-3"></a>                   <span class="dt">method =</span> <span class="st">&quot;knn&quot;</span>, </span>
+<span id="cb1192-4"><a href="machine-learning-in-practice.html#cb1192-4"></a>                   <span class="dt">tuneGrid =</span> <span class="kw">data.frame</span>(<span class="dt">k =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">7</span>)),</span>
+<span id="cb1192-5"><a href="machine-learning-in-practice.html#cb1192-5"></a>                   <span class="dt">trControl =</span> control)</span>
+<span id="cb1192-6"><a href="machine-learning-in-practice.html#cb1192-6"></a>train_knn</span></code></pre></div>
 <p>In general, it is a good idea to try a test run with a subset of the data to get an idea of timing before we start running code that might take hours to complete. We can do this as follows:</p>
-<div class="sourceCode" id="cb1194"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1194-1"><a href="machine-learning-in-practice.html#cb1194-1"></a>n &lt;-<span class="st"> </span><span class="dv">1000</span></span>
-<span id="cb1194-2"><a href="machine-learning-in-practice.html#cb1194-2"></a>b &lt;-<span class="st"> </span><span class="dv">2</span></span>
-<span id="cb1194-3"><a href="machine-learning-in-practice.html#cb1194-3"></a>index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">nrow</span>(x), n)</span>
-<span id="cb1194-4"><a href="machine-learning-in-practice.html#cb1194-4"></a>control &lt;-<span class="st"> </span><span class="kw">trainControl</span>(<span class="dt">method =</span> <span class="st">&quot;cv&quot;</span>, <span class="dt">number =</span> b, <span class="dt">p =</span> <span class="fl">.9</span>)</span>
-<span id="cb1194-5"><a href="machine-learning-in-practice.html#cb1194-5"></a>train_knn &lt;-<span class="st"> </span><span class="kw">train</span>(x[index, col_index], y[index], </span>
-<span id="cb1194-6"><a href="machine-learning-in-practice.html#cb1194-6"></a>                   <span class="dt">method =</span> <span class="st">&quot;knn&quot;</span>, </span>
-<span id="cb1194-7"><a href="machine-learning-in-practice.html#cb1194-7"></a>                   <span class="dt">tuneGrid =</span> <span class="kw">data.frame</span>(<span class="dt">k =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">7</span>)),</span>
-<span id="cb1194-8"><a href="machine-learning-in-practice.html#cb1194-8"></a>                   <span class="dt">trControl =</span> control)</span></code></pre></div>
+<div class="sourceCode" id="cb1193"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1193-1"><a href="machine-learning-in-practice.html#cb1193-1"></a>n &lt;-<span class="st"> </span><span class="dv">1000</span></span>
+<span id="cb1193-2"><a href="machine-learning-in-practice.html#cb1193-2"></a>b &lt;-<span class="st"> </span><span class="dv">2</span></span>
+<span id="cb1193-3"><a href="machine-learning-in-practice.html#cb1193-3"></a>index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">nrow</span>(x), n)</span>
+<span id="cb1193-4"><a href="machine-learning-in-practice.html#cb1193-4"></a>control &lt;-<span class="st"> </span><span class="kw">trainControl</span>(<span class="dt">method =</span> <span class="st">&quot;cv&quot;</span>, <span class="dt">number =</span> b, <span class="dt">p =</span> <span class="fl">.9</span>)</span>
+<span id="cb1193-5"><a href="machine-learning-in-practice.html#cb1193-5"></a>train_knn &lt;-<span class="st"> </span><span class="kw">train</span>(x[index, col_index], y[index], </span>
+<span id="cb1193-6"><a href="machine-learning-in-practice.html#cb1193-6"></a>                   <span class="dt">method =</span> <span class="st">&quot;knn&quot;</span>, </span>
+<span id="cb1193-7"><a href="machine-learning-in-practice.html#cb1193-7"></a>                   <span class="dt">tuneGrid =</span> <span class="kw">data.frame</span>(<span class="dt">k =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">7</span>)),</span>
+<span id="cb1193-8"><a href="machine-learning-in-practice.html#cb1193-8"></a>                   <span class="dt">trControl =</span> control)</span></code></pre></div>
 <p>We can then increase <code>n</code> and <code>b</code> and try to establish a pattern of how they affect computing time
 to get an idea of how long the fitting process will take for larger values of <code>n</code> and <code>b</code>. You want to know if a function is going to take hours, or even days, before you run it.</p>
 <p>Once we optimize our algorithm, we can fit it to the entire dataset:</p>
-<div class="sourceCode" id="cb1195"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1195-1"><a href="machine-learning-in-practice.html#cb1195-1"></a>fit_knn &lt;-<span class="st"> </span><span class="kw">knn3</span>(x[, col_index], y,  <span class="dt">k =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1194"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1194-1"><a href="machine-learning-in-practice.html#cb1194-1"></a>fit_knn &lt;-<span class="st"> </span><span class="kw">knn3</span>(x[, col_index], y,  <span class="dt">k =</span> <span class="dv">3</span>)</span></code></pre></div>
 <p>The accuracy is almost 0.95!</p>
-<div class="sourceCode" id="cb1196"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1196-1"><a href="machine-learning-in-practice.html#cb1196-1"></a>y_hat_knn &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_knn, x_test[, col_index], <span class="dt">type=</span><span class="st">&quot;class&quot;</span>)</span>
-<span id="cb1196-2"><a href="machine-learning-in-practice.html#cb1196-2"></a>cm &lt;-<span class="st"> </span><span class="kw">confusionMatrix</span>(y_hat_knn, <span class="kw">factor</span>(y_test))</span>
-<span id="cb1196-3"><a href="machine-learning-in-practice.html#cb1196-3"></a>cm<span class="op">$</span>overall[<span class="st">&quot;Accuracy&quot;</span>]</span>
-<span id="cb1196-4"><a href="machine-learning-in-practice.html#cb1196-4"></a><span class="co">#&gt; Accuracy </span></span>
-<span id="cb1196-5"><a href="machine-learning-in-practice.html#cb1196-5"></a><span class="co">#&gt;    0.953</span></span></code></pre></div>
+<div class="sourceCode" id="cb1195"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1195-1"><a href="machine-learning-in-practice.html#cb1195-1"></a>y_hat_knn &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_knn, x_test[, col_index], <span class="dt">type=</span><span class="st">&quot;class&quot;</span>)</span>
+<span id="cb1195-2"><a href="machine-learning-in-practice.html#cb1195-2"></a>cm &lt;-<span class="st"> </span><span class="kw">confusionMatrix</span>(y_hat_knn, <span class="kw">factor</span>(y_test))</span>
+<span id="cb1195-3"><a href="machine-learning-in-practice.html#cb1195-3"></a>cm<span class="op">$</span>overall[<span class="st">&quot;Accuracy&quot;</span>]</span>
+<span id="cb1195-4"><a href="machine-learning-in-practice.html#cb1195-4"></a><span class="co">#&gt; Accuracy </span></span>
+<span id="cb1195-5"><a href="machine-learning-in-practice.html#cb1195-5"></a><span class="co">#&gt;    0.953</span></span></code></pre></div>
 <p>We now achieve an accuracy of about 0.95. From the specificity and sensitivity, we also see that 8s are the hardest to detect and the most commonly incorrectly predicted digit is 7.</p>
-<div class="sourceCode" id="cb1197"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1197-1"><a href="machine-learning-in-practice.html#cb1197-1"></a>cm<span class="op">$</span>byClass[,<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>]</span>
-<span id="cb1197-2"><a href="machine-learning-in-practice.html#cb1197-2"></a><span class="co">#&gt;          Sensitivity Specificity</span></span>
-<span id="cb1197-3"><a href="machine-learning-in-practice.html#cb1197-3"></a><span class="co">#&gt; Class: 0       0.990       0.996</span></span>
-<span id="cb1197-4"><a href="machine-learning-in-practice.html#cb1197-4"></a><span class="co">#&gt; Class: 1       1.000       0.993</span></span>
-<span id="cb1197-5"><a href="machine-learning-in-practice.html#cb1197-5"></a><span class="co">#&gt; Class: 2       0.965       0.997</span></span>
-<span id="cb1197-6"><a href="machine-learning-in-practice.html#cb1197-6"></a><span class="co">#&gt; Class: 3       0.950       0.999</span></span>
-<span id="cb1197-7"><a href="machine-learning-in-practice.html#cb1197-7"></a><span class="co">#&gt; Class: 4       0.930       0.997</span></span>
-<span id="cb1197-8"><a href="machine-learning-in-practice.html#cb1197-8"></a><span class="co">#&gt; Class: 5       0.921       0.993</span></span>
-<span id="cb1197-9"><a href="machine-learning-in-practice.html#cb1197-9"></a><span class="co">#&gt; Class: 6       0.977       0.996</span></span>
-<span id="cb1197-10"><a href="machine-learning-in-practice.html#cb1197-10"></a><span class="co">#&gt; Class: 7       0.956       0.989</span></span>
-<span id="cb1197-11"><a href="machine-learning-in-practice.html#cb1197-11"></a><span class="co">#&gt; Class: 8       0.887       0.999</span></span>
-<span id="cb1197-12"><a href="machine-learning-in-practice.html#cb1197-12"></a><span class="co">#&gt; Class: 9       0.951       0.990</span></span></code></pre></div>
+<div class="sourceCode" id="cb1196"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1196-1"><a href="machine-learning-in-practice.html#cb1196-1"></a>cm<span class="op">$</span>byClass[,<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>]</span>
+<span id="cb1196-2"><a href="machine-learning-in-practice.html#cb1196-2"></a><span class="co">#&gt;          Sensitivity Specificity</span></span>
+<span id="cb1196-3"><a href="machine-learning-in-practice.html#cb1196-3"></a><span class="co">#&gt; Class: 0       0.990       0.996</span></span>
+<span id="cb1196-4"><a href="machine-learning-in-practice.html#cb1196-4"></a><span class="co">#&gt; Class: 1       1.000       0.993</span></span>
+<span id="cb1196-5"><a href="machine-learning-in-practice.html#cb1196-5"></a><span class="co">#&gt; Class: 2       0.965       0.997</span></span>
+<span id="cb1196-6"><a href="machine-learning-in-practice.html#cb1196-6"></a><span class="co">#&gt; Class: 3       0.950       0.999</span></span>
+<span id="cb1196-7"><a href="machine-learning-in-practice.html#cb1196-7"></a><span class="co">#&gt; Class: 4       0.930       0.997</span></span>
+<span id="cb1196-8"><a href="machine-learning-in-practice.html#cb1196-8"></a><span class="co">#&gt; Class: 5       0.921       0.993</span></span>
+<span id="cb1196-9"><a href="machine-learning-in-practice.html#cb1196-9"></a><span class="co">#&gt; Class: 6       0.977       0.996</span></span>
+<span id="cb1196-10"><a href="machine-learning-in-practice.html#cb1196-10"></a><span class="co">#&gt; Class: 7       0.956       0.989</span></span>
+<span id="cb1196-11"><a href="machine-learning-in-practice.html#cb1196-11"></a><span class="co">#&gt; Class: 8       0.887       0.999</span></span>
+<span id="cb1196-12"><a href="machine-learning-in-practice.html#cb1196-12"></a><span class="co">#&gt; Class: 9       0.951       0.990</span></span></code></pre></div>
 <p>Now let’s see if we can do even better with the random forest algorithm.</p>
 <p>With random forest, computation time is a challenge. For each forest, we need to build hundreds of trees. We also have several parameters we can tune.</p>
 <p>Because with random forest the fitting is the slowest part of the procedure rather than the predicting (as with kNN), we will use only five-fold cross validation. We will also reduce the number of trees that are fit since we are not yet building our final model.</p>
 <p>Finally, to compute on a smaller dataset, we will take a random sample of the observations when constructing each tree. We can change this number with the <code>nSamp</code> argument.</p>
-<div class="sourceCode" id="cb1198"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1198-1"><a href="machine-learning-in-practice.html#cb1198-1"></a><span class="kw">library</span>(randomForest)</span>
-<span id="cb1198-2"><a href="machine-learning-in-practice.html#cb1198-2"></a>control &lt;-<span class="st"> </span><span class="kw">trainControl</span>(<span class="dt">method=</span><span class="st">&quot;cv&quot;</span>, <span class="dt">number =</span> <span class="dv">5</span>)</span>
-<span id="cb1198-3"><a href="machine-learning-in-practice.html#cb1198-3"></a>grid &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">mtry =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">25</span>, <span class="dv">50</span>, <span class="dv">100</span>))</span>
-<span id="cb1198-4"><a href="machine-learning-in-practice.html#cb1198-4"></a></span>
-<span id="cb1198-5"><a href="machine-learning-in-practice.html#cb1198-5"></a>train_rf &lt;-<span class="st">  </span><span class="kw">train</span>(x[, col_index], y, </span>
-<span id="cb1198-6"><a href="machine-learning-in-practice.html#cb1198-6"></a>                   <span class="dt">method =</span> <span class="st">&quot;rf&quot;</span>, </span>
-<span id="cb1198-7"><a href="machine-learning-in-practice.html#cb1198-7"></a>                   <span class="dt">ntree =</span> <span class="dv">150</span>,</span>
-<span id="cb1198-8"><a href="machine-learning-in-practice.html#cb1198-8"></a>                   <span class="dt">trControl =</span> control,</span>
-<span id="cb1198-9"><a href="machine-learning-in-practice.html#cb1198-9"></a>                   <span class="dt">tuneGrid =</span> grid,</span>
-<span id="cb1198-10"><a href="machine-learning-in-practice.html#cb1198-10"></a>                   <span class="dt">nSamp =</span> <span class="dv">5000</span>)</span>
-<span id="cb1198-11"><a href="machine-learning-in-practice.html#cb1198-11"></a></span>
-<span id="cb1198-12"><a href="machine-learning-in-practice.html#cb1198-12"></a><span class="kw">ggplot</span>(train_rf)</span>
-<span id="cb1198-13"><a href="machine-learning-in-practice.html#cb1198-13"></a>train_rf<span class="op">$</span>bestTune</span>
-<span id="cb1198-14"><a href="machine-learning-in-practice.html#cb1198-14"></a><span class="co">#&gt;   mtry</span></span>
-<span id="cb1198-15"><a href="machine-learning-in-practice.html#cb1198-15"></a><span class="co">#&gt; 3   10</span></span></code></pre></div>
+<div class="sourceCode" id="cb1197"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1197-1"><a href="machine-learning-in-practice.html#cb1197-1"></a><span class="kw">library</span>(randomForest)</span>
+<span id="cb1197-2"><a href="machine-learning-in-practice.html#cb1197-2"></a>control &lt;-<span class="st"> </span><span class="kw">trainControl</span>(<span class="dt">method=</span><span class="st">&quot;cv&quot;</span>, <span class="dt">number =</span> <span class="dv">5</span>)</span>
+<span id="cb1197-3"><a href="machine-learning-in-practice.html#cb1197-3"></a>grid &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">mtry =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">25</span>, <span class="dv">50</span>, <span class="dv">100</span>))</span>
+<span id="cb1197-4"><a href="machine-learning-in-practice.html#cb1197-4"></a></span>
+<span id="cb1197-5"><a href="machine-learning-in-practice.html#cb1197-5"></a>train_rf &lt;-<span class="st">  </span><span class="kw">train</span>(x[, col_index], y, </span>
+<span id="cb1197-6"><a href="machine-learning-in-practice.html#cb1197-6"></a>                   <span class="dt">method =</span> <span class="st">&quot;rf&quot;</span>, </span>
+<span id="cb1197-7"><a href="machine-learning-in-practice.html#cb1197-7"></a>                   <span class="dt">ntree =</span> <span class="dv">150</span>,</span>
+<span id="cb1197-8"><a href="machine-learning-in-practice.html#cb1197-8"></a>                   <span class="dt">trControl =</span> control,</span>
+<span id="cb1197-9"><a href="machine-learning-in-practice.html#cb1197-9"></a>                   <span class="dt">tuneGrid =</span> grid,</span>
+<span id="cb1197-10"><a href="machine-learning-in-practice.html#cb1197-10"></a>                   <span class="dt">nSamp =</span> <span class="dv">5000</span>)</span>
+<span id="cb1197-11"><a href="machine-learning-in-practice.html#cb1197-11"></a></span>
+<span id="cb1197-12"><a href="machine-learning-in-practice.html#cb1197-12"></a><span class="kw">ggplot</span>(train_rf)</span>
+<span id="cb1197-13"><a href="machine-learning-in-practice.html#cb1197-13"></a>train_rf<span class="op">$</span>bestTune</span>
+<span id="cb1197-14"><a href="machine-learning-in-practice.html#cb1197-14"></a><span class="co">#&gt;   mtry</span></span>
+<span id="cb1197-15"><a href="machine-learning-in-practice.html#cb1197-15"></a><span class="co">#&gt; 3   10</span></span></code></pre></div>
 <p><img src="book_files/figure-html/mnist-rf-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>Now that we have optimized our algorithm, we are ready to fit our final model:</p>
-<div class="sourceCode" id="cb1199"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1199-1"><a href="machine-learning-in-practice.html#cb1199-1"></a>fit_rf &lt;-<span class="st"> </span><span class="kw">randomForest</span>(x[, col_index], y, </span>
-<span id="cb1199-2"><a href="machine-learning-in-practice.html#cb1199-2"></a>                       <span class="dt">minNode =</span> train_rf<span class="op">$</span>bestTune<span class="op">$</span>mtry)</span></code></pre></div>
+<div class="sourceCode" id="cb1198"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1198-1"><a href="machine-learning-in-practice.html#cb1198-1"></a>fit_rf &lt;-<span class="st"> </span><span class="kw">randomForest</span>(x[, col_index], y, </span>
+<span id="cb1198-2"><a href="machine-learning-in-practice.html#cb1198-2"></a>                       <span class="dt">minNode =</span> train_rf<span class="op">$</span>bestTune<span class="op">$</span>mtry)</span></code></pre></div>
 <p>To check that we ran enough trees we can use the plot function:</p>
-<div class="sourceCode" id="cb1200"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1200-1"><a href="machine-learning-in-practice.html#cb1200-1"></a><span class="kw">plot</span>(fit_rf)</span></code></pre></div>
+<div class="sourceCode" id="cb1199"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1199-1"><a href="machine-learning-in-practice.html#cb1199-1"></a><span class="kw">plot</span>(fit_rf)</span></code></pre></div>
 <p>We see that we achieve high accuracy:</p>
-<div class="sourceCode" id="cb1201"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1201-1"><a href="machine-learning-in-practice.html#cb1201-1"></a>y_hat_rf &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_rf, x_test[ ,col_index])</span>
-<span id="cb1201-2"><a href="machine-learning-in-practice.html#cb1201-2"></a>cm &lt;-<span class="st"> </span><span class="kw">confusionMatrix</span>(y_hat_rf, y_test)</span>
-<span id="cb1201-3"><a href="machine-learning-in-practice.html#cb1201-3"></a>cm<span class="op">$</span>overall[<span class="st">&quot;Accuracy&quot;</span>]</span>
-<span id="cb1201-4"><a href="machine-learning-in-practice.html#cb1201-4"></a><span class="co">#&gt; Accuracy </span></span>
-<span id="cb1201-5"><a href="machine-learning-in-practice.html#cb1201-5"></a><span class="co">#&gt;    0.952</span></span></code></pre></div>
+<div class="sourceCode" id="cb1200"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1200-1"><a href="machine-learning-in-practice.html#cb1200-1"></a>y_hat_rf &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_rf, x_test[ ,col_index])</span>
+<span id="cb1200-2"><a href="machine-learning-in-practice.html#cb1200-2"></a>cm &lt;-<span class="st"> </span><span class="kw">confusionMatrix</span>(y_hat_rf, y_test)</span>
+<span id="cb1200-3"><a href="machine-learning-in-practice.html#cb1200-3"></a>cm<span class="op">$</span>overall[<span class="st">&quot;Accuracy&quot;</span>]</span>
+<span id="cb1200-4"><a href="machine-learning-in-practice.html#cb1200-4"></a><span class="co">#&gt; Accuracy </span></span>
+<span id="cb1200-5"><a href="machine-learning-in-practice.html#cb1200-5"></a><span class="co">#&gt;    0.952</span></span></code></pre></div>
 <!--
 Here are some examples of the original images and our calls:
 <img src="book_files/figure-html/mnist-examples-of-calls-1.png" width="100%" style="display: block; margin: auto;" />
@@ -1039,15 +1039,15 @@ Here are some examples of the original images and our calls:
 <div id="variable-importance" class="section level2">
 <h2><span class="header-section-number">32.3</span> Variable importance</h2>
 <p>The following function computes the importance of each feature:</p>
-<div class="sourceCode" id="cb1202"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1202-1"><a href="machine-learning-in-practice.html#cb1202-1"></a>imp &lt;-<span class="st"> </span><span class="kw">importance</span>(fit_rf)</span></code></pre></div>
+<div class="sourceCode" id="cb1201"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1201-1"><a href="machine-learning-in-practice.html#cb1201-1"></a>imp &lt;-<span class="st"> </span><span class="kw">importance</span>(fit_rf)</span></code></pre></div>
 <p>We can see which features are being used most by plotting an image:</p>
-<div class="sourceCode" id="cb1203"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1203-1"><a href="machine-learning-in-practice.html#cb1203-1"></a>mat &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">ncol</span>(x))</span>
-<span id="cb1203-2"><a href="machine-learning-in-practice.html#cb1203-2"></a>mat[col_index] &lt;-<span class="st"> </span>imp</span>
-<span id="cb1203-3"><a href="machine-learning-in-practice.html#cb1203-3"></a><span class="kw">image</span>(<span class="kw">matrix</span>(mat, <span class="dv">28</span>, <span class="dv">28</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb1204"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1204-1"><a href="machine-learning-in-practice.html#cb1204-1"></a>rafalib<span class="op">::</span><span class="kw">mypar</span>()</span>
-<span id="cb1204-2"><a href="machine-learning-in-practice.html#cb1204-2"></a>mat &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">ncol</span>(x))</span>
-<span id="cb1204-3"><a href="machine-learning-in-practice.html#cb1204-3"></a>mat[col_index] &lt;-<span class="st"> </span>imp</span>
-<span id="cb1204-4"><a href="machine-learning-in-practice.html#cb1204-4"></a><span class="kw">image</span>(<span class="kw">matrix</span>(mat, <span class="dv">28</span>, <span class="dv">28</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1202"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1202-1"><a href="machine-learning-in-practice.html#cb1202-1"></a>mat &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">ncol</span>(x))</span>
+<span id="cb1202-2"><a href="machine-learning-in-practice.html#cb1202-2"></a>mat[col_index] &lt;-<span class="st"> </span>imp</span>
+<span id="cb1202-3"><a href="machine-learning-in-practice.html#cb1202-3"></a><span class="kw">image</span>(<span class="kw">matrix</span>(mat, <span class="dv">28</span>, <span class="dv">28</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1203"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1203-1"><a href="machine-learning-in-practice.html#cb1203-1"></a>rafalib<span class="op">::</span><span class="kw">mypar</span>()</span>
+<span id="cb1203-2"><a href="machine-learning-in-practice.html#cb1203-2"></a>mat &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">ncol</span>(x))</span>
+<span id="cb1203-3"><a href="machine-learning-in-practice.html#cb1203-3"></a>mat[col_index] &lt;-<span class="st"> </span>imp</span>
+<span id="cb1203-4"><a href="machine-learning-in-practice.html#cb1203-4"></a><span class="kw">image</span>(<span class="kw">matrix</span>(mat, <span class="dv">28</span>, <span class="dv">28</span>))</span></code></pre></div>
 <p><img src="book_files/figure-html/importance-image-1.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="visual-assessments" class="section level2">
@@ -1068,24 +1068,24 @@ And -->
 <p>The idea of an ensemble is similar to the idea of combining data from different pollsters to obtain a better estimate of the true support for each candidate.</p>
 <p>In machine learning, one can usually greatly improve the final results by combining the results of different algorithms.</p>
 <p>Here is a simple example where we compute new class probabilities by taking the average of random forest and kNN. We can see that the accuracy improves to 0.96:</p>
-<div class="sourceCode" id="cb1205"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1205-1"><a href="machine-learning-in-practice.html#cb1205-1"></a>p_rf &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_rf, x_test[,col_index], <span class="dt">type =</span> <span class="st">&quot;prob&quot;</span>)  </span>
-<span id="cb1205-2"><a href="machine-learning-in-practice.html#cb1205-2"></a>p_rf&lt;-<span class="st"> </span>p_rf <span class="op">/</span><span class="st"> </span><span class="kw">rowSums</span>(p_rf)</span>
-<span id="cb1205-3"><a href="machine-learning-in-practice.html#cb1205-3"></a>p_knn  &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_knn, x_test[,col_index])</span>
-<span id="cb1205-4"><a href="machine-learning-in-practice.html#cb1205-4"></a>p &lt;-<span class="st"> </span>(p_rf <span class="op">+</span><span class="st"> </span>p_knn)<span class="op">/</span><span class="dv">2</span></span>
-<span id="cb1205-5"><a href="machine-learning-in-practice.html#cb1205-5"></a>y_pred &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw">apply</span>(p, <span class="dv">1</span>, which.max)<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb1205-6"><a href="machine-learning-in-practice.html#cb1205-6"></a><span class="kw">confusionMatrix</span>(y_pred, y_test)<span class="op">$</span>overall[<span class="st">&quot;Accuracy&quot;</span>]</span>
-<span id="cb1205-7"><a href="machine-learning-in-practice.html#cb1205-7"></a><span class="co">#&gt; Accuracy </span></span>
-<span id="cb1205-8"><a href="machine-learning-in-practice.html#cb1205-8"></a><span class="co">#&gt;    0.962</span></span></code></pre></div>
+<div class="sourceCode" id="cb1204"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1204-1"><a href="machine-learning-in-practice.html#cb1204-1"></a>p_rf &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_rf, x_test[,col_index], <span class="dt">type =</span> <span class="st">&quot;prob&quot;</span>)  </span>
+<span id="cb1204-2"><a href="machine-learning-in-practice.html#cb1204-2"></a>p_rf&lt;-<span class="st"> </span>p_rf <span class="op">/</span><span class="st"> </span><span class="kw">rowSums</span>(p_rf)</span>
+<span id="cb1204-3"><a href="machine-learning-in-practice.html#cb1204-3"></a>p_knn  &lt;-<span class="st"> </span><span class="kw">predict</span>(fit_knn, x_test[,col_index])</span>
+<span id="cb1204-4"><a href="machine-learning-in-practice.html#cb1204-4"></a>p &lt;-<span class="st"> </span>(p_rf <span class="op">+</span><span class="st"> </span>p_knn)<span class="op">/</span><span class="dv">2</span></span>
+<span id="cb1204-5"><a href="machine-learning-in-practice.html#cb1204-5"></a>y_pred &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw">apply</span>(p, <span class="dv">1</span>, which.max)<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb1204-6"><a href="machine-learning-in-practice.html#cb1204-6"></a><span class="kw">confusionMatrix</span>(y_pred, y_test)<span class="op">$</span>overall[<span class="st">&quot;Accuracy&quot;</span>]</span>
+<span id="cb1204-7"><a href="machine-learning-in-practice.html#cb1204-7"></a><span class="co">#&gt; Accuracy </span></span>
+<span id="cb1204-8"><a href="machine-learning-in-practice.html#cb1204-8"></a><span class="co">#&gt;    0.962</span></span></code></pre></div>
 <p>In the exercises we are going to build several machine learning models for the
 <code>mnist_27</code> dataset and then build an ensemble.</p>
 </div>
 <div id="exercises-55" class="section level2">
 <h2><span class="header-section-number">32.6</span> Exercises</h2>
 <p>1. Use the <code>mnist_27</code> training set to build a model with several of the models available from the <strong>caret</strong> package. For example, you can try these:</p>
-<div class="sourceCode" id="cb1206"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1206-1"><a href="machine-learning-in-practice.html#cb1206-1"></a>models &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;glm&quot;</span>, <span class="st">&quot;lda&quot;</span>,  <span class="st">&quot;naive_bayes&quot;</span>,  <span class="st">&quot;svmLinear&quot;</span>, <span class="st">&quot;gamboost&quot;</span>,  </span>
-<span id="cb1206-2"><a href="machine-learning-in-practice.html#cb1206-2"></a>            <span class="st">&quot;gamLoess&quot;</span>, <span class="st">&quot;qda&quot;</span>, <span class="st">&quot;knn&quot;</span>, <span class="st">&quot;kknn&quot;</span>, <span class="st">&quot;loclda&quot;</span>, <span class="st">&quot;gam&quot;</span>, <span class="st">&quot;rf&quot;</span>, </span>
-<span id="cb1206-3"><a href="machine-learning-in-practice.html#cb1206-3"></a>            <span class="st">&quot;ranger&quot;</span>,<span class="st">&quot;wsrf&quot;</span>, <span class="st">&quot;Rborist&quot;</span>, <span class="st">&quot;avNNet&quot;</span>, <span class="st">&quot;mlp&quot;</span>, <span class="st">&quot;monmlp&quot;</span>, <span class="st">&quot;gbm&quot;</span>, </span>
-<span id="cb1206-4"><a href="machine-learning-in-practice.html#cb1206-4"></a>            <span class="st">&quot;adaboost&quot;</span>, <span class="st">&quot;svmRadial&quot;</span>, <span class="st">&quot;svmRadialCost&quot;</span>, <span class="st">&quot;svmRadialSigma&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1205"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1205-1"><a href="machine-learning-in-practice.html#cb1205-1"></a>models &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;glm&quot;</span>, <span class="st">&quot;lda&quot;</span>,  <span class="st">&quot;naive_bayes&quot;</span>,  <span class="st">&quot;svmLinear&quot;</span>, <span class="st">&quot;gamboost&quot;</span>,  </span>
+<span id="cb1205-2"><a href="machine-learning-in-practice.html#cb1205-2"></a>            <span class="st">&quot;gamLoess&quot;</span>, <span class="st">&quot;qda&quot;</span>, <span class="st">&quot;knn&quot;</span>, <span class="st">&quot;kknn&quot;</span>, <span class="st">&quot;loclda&quot;</span>, <span class="st">&quot;gam&quot;</span>, <span class="st">&quot;rf&quot;</span>, </span>
+<span id="cb1205-3"><a href="machine-learning-in-practice.html#cb1205-3"></a>            <span class="st">&quot;ranger&quot;</span>,<span class="st">&quot;wsrf&quot;</span>, <span class="st">&quot;Rborist&quot;</span>, <span class="st">&quot;avNNet&quot;</span>, <span class="st">&quot;mlp&quot;</span>, <span class="st">&quot;monmlp&quot;</span>, <span class="st">&quot;gbm&quot;</span>, </span>
+<span id="cb1205-4"><a href="machine-learning-in-practice.html#cb1205-4"></a>            <span class="st">&quot;adaboost&quot;</span>, <span class="st">&quot;svmRadial&quot;</span>, <span class="st">&quot;svmRadialCost&quot;</span>, <span class="st">&quot;svmRadialSigma&quot;</span>)</span></code></pre></div>
 <p>We have not explained many of these, but apply them anyway using <code>train</code> with all the default parameters. Keep the results in a list. You might need to install some packages. Keep in mind that you will likely get some warnings.</p>
 <p>2. Now that you have all the trained models in a list, use <code>sapply</code> or <code>map</code> to create a matrix of predictions for the test set. You should end up with a matrix with <code>length(mnist_27$test$y)</code> rows and <code>length(models)</code> columns.</p>
 <p>3. Now compute accuracy for each model on the test set.</p>
@@ -1095,8 +1095,8 @@ And -->
 <p>7. Now let’s only consider the methods with an estimated accuracy of 0.8 when constructing the ensemble. What is the accuracy now?</p>
 <p>8. <strong>Advanced</strong>: If two methods give results that are the same, ensembling them will not change the results at all. For each pair of metrics compare the percent of time they call the same thing. Then use the <code>heatmap</code> function to visualize the results. Hint: use the <code>method = "binary"</code> argument in the <code>dist</code> function.</p>
 <p>9. <strong>Advanced</strong>: Note that each method can also produce an estimated conditional probability. Instead of majority vote we can take the average of these estimated conditional probabilities. For most methods, we can the use the <code>type = "prob"</code> in the train function. However, some of the methods require you to use the argument <code>trControl=trainControl(classProbs=TRUE)</code> when calling train. Also these methods do not work if classes have numbers as names. Hint: change the levels like this:</p>
-<div class="sourceCode" id="cb1207"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1207-1"><a href="machine-learning-in-practice.html#cb1207-1"></a>dat<span class="op">$</span>train<span class="op">$</span>y &lt;-<span class="st"> </span><span class="kw">recode_factor</span>(dat<span class="op">$</span>train<span class="op">$</span>y, <span class="st">&quot;2&quot;</span>=<span class="st">&quot;two&quot;</span>, <span class="st">&quot;7&quot;</span>=<span class="st">&quot;seven&quot;</span>)</span>
-<span id="cb1207-2"><a href="machine-learning-in-practice.html#cb1207-2"></a>dat<span class="op">$</span>test<span class="op">$</span>y &lt;-<span class="st"> </span><span class="kw">recode_factor</span>(dat<span class="op">$</span>test<span class="op">$</span>y, <span class="st">&quot;2&quot;</span>=<span class="st">&quot;two&quot;</span>, <span class="st">&quot;7&quot;</span>=<span class="st">&quot;seven&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1206"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1206-1"><a href="machine-learning-in-practice.html#cb1206-1"></a>dat<span class="op">$</span>train<span class="op">$</span>y &lt;-<span class="st"> </span><span class="kw">recode_factor</span>(dat<span class="op">$</span>train<span class="op">$</span>y, <span class="st">&quot;2&quot;</span>=<span class="st">&quot;two&quot;</span>, <span class="st">&quot;7&quot;</span>=<span class="st">&quot;seven&quot;</span>)</span>
+<span id="cb1206-2"><a href="machine-learning-in-practice.html#cb1206-2"></a>dat<span class="op">$</span>test<span class="op">$</span>y &lt;-<span class="st"> </span><span class="kw">recode_factor</span>(dat<span class="op">$</span>test<span class="op">$</span>y, <span class="st">&quot;2&quot;</span>=<span class="st">&quot;two&quot;</span>, <span class="st">&quot;7&quot;</span>=<span class="st">&quot;seven&quot;</span>)</span></code></pre></div>
 <p>10. In this chapter, we illustrated a couple of machine learning algorithms on a subset of the MNIST dataset. Try fitting a model to the entire dataset.</p>
 
 </div>

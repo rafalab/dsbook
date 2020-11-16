@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2020-10-27" />
+<meta name="date" content="2020-11-16" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1108,28 +1108,18 @@ Also note that <code>dat</code> is a <code>tibble</code>, not just a data frame.
 </div>
 <div id="r-base-importing-functions" class="section level2">
 <h2><span class="header-section-number">5.5</span> R-base importing functions</h2>
-<p>R-base also provides import functions. These have similar names to those in the <strong>tidyverse</strong>, for example <code>read.table</code>, <code>read.csv</code> and <code>read.delim</code>. However, there are a couple of important differences. To show this we read-in the data with an R-base function:</p>
+<p>R-base also provides import functions. These have similar names to those in the <strong>tidyverse</strong>, for example <code>read.table</code>, <code>read.csv</code> and <code>read.delim</code>. You can obtain an data frame like <code>dat</code> using:</p>
 <div class="sourceCode" id="cb258"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb258-1"><a href="importing-data.html#cb258-1"></a>dat2 &lt;-<span class="st"> </span><span class="kw">read.csv</span>(filename)</span></code></pre></div>
-<p>An important difference is that the characters are converted to factors:</p>
-<div class="sourceCode" id="cb259"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb259-1"><a href="importing-data.html#cb259-1"></a><span class="kw">class</span>(dat2<span class="op">$</span>abb)</span>
-<span id="cb259-2"><a href="importing-data.html#cb259-2"></a><span class="co">#&gt; [1] &quot;character&quot;</span></span>
-<span id="cb259-3"><a href="importing-data.html#cb259-3"></a><span class="kw">class</span>(dat2<span class="op">$</span>region)</span>
-<span id="cb259-4"><a href="importing-data.html#cb259-4"></a><span class="co">#&gt; [1] &quot;character&quot;</span></span></code></pre></div>
-<p>This can be avoided by setting the argument <code>stringsAsFactors</code> to <code>FALSE</code>.</p>
-<div class="sourceCode" id="cb260"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb260-1"><a href="importing-data.html#cb260-1"></a>dat &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;murders.csv&quot;</span>, <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)</span>
-<span id="cb260-2"><a href="importing-data.html#cb260-2"></a><span class="kw">class</span>(dat<span class="op">$</span>state)</span>
-<span id="cb260-3"><a href="importing-data.html#cb260-3"></a><span class="co">#&gt; [1] &quot;character&quot;</span></span></code></pre></div>
-<p>In our experience this can be a cause for confusion since a variable that was saved as characters in file is converted to factors regardless of what the variable represents. In fact, we <strong>highly</strong> recommend setting <code>stringsAsFactors=FALSE</code> to be your default approach when using the R-base parsers. You can easily convert the desired columns to factors after importing data.</p>
 <div id="scan" class="section level3">
 <h3><span class="header-section-number">5.5.1</span> <code>scan</code></h3>
 <p>When reading in spreadsheets many things can go wrong. The file might have a multiline header, be missing cells, or it might use an unexpected encoding<a href="#fn17" class="footnote-ref" id="fnref17"><sup>17</sup></a>. We recommend you read this post about common issues found here: <a href="https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/">https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/</a>.</p>
 <p>With experience you will learn how to deal with different challenges. Carefully reading the help files for the functions discussed here will be useful. With scan you can read-in each cell of a file. Here is an example:</p>
-<div class="sourceCode" id="cb261"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb261-1"><a href="importing-data.html#cb261-1"></a>path &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="dt">package =</span> <span class="st">&quot;dslabs&quot;</span>)</span>
-<span id="cb261-2"><a href="importing-data.html#cb261-2"></a>filename &lt;-<span class="st"> &quot;murders.csv&quot;</span></span>
-<span id="cb261-3"><a href="importing-data.html#cb261-3"></a>x &lt;-<span class="st"> </span><span class="kw">scan</span>(<span class="kw">file.path</span>(path, filename), <span class="dt">sep=</span><span class="st">&quot;,&quot;</span>, <span class="dt">what =</span> <span class="st">&quot;c&quot;</span>)</span>
-<span id="cb261-4"><a href="importing-data.html#cb261-4"></a>x[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]</span>
-<span id="cb261-5"><a href="importing-data.html#cb261-5"></a><span class="co">#&gt;  [1] &quot;state&quot;      &quot;abb&quot;        &quot;region&quot;     &quot;population&quot; &quot;total&quot;     </span></span>
-<span id="cb261-6"><a href="importing-data.html#cb261-6"></a><span class="co">#&gt;  [6] &quot;Alabama&quot;    &quot;AL&quot;         &quot;South&quot;      &quot;4779736&quot;    &quot;135&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb259"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb259-1"><a href="importing-data.html#cb259-1"></a>path &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="dt">package =</span> <span class="st">&quot;dslabs&quot;</span>)</span>
+<span id="cb259-2"><a href="importing-data.html#cb259-2"></a>filename &lt;-<span class="st"> &quot;murders.csv&quot;</span></span>
+<span id="cb259-3"><a href="importing-data.html#cb259-3"></a>x &lt;-<span class="st"> </span><span class="kw">scan</span>(<span class="kw">file.path</span>(path, filename), <span class="dt">sep=</span><span class="st">&quot;,&quot;</span>, <span class="dt">what =</span> <span class="st">&quot;c&quot;</span>)</span>
+<span id="cb259-4"><a href="importing-data.html#cb259-4"></a>x[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]</span>
+<span id="cb259-5"><a href="importing-data.html#cb259-5"></a><span class="co">#&gt;  [1] &quot;state&quot;      &quot;abb&quot;        &quot;region&quot;     &quot;population&quot; &quot;total&quot;     </span></span>
+<span id="cb259-6"><a href="importing-data.html#cb259-6"></a><span class="co">#&gt;  [6] &quot;Alabama&quot;    &quot;AL&quot;         &quot;South&quot;      &quot;4779736&quot;    &quot;135&quot;</span></span></code></pre></div>
 <p>Note that the tidyverse provides <code>read_lines</code>, a similarly useful function.</p>
 </div>
 </div>
@@ -1167,6 +1157,8 @@ we summarize the recommendations made in paper by Karl Broman and Kara Woo<a hre
 <div id="exercises-14" class="section level2">
 <h2><span class="header-section-number">5.9</span> Exercises</h2>
 <p>1. Pick a measurement you can take on a regular basis. For example, your daily weight or how long it takes you to run 5 miles. Keep a spreadsheet that includes the date, the hour, the measurement, and any other informative variable you think is worth keeping. Do this for 2 weeks. Then make a plot.</p>
+<pre><code>#&gt; Warning in file.remove(&quot;murders.csv&quot;): cannot remove file &#39;murders.csv&#39;,
+#&gt; reason &#39;No such file or directory&#39;</code></pre>
 
 </div>
 </div>
