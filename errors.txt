@@ -173,6 +173,39 @@ we summarize the recommendations made in paper by Karl Broman and Kara Woo^[http
 
 page 97 in pdf
 
+Replace
+
+One other important difference is that by default `data.frame` coerces characters into factors without providing a warning or message:
+
+```{r}
+grades <- data.frame(names = c("John", "Juan", "Jean", "Yao"), 
+                     exam_1 = c(95, 80, 90, 85), 
+                     exam_2 = c(90, 85, 85, 90))
+class(grades$names)
+```
+
+To avoid this, we use the rather cumbersome argument `stringsAsFactors`:
+```{r}
+grades <- data.frame(names = c("John", "Juan", "Jean", "Yao"), 
+                     exam_1 = c(95, 80, 90, 85), 
+                     exam_2 = c(90, 85, 85, 90),
+                     stringsAsFactors = FALSE)
+class(grades$names)
+```
+
+with 
+
+
+```{r}
+grades <- data.frame(names = c("John", "Juan", "Jean", "Yao"), 
+                     exam_1 = c(95, 80, 90, 85), 
+                     exam_2 = c(90, 85, 85, 90))
+```
+
+
+
+
+page 110 in pdf
 Change 
 
 However, there are a couple of important differences. To show this we read-in the data with an R-base function:
@@ -204,6 +237,26 @@ You can obtain an data frame like `dat` using:
 ```{r}
 dat2 <- read.csv(filename)
 ```
+
+page 100 in pdf
+
+Replace the scan subsection.
+
+
+Change 
+
+### `scan` 
+
+to 
+
+
+An often useful R-base importing function is `scan`, as it provides much flexibility.
+
+
+also added space between `=` here:
+
+x <- scan(file.path(path, filename), sep=",", what = "c")
+x <- scan(file.path(path, filename), sep = ",", what = "c")
 
 Page 132, 160 in pdf
 
@@ -375,6 +428,34 @@ Page 449, 477 in pdf
 "It turns them into days since the epoch.The as.Date function can convert a character into a date. So to see that the epoch is day 0 we can type"
 
 There should be a space between "epoch" and "The".
+
+page 472 in pdf
+
+Remove the stringAsFactors
+
+
+```{r}
+new_research_funding_rates <- tab[6:14] %>%
+  str_trim %>%
+  str_split("\\s{2,}", simplify = TRUE) %>%
+  data.frame(stringsAsFactors = FALSE) %>%
+  setNames(the_names) %>%
+  mutate_at(-1, parse_number)
+new_research_funding_rates %>% as_tibble()
+```
+
+should be
+
+
+```{r}
+new_research_funding_rates <- tab[6:14] %>%
+  str_trim %>%
+  str_split("\\s{2,}", simplify = TRUE) %>%
+  data.frame() %>%
+  setNames(the_names) %>%
+  mutate_at(-1, parse_number)
+new_research_funding_rates %>% as_tibble()
+```
 
 
 Page 485, 513 in pdf
