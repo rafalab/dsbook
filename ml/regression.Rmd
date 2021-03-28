@@ -44,10 +44,10 @@ m <- mean(train_set$son)
 m
 ```
 
-Our squared loss is: 
+Our root mean squared error is: 
 
 ```{r}
-mean((m - test_set$son)^2)
+sqrt(mean((m - test_set$son)^2))
 ```
 
 Can we do better? In the regression chapter, we learned that if the pair $(X,Y)$ follow a bivariate normal distribution, the conditional expectation (what we want to estimate) is equivalent to the regression line:
@@ -65,14 +65,14 @@ fit$coef
 
 This gives us an estimate of the conditional expectation:
 
-$$ \hat{f}(x) = 52 + 0.25 x $$
+$$ \hat{f}(x) = 35 + 0.5 x $$
 
 
 We can see that this does indeed provide an improvement over our guessing approach. 
 
 ```{r}
 y_hat <- fit$coef[1] + fit$coef[2]*test_set$father
-mean((y_hat - test_set$son)^2)
+sqrt(mean((y_hat - test_set$son)^2))
 ```
 
 
@@ -88,7 +88,7 @@ Using `predict`, we can get the same results as we did previously:
 
 ```{r}
 y_hat <- predict(fit, test_set)
-mean((y_hat - test_set$son)^2)
+sqrt(mean((y_hat - test_set$son)^2))
 ```
 
 `predict` does not always return objects of the same types; it depends on what type of object is sent to it. To learn about the specifics, you need to look at the help file specific for the type of fit object that is being used. The `predict` is actually a special type of function in R (called a _generic function_) that calls other functions depending on what kind of object it receives. So if `predict` receives an object coming out of the `lm` function, it will call `predict.lm`. If it receives an object coming out of `glm`, it calls `predict.glm`. These two functions are similar but different. You can learn more about the differences by reading the help files:
@@ -121,7 +121,7 @@ train_set <- dat %>% slice(-test_index)
 test_set <- dat %>% slice(test_index)
 fit <- lm(y ~ x, data = train_set)
 y_hat <- fit$coef[1] + fit$coef[2]*test_set$x
-mean((y_hat - test_set$y)^2)
+sqrt(mean((y_hat - test_set$y)^2))
 ```
 
 and put it inside a call to `replicate`.

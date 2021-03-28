@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2021-02-20" />
+<meta name="date" content="2021-03-28" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -930,9 +930,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode" id="cb1092"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1092-1"><a href="examples-of-algorithms.html#cb1092-1"></a>m &lt;-<span class="st"> </span><span class="kw">mean</span>(train_set<span class="op">$</span>son)</span>
 <span id="cb1092-2"><a href="examples-of-algorithms.html#cb1092-2"></a>m</span>
 <span id="cb1092-3"><a href="examples-of-algorithms.html#cb1092-3"></a><span class="co">#&gt; [1] 69.2</span></span></code></pre></div>
-<p>Our squared loss is:</p>
-<div class="sourceCode" id="cb1093"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1093-1"><a href="examples-of-algorithms.html#cb1093-1"></a><span class="kw">mean</span>((m <span class="op">-</span><span class="st"> </span>test_set<span class="op">$</span>son)<span class="op">^</span><span class="dv">2</span>)</span>
-<span id="cb1093-2"><a href="examples-of-algorithms.html#cb1093-2"></a><span class="co">#&gt; [1] 7.65</span></span></code></pre></div>
+<p>Our root mean squared error is:</p>
+<div class="sourceCode" id="cb1093"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1093-1"><a href="examples-of-algorithms.html#cb1093-1"></a><span class="kw">sqrt</span>(<span class="kw">mean</span>((m <span class="op">-</span><span class="st"> </span>test_set<span class="op">$</span>son)<span class="op">^</span><span class="dv">2</span>))</span>
+<span id="cb1093-2"><a href="examples-of-algorithms.html#cb1093-2"></a><span class="co">#&gt; [1] 2.77</span></span></code></pre></div>
 <p>Can we do better? In the regression chapter, we learned that if the pair <span class="math inline">\((X,Y)\)</span> follow a bivariate normal distribution, the conditional expectation (what we want to estimate) is equivalent to the regression line:</p>
 <p><span class="math display">\[
 f(x) = \mbox{E}( Y  \mid  X= x ) = \beta_0 + \beta_1 x
@@ -943,19 +943,19 @@ f(x) = \mbox{E}( Y  \mid  X= x ) = \beta_0 + \beta_1 x
 <span id="cb1094-3"><a href="examples-of-algorithms.html#cb1094-3"></a><span class="co">#&gt; (Intercept)      father </span></span>
 <span id="cb1094-4"><a href="examples-of-algorithms.html#cb1094-4"></a><span class="co">#&gt;      35.976       0.482</span></span></code></pre></div>
 <p>This gives us an estimate of the conditional expectation:</p>
-<p><span class="math display">\[ \hat{f}(x) = 52 + 0.25 x \]</span></p>
+<p><span class="math display">\[ \hat{f}(x) = 35 + 0.5 x \]</span></p>
 <p>We can see that this does indeed provide an improvement over our guessing approach.</p>
 <div class="sourceCode" id="cb1095"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1095-1"><a href="examples-of-algorithms.html#cb1095-1"></a>y_hat &lt;-<span class="st"> </span>fit<span class="op">$</span>coef[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>fit<span class="op">$</span>coef[<span class="dv">2</span>]<span class="op">*</span>test_set<span class="op">$</span>father</span>
-<span id="cb1095-2"><a href="examples-of-algorithms.html#cb1095-2"></a><span class="kw">mean</span>((y_hat <span class="op">-</span><span class="st"> </span>test_set<span class="op">$</span>son)<span class="op">^</span><span class="dv">2</span>)</span>
-<span id="cb1095-3"><a href="examples-of-algorithms.html#cb1095-3"></a><span class="co">#&gt; [1] 6.47</span></span></code></pre></div>
+<span id="cb1095-2"><a href="examples-of-algorithms.html#cb1095-2"></a><span class="kw">sqrt</span>(<span class="kw">mean</span>((y_hat <span class="op">-</span><span class="st"> </span>test_set<span class="op">$</span>son)<span class="op">^</span><span class="dv">2</span>))</span>
+<span id="cb1095-3"><a href="examples-of-algorithms.html#cb1095-3"></a><span class="co">#&gt; [1] 2.54</span></span></code></pre></div>
 <div id="the-predict-function" class="section level3">
 <h3><span class="header-section-number">31.1.1</span> The <code>predict</code> function</h3>
 <p>The <code>predict</code> function is very useful for machine learning applications. This function takes a fitted object from functions such as <code>lm</code> or <code>glm</code> (we learn about <code>glm</code> soon) and a data frame with the new predictors for which to predict. So in our current example, we would use <code>predict</code> like this:</p>
 <div class="sourceCode" id="cb1096"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1096-1"><a href="examples-of-algorithms.html#cb1096-1"></a>y_hat &lt;-<span class="st"> </span><span class="kw">predict</span>(fit, test_set)</span></code></pre></div>
 <p>Using <code>predict</code>, we can get the same results as we did previously:</p>
 <div class="sourceCode" id="cb1097"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1097-1"><a href="examples-of-algorithms.html#cb1097-1"></a>y_hat &lt;-<span class="st"> </span><span class="kw">predict</span>(fit, test_set)</span>
-<span id="cb1097-2"><a href="examples-of-algorithms.html#cb1097-2"></a><span class="kw">mean</span>((y_hat <span class="op">-</span><span class="st"> </span>test_set<span class="op">$</span>son)<span class="op">^</span><span class="dv">2</span>)</span>
-<span id="cb1097-3"><a href="examples-of-algorithms.html#cb1097-3"></a><span class="co">#&gt; [1] 6.47</span></span></code></pre></div>
+<span id="cb1097-2"><a href="examples-of-algorithms.html#cb1097-2"></a><span class="kw">sqrt</span>(<span class="kw">mean</span>((y_hat <span class="op">-</span><span class="st"> </span>test_set<span class="op">$</span>son)<span class="op">^</span><span class="dv">2</span>))</span>
+<span id="cb1097-3"><a href="examples-of-algorithms.html#cb1097-3"></a><span class="co">#&gt; [1] 2.54</span></span></code></pre></div>
 <p><code>predict</code> does not always return objects of the same types; it depends on what type of object is sent to it. To learn about the specifics, you need to look at the help file specific for the type of fit object that is being used. The <code>predict</code> is actually a special type of function in R (called a <em>generic function</em>) that calls other functions depending on what kind of object it receives. So if <code>predict</code> receives an object coming out of the <code>lm</code> function, it will call <code>predict.lm</code>. If it receives an object coming out of <code>glm</code>, it calls <code>predict.glm</code>. These two functions are similar but different. You can learn more about the differences by reading the help files:</p>
 <div class="sourceCode" id="cb1098"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1098-1"><a href="examples-of-algorithms.html#cb1098-1"></a>?predict.lm</span>
 <span id="cb1098-2"><a href="examples-of-algorithms.html#cb1098-2"></a>?predict.glm</span></code></pre></div>
@@ -976,7 +976,7 @@ f(x) = \mbox{E}( Y  \mid  X= x ) = \beta_0 + \beta_1 x
 <span id="cb1100-4"><a href="examples-of-algorithms.html#cb1100-4"></a>test_set &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">slice</span>(test_index)</span>
 <span id="cb1100-5"><a href="examples-of-algorithms.html#cb1100-5"></a>fit &lt;-<span class="st"> </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> train_set)</span>
 <span id="cb1100-6"><a href="examples-of-algorithms.html#cb1100-6"></a>y_hat &lt;-<span class="st"> </span>fit<span class="op">$</span>coef[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>fit<span class="op">$</span>coef[<span class="dv">2</span>]<span class="op">*</span>test_set<span class="op">$</span>x</span>
-<span id="cb1100-7"><a href="examples-of-algorithms.html#cb1100-7"></a><span class="kw">mean</span>((y_hat <span class="op">-</span><span class="st"> </span>test_set<span class="op">$</span>y)<span class="op">^</span><span class="dv">2</span>)</span></code></pre></div>
+<span id="cb1100-7"><a href="examples-of-algorithms.html#cb1100-7"></a><span class="kw">sqrt</span>(<span class="kw">mean</span>((y_hat <span class="op">-</span><span class="st"> </span>test_set<span class="op">$</span>y)<span class="op">^</span><span class="dv">2</span>))</span></code></pre></div>
 <p>and put it inside a call to <code>replicate</code>.</p>
 <p>2. Now we will repeat the above but using larger datasets. Repeat exercise 1 but for datasets with <code>n &lt;- c(100, 500, 1000, 5000, 10000)</code>. Save the average and standard deviation of RMSE from the 100 repetitions. Hint: use the <code>sapply</code> or <code>map</code> functions.</p>
 <p>3. Describe what you observe with the RMSE as the size of the dataset becomes larger.</p>
@@ -1564,7 +1564,7 @@ Regression and decision trees operate by predicting an outcome variable <span cl
 R_1(j,s) = \{\mathbf{x} \mid x_j &lt; s\} \mbox{  and  } R_2(j,s) = \{\mathbf{x} \mid x_j \geq s\}
 \]</span></p>
 <p>In our current example we only have one predictor, so we will always choose <span class="math inline">\(j=1\)</span>, but in general this will not be the case. Now, after we define the new partitions <span class="math inline">\(R_1\)</span> and <span class="math inline">\(R_2\)</span>, and we decide to stop the partitioning, we compute predictors by taking the average of all the observations <span class="math inline">\(y\)</span> for which the associated <span class="math inline">\(\mathbf{x}\)</span> is in <span class="math inline">\(R_1\)</span> and <span class="math inline">\(R_2\)</span>. We refer to these two as <span class="math inline">\(\hat{y}_{R_1}\)</span> and <span class="math inline">\(\hat{y}_{R_2}\)</span> respectively.</p>
-<p>But how do we pick <span class="math inline">\(j\)</span> and <span class="math inline">\(s\)</span>? Basically we find the pair that minimizes the residual sum of square (RSS):
+<p>But how do we pick <span class="math inline">\(j\)</span> and <span class="math inline">\(s\)</span>? Basically we find the pair that minimizes the residual sum of squares (RSS):
 <span class="math display">\[
 \sum_{i:\, x_i \in R_1(j,s)} (y_i - \hat{y}_{R_1})^2 +
 \sum_{i:\, x_i \in R_2(j,s)} (y_i - \hat{y}_{R_2})^2
@@ -1597,7 +1597,7 @@ R_1(j,s) = \{\mathbf{x} \mid x_j &lt; s\} \mbox{  and  } R_2(j,s) = \{\mathbf{x}
 <span id="cb1164-7"><a href="examples-of-algorithms.html#cb1164-7"></a><span class="st">  </span><span class="kw">geom_step</span>(<span class="kw">aes</span>(day, y_hat), <span class="dt">col=</span><span class="st">&quot;red&quot;</span>)</span></code></pre></div>
 <p><img src="book_files/figure-html/polls-2008-tree-over-fit-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>Intuitively we know that this is not a good approach as it will generally result in over-training. These <code>cp</code>, <code>minsplit</code>, and <code>minbucket</code>, three parameters can be used to control the variability of the final predictors. The larger these values are the more data is averaged to compute a predictor and thus reduce variability. The drawback is that it restricts flexibility.</p>
-<p>So how do we pick these parameters? We can use cross validation, described in Chapter <a href="cross-validation.html#cross-validation">29</a>, just like with any tuning parameter. Here is an example of using cross validation to chose cp.</p>
+<p>So how do we pick these parameters? We can use cross validation, described in Chapter <a href="cross-validation.html#cross-validation">29</a>, just like with any tuning parameter. Here is an example of using cross validation to choose cp.</p>
 <div class="sourceCode" id="cb1165"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1165-1"><a href="examples-of-algorithms.html#cb1165-1"></a><span class="kw">library</span>(caret)</span>
 <span id="cb1165-2"><a href="examples-of-algorithms.html#cb1165-2"></a>train_rpart &lt;-<span class="st"> </span><span class="kw">train</span>(margin <span class="op">~</span><span class="st"> </span>., </span>
 <span id="cb1165-3"><a href="examples-of-algorithms.html#cb1165-3"></a>                     <span class="dt">method =</span> <span class="st">&quot;rpart&quot;</span>,</span>
@@ -1633,8 +1633,7 @@ R_1(j,s) = \{\mathbf{x} \mid x_j &lt; s\} \mbox{  and  } R_2(j,s) = \{\mathbf{x}
 <p><span class="math display">\[
 \mbox{entropy}(j) = -\sum_{k=1}^K \hat{p}_{j,k}\log(\hat{p}_{j,k}), \mbox{ with } 0 \times \log(0) \mbox{ defined as }0
 \]</span></p>
-<p>Let us look at how a classification tree performs on the digits example we examined before:</p>
-<p>We can use this code to run the algorithm and plot the resulting tree:</p>
+<p>Let us look at how a classification tree performs on the digits example we examined before by using this code to run the algorithm and plot the resulting accuracy:</p>
 <div class="sourceCode" id="cb1169"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1169-1"><a href="examples-of-algorithms.html#cb1169-1"></a>train_rpart &lt;-<span class="st"> </span><span class="kw">train</span>(y <span class="op">~</span><span class="st"> </span>.,</span>
 <span id="cb1169-2"><a href="examples-of-algorithms.html#cb1169-2"></a>                     <span class="dt">method =</span> <span class="st">&quot;rpart&quot;</span>,</span>
 <span id="cb1169-3"><a href="examples-of-algorithms.html#cb1169-3"></a>                     <span class="dt">tuneGrid =</span> <span class="kw">data.frame</span>(<span class="dt">cp =</span> <span class="kw">seq</span>(<span class="fl">0.0</span>, <span class="fl">0.1</span>, <span class="dt">len =</span> <span class="dv">25</span>)),</span>
