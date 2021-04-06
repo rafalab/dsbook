@@ -771,7 +771,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="33.5.1" data-path="large-datasets.html"><a href="large-datasets.html#preserving-distance"><i class="fa fa-check"></i><b>33.5.1</b> Preserving distance</a></li>
 <li class="chapter" data-level="33.5.2" data-path="large-datasets.html"><a href="large-datasets.html#linear-transformations-advanced"><i class="fa fa-check"></i><b>33.5.2</b> Linear transformations (advanced)</a></li>
 <li class="chapter" data-level="33.5.3" data-path="large-datasets.html"><a href="large-datasets.html#orthogonal-transformations-advanced"><i class="fa fa-check"></i><b>33.5.3</b> Orthogonal transformations (advanced)</a></li>
-<li class="chapter" data-level="33.5.4" data-path="large-datasets.html"><a href="large-datasets.html#principal-component-analysis"><i class="fa fa-check"></i><b>33.5.4</b> Principal component analysis</a></li>
+<li class="chapter" data-level="33.5.4" data-path="large-datasets.html"><a href="large-datasets.html#pca"><i class="fa fa-check"></i><b>33.5.4</b> Principal component analysis</a></li>
 <li class="chapter" data-level="33.5.5" data-path="large-datasets.html"><a href="large-datasets.html#iris-example"><i class="fa fa-check"></i><b>33.5.5</b> Iris example</a></li>
 <li class="chapter" data-level="33.5.6" data-path="large-datasets.html"><a href="large-datasets.html#mnist-example"><i class="fa fa-check"></i><b>33.5.6</b> MNIST example</a></li>
 </ul></li>
@@ -792,7 +792,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="33.10" data-path="large-datasets.html"><a href="large-datasets.html#exercises-60"><i class="fa fa-check"></i><b>33.10</b> Exercises</a></li>
 <li class="chapter" data-level="33.11" data-path="large-datasets.html"><a href="large-datasets.html#matrix-factorization"><i class="fa fa-check"></i><b>33.11</b> Matrix factorization</a><ul>
-<li class="chapter" data-level="33.11.1" data-path="large-datasets.html"><a href="large-datasets.html#factors-analysis"><i class="fa fa-check"></i><b>33.11.1</b> Factors analysis</a></li>
+<li class="chapter" data-level="33.11.1" data-path="large-datasets.html"><a href="large-datasets.html#factor-analysis"><i class="fa fa-check"></i><b>33.11.1</b> Factor analysis</a></li>
 <li class="chapter" data-level="33.11.2" data-path="large-datasets.html"><a href="large-datasets.html#connection-to-svd-and-pca"><i class="fa fa-check"></i><b>33.11.2</b> Connection to SVD and PCA</a></li>
 </ul></li>
 <li class="chapter" data-level="33.12" data-path="large-datasets.html"><a href="large-datasets.html#exercises-61"><i class="fa fa-check"></i><b>33.12</b> Exercises</a></li>
@@ -1449,7 +1449,7 @@ a_{1,1} a_{1,2} + a_{2,1} a_{2,2} = 0.
 <p>One way this insight may be useful in a machine learning application is that we can reduce the complexity of a model by using just <span class="math inline">\(Z_1\)</span> rather than both <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span>.</p>
 <p>It is actually common to obtain data with several highly correlated predictors. In these cases PCA, which we describe next, can be quite useful for reducing the complexity of the model being fit.</p>
 </div>
-<div id="principal-component-analysis" class="section level3">
+<div id="pca" class="section level3">
 <h3><span class="header-section-number">33.5.4</span> Principal component analysis</h3>
 <p>In the computation above, the total variability in our data can be defined as the sum of the sum of squares of the columns. We assume the columns are centered, so this sum is equivalent to the sum of the variances of each column:</p>
 <p><span class="math display">\[
@@ -1485,7 +1485,7 @@ v_1 + v_2, \mbox{ with } v_1 = \frac{1}{N}\sum_{i=1}^N X_{i,1}^2 \mbox{ and } v_
 <span id="cb1279-2"><a href="large-datasets.html#cb1279-2"></a>b &lt;-<span class="st"> </span>pca<span class="op">$</span>x </span>
 <span id="cb1279-3"><a href="large-datasets.html#cb1279-3"></a><span class="kw">max</span>(<span class="kw">abs</span>(a <span class="op">-</span><span class="st"> </span>b))</span>
 <span id="cb1279-4"><a href="large-datasets.html#cb1279-4"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-<p>We can visualize these to see how the first component summarizes the data. In the plot below red represents high values and blue negative values (later we learn why we call these weights and patterns):</p>
+<p>We can visualize these to see how the first component summarizes the data. In the plot below red represents high values and blue negative values (later, in Section <a href="large-datasets.html#factor-analysis">33.11.1</a>, we learn why we call these weights and patterns):</p>
 <p><img src="book_files/figure-html/illustrate-pca-twin-heights-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>It turns out that we can find this linear transformation not just for two dimensions but for matrices of any dimension <span class="math inline">\(p\)</span>.</p>
 <p>For a multidimensional matrix with <span class="math inline">\(X\)</span> with <span class="math inline">\(p\)</span> columns, we can find a transformation that creates <span class="math inline">\(Z\)</span> that preserves distance between rows, but with the variance of the columns in decreasing order. The second column is the second principal component, the third column is the third principal component, and so on. As in our example, if after a certain number of columns, say <span class="math inline">\(k\)</span>, the variances of the columns of <span class="math inline">\(Z_j\)</span>, <span class="math inline">\(j&gt;k\)</span> are very small, it means these dimensions have little to contribute to the distance and we can approximate distance between any two points with just <span class="math inline">\(k\)</span> dimensions. If <span class="math inline">\(k\)</span> is much smaller than <span class="math inline">\(p\)</span>, then we can achieve a very efficient summary of our data.</p>
@@ -2352,8 +2352,8 @@ r_{u,i} = y_{u,i} - \hat{b}_i - \hat{b}_u
 <span id="cb1337-11"><a href="large-datasets.html#cb1337-11"></a><span class="co">#&gt; Sleepless     -0.378     -0.358     -0.402      0.533     1.000</span></span></code></pre></div>
 <p>There seems to be people that like romantic comedies more than expected, while others that like gangster movies more than expected.</p>
 <p>These results tell us that there is structure in the data. But how can we model this?</p>
-<div id="factors-analysis" class="section level3">
-<h3><span class="header-section-number">33.11.1</span> Factors analysis</h3>
+<div id="factor-analysis" class="section level3">
+<h3><span class="header-section-number">33.11.1</span> Factor analysis</h3>
 <p>Here is an illustration, using a simulation, of how we can use some structure to predict the <span class="math inline">\(r_{u,i}\)</span>. Suppose our residuals <code>r</code> look like this:</p>
 <div class="sourceCode" id="cb1338"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1338-1"><a href="large-datasets.html#cb1338-1"></a><span class="kw">round</span>(r, <span class="dv">1</span>)</span>
 <span id="cb1338-2"><a href="large-datasets.html#cb1338-2"></a><span class="co">#&gt;    Godfather Godfather2 Goodfellas You&#39;ve Got Sleepless</span></span>
@@ -2377,7 +2377,8 @@ r_{u,i} = y_{u,i} - \hat{b}_i - \hat{b}_u
 <span id="cb1339-5"><a href="large-datasets.html#cb1339-5"></a><span class="co">#&gt; Goodfellas     0.978      0.983      1.000     -0.986    -0.989</span></span>
 <span id="cb1339-6"><a href="large-datasets.html#cb1339-6"></a><span class="co">#&gt; You&#39;ve Got    -0.974     -0.987     -0.986      1.000     0.986</span></span>
 <span id="cb1339-7"><a href="large-datasets.html#cb1339-7"></a><span class="co">#&gt; Sleepless     -0.966     -0.992     -0.989      0.986     1.000</span></span></code></pre></div>
-<p>We can create vectors <code>q</code> and <code>p</code>, that can explain much of the structure we see. The <code>q</code> would look like this:</p>
+<p>We can create vectors <code>q</code> and <code>p</code>, that can explain much of the structure we see.
+The <code>q</code> would look like this:</p>
 <div class="sourceCode" id="cb1340"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1340-1"><a href="large-datasets.html#cb1340-1"></a><span class="kw">t</span>(q) </span>
 <span id="cb1340-2"><a href="large-datasets.html#cb1340-2"></a><span class="co">#&gt;      Godfather Godfather2 Goodfellas You&#39;ve Got Sleepless</span></span>
 <span id="cb1340-3"><a href="large-datasets.html#cb1340-3"></a><span class="co">#&gt; [1,]         1          1          1         -1        -1</span></span></code></pre></div>
@@ -2385,7 +2386,8 @@ r_{u,i} = y_{u,i} - \hat{b}_i - \hat{b}_u
 <div class="sourceCode" id="cb1341"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1341-1"><a href="large-datasets.html#cb1341-1"></a><span class="kw">t</span>(p)</span>
 <span id="cb1341-2"><a href="large-datasets.html#cb1341-2"></a><span class="co">#&gt;      1 2 3 4 5 6 7 8  9 10 11 12</span></span>
 <span id="cb1341-3"><a href="large-datasets.html#cb1341-3"></a><span class="co">#&gt; [1,] 2 2 2 0 0 0 0 0 -2 -2 -2 -2</span></span></code></pre></div>
-<p>those that like gangster movies and dislike romance movies (coded as 2), those that like romance movies and dislike gangster movies (coded as -2), and those that don’t care (coded as 0). The main point here is that we can almost reconstruct <span class="math inline">\(r\)</span>, which has 60 values, with a couple of vectors totaling 17 values. If <span class="math inline">\(r\)</span> contains the residuals for users <span class="math inline">\(u=1,\dots,12\)</span> for movies <span class="math inline">\(i=1,\dots,5\)</span> we can write the following mathematical formula for our residuals <span class="math inline">\(r_{u,i}\)</span>.</p>
+<p>those that like gangster movies and dislike romance movies (coded as 2), those that like romance movies and dislike gangster movies (coded as -2), and those that don’t care (coded as 0). The main point here is that we can almost reconstruct <span class="math inline">\(r\)</span>, which has 60 values, with a couple of vectors totaling 17 values. Note that <code>p</code> and <code>q</code> are equivalent to the patterns and weights we described in Section <a href="large-datasets.html#pca">33.5.4</a>.</p>
+<p>If <span class="math inline">\(r\)</span> contains the residuals for users <span class="math inline">\(u=1,\dots,12\)</span> for movies <span class="math inline">\(i=1,\dots,5\)</span> we can write the following mathematical formula for our residuals <span class="math inline">\(r_{u,i}\)</span>.</p>
 <p><span class="math display">\[
 r_{u,i} \approx p_u q_i 
 \]</span></p>
