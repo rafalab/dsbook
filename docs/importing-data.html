@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2021-04-06" />
+<meta name="date" content="2021-04-11" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -52,6 +52,7 @@
 
 <script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 <script src="libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 
 
 <style type="text/css">
@@ -663,7 +664,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="27.2" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#an-example"><i class="fa fa-check"></i><b>27.2</b> An example</a></li>
 <li class="chapter" data-level="27.3" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#exercises-44"><i class="fa fa-check"></i><b>27.3</b> Exercises</a></li>
 <li class="chapter" data-level="27.4" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#evaluation-metrics"><i class="fa fa-check"></i><b>27.4</b> Evaluation metrics</a><ul>
-<li class="chapter" data-level="27.4.1" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#training-and-test-sets"><i class="fa fa-check"></i><b>27.4.1</b> Training and test sets</a></li>
+<li class="chapter" data-level="27.4.1" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#training-test"><i class="fa fa-check"></i><b>27.4.1</b> Training and test sets</a></li>
 <li class="chapter" data-level="27.4.2" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#overall-accuracy"><i class="fa fa-check"></i><b>27.4.2</b> Overall accuracy</a></li>
 <li class="chapter" data-level="27.4.3" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#the-confusion-matrix"><i class="fa fa-check"></i><b>27.4.3</b> The confusion matrix</a></li>
 <li class="chapter" data-level="27.4.4" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#sensitivity-and-specificity"><i class="fa fa-check"></i><b>27.4.4</b> Sensitivity and specificity</a></li>
@@ -1027,14 +1028,15 @@ the function <code>file.copy</code>. This function takes two arguments: the file
 <span id="cb246-4"><a href="importing-data.html#cb246-4"></a><span class="co">#&gt; [3] &quot;Alaska,AK,West,710231,19&quot;</span></span></code></pre></div>
 <p>This also shows that there is a header. Now we are ready to read-in the data into R. From the .csv suffix and the peek at the file, we know to use <code>read_csv</code>:</p>
 <div class="sourceCode" id="cb247"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb247-1"><a href="importing-data.html#cb247-1"></a>dat &lt;-<span class="st"> </span><span class="kw">read_csv</span>(filename)</span>
-<span id="cb247-2"><a href="importing-data.html#cb247-2"></a><span class="co">#&gt; Parsed with column specification:</span></span>
-<span id="cb247-3"><a href="importing-data.html#cb247-3"></a><span class="co">#&gt; cols(</span></span>
-<span id="cb247-4"><a href="importing-data.html#cb247-4"></a><span class="co">#&gt;   state = col_character(),</span></span>
-<span id="cb247-5"><a href="importing-data.html#cb247-5"></a><span class="co">#&gt;   abb = col_character(),</span></span>
-<span id="cb247-6"><a href="importing-data.html#cb247-6"></a><span class="co">#&gt;   region = col_character(),</span></span>
-<span id="cb247-7"><a href="importing-data.html#cb247-7"></a><span class="co">#&gt;   population = col_double(),</span></span>
-<span id="cb247-8"><a href="importing-data.html#cb247-8"></a><span class="co">#&gt;   total = col_double()</span></span>
-<span id="cb247-9"><a href="importing-data.html#cb247-9"></a><span class="co">#&gt; )</span></span></code></pre></div>
+<span id="cb247-2"><a href="importing-data.html#cb247-2"></a><span class="co">#&gt; </span></span>
+<span id="cb247-3"><a href="importing-data.html#cb247-3"></a><span class="co">#&gt; ── Column specification ────────────────────────────────────────────────</span></span>
+<span id="cb247-4"><a href="importing-data.html#cb247-4"></a><span class="co">#&gt; cols(</span></span>
+<span id="cb247-5"><a href="importing-data.html#cb247-5"></a><span class="co">#&gt;   state = col_character(),</span></span>
+<span id="cb247-6"><a href="importing-data.html#cb247-6"></a><span class="co">#&gt;   abb = col_character(),</span></span>
+<span id="cb247-7"><a href="importing-data.html#cb247-7"></a><span class="co">#&gt;   region = col_character(),</span></span>
+<span id="cb247-8"><a href="importing-data.html#cb247-8"></a><span class="co">#&gt;   population = col_double(),</span></span>
+<span id="cb247-9"><a href="importing-data.html#cb247-9"></a><span class="co">#&gt;   total = col_double()</span></span>
+<span id="cb247-10"><a href="importing-data.html#cb247-10"></a><span class="co">#&gt; )</span></span></code></pre></div>
 <p>Note that we receive a message letting us know what data types were used for each column.
 Also note that <code>dat</code> is a <code>tibble</code>, not just a data frame. This is because <code>read_csv</code> is a <strong>tidyverse</strong> parser. We can confirm that the data has in fact been read-in with:</p>
 <div class="sourceCode" id="cb248"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb248-1"><a href="importing-data.html#cb248-1"></a><span class="kw">View</span>(dat)</span></code></pre></div>

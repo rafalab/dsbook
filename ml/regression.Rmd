@@ -197,17 +197,17 @@ d. Unless we include all predictors, we have no predicting power.
 
 ## Logistic regression
 
-The regression approach can be extended to categorical data. In this section we first illustrate how, for binary data, one can simply assign numeric values of 0 and 1 to the outcomes $y$, and apply regression as if the data were continuous. We will then point out a limitation with this approach and introduce _logistic regression_ as a solution. Logistic regression is a specific case of a set of _generalized linear models_. To illustrate logistic regression, we will apply it to our previous predicting sex example:
+The regression approach can be extended to categorical data. In this section we first illustrate how, for binary data, one can simply assign numeric values of 0 and 1 to the outcomes $y$, and apply regression as if the data were continuous. We will then point out a limitation with this approach and introduce _logistic regression_ as a solution. Logistic regression is a specific case of a set of _generalized linear models_. To illustrate logistic regression, we will apply it to our previous predicting sex example defined in Section \@ref(training-test).
 
 ```{r, echo=FALSE}
-library(dslabs)
-data("heights")
+data(heights)
 
-y <- heights$height
-set.seed(2)
+y <- heights$sex
+
+set.seed(2007)
 test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
-train_set <- heights %>% slice(-test_index)
-test_set <- heights %>% slice(test_index)
+test_set <- heights[test_index, ]
+train_set <- heights[-test_index, ]
 ```
 
 If we define the outcome $Y$ as 1 for females and 0 for males, and $X$ as the height, we are interested in the conditional probability:
@@ -220,7 +220,7 @@ As an example, let's provide a prediction for a student that is 66 inches tall. 
 
 ```{r}
 train_set %>% 
-  filter(round(height)==66) %>%
+  filter(round(height) == 66) %>%
   summarize(y_hat = mean(sex=="Female"))
 ```
 
@@ -261,14 +261,14 @@ To form a prediction, we define a _decision rule_:  predict female if $\hat{p}(x
 ```{r}
 p_hat <- predict(lm_fit, test_set)
 y_hat <- ifelse(p_hat > 0.5, "Female", "Male") %>% factor()
-confusionMatrix(y_hat, test_set$sex)[["Accuracy"]]
+confusionMatrix(y_hat, test_set$sex)$overall[["Accuracy"]]
 ```
 
 We see this method does substantially better than guessing.
 
 ### Generalized linear models
 
-The function $\beta_0 + \beta_1 x$ can take any value including negatives and values larger than 1. In fact, the estimate $\hat{p}(x)$ computed in the linear regression section does indeed become negative at around 76 inches.
+The function $\beta_0 + \beta_1 x$ can take any value including negatives and values larger than 1. In fact, the estimate $\hat{p}(x)$ computed in the linear regression section does indeed become negative.
 
 ```{r regression-prediction}
 heights %>% 
@@ -348,12 +348,12 @@ Because we have an estimate $\hat{p}(x)$, we can obtain predictions:
 
 ```{r}
 y_hat_logit <- ifelse(p_hat_logit > 0.5, "Female", "Male") %>% factor
-confusionMatrix(y_hat_logit, test_set$sex)[["Accuracy"]]
+confusionMatrix(y_hat_logit, test_set$sex)$overall[["Accuracy"]]
 ```
 
 The resulting predictions are similar. This is because the two estimates of $p(x)$ are larger than 1/2 in about the same region of x:
 
-```{r glm-prediction}
+```{r glm-prediction, echo = FALSE}
 data.frame(x = seq(min(tmp$x), max(tmp$x))) %>%
   mutate(logistic = plogis(glm_fit$coef[1] + glm_fit$coef[2]*x),
          regression = lm_fit$coef[1] + lm_fit$coef[2]*x) %>%

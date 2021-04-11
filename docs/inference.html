@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2021-04-06" />
+<meta name="date" content="2021-04-11" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -52,6 +52,7 @@
 
 <script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 <script src="libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 
 
 <style type="text/css">
@@ -663,7 +664,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="27.2" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#an-example"><i class="fa fa-check"></i><b>27.2</b> An example</a></li>
 <li class="chapter" data-level="27.3" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#exercises-44"><i class="fa fa-check"></i><b>27.3</b> Exercises</a></li>
 <li class="chapter" data-level="27.4" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#evaluation-metrics"><i class="fa fa-check"></i><b>27.4</b> Evaluation metrics</a><ul>
-<li class="chapter" data-level="27.4.1" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#training-and-test-sets"><i class="fa fa-check"></i><b>27.4.1</b> Training and test sets</a></li>
+<li class="chapter" data-level="27.4.1" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#training-test"><i class="fa fa-check"></i><b>27.4.1</b> Training and test sets</a></li>
 <li class="chapter" data-level="27.4.2" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#overall-accuracy"><i class="fa fa-check"></i><b>27.4.2</b> Overall accuracy</a></li>
 <li class="chapter" data-level="27.4.3" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#the-confusion-matrix"><i class="fa fa-check"></i><b>27.4.3</b> The confusion matrix</a></li>
 <li class="chapter" data-level="27.4.4" data-path="introduction-to-machine-learning.html"><a href="introduction-to-machine-learning.html#sensitivity-and-specificity"><i class="fa fa-check"></i><b>27.4.4</b> Sensitivity and specificity</a></li>
@@ -1226,9 +1227,9 @@ Clinton +5
 <p><img src="inference/img/urn.jpg" width="300" style="display: block; margin: auto;" /></p>
 <p>Before making a prediction, you can take a sample (with replacement) from the urn. To mimic the fact that running polls is expensive, it costs you $0.10 per each bead you sample. Therefore, if your sample size is 250, and you win, you will break even since you will pay $25 to collect your $25 prize. Your entry into the competition can be an interval. If the interval you submit contains the true proportion, you get half what you paid and pass to the second phase of the competition. In the second phase, the entry with the smallest interval is selected as the winner.</p>
 <p>The <strong>dslabs</strong> package includes a function that shows a random draw from this urn:</p>
-<div class="sourceCode" id="cb539"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb539-1"><a href="inference.html#cb539-1"></a><span class="kw">library</span>(tidyverse)</span>
-<span id="cb539-2"><a href="inference.html#cb539-2"></a><span class="kw">library</span>(dslabs)</span>
-<span id="cb539-3"><a href="inference.html#cb539-3"></a><span class="kw">take_poll</span>(<span class="dv">25</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb541"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb541-1"><a href="inference.html#cb541-1"></a><span class="kw">library</span>(tidyverse)</span>
+<span id="cb541-2"><a href="inference.html#cb541-2"></a><span class="kw">library</span>(dslabs)</span>
+<span id="cb541-3"><a href="inference.html#cb541-3"></a><span class="kw">take_poll</span>(<span class="dv">25</span>)</span></code></pre></div>
 <p><img src="book_files/figure-html/first-simulated-poll-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>Think about how you would construct your interval based on the data shown above.</p>
 <p>We have just described a simple sampling model for opinion polls. The beads inside the urn represent the individuals that will vote on election day. Those that will vote for the Republican candidate are represented with red beads and the Democrats with the blue beads. For simplicity, assume there are no other colors. That is, that there are just two parties: Republican and Democratic.</p>
@@ -1275,8 +1276,8 @@ Clinton +5
 <p>One problem is that we do not know <span class="math inline">\(p\)</span>, so we can’t compute the standard error. However, for illustrative purposes, let’s assume that <span class="math inline">\(p=0.51\)</span> and make a plot of the standard error versus the sample size <span class="math inline">\(N\)</span>:</p>
 <p><img src="book_files/figure-html/standard-error-versus-sample-size-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>From the plot we see that we would need a poll of over 10,000 people to get the standard error that low. We rarely see polls of this size due in part to costs. From the Real Clear Politics table, we learn that the sample sizes in opinion polls range from 500-3,500 people. For a sample size of 1,000 and <span class="math inline">\(p=0.51\)</span>, the standard error is:</p>
-<div class="sourceCode" id="cb540"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb540-1"><a href="inference.html#cb540-1"></a><span class="kw">sqrt</span>(p<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p))<span class="op">/</span><span class="kw">sqrt</span>(<span class="dv">1000</span>)</span>
-<span id="cb540-2"><a href="inference.html#cb540-2"></a><span class="co">#&gt; [1] 0.0158</span></span></code></pre></div>
+<div class="sourceCode" id="cb542"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb542-1"><a href="inference.html#cb542-1"></a><span class="kw">sqrt</span>(p<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p))<span class="op">/</span><span class="kw">sqrt</span>(<span class="dv">1000</span>)</span>
+<span id="cb542-2"><a href="inference.html#cb542-2"></a><span class="co">#&gt; [1] 0.0158</span></span></code></pre></div>
 <p>or 1.5 percentage points. So even with large polls, for close elections, <span class="math inline">\(\bar{X}\)</span> can lead us astray if we don’t realize it is a random variable. Nonetheless, we can actually say more about how close we get the <span class="math inline">\(p\)</span> and we do that in Section <a href="inference.html#clt">15.4</a>.</p>
 </div>
 </div>
@@ -1323,17 +1324,17 @@ which is the same as:</p>
 \]</span>
 In statistics textbooks, we use a little hat to denote estimates. The estimate can be constructed using the observed data and <span class="math inline">\(N\)</span>.</p>
 <p>Now we continue with our calculation, but dividing by <span class="math inline">\(\hat{\mbox{SE}}(\bar{X})=\sqrt{\bar{X}(1-\bar{X})/N})\)</span> instead. In our first sample we had 12 blue and 13 red so <span class="math inline">\(\bar{X} = 0.48\)</span> and our estimate of standard error is:</p>
-<div class="sourceCode" id="cb541"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb541-1"><a href="inference.html#cb541-1"></a>x_hat &lt;-<span class="st"> </span><span class="fl">0.48</span></span>
-<span id="cb541-2"><a href="inference.html#cb541-2"></a>se &lt;-<span class="st"> </span><span class="kw">sqrt</span>(x_hat<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>x_hat)<span class="op">/</span><span class="dv">25</span>)</span>
-<span id="cb541-3"><a href="inference.html#cb541-3"></a>se</span>
-<span id="cb541-4"><a href="inference.html#cb541-4"></a><span class="co">#&gt; [1] 0.0999</span></span></code></pre></div>
+<div class="sourceCode" id="cb543"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb543-1"><a href="inference.html#cb543-1"></a>x_hat &lt;-<span class="st"> </span><span class="fl">0.48</span></span>
+<span id="cb543-2"><a href="inference.html#cb543-2"></a>se &lt;-<span class="st"> </span><span class="kw">sqrt</span>(x_hat<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>x_hat)<span class="op">/</span><span class="dv">25</span>)</span>
+<span id="cb543-3"><a href="inference.html#cb543-3"></a>se</span>
+<span id="cb543-4"><a href="inference.html#cb543-4"></a><span class="co">#&gt; [1] 0.0999</span></span></code></pre></div>
 <p>And now we can answer the question of the probability of being close to <span class="math inline">\(p\)</span>. The answer is:</p>
-<div class="sourceCode" id="cb542"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb542-1"><a href="inference.html#cb542-1"></a><span class="kw">pnorm</span>(<span class="fl">0.01</span><span class="op">/</span>se) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="op">-</span><span class="fl">0.01</span><span class="op">/</span>se)</span>
-<span id="cb542-2"><a href="inference.html#cb542-2"></a><span class="co">#&gt; [1] 0.0797</span></span></code></pre></div>
+<div class="sourceCode" id="cb544"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb544-1"><a href="inference.html#cb544-1"></a><span class="kw">pnorm</span>(<span class="fl">0.01</span><span class="op">/</span>se) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="op">-</span><span class="fl">0.01</span><span class="op">/</span>se)</span>
+<span id="cb544-2"><a href="inference.html#cb544-2"></a><span class="co">#&gt; [1] 0.0797</span></span></code></pre></div>
 <p>Therefore, there is a small chance that we will be close. A poll of only <span class="math inline">\(N=25\)</span> people is not really very useful, at least not for a close election.</p>
 <p>Earlier we mentioned the <em>margin of error</em>. Now we can define it because it is simply two times the standard error, which we can now estimate. In our case it is:</p>
-<div class="sourceCode" id="cb543"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb543-1"><a href="inference.html#cb543-1"></a><span class="fl">1.96</span><span class="op">*</span>se</span>
-<span id="cb543-2"><a href="inference.html#cb543-2"></a><span class="co">#&gt; [1] 0.196</span></span></code></pre></div>
+<div class="sourceCode" id="cb545"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb545-1"><a href="inference.html#cb545-1"></a><span class="fl">1.96</span><span class="op">*</span>se</span>
+<span id="cb545-2"><a href="inference.html#cb545-2"></a><span class="co">#&gt; [1] 0.196</span></span></code></pre></div>
 <p>Why do we multiply by 1.96? Because if you ask what is the probability that we are within 1.96 standard errors from <span class="math inline">\(p\)</span>, we get:</p>
 <p><span class="math display">\[
 \mbox{Pr}\left(Z \leq \, 1.96\,\mbox{SE}(\bar{X})  / \mbox{SE}(\bar{X}) \right) -
@@ -1345,38 +1346,38 @@ which is:</p>
 \mbox{Pr}\left(Z \leq - 1.96\right) 
 \]</span></p>
 <p>which we know is about 95%:</p>
-<div class="sourceCode" id="cb544"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb544-1"><a href="inference.html#cb544-1"></a><span class="kw">pnorm</span>(<span class="fl">1.96</span>)<span class="op">-</span><span class="kw">pnorm</span>(<span class="op">-</span><span class="fl">1.96</span>)</span>
-<span id="cb544-2"><a href="inference.html#cb544-2"></a><span class="co">#&gt; [1] 0.95</span></span></code></pre></div>
+<div class="sourceCode" id="cb546"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb546-1"><a href="inference.html#cb546-1"></a><span class="kw">pnorm</span>(<span class="fl">1.96</span>)<span class="op">-</span><span class="kw">pnorm</span>(<span class="op">-</span><span class="fl">1.96</span>)</span>
+<span id="cb546-2"><a href="inference.html#cb546-2"></a><span class="co">#&gt; [1] 0.95</span></span></code></pre></div>
 <p>Hence, there is a 95% probability that <span class="math inline">\(\bar{X}\)</span> will be within <span class="math inline">\(1.96\times \hat{SE}(\bar{X})\)</span>, in our case within about 0.2, of <span class="math inline">\(p\)</span>. Note that 95% is somewhat of an arbitrary choice and sometimes other percentages are used, but it is the most commonly used value to define margin of error. We often round 1.96 up to 2 for simplicity of presentation.</p>
 <p>In summary, the CLT tells us that our poll based on a sample size of <span class="math inline">\(25\)</span> is not very useful. We don’t really learn much when the margin of error is this large. All we can really say is that the popular vote will not be won by a large margin. This is why pollsters tend to use larger sample sizes.</p>
 <p>From the table above, we see that typical sample sizes range from 700 to 3500. To see how this gives us a much more practical result, notice that if we had obtained a <span class="math inline">\(\bar{X}\)</span>=0.48 with a sample size of 2,000, our standard error <span class="math inline">\(\hat{\mbox{SE}}(\bar{X})\)</span> would have been 0.011. So our result is an estimate of <code>48</code>% with a margin of error of 2%. In this case, the result is much more informative and would make us think that there are more red balls than blue. Keep in mind, however, that this is hypothetical. We did not take a poll of 2,000 since we don’t want to ruin the competition.</p>
 <div id="a-monte-carlo-simulation" class="section level3">
 <h3><span class="header-section-number">15.4.1</span> A Monte Carlo simulation</h3>
 <p>Suppose we want to use a Monte Carlo simulation to corroborate the tools we have built using probability theory. To create the simulation, we would write code like this:</p>
-<div class="sourceCode" id="cb545"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb545-1"><a href="inference.html#cb545-1"></a>B &lt;-<span class="st"> </span><span class="dv">10000</span></span>
-<span id="cb545-2"><a href="inference.html#cb545-2"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
-<span id="cb545-3"><a href="inference.html#cb545-3"></a>x_hat &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {</span>
-<span id="cb545-4"><a href="inference.html#cb545-4"></a>  x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">size =</span> N, <span class="dt">replace =</span> <span class="ot">TRUE</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
-<span id="cb545-5"><a href="inference.html#cb545-5"></a>  <span class="kw">mean</span>(x)</span>
-<span id="cb545-6"><a href="inference.html#cb545-6"></a>})</span></code></pre></div>
+<div class="sourceCode" id="cb547"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb547-1"><a href="inference.html#cb547-1"></a>B &lt;-<span class="st"> </span><span class="dv">10000</span></span>
+<span id="cb547-2"><a href="inference.html#cb547-2"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
+<span id="cb547-3"><a href="inference.html#cb547-3"></a>x_hat &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {</span>
+<span id="cb547-4"><a href="inference.html#cb547-4"></a>  x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">size =</span> N, <span class="dt">replace =</span> <span class="ot">TRUE</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
+<span id="cb547-5"><a href="inference.html#cb547-5"></a>  <span class="kw">mean</span>(x)</span>
+<span id="cb547-6"><a href="inference.html#cb547-6"></a>})</span></code></pre></div>
 <p>The problem is, of course, we don’t know <code>p</code>. We could construct an urn like the one pictured above and run an analog (without a computer) simulation. It would take a long time, but you could take 10,000 samples, count the beads and keep track of the proportions of blue. We can use the function <code>take_poll(n=1000)</code> instead of drawing from an actual urn, but it would still take time to count the beads and enter the results.</p>
 <p>One thing we therefore do to corroborate theoretical results is to pick one or several values of <code>p</code> and run the simulations. Let’s set <code>p=0.45</code>. We can then simulate a poll:</p>
-<div class="sourceCode" id="cb546"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb546-1"><a href="inference.html#cb546-1"></a>p &lt;-<span class="st"> </span><span class="fl">0.45</span></span>
-<span id="cb546-2"><a href="inference.html#cb546-2"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
-<span id="cb546-3"><a href="inference.html#cb546-3"></a></span>
-<span id="cb546-4"><a href="inference.html#cb546-4"></a>x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">size =</span> N, <span class="dt">replace =</span> <span class="ot">TRUE</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
-<span id="cb546-5"><a href="inference.html#cb546-5"></a>x_hat &lt;-<span class="st"> </span><span class="kw">mean</span>(x)</span></code></pre></div>
+<div class="sourceCode" id="cb548"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb548-1"><a href="inference.html#cb548-1"></a>p &lt;-<span class="st"> </span><span class="fl">0.45</span></span>
+<span id="cb548-2"><a href="inference.html#cb548-2"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
+<span id="cb548-3"><a href="inference.html#cb548-3"></a></span>
+<span id="cb548-4"><a href="inference.html#cb548-4"></a>x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">size =</span> N, <span class="dt">replace =</span> <span class="ot">TRUE</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
+<span id="cb548-5"><a href="inference.html#cb548-5"></a>x_hat &lt;-<span class="st"> </span><span class="kw">mean</span>(x)</span></code></pre></div>
 <p>In this particular sample, our estimate is <code>x_hat</code>. We can use that code to do a Monte Carlo simulation:</p>
-<div class="sourceCode" id="cb547"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb547-1"><a href="inference.html#cb547-1"></a>B &lt;-<span class="st"> </span><span class="dv">10000</span></span>
-<span id="cb547-2"><a href="inference.html#cb547-2"></a>x_hat &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {</span>
-<span id="cb547-3"><a href="inference.html#cb547-3"></a>  x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">size =</span> N, <span class="dt">replace =</span> <span class="ot">TRUE</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
-<span id="cb547-4"><a href="inference.html#cb547-4"></a>  <span class="kw">mean</span>(x)</span>
-<span id="cb547-5"><a href="inference.html#cb547-5"></a>})</span></code></pre></div>
+<div class="sourceCode" id="cb549"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb549-1"><a href="inference.html#cb549-1"></a>B &lt;-<span class="st"> </span><span class="dv">10000</span></span>
+<span id="cb549-2"><a href="inference.html#cb549-2"></a>x_hat &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {</span>
+<span id="cb549-3"><a href="inference.html#cb549-3"></a>  x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">size =</span> N, <span class="dt">replace =</span> <span class="ot">TRUE</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
+<span id="cb549-4"><a href="inference.html#cb549-4"></a>  <span class="kw">mean</span>(x)</span>
+<span id="cb549-5"><a href="inference.html#cb549-5"></a>})</span></code></pre></div>
 <p>To review, the theory tells us that <span class="math inline">\(\bar{X}\)</span> is approximately normally distributed, has expected value <span class="math inline">\(p=\)</span> 0.45 and standard error <span class="math inline">\(\sqrt{p(1-p)/N}\)</span> = 0.016. The simulation confirms this:</p>
-<div class="sourceCode" id="cb548"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb548-1"><a href="inference.html#cb548-1"></a><span class="kw">mean</span>(x_hat)</span>
-<span id="cb548-2"><a href="inference.html#cb548-2"></a><span class="co">#&gt; [1] 0.45</span></span>
-<span id="cb548-3"><a href="inference.html#cb548-3"></a><span class="kw">sd</span>(x_hat)</span>
-<span id="cb548-4"><a href="inference.html#cb548-4"></a><span class="co">#&gt; [1] 0.0157</span></span></code></pre></div>
+<div class="sourceCode" id="cb550"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb550-1"><a href="inference.html#cb550-1"></a><span class="kw">mean</span>(x_hat)</span>
+<span id="cb550-2"><a href="inference.html#cb550-2"></a><span class="co">#&gt; [1] 0.45</span></span>
+<span id="cb550-3"><a href="inference.html#cb550-3"></a><span class="kw">sd</span>(x_hat)</span>
+<span id="cb550-4"><a href="inference.html#cb550-4"></a><span class="co">#&gt; [1] 0.0156</span></span></code></pre></div>
 <p>A histogram and qq-plot confirm that the normal approximation is accurate as well:</p>
 <p><img src="book_files/figure-html/normal-approximation-for-polls-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>Of course, in real life we would never be able to run such an experiment because we don’t know <span class="math inline">\(p\)</span>. But we could run it for various values of <span class="math inline">\(p\)</span> and <span class="math inline">\(N\)</span> and see that the theory does indeed work well for most values. You can easily do this by re-running the code above after changing <code>p</code> and <code>N</code>.</p>
@@ -1398,8 +1399,8 @@ which is:</p>
 <p>1. Write an <em>urn model</em> function that takes the proportion of Democrats <span class="math inline">\(p\)</span> and the sample size <span class="math inline">\(N\)</span> as arguments and returns the sample average if Democrats are 1s and Republicans are 0s. Call the function <code>take_sample</code>.</p>
 <p>2. Now assume <code>p &lt;- 0.45</code> and that your sample size is <span class="math inline">\(N=100\)</span>. Take a sample 10,000 times and save the vector of <code>mean(X) - p</code> into an object called <code>errors</code>. Hint: use the function you wrote for exercise 1 to write this in one line of code.</p>
 <p>3. The vector <code>errors</code> contains, for each simulated sample, the difference between the actual <span class="math inline">\(p\)</span> and our estimate <span class="math inline">\(\bar{X}\)</span>. We refer to this difference as the <em>error</em>. Compute the average and make a histogram of the errors generated in the Monte Carlo simulation and select which of the following best describes their distributions:</p>
-<div class="sourceCode" id="cb549"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb549-1"><a href="inference.html#cb549-1"></a><span class="kw">mean</span>(errors)</span>
-<span id="cb549-2"><a href="inference.html#cb549-2"></a><span class="kw">hist</span>(errors)</span></code></pre></div>
+<div class="sourceCode" id="cb551"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb551-1"><a href="inference.html#cb551-1"></a><span class="kw">mean</span>(errors)</span>
+<span id="cb551-2"><a href="inference.html#cb551-2"></a><span class="kw">hist</span>(errors)</span></code></pre></div>
 <ol style="list-style-type: lower-alpha">
 <li>The errors are all about 0.05.</li>
 <li>The errors are all about -0.05.</li>
@@ -1446,20 +1447,20 @@ which is:</p>
 <p>We can use the statistical theory we have learned to compute the probability of any given interval including <span class="math inline">\(p\)</span>. If we are asked to create an interval with, say, a 95% chance of including <span class="math inline">\(p\)</span>, we can do that as well. These are called 95% confidence intervals.</p>
 <p>When a pollster reports an estimate and a margin of error, they are, in a way, reporting a 95% confidence interval. Let’s show how this works mathematically.</p>
 <p>We want to know the probability that the interval <span class="math inline">\([\bar{X} - 2\hat{\mbox{SE}}(\bar{X}), \bar{X} + 2\hat{\mbox{SE}}(\bar{X})]\)</span> contains the true proportion <span class="math inline">\(p\)</span>. First, consider that the start and end of these intervals are random variables: every time we take a sample, they change. To illustrate this, run the Monte Carlo simulation above twice. We use the same parameters as above:</p>
-<div class="sourceCode" id="cb550"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb550-1"><a href="inference.html#cb550-1"></a>p &lt;-<span class="st"> </span><span class="fl">0.45</span></span>
-<span id="cb550-2"><a href="inference.html#cb550-2"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span></code></pre></div>
+<div class="sourceCode" id="cb552"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb552-1"><a href="inference.html#cb552-1"></a>p &lt;-<span class="st"> </span><span class="fl">0.45</span></span>
+<span id="cb552-2"><a href="inference.html#cb552-2"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span></code></pre></div>
 <p>And notice that the interval here:</p>
-<div class="sourceCode" id="cb551"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb551-1"><a href="inference.html#cb551-1"></a>x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="dt">size =</span> N, <span class="dt">replace =</span> <span class="ot">TRUE</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
-<span id="cb551-2"><a href="inference.html#cb551-2"></a>x_hat &lt;-<span class="st"> </span><span class="kw">mean</span>(x)</span>
-<span id="cb551-3"><a href="inference.html#cb551-3"></a>se_hat &lt;-<span class="st"> </span><span class="kw">sqrt</span>(x_hat <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>x_hat) <span class="op">/</span><span class="st"> </span>N)</span>
-<span id="cb551-4"><a href="inference.html#cb551-4"></a><span class="kw">c</span>(x_hat <span class="op">-</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat, x_hat <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat)</span>
-<span id="cb551-5"><a href="inference.html#cb551-5"></a><span class="co">#&gt; [1] 0.414 0.476</span></span></code></pre></div>
+<div class="sourceCode" id="cb553"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb553-1"><a href="inference.html#cb553-1"></a>x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="dt">size =</span> N, <span class="dt">replace =</span> <span class="ot">TRUE</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
+<span id="cb553-2"><a href="inference.html#cb553-2"></a>x_hat &lt;-<span class="st"> </span><span class="kw">mean</span>(x)</span>
+<span id="cb553-3"><a href="inference.html#cb553-3"></a>se_hat &lt;-<span class="st"> </span><span class="kw">sqrt</span>(x_hat <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>x_hat) <span class="op">/</span><span class="st"> </span>N)</span>
+<span id="cb553-4"><a href="inference.html#cb553-4"></a><span class="kw">c</span>(x_hat <span class="op">-</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat, x_hat <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat)</span>
+<span id="cb553-5"><a href="inference.html#cb553-5"></a><span class="co">#&gt; [1] 0.420 0.482</span></span></code></pre></div>
 <p>is different from this one:</p>
-<div class="sourceCode" id="cb552"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb552-1"><a href="inference.html#cb552-1"></a>x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">size=</span>N, <span class="dt">replace=</span><span class="ot">TRUE</span>, <span class="dt">prob=</span><span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
-<span id="cb552-2"><a href="inference.html#cb552-2"></a>x_hat &lt;-<span class="st"> </span><span class="kw">mean</span>(x)</span>
-<span id="cb552-3"><a href="inference.html#cb552-3"></a>se_hat &lt;-<span class="st"> </span><span class="kw">sqrt</span>(x_hat <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>x_hat) <span class="op">/</span><span class="st"> </span>N)</span>
-<span id="cb552-4"><a href="inference.html#cb552-4"></a><span class="kw">c</span>(x_hat <span class="op">-</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat, x_hat <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat)</span>
-<span id="cb552-5"><a href="inference.html#cb552-5"></a><span class="co">#&gt; [1] 0.412 0.474</span></span></code></pre></div>
+<div class="sourceCode" id="cb554"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb554-1"><a href="inference.html#cb554-1"></a>x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">size=</span>N, <span class="dt">replace=</span><span class="ot">TRUE</span>, <span class="dt">prob=</span><span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
+<span id="cb554-2"><a href="inference.html#cb554-2"></a>x_hat &lt;-<span class="st"> </span><span class="kw">mean</span>(x)</span>
+<span id="cb554-3"><a href="inference.html#cb554-3"></a>se_hat &lt;-<span class="st"> </span><span class="kw">sqrt</span>(x_hat <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>x_hat) <span class="op">/</span><span class="st"> </span>N)</span>
+<span id="cb554-4"><a href="inference.html#cb554-4"></a><span class="kw">c</span>(x_hat <span class="op">-</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat, x_hat <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat)</span>
+<span id="cb554-5"><a href="inference.html#cb554-5"></a><span class="co">#&gt; [1] 0.429 0.491</span></span></code></pre></div>
 <p>Keep sampling and creating intervals and you will see the random variation.</p>
 <p>To determine the probability that the interval includes <span class="math inline">\(p\)</span>, we need to compute this:
 <span class="math display">\[
@@ -1475,37 +1476,37 @@ get that the above is equivalent to:</p>
 \mbox{Pr}\left(-1.96 \leq Z \leq  1.96\right)
 \]</span></p>
 <p>which we can quickly compute using :</p>
-<div class="sourceCode" id="cb553"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb553-1"><a href="inference.html#cb553-1"></a><span class="kw">pnorm</span>(<span class="fl">1.96</span>) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="op">-</span><span class="fl">1.96</span>)</span>
-<span id="cb553-2"><a href="inference.html#cb553-2"></a><span class="co">#&gt; [1] 0.95</span></span></code></pre></div>
+<div class="sourceCode" id="cb555"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb555-1"><a href="inference.html#cb555-1"></a><span class="kw">pnorm</span>(<span class="fl">1.96</span>) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="op">-</span><span class="fl">1.96</span>)</span>
+<span id="cb555-2"><a href="inference.html#cb555-2"></a><span class="co">#&gt; [1] 0.95</span></span></code></pre></div>
 <p>proving that we have a 95% probability.</p>
 <p>If we want to have a larger probability, say 99%, we need to multiply by whatever <code>z</code> satisfies the following:</p>
 <p><span class="math display">\[
 \mbox{Pr}\left(-z \leq Z \leq  z\right) = 0.99
 \]</span></p>
 <p>Using:</p>
-<div class="sourceCode" id="cb554"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb554-1"><a href="inference.html#cb554-1"></a>z &lt;-<span class="st"> </span><span class="kw">qnorm</span>(<span class="fl">0.995</span>)</span>
-<span id="cb554-2"><a href="inference.html#cb554-2"></a>z</span>
-<span id="cb554-3"><a href="inference.html#cb554-3"></a><span class="co">#&gt; [1] 2.58</span></span></code></pre></div>
+<div class="sourceCode" id="cb556"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb556-1"><a href="inference.html#cb556-1"></a>z &lt;-<span class="st"> </span><span class="kw">qnorm</span>(<span class="fl">0.995</span>)</span>
+<span id="cb556-2"><a href="inference.html#cb556-2"></a>z</span>
+<span id="cb556-3"><a href="inference.html#cb556-3"></a><span class="co">#&gt; [1] 2.58</span></span></code></pre></div>
 <p>will achieve this because by definition <code>pnorm(qnorm(0.995))</code> is 0.995 and by symmetry <code>pnorm(1-qnorm(0.995))</code> is 1 - 0.995. As a consequence, we have that:</p>
-<div class="sourceCode" id="cb555"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb555-1"><a href="inference.html#cb555-1"></a><span class="kw">pnorm</span>(z) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="op">-</span>z)</span>
-<span id="cb555-2"><a href="inference.html#cb555-2"></a><span class="co">#&gt; [1] 0.99</span></span></code></pre></div>
+<div class="sourceCode" id="cb557"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb557-1"><a href="inference.html#cb557-1"></a><span class="kw">pnorm</span>(z) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="op">-</span>z)</span>
+<span id="cb557-2"><a href="inference.html#cb557-2"></a><span class="co">#&gt; [1] 0.99</span></span></code></pre></div>
 <p>is <code>0.995 - 0.005 = 0.99</code>. We can use this approach for any proportion <span class="math inline">\(p\)</span>: we set <code>z = qnorm(1 - (1 - p)/2)</code> because <span class="math inline">\(1 - (1 - p)/2 - (1 - p)/2 = p\)</span>.</p>
 <p>So, for example, for <span class="math inline">\(p=0.95\)</span>, <span class="math inline">\(1 - (1-p)/2 = 0.975\)</span> and we get the 1.96 we have been using:</p>
-<div class="sourceCode" id="cb556"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb556-1"><a href="inference.html#cb556-1"></a><span class="kw">qnorm</span>(<span class="fl">0.975</span>)</span>
-<span id="cb556-2"><a href="inference.html#cb556-2"></a><span class="co">#&gt; [1] 1.96</span></span></code></pre></div>
+<div class="sourceCode" id="cb558"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb558-1"><a href="inference.html#cb558-1"></a><span class="kw">qnorm</span>(<span class="fl">0.975</span>)</span>
+<span id="cb558-2"><a href="inference.html#cb558-2"></a><span class="co">#&gt; [1] 1.96</span></span></code></pre></div>
 <div id="a-monte-carlo-simulation-1" class="section level3">
 <h3><span class="header-section-number">15.6.1</span> A Monte Carlo simulation</h3>
 <p>We can run a Monte Carlo simulation to confirm that, in fact, a 95% confidence interval includes <span class="math inline">\(p\)</span> 95% of the time.</p>
-<div class="sourceCode" id="cb557"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb557-1"><a href="inference.html#cb557-1"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
-<span id="cb557-2"><a href="inference.html#cb557-2"></a>B &lt;-<span class="st"> </span><span class="dv">10000</span></span>
-<span id="cb557-3"><a href="inference.html#cb557-3"></a>inside &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {</span>
-<span id="cb557-4"><a href="inference.html#cb557-4"></a>  x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">size =</span> N, <span class="dt">replace =</span> <span class="ot">TRUE</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
-<span id="cb557-5"><a href="inference.html#cb557-5"></a>  x_hat &lt;-<span class="st"> </span><span class="kw">mean</span>(x)</span>
-<span id="cb557-6"><a href="inference.html#cb557-6"></a>  se_hat &lt;-<span class="st"> </span><span class="kw">sqrt</span>(x_hat <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>x_hat) <span class="op">/</span><span class="st"> </span>N)</span>
-<span id="cb557-7"><a href="inference.html#cb557-7"></a>  <span class="kw">between</span>(p, x_hat <span class="op">-</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat, x_hat <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat)</span>
-<span id="cb557-8"><a href="inference.html#cb557-8"></a>})</span>
-<span id="cb557-9"><a href="inference.html#cb557-9"></a><span class="kw">mean</span>(inside)</span>
-<span id="cb557-10"><a href="inference.html#cb557-10"></a><span class="co">#&gt; [1] 0.948</span></span></code></pre></div>
+<div class="sourceCode" id="cb559"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb559-1"><a href="inference.html#cb559-1"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
+<span id="cb559-2"><a href="inference.html#cb559-2"></a>B &lt;-<span class="st"> </span><span class="dv">10000</span></span>
+<span id="cb559-3"><a href="inference.html#cb559-3"></a>inside &lt;-<span class="st"> </span><span class="kw">replicate</span>(B, {</span>
+<span id="cb559-4"><a href="inference.html#cb559-4"></a>  x &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">size =</span> N, <span class="dt">replace =</span> <span class="ot">TRUE</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">-</span>p, p))</span>
+<span id="cb559-5"><a href="inference.html#cb559-5"></a>  x_hat &lt;-<span class="st"> </span><span class="kw">mean</span>(x)</span>
+<span id="cb559-6"><a href="inference.html#cb559-6"></a>  se_hat &lt;-<span class="st"> </span><span class="kw">sqrt</span>(x_hat <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>x_hat) <span class="op">/</span><span class="st"> </span>N)</span>
+<span id="cb559-7"><a href="inference.html#cb559-7"></a>  <span class="kw">between</span>(p, x_hat <span class="op">-</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat, x_hat <span class="op">+</span><span class="st"> </span><span class="fl">1.96</span> <span class="op">*</span><span class="st"> </span>se_hat)</span>
+<span id="cb559-8"><a href="inference.html#cb559-8"></a>})</span>
+<span id="cb559-9"><a href="inference.html#cb559-9"></a><span class="kw">mean</span>(inside)</span>
+<span id="cb559-10"><a href="inference.html#cb559-10"></a><span class="co">#&gt; [1] 0.948</span></span></code></pre></div>
 <p>The following plot shows the first 100 confidence intervals. In this case, we created the simulation so the black line denotes the parameter we are trying to estimate:</p>
 <p><img src="book_files/figure-html/confidence-interval-coverage-1.png" width="70%" style="display: block; margin: auto;" /></p>
 </div>
@@ -1517,15 +1518,15 @@ get that the above is equivalent to:</p>
 <div id="exercises-28" class="section level2">
 <h2><span class="header-section-number">15.7</span> Exercises</h2>
 <p>For these exercises, we will use actual polls from the 2016 election. You can load the data from the <strong>dslabs</strong> package.</p>
-<div class="sourceCode" id="cb558"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb558-1"><a href="inference.html#cb558-1"></a><span class="kw">library</span>(dslabs)</span>
-<span id="cb558-2"><a href="inference.html#cb558-2"></a><span class="kw">data</span>(<span class="st">&quot;polls_us_election_2016&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb560"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb560-1"><a href="inference.html#cb560-1"></a><span class="kw">library</span>(dslabs)</span>
+<span id="cb560-2"><a href="inference.html#cb560-2"></a><span class="kw">data</span>(<span class="st">&quot;polls_us_election_2016&quot;</span>)</span></code></pre></div>
 <p>Specifically, we will use all the national polls that ended within one week before the election.</p>
-<div class="sourceCode" id="cb559"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb559-1"><a href="inference.html#cb559-1"></a><span class="kw">library</span>(tidyverse)</span>
-<span id="cb559-2"><a href="inference.html#cb559-2"></a>polls &lt;-<span class="st"> </span>polls_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb559-3"><a href="inference.html#cb559-3"></a><span class="st">  </span><span class="kw">filter</span>(enddate <span class="op">&gt;=</span><span class="st"> &quot;2016-10-31&quot;</span> <span class="op">&amp;</span><span class="st"> </span>state <span class="op">==</span><span class="st"> &quot;U.S.&quot;</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb561"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb561-1"><a href="inference.html#cb561-1"></a><span class="kw">library</span>(tidyverse)</span>
+<span id="cb561-2"><a href="inference.html#cb561-2"></a>polls &lt;-<span class="st"> </span>polls_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb561-3"><a href="inference.html#cb561-3"></a><span class="st">  </span><span class="kw">filter</span>(enddate <span class="op">&gt;=</span><span class="st"> &quot;2016-10-31&quot;</span> <span class="op">&amp;</span><span class="st"> </span>state <span class="op">==</span><span class="st"> &quot;U.S.&quot;</span>) </span></code></pre></div>
 <p>1. For the first poll, you can obtain the samples size and estimated Clinton percentage with:</p>
-<div class="sourceCode" id="cb560"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb560-1"><a href="inference.html#cb560-1"></a>N &lt;-<span class="st"> </span>polls<span class="op">$</span>samplesize[<span class="dv">1</span>]</span>
-<span id="cb560-2"><a href="inference.html#cb560-2"></a>x_hat &lt;-<span class="st"> </span>polls<span class="op">$</span>rawpoll_clinton[<span class="dv">1</span>]<span class="op">/</span><span class="dv">100</span></span></code></pre></div>
+<div class="sourceCode" id="cb562"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb562-1"><a href="inference.html#cb562-1"></a>N &lt;-<span class="st"> </span>polls<span class="op">$</span>samplesize[<span class="dv">1</span>]</span>
+<span id="cb562-2"><a href="inference.html#cb562-2"></a>x_hat &lt;-<span class="st"> </span>polls<span class="op">$</span>rawpoll_clinton[<span class="dv">1</span>]<span class="op">/</span><span class="dv">100</span></span></code></pre></div>
 <p>Assume there are only two candidates and construct a 95% confidence interval for the election night proportion <span class="math inline">\(p\)</span>.</p>
 <p>2. Now use <code>dplyr</code> to add a confidence interval as two columns, call them <code>lower</code> and <code>upper</code>, to the object <code>poll</code>. Then use <code>select</code> to show the <code>pollster</code>, <code>enddate</code>, <code>x_hat</code>,<code>lower</code>, <code>upper</code> variables. Hint: define temporary columns <code>x_hat</code> and <code>se_hat</code>.</p>
 <p>3. The final tally for the popular vote was Clinton 48.2% and Trump 46.1%. Add a column, call it <code>hit</code>, to the previous table stating if the confidence interval included the true proportion <span class="math inline">\(p=0.482\)</span> or not.</p>
@@ -1535,9 +1536,9 @@ get that the above is equivalent to:</p>
 Because, historically, undecideds divide evenly between the two main candidates on election day, it is more informative to estimate the spread or the difference between the proportion of two candidates <span class="math inline">\(d\)</span>, which in this election was <span class="math inline">\(0. 482 - 0.461 = 0.021\)</span>.
 Assume that there are only two parties and that <span class="math inline">\(d = 2p - 1\)</span>, redefine <code>polls</code> as below and
 re-do exercise 1, but for the difference.</p>
-<div class="sourceCode" id="cb561"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb561-1"><a href="inference.html#cb561-1"></a>polls &lt;-<span class="st"> </span>polls_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb561-2"><a href="inference.html#cb561-2"></a><span class="st">  </span><span class="kw">filter</span>(enddate <span class="op">&gt;=</span><span class="st"> &quot;2016-10-31&quot;</span> <span class="op">&amp;</span><span class="st"> </span>state <span class="op">==</span><span class="st"> &quot;U.S.&quot;</span>)  <span class="op">%&gt;%</span></span>
-<span id="cb561-3"><a href="inference.html#cb561-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">d_hat =</span> rawpoll_clinton <span class="op">/</span><span class="st"> </span><span class="dv">100</span> <span class="op">-</span><span class="st"> </span>rawpoll_trump <span class="op">/</span><span class="st"> </span><span class="dv">100</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb563"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb563-1"><a href="inference.html#cb563-1"></a>polls &lt;-<span class="st"> </span>polls_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb563-2"><a href="inference.html#cb563-2"></a><span class="st">  </span><span class="kw">filter</span>(enddate <span class="op">&gt;=</span><span class="st"> &quot;2016-10-31&quot;</span> <span class="op">&amp;</span><span class="st"> </span>state <span class="op">==</span><span class="st"> &quot;U.S.&quot;</span>)  <span class="op">%&gt;%</span></span>
+<span id="cb563-3"><a href="inference.html#cb563-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">d_hat =</span> rawpoll_clinton <span class="op">/</span><span class="st"> </span><span class="dv">100</span> <span class="op">-</span><span class="st"> </span>rawpoll_trump <span class="op">/</span><span class="st"> </span><span class="dv">100</span>)</span></code></pre></div>
 <p>7. Now repeat exercise 3, but for the difference.</p>
 <p>8. Now repeat exercise 4, but for the difference.</p>
 <p>9. Although the proportion of confidence intervals goes up substantially, it is still lower than 0.95. In the next chapter, we learn the reason for this. To motivate this, make a plot of the error, the difference between each poll’s estimate and the actual <span class="math inline">\(d=0.021\)</span>. Stratify by pollster.</p>
@@ -1546,10 +1547,10 @@ re-do exercise 1, but for the difference.</p>
 <div id="power" class="section level2">
 <h2><span class="header-section-number">15.8</span> Power</h2>
 <p>Pollsters are not successful at providing correct confidence intervals, but rather at predicting who will win. When we took a 25 bead sample size, the confidence interval for the spread:</p>
-<div class="sourceCode" id="cb562"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb562-1"><a href="inference.html#cb562-1"></a>N &lt;-<span class="st"> </span><span class="dv">25</span></span>
-<span id="cb562-2"><a href="inference.html#cb562-2"></a>x_hat &lt;-<span class="st"> </span><span class="fl">0.48</span></span>
-<span id="cb562-3"><a href="inference.html#cb562-3"></a>(<span class="dv">2</span> <span class="op">*</span><span class="st"> </span>x_hat <span class="op">-</span><span class="st"> </span><span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="fl">1.96</span>, <span class="fl">1.96</span>) <span class="op">*</span><span class="st"> </span><span class="dv">2</span> <span class="op">*</span><span class="st"> </span><span class="kw">sqrt</span>(x_hat <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>x_hat) <span class="op">/</span><span class="st"> </span>N)</span>
-<span id="cb562-4"><a href="inference.html#cb562-4"></a><span class="co">#&gt; [1] -0.432  0.352</span></span></code></pre></div>
+<div class="sourceCode" id="cb564"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb564-1"><a href="inference.html#cb564-1"></a>N &lt;-<span class="st"> </span><span class="dv">25</span></span>
+<span id="cb564-2"><a href="inference.html#cb564-2"></a>x_hat &lt;-<span class="st"> </span><span class="fl">0.48</span></span>
+<span id="cb564-3"><a href="inference.html#cb564-3"></a>(<span class="dv">2</span> <span class="op">*</span><span class="st"> </span>x_hat <span class="op">-</span><span class="st"> </span><span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="fl">1.96</span>, <span class="fl">1.96</span>) <span class="op">*</span><span class="st"> </span><span class="dv">2</span> <span class="op">*</span><span class="st"> </span><span class="kw">sqrt</span>(x_hat <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>x_hat) <span class="op">/</span><span class="st"> </span>N)</span>
+<span id="cb564-4"><a href="inference.html#cb564-4"></a><span class="co">#&gt; [1] -0.432  0.352</span></span></code></pre></div>
 <p>includes 0. If this were a poll and we were forced to make a declaration, we would have to say it was a “toss-up”.</p>
 <p>A problem with our poll results is that given the sample size and the value of <span class="math inline">\(p\)</span>, we would have to sacrifice on the probability of an incorrect call to create an interval that does not include 0.</p>
 <p>This does not mean that the election is close. It only means that we have a small sample size. In statistical textbooks this is called lack of <em>power</em>. In the context of polls, <em>power</em> is the probability of detecting spreads different from 0.</p>
@@ -1568,10 +1569,10 @@ We call the assumption that the spread is <span class="math inline">\(2p-1=0\)</
 \]</span></p>
 <p>is standard normal. We therefore can compute the probability above, which is the p-value.</p>
 <p><span class="math display">\[\mbox{Pr}\left(\sqrt{N}\frac{\mid \bar{X} - 0.5\mid}{\sqrt{0.5(1-0.5)}} &gt; \sqrt{N} \frac{0.02}{ \sqrt{0.5(1-0.5)}}\right)\]</span></p>
-<div class="sourceCode" id="cb563"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb563-1"><a href="inference.html#cb563-1"></a>N &lt;-<span class="st"> </span><span class="dv">100</span></span>
-<span id="cb563-2"><a href="inference.html#cb563-2"></a>z &lt;-<span class="st"> </span><span class="kw">sqrt</span>(N)<span class="op">*</span><span class="fl">0.02</span><span class="op">/</span><span class="fl">0.5</span></span>
-<span id="cb563-3"><a href="inference.html#cb563-3"></a><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>(<span class="kw">pnorm</span>(z) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="op">-</span>z))</span>
-<span id="cb563-4"><a href="inference.html#cb563-4"></a><span class="co">#&gt; [1] 0.689</span></span></code></pre></div>
+<div class="sourceCode" id="cb565"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb565-1"><a href="inference.html#cb565-1"></a>N &lt;-<span class="st"> </span><span class="dv">100</span></span>
+<span id="cb565-2"><a href="inference.html#cb565-2"></a>z &lt;-<span class="st"> </span><span class="kw">sqrt</span>(N)<span class="op">*</span><span class="fl">0.02</span><span class="op">/</span><span class="fl">0.5</span></span>
+<span id="cb565-3"><a href="inference.html#cb565-3"></a><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>(<span class="kw">pnorm</span>(z) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="op">-</span>z))</span>
+<span id="cb565-4"><a href="inference.html#cb565-4"></a><span class="co">#&gt; [1] 0.689</span></span></code></pre></div>
 <p>In this case, there is actually a large chance of seeing 52 or larger under the null hypothesis.</p>
 <p>Keep in mind that there is a close connection between p-values and confidence intervals. If a 95% confidence interval of the spread does not include 0, we know that the p-value must be smaller than 0.05.</p>
 <p>To learn more about p-values, you can consult any statistics textbook. However, in general, we prefer reporting confidence intervals over p-values since it gives us an idea of the size of the estimate. If we just report the p-value we provide no information about the significance of the finding in the context of the problem.</p>
@@ -1587,37 +1588,37 @@ very specific example, consider the following case study.</p>
 <p>results reveal gender bias favoring male applicants over female applicants in the prioritization of their “quality of researcher” (but not “quality of proposal”) evaluations and success rates, as well as in the language use in instructional and evaluation materials.</p>
 </blockquote>
 <p>The main evidence for this conclusion comes down to a comparison of the percentages. Table S1 in the paper includes the information we need. Here are the three columns showing the overall outcomes:</p>
-<div class="sourceCode" id="cb564"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb564-1"><a href="inference.html#cb564-1"></a><span class="kw">library</span>(tidyverse)</span>
-<span id="cb564-2"><a href="inference.html#cb564-2"></a><span class="kw">library</span>(dslabs)</span>
-<span id="cb564-3"><a href="inference.html#cb564-3"></a><span class="kw">data</span>(<span class="st">&quot;research_funding_rates&quot;</span>)</span>
-<span id="cb564-4"><a href="inference.html#cb564-4"></a>research_funding_rates <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(discipline, applications_total, </span>
-<span id="cb564-5"><a href="inference.html#cb564-5"></a>                                  success_rates_total) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>()</span>
-<span id="cb564-6"><a href="inference.html#cb564-6"></a><span class="co">#&gt;           discipline applications_total success_rates_total</span></span>
-<span id="cb564-7"><a href="inference.html#cb564-7"></a><span class="co">#&gt; 1  Chemical sciences                122                26.2</span></span>
-<span id="cb564-8"><a href="inference.html#cb564-8"></a><span class="co">#&gt; 2  Physical sciences                174                20.1</span></span>
-<span id="cb564-9"><a href="inference.html#cb564-9"></a><span class="co">#&gt; 3            Physics                 76                26.3</span></span>
-<span id="cb564-10"><a href="inference.html#cb564-10"></a><span class="co">#&gt; 4         Humanities                396                16.4</span></span>
-<span id="cb564-11"><a href="inference.html#cb564-11"></a><span class="co">#&gt; 5 Technical sciences                251                17.1</span></span>
-<span id="cb564-12"><a href="inference.html#cb564-12"></a><span class="co">#&gt; 6  Interdisciplinary                183                15.8</span></span></code></pre></div>
+<div class="sourceCode" id="cb566"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb566-1"><a href="inference.html#cb566-1"></a><span class="kw">library</span>(tidyverse)</span>
+<span id="cb566-2"><a href="inference.html#cb566-2"></a><span class="kw">library</span>(dslabs)</span>
+<span id="cb566-3"><a href="inference.html#cb566-3"></a><span class="kw">data</span>(<span class="st">&quot;research_funding_rates&quot;</span>)</span>
+<span id="cb566-4"><a href="inference.html#cb566-4"></a>research_funding_rates <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(discipline, applications_total, </span>
+<span id="cb566-5"><a href="inference.html#cb566-5"></a>                                  success_rates_total) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>()</span>
+<span id="cb566-6"><a href="inference.html#cb566-6"></a><span class="co">#&gt;           discipline applications_total success_rates_total</span></span>
+<span id="cb566-7"><a href="inference.html#cb566-7"></a><span class="co">#&gt; 1  Chemical sciences                122                26.2</span></span>
+<span id="cb566-8"><a href="inference.html#cb566-8"></a><span class="co">#&gt; 2  Physical sciences                174                20.1</span></span>
+<span id="cb566-9"><a href="inference.html#cb566-9"></a><span class="co">#&gt; 3            Physics                 76                26.3</span></span>
+<span id="cb566-10"><a href="inference.html#cb566-10"></a><span class="co">#&gt; 4         Humanities                396                16.4</span></span>
+<span id="cb566-11"><a href="inference.html#cb566-11"></a><span class="co">#&gt; 5 Technical sciences                251                17.1</span></span>
+<span id="cb566-12"><a href="inference.html#cb566-12"></a><span class="co">#&gt; 6  Interdisciplinary                183                15.8</span></span></code></pre></div>
 <p>We have these values for each gender:</p>
-<div class="sourceCode" id="cb565"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb565-1"><a href="inference.html#cb565-1"></a><span class="kw">names</span>(research_funding_rates)</span>
-<span id="cb565-2"><a href="inference.html#cb565-2"></a><span class="co">#&gt;  [1] &quot;discipline&quot;          &quot;applications_total&quot;  &quot;applications_men&quot;   </span></span>
-<span id="cb565-3"><a href="inference.html#cb565-3"></a><span class="co">#&gt;  [4] &quot;applications_women&quot;  &quot;awards_total&quot;        &quot;awards_men&quot;         </span></span>
-<span id="cb565-4"><a href="inference.html#cb565-4"></a><span class="co">#&gt;  [7] &quot;awards_women&quot;        &quot;success_rates_total&quot; &quot;success_rates_men&quot;  </span></span>
-<span id="cb565-5"><a href="inference.html#cb565-5"></a><span class="co">#&gt; [10] &quot;success_rates_women&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb567"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb567-1"><a href="inference.html#cb567-1"></a><span class="kw">names</span>(research_funding_rates)</span>
+<span id="cb567-2"><a href="inference.html#cb567-2"></a><span class="co">#&gt;  [1] &quot;discipline&quot;          &quot;applications_total&quot;  &quot;applications_men&quot;   </span></span>
+<span id="cb567-3"><a href="inference.html#cb567-3"></a><span class="co">#&gt;  [4] &quot;applications_women&quot;  &quot;awards_total&quot;        &quot;awards_men&quot;         </span></span>
+<span id="cb567-4"><a href="inference.html#cb567-4"></a><span class="co">#&gt;  [7] &quot;awards_women&quot;        &quot;success_rates_total&quot; &quot;success_rates_men&quot;  </span></span>
+<span id="cb567-5"><a href="inference.html#cb567-5"></a><span class="co">#&gt; [10] &quot;success_rates_women&quot;</span></span></code></pre></div>
 <p>We can compute the totals that were successful and the totals that were not as follows:</p>
-<div class="sourceCode" id="cb566"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb566-1"><a href="inference.html#cb566-1"></a>totals &lt;-<span class="st"> </span>research_funding_rates <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb566-2"><a href="inference.html#cb566-2"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>discipline) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb566-3"><a href="inference.html#cb566-3"></a><span class="st">  </span><span class="kw">summarize_all</span>(sum) <span class="op">%&gt;%</span></span>
-<span id="cb566-4"><a href="inference.html#cb566-4"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">yes_men =</span> awards_men, </span>
-<span id="cb566-5"><a href="inference.html#cb566-5"></a>            <span class="dt">no_men =</span> applications_men <span class="op">-</span><span class="st"> </span>awards_men, </span>
-<span id="cb566-6"><a href="inference.html#cb566-6"></a>            <span class="dt">yes_women =</span> awards_women, </span>
-<span id="cb566-7"><a href="inference.html#cb566-7"></a>            <span class="dt">no_women =</span> applications_women <span class="op">-</span><span class="st"> </span>awards_women) </span></code></pre></div>
+<div class="sourceCode" id="cb568"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb568-1"><a href="inference.html#cb568-1"></a>totals &lt;-<span class="st"> </span>research_funding_rates <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb568-2"><a href="inference.html#cb568-2"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>discipline) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb568-3"><a href="inference.html#cb568-3"></a><span class="st">  </span><span class="kw">summarize_all</span>(sum) <span class="op">%&gt;%</span></span>
+<span id="cb568-4"><a href="inference.html#cb568-4"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">yes_men =</span> awards_men, </span>
+<span id="cb568-5"><a href="inference.html#cb568-5"></a>            <span class="dt">no_men =</span> applications_men <span class="op">-</span><span class="st"> </span>awards_men, </span>
+<span id="cb568-6"><a href="inference.html#cb568-6"></a>            <span class="dt">yes_women =</span> awards_women, </span>
+<span id="cb568-7"><a href="inference.html#cb568-7"></a>            <span class="dt">no_women =</span> applications_women <span class="op">-</span><span class="st"> </span>awards_women) </span></code></pre></div>
 <p>So we see that a larger percent of men than women received awards:</p>
-<div class="sourceCode" id="cb567"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb567-1"><a href="inference.html#cb567-1"></a>totals <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">percent_men =</span> yes_men<span class="op">/</span>(yes_men<span class="op">+</span>no_men),</span>
-<span id="cb567-2"><a href="inference.html#cb567-2"></a>                     <span class="dt">percent_women =</span> yes_women<span class="op">/</span>(yes_women<span class="op">+</span>no_women))</span>
-<span id="cb567-3"><a href="inference.html#cb567-3"></a><span class="co">#&gt;   percent_men percent_women</span></span>
-<span id="cb567-4"><a href="inference.html#cb567-4"></a><span class="co">#&gt; 1       0.177         0.149</span></span></code></pre></div>
+<div class="sourceCode" id="cb569"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb569-1"><a href="inference.html#cb569-1"></a>totals <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">percent_men =</span> yes_men<span class="op">/</span>(yes_men<span class="op">+</span>no_men),</span>
+<span id="cb569-2"><a href="inference.html#cb569-2"></a>                     <span class="dt">percent_women =</span> yes_women<span class="op">/</span>(yes_women<span class="op">+</span>no_women))</span>
+<span id="cb569-3"><a href="inference.html#cb569-3"></a><span class="co">#&gt;   percent_men percent_women</span></span>
+<span id="cb569-4"><a href="inference.html#cb569-4"></a><span class="co">#&gt; 1       0.177         0.149</span></span></code></pre></div>
 <p>But could this be due just to random variability?
 Here we learn how to perform inference for this type of data.</p>
 <div id="lady-tasting-tea" class="section level3">
@@ -1647,17 +1648,17 @@ it uses the <em>hypergeometric distribution</em>.</p>
 <div id="two-by-two-tables" class="section level3">
 <h3><span class="header-section-number">15.10.2</span> Two-by-two tables</h3>
 <p>The data from the experiment is usually summarized by a table like this:</p>
-<div class="sourceCode" id="cb568"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb568-1"><a href="inference.html#cb568-1"></a>tab &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">3</span>),<span class="dv">2</span>,<span class="dv">2</span>)</span>
-<span id="cb568-2"><a href="inference.html#cb568-2"></a><span class="kw">rownames</span>(tab)&lt;-<span class="kw">c</span>(<span class="st">&quot;Poured Before&quot;</span>,<span class="st">&quot;Poured After&quot;</span>)</span>
-<span id="cb568-3"><a href="inference.html#cb568-3"></a><span class="kw">colnames</span>(tab)&lt;-<span class="kw">c</span>(<span class="st">&quot;Guessed before&quot;</span>,<span class="st">&quot;Guessed after&quot;</span>)</span>
-<span id="cb568-4"><a href="inference.html#cb568-4"></a>tab</span>
-<span id="cb568-5"><a href="inference.html#cb568-5"></a><span class="co">#&gt;               Guessed before Guessed after</span></span>
-<span id="cb568-6"><a href="inference.html#cb568-6"></a><span class="co">#&gt; Poured Before              3             1</span></span>
-<span id="cb568-7"><a href="inference.html#cb568-7"></a><span class="co">#&gt; Poured After               1             3</span></span></code></pre></div>
+<div class="sourceCode" id="cb570"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb570-1"><a href="inference.html#cb570-1"></a>tab &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">3</span>),<span class="dv">2</span>,<span class="dv">2</span>)</span>
+<span id="cb570-2"><a href="inference.html#cb570-2"></a><span class="kw">rownames</span>(tab)&lt;-<span class="kw">c</span>(<span class="st">&quot;Poured Before&quot;</span>,<span class="st">&quot;Poured After&quot;</span>)</span>
+<span id="cb570-3"><a href="inference.html#cb570-3"></a><span class="kw">colnames</span>(tab)&lt;-<span class="kw">c</span>(<span class="st">&quot;Guessed before&quot;</span>,<span class="st">&quot;Guessed after&quot;</span>)</span>
+<span id="cb570-4"><a href="inference.html#cb570-4"></a>tab</span>
+<span id="cb570-5"><a href="inference.html#cb570-5"></a><span class="co">#&gt;               Guessed before Guessed after</span></span>
+<span id="cb570-6"><a href="inference.html#cb570-6"></a><span class="co">#&gt; Poured Before              3             1</span></span>
+<span id="cb570-7"><a href="inference.html#cb570-7"></a><span class="co">#&gt; Poured After               1             3</span></span></code></pre></div>
 <p>These are referred to as a two-by-two table. For each of the four combinations one can get with a pair of binary variables, they show the observed counts for each occurrence.</p>
 <p>The function <code>fisher.test</code> performs the inference calculations above:</p>
-<div class="sourceCode" id="cb569"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb569-1"><a href="inference.html#cb569-1"></a><span class="kw">fisher.test</span>(tab, <span class="dt">alternative=</span><span class="st">&quot;greater&quot;</span>)<span class="op">$</span>p.value</span>
-<span id="cb569-2"><a href="inference.html#cb569-2"></a><span class="co">#&gt; [1] 0.243</span></span></code></pre></div>
+<div class="sourceCode" id="cb571"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb571-1"><a href="inference.html#cb571-1"></a><span class="kw">fisher.test</span>(tab, <span class="dt">alternative=</span><span class="st">&quot;greater&quot;</span>)<span class="op">$</span>p.value</span>
+<span id="cb571-2"><a href="inference.html#cb571-2"></a><span class="co">#&gt; [1] 0.243</span></span></code></pre></div>
 </div>
 <div id="chi-square-test" class="section level3">
 <h3><span class="header-section-number">15.10.3</span> Chi-square Test</h3>
@@ -1666,58 +1667,58 @@ by two table and also permits us to use the hypergeometric
 distribution. In general, this is not the case. Nonetheless, there is
 another approach, the Chi-squared test, which is described below.</p>
 <p>Imagine we have 290, 1,345, 177, 1,011 applicants, some are men and some are women and some get funded, whereas others don’t. We saw that the success rates for men and woman were:</p>
-<div class="sourceCode" id="cb570"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb570-1"><a href="inference.html#cb570-1"></a>totals <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">percent_men =</span> yes_men<span class="op">/</span>(yes_men<span class="op">+</span>no_men),</span>
-<span id="cb570-2"><a href="inference.html#cb570-2"></a>                     <span class="dt">percent_women =</span> yes_women<span class="op">/</span>(yes_women<span class="op">+</span>no_women))</span>
-<span id="cb570-3"><a href="inference.html#cb570-3"></a><span class="co">#&gt;   percent_men percent_women</span></span>
-<span id="cb570-4"><a href="inference.html#cb570-4"></a><span class="co">#&gt; 1       0.177         0.149</span></span></code></pre></div>
+<div class="sourceCode" id="cb572"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb572-1"><a href="inference.html#cb572-1"></a>totals <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">percent_men =</span> yes_men<span class="op">/</span>(yes_men<span class="op">+</span>no_men),</span>
+<span id="cb572-2"><a href="inference.html#cb572-2"></a>                     <span class="dt">percent_women =</span> yes_women<span class="op">/</span>(yes_women<span class="op">+</span>no_women))</span>
+<span id="cb572-3"><a href="inference.html#cb572-3"></a><span class="co">#&gt;   percent_men percent_women</span></span>
+<span id="cb572-4"><a href="inference.html#cb572-4"></a><span class="co">#&gt; 1       0.177         0.149</span></span></code></pre></div>
 <p>respectively. Would we see this again if we randomly assign funding at the overall rate:</p>
-<div class="sourceCode" id="cb571"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb571-1"><a href="inference.html#cb571-1"></a>rate &lt;-<span class="st"> </span>totals <span class="op">%&gt;%</span></span>
-<span id="cb571-2"><a href="inference.html#cb571-2"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">percent_total =</span> </span>
-<span id="cb571-3"><a href="inference.html#cb571-3"></a>              (yes_men <span class="op">+</span><span class="st"> </span>yes_women)<span class="op">/</span></span>
-<span id="cb571-4"><a href="inference.html#cb571-4"></a><span class="st">              </span>(yes_men <span class="op">+</span><span class="st"> </span>no_men <span class="op">+</span>yes_women <span class="op">+</span><span class="st"> </span>no_women)) <span class="op">%&gt;%</span></span>
-<span id="cb571-5"><a href="inference.html#cb571-5"></a><span class="st">  </span><span class="kw">pull</span>(percent_total)</span>
-<span id="cb571-6"><a href="inference.html#cb571-6"></a>rate</span>
-<span id="cb571-7"><a href="inference.html#cb571-7"></a><span class="co">#&gt; [1] 0.165</span></span></code></pre></div>
+<div class="sourceCode" id="cb573"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb573-1"><a href="inference.html#cb573-1"></a>rate &lt;-<span class="st"> </span>totals <span class="op">%&gt;%</span></span>
+<span id="cb573-2"><a href="inference.html#cb573-2"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">percent_total =</span> </span>
+<span id="cb573-3"><a href="inference.html#cb573-3"></a>              (yes_men <span class="op">+</span><span class="st"> </span>yes_women)<span class="op">/</span></span>
+<span id="cb573-4"><a href="inference.html#cb573-4"></a><span class="st">              </span>(yes_men <span class="op">+</span><span class="st"> </span>no_men <span class="op">+</span>yes_women <span class="op">+</span><span class="st"> </span>no_women)) <span class="op">%&gt;%</span></span>
+<span id="cb573-5"><a href="inference.html#cb573-5"></a><span class="st">  </span><span class="kw">pull</span>(percent_total)</span>
+<span id="cb573-6"><a href="inference.html#cb573-6"></a>rate</span>
+<span id="cb573-7"><a href="inference.html#cb573-7"></a><span class="co">#&gt; [1] 0.165</span></span></code></pre></div>
 <p>The Chi-square test answers this question. The first step is to create the two-by-two data table:</p>
-<div class="sourceCode" id="cb572"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb572-1"><a href="inference.html#cb572-1"></a>two_by_two &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">awarded =</span> <span class="kw">c</span>(<span class="st">&quot;no&quot;</span>, <span class="st">&quot;yes&quot;</span>), </span>
-<span id="cb572-2"><a href="inference.html#cb572-2"></a>                     <span class="dt">men =</span> <span class="kw">c</span>(totals<span class="op">$</span>no_men, totals<span class="op">$</span>yes_men),</span>
-<span id="cb572-3"><a href="inference.html#cb572-3"></a>                     <span class="dt">women =</span> <span class="kw">c</span>(totals<span class="op">$</span>no_women, totals<span class="op">$</span>yes_women))</span>
-<span id="cb572-4"><a href="inference.html#cb572-4"></a>two_by_two</span>
-<span id="cb572-5"><a href="inference.html#cb572-5"></a><span class="co">#&gt;   awarded  men women</span></span>
-<span id="cb572-6"><a href="inference.html#cb572-6"></a><span class="co">#&gt; 1      no 1345  1011</span></span>
-<span id="cb572-7"><a href="inference.html#cb572-7"></a><span class="co">#&gt; 2     yes  290   177</span></span></code></pre></div>
+<div class="sourceCode" id="cb574"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb574-1"><a href="inference.html#cb574-1"></a>two_by_two &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">awarded =</span> <span class="kw">c</span>(<span class="st">&quot;no&quot;</span>, <span class="st">&quot;yes&quot;</span>), </span>
+<span id="cb574-2"><a href="inference.html#cb574-2"></a>                     <span class="dt">men =</span> <span class="kw">c</span>(totals<span class="op">$</span>no_men, totals<span class="op">$</span>yes_men),</span>
+<span id="cb574-3"><a href="inference.html#cb574-3"></a>                     <span class="dt">women =</span> <span class="kw">c</span>(totals<span class="op">$</span>no_women, totals<span class="op">$</span>yes_women))</span>
+<span id="cb574-4"><a href="inference.html#cb574-4"></a>two_by_two</span>
+<span id="cb574-5"><a href="inference.html#cb574-5"></a><span class="co">#&gt;   awarded  men women</span></span>
+<span id="cb574-6"><a href="inference.html#cb574-6"></a><span class="co">#&gt; 1      no 1345  1011</span></span>
+<span id="cb574-7"><a href="inference.html#cb574-7"></a><span class="co">#&gt; 2     yes  290   177</span></span></code></pre></div>
 <p>The general idea of the Chi-square test is to compare this two-by-two table to what you expect to see, which would be:</p>
-<div class="sourceCode" id="cb573"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb573-1"><a href="inference.html#cb573-1"></a><span class="kw">data.frame</span>(<span class="dt">awarded =</span> <span class="kw">c</span>(<span class="st">&quot;no&quot;</span>, <span class="st">&quot;yes&quot;</span>), </span>
-<span id="cb573-2"><a href="inference.html#cb573-2"></a>       <span class="dt">men =</span> (totals<span class="op">$</span>no_men <span class="op">+</span><span class="st"> </span>totals<span class="op">$</span>yes_men) <span class="op">*</span><span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>rate, rate),</span>
-<span id="cb573-3"><a href="inference.html#cb573-3"></a>       <span class="dt">women =</span> (totals<span class="op">$</span>no_women <span class="op">+</span><span class="st"> </span>totals<span class="op">$</span>yes_women) <span class="op">*</span><span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>rate, rate))</span>
-<span id="cb573-4"><a href="inference.html#cb573-4"></a><span class="co">#&gt;   awarded  men women</span></span>
-<span id="cb573-5"><a href="inference.html#cb573-5"></a><span class="co">#&gt; 1      no 1365   991</span></span>
-<span id="cb573-6"><a href="inference.html#cb573-6"></a><span class="co">#&gt; 2     yes  270   197</span></span></code></pre></div>
+<div class="sourceCode" id="cb575"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb575-1"><a href="inference.html#cb575-1"></a><span class="kw">data.frame</span>(<span class="dt">awarded =</span> <span class="kw">c</span>(<span class="st">&quot;no&quot;</span>, <span class="st">&quot;yes&quot;</span>), </span>
+<span id="cb575-2"><a href="inference.html#cb575-2"></a>       <span class="dt">men =</span> (totals<span class="op">$</span>no_men <span class="op">+</span><span class="st"> </span>totals<span class="op">$</span>yes_men) <span class="op">*</span><span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>rate, rate),</span>
+<span id="cb575-3"><a href="inference.html#cb575-3"></a>       <span class="dt">women =</span> (totals<span class="op">$</span>no_women <span class="op">+</span><span class="st"> </span>totals<span class="op">$</span>yes_women) <span class="op">*</span><span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>rate, rate))</span>
+<span id="cb575-4"><a href="inference.html#cb575-4"></a><span class="co">#&gt;   awarded  men women</span></span>
+<span id="cb575-5"><a href="inference.html#cb575-5"></a><span class="co">#&gt; 1      no 1365   991</span></span>
+<span id="cb575-6"><a href="inference.html#cb575-6"></a><span class="co">#&gt; 2     yes  270   197</span></span></code></pre></div>
 <p>We can see that more men than expected and fewer women than expected received funding. However, under the null hypothesis these observations are random variables. The Chi-square test tells us how likely it is to see
 a deviation this large or larger. This test uses an asymptotic result, similar to the CLT, related to the sums of independent binary outcomes.
 The R function <code>chisq.test</code> takes a two-by-two table and returns the results from the test:</p>
-<div class="sourceCode" id="cb574"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb574-1"><a href="inference.html#cb574-1"></a>chisq_test &lt;-<span class="st"> </span>two_by_two <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="op">-</span>awarded) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">chisq.test</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb576"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb576-1"><a href="inference.html#cb576-1"></a>chisq_test &lt;-<span class="st"> </span>two_by_two <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="op">-</span>awarded) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">chisq.test</span>()</span></code></pre></div>
 <p>We see that the p-value is 0.0509:</p>
-<div class="sourceCode" id="cb575"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb575-1"><a href="inference.html#cb575-1"></a>chisq_test<span class="op">$</span>p.value</span>
-<span id="cb575-2"><a href="inference.html#cb575-2"></a><span class="co">#&gt; [1] 0.0509</span></span></code></pre></div>
+<div class="sourceCode" id="cb577"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb577-1"><a href="inference.html#cb577-1"></a>chisq_test<span class="op">$</span>p.value</span>
+<span id="cb577-2"><a href="inference.html#cb577-2"></a><span class="co">#&gt; [1] 0.0509</span></span></code></pre></div>
 </div>
 <div id="odds-ratio" class="section level3">
 <h3><span class="header-section-number">15.10.4</span> The odds ratio</h3>
 <p>An informative summary statistic associated with two-by-two tables is the odds ratio. Define the two variables as <span class="math inline">\(X = 1\)</span> if you are a male and 0 otherwise, and <span class="math inline">\(Y=1\)</span> if you are funded and 0 otherwise. The odds of getting funded if you are a man is defined:</p>
 <p><span class="math display">\[\mbox{Pr}(Y=1 \mid X=1) / \mbox{Pr}(Y=0 \mid X=1)\]</span></p>
 <p>and can be computed like this:</p>
-<div class="sourceCode" id="cb576"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb576-1"><a href="inference.html#cb576-1"></a>odds_men &lt;-<span class="st"> </span><span class="kw">with</span>(two_by_two, (men[<span class="dv">2</span>]<span class="op">/</span><span class="kw">sum</span>(men)) <span class="op">/</span><span class="st"> </span>(men[<span class="dv">1</span>]<span class="op">/</span><span class="kw">sum</span>(men)))</span>
-<span id="cb576-2"><a href="inference.html#cb576-2"></a>odds_men</span>
-<span id="cb576-3"><a href="inference.html#cb576-3"></a><span class="co">#&gt; [1] 0.216</span></span></code></pre></div>
+<div class="sourceCode" id="cb578"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb578-1"><a href="inference.html#cb578-1"></a>odds_men &lt;-<span class="st"> </span><span class="kw">with</span>(two_by_two, (men[<span class="dv">2</span>]<span class="op">/</span><span class="kw">sum</span>(men)) <span class="op">/</span><span class="st"> </span>(men[<span class="dv">1</span>]<span class="op">/</span><span class="kw">sum</span>(men)))</span>
+<span id="cb578-2"><a href="inference.html#cb578-2"></a>odds_men</span>
+<span id="cb578-3"><a href="inference.html#cb578-3"></a><span class="co">#&gt; [1] 0.216</span></span></code></pre></div>
 <p>And the odds of being funded if you are a woman is:</p>
 <p><span class="math display">\[\mbox{Pr}(Y=1 \mid X=0) / \mbox{Pr}(Y=0 \mid X=0)\]</span></p>
 <p>and can be computed like this:</p>
-<div class="sourceCode" id="cb577"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb577-1"><a href="inference.html#cb577-1"></a>odds_women &lt;-<span class="st"> </span><span class="kw">with</span>(two_by_two, (women[<span class="dv">2</span>]<span class="op">/</span><span class="kw">sum</span>(women)) <span class="op">/</span><span class="st"> </span>(women[<span class="dv">1</span>]<span class="op">/</span><span class="kw">sum</span>(women)))</span>
-<span id="cb577-2"><a href="inference.html#cb577-2"></a>odds_women</span>
-<span id="cb577-3"><a href="inference.html#cb577-3"></a><span class="co">#&gt; [1] 0.175</span></span></code></pre></div>
+<div class="sourceCode" id="cb579"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb579-1"><a href="inference.html#cb579-1"></a>odds_women &lt;-<span class="st"> </span><span class="kw">with</span>(two_by_two, (women[<span class="dv">2</span>]<span class="op">/</span><span class="kw">sum</span>(women)) <span class="op">/</span><span class="st"> </span>(women[<span class="dv">1</span>]<span class="op">/</span><span class="kw">sum</span>(women)))</span>
+<span id="cb579-2"><a href="inference.html#cb579-2"></a>odds_women</span>
+<span id="cb579-3"><a href="inference.html#cb579-3"></a><span class="co">#&gt; [1] 0.175</span></span></code></pre></div>
 <p>The odds ratio is the ratio for these two odds: how many times larger are the odds for men than for women?</p>
-<div class="sourceCode" id="cb578"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb578-1"><a href="inference.html#cb578-1"></a>odds_men <span class="op">/</span><span class="st"> </span>odds_women</span>
-<span id="cb578-2"><a href="inference.html#cb578-2"></a><span class="co">#&gt; [1] 1.23</span></span></code></pre></div>
+<div class="sourceCode" id="cb580"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb580-1"><a href="inference.html#cb580-1"></a>odds_men <span class="op">/</span><span class="st"> </span>odds_women</span>
+<span id="cb580-2"><a href="inference.html#cb580-2"></a><span class="co">#&gt; [1] 1.23</span></span></code></pre></div>
 <p>We often see two-by-two tables written out as</p>
 <table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -1775,17 +1776,17 @@ using, for example, the CLT.</p>
 \]</span></p>
 <p>By exponentiating these two numbers we can construct a confidence interval of the odds ratio.</p>
 <p>Using R we can compute this confidence interval as follows:</p>
-<div class="sourceCode" id="cb579"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb579-1"><a href="inference.html#cb579-1"></a>log_or &lt;-<span class="st"> </span><span class="kw">log</span>(odds_men <span class="op">/</span><span class="st"> </span>odds_women)</span>
-<span id="cb579-2"><a href="inference.html#cb579-2"></a>se &lt;-<span class="st"> </span>two_by_two <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="op">-</span>awarded) <span class="op">%&gt;%</span></span>
-<span id="cb579-3"><a href="inference.html#cb579-3"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">se =</span> <span class="kw">sqrt</span>(<span class="kw">sum</span>(<span class="dv">1</span><span class="op">/</span>men) <span class="op">+</span><span class="st"> </span><span class="kw">sum</span>(<span class="dv">1</span><span class="op">/</span>women))) <span class="op">%&gt;%</span></span>
-<span id="cb579-4"><a href="inference.html#cb579-4"></a><span class="st">  </span><span class="kw">pull</span>(se)</span>
-<span id="cb579-5"><a href="inference.html#cb579-5"></a>ci &lt;-<span class="st"> </span>log_or <span class="op">+</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>) <span class="op">*</span><span class="st"> </span><span class="kw">qnorm</span>(<span class="fl">0.975</span>) <span class="op">*</span><span class="st"> </span>se</span></code></pre></div>
+<div class="sourceCode" id="cb581"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb581-1"><a href="inference.html#cb581-1"></a>log_or &lt;-<span class="st"> </span><span class="kw">log</span>(odds_men <span class="op">/</span><span class="st"> </span>odds_women)</span>
+<span id="cb581-2"><a href="inference.html#cb581-2"></a>se &lt;-<span class="st"> </span>two_by_two <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="op">-</span>awarded) <span class="op">%&gt;%</span></span>
+<span id="cb581-3"><a href="inference.html#cb581-3"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">se =</span> <span class="kw">sqrt</span>(<span class="kw">sum</span>(<span class="dv">1</span><span class="op">/</span>men) <span class="op">+</span><span class="st"> </span><span class="kw">sum</span>(<span class="dv">1</span><span class="op">/</span>women))) <span class="op">%&gt;%</span></span>
+<span id="cb581-4"><a href="inference.html#cb581-4"></a><span class="st">  </span><span class="kw">pull</span>(se)</span>
+<span id="cb581-5"><a href="inference.html#cb581-5"></a>ci &lt;-<span class="st"> </span>log_or <span class="op">+</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>) <span class="op">*</span><span class="st"> </span><span class="kw">qnorm</span>(<span class="fl">0.975</span>) <span class="op">*</span><span class="st"> </span>se</span></code></pre></div>
 <p>If we want to convert it back to the odds ratio scale, we can exponentiate:</p>
-<div class="sourceCode" id="cb580"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb580-1"><a href="inference.html#cb580-1"></a><span class="kw">exp</span>(ci)</span>
-<span id="cb580-2"><a href="inference.html#cb580-2"></a><span class="co">#&gt; [1] 1.00 1.51</span></span></code></pre></div>
+<div class="sourceCode" id="cb582"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb582-1"><a href="inference.html#cb582-1"></a><span class="kw">exp</span>(ci)</span>
+<span id="cb582-2"><a href="inference.html#cb582-2"></a><span class="co">#&gt; [1] 1.00 1.51</span></span></code></pre></div>
 <p>Note that 1 is not included in the confidence interval which must mean that the p-value is smaller than 0.05. We can confirm this using:</p>
-<div class="sourceCode" id="cb581"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb581-1"><a href="inference.html#cb581-1"></a><span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(log_or, <span class="dv">0</span>, se))</span>
-<span id="cb581-2"><a href="inference.html#cb581-2"></a><span class="co">#&gt; [1] 0.0454</span></span></code></pre></div>
+<div class="sourceCode" id="cb583"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb583-1"><a href="inference.html#cb583-1"></a><span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(log_or, <span class="dv">0</span>, se))</span>
+<span id="cb583-2"><a href="inference.html#cb583-2"></a><span class="co">#&gt; [1] 0.0454</span></span></code></pre></div>
 <p>This is a slightly different p-value than that with the Chi-square test. This is because we are using a different asymptotic approximation to the null distribution. To learn more about inference and asymptotic theory for odds ratio, consult the <em>Generalized Linear Models</em> book by
 McCullagh and Nelder.</p>
 </div>
@@ -1803,10 +1804,10 @@ the results, we realize odds ratios are quite modest: barely bigger
 than 1. In this case the difference may not be <em>practically significant</em> or <em>scientifically significant</em>.</p>
 <p>Note that the relationship between odds ratio and p-value is not one-to-one. It depends on the sample size. So a very small p-value does not necessarily mean a very large odds ratio.
 Notice what happens to the p-value if we multiply our two-by-two table by 10, which does not change the odds ratio:</p>
-<div class="sourceCode" id="cb582"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb582-1"><a href="inference.html#cb582-1"></a>two_by_two <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="op">-</span>awarded) <span class="op">%&gt;%</span></span>
-<span id="cb582-2"><a href="inference.html#cb582-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">men =</span> men<span class="op">*</span><span class="dv">10</span>, <span class="dt">women =</span> women<span class="op">*</span><span class="dv">10</span>) <span class="op">%&gt;%</span></span>
-<span id="cb582-3"><a href="inference.html#cb582-3"></a><span class="st">  </span><span class="kw">chisq.test</span>() <span class="op">%&gt;%</span><span class="st"> </span>.<span class="op">$</span>p.value</span>
-<span id="cb582-4"><a href="inference.html#cb582-4"></a><span class="co">#&gt; [1] 2.63e-10</span></span></code></pre></div>
+<div class="sourceCode" id="cb584"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb584-1"><a href="inference.html#cb584-1"></a>two_by_two <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="op">-</span>awarded) <span class="op">%&gt;%</span></span>
+<span id="cb584-2"><a href="inference.html#cb584-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">men =</span> men<span class="op">*</span><span class="dv">10</span>, <span class="dt">women =</span> women<span class="op">*</span><span class="dv">10</span>) <span class="op">%&gt;%</span></span>
+<span id="cb584-3"><a href="inference.html#cb584-3"></a><span class="st">  </span><span class="kw">chisq.test</span>() <span class="op">%&gt;%</span><span class="st"> </span>.<span class="op">$</span>p.value</span>
+<span id="cb584-4"><a href="inference.html#cb584-4"></a><span class="co">#&gt; [1] 2.63e-10</span></span></code></pre></div>
 </div>
 </div>
 <div id="exercises-29" class="section level2">
