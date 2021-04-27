@@ -71,13 +71,13 @@ campaign_tweets <- trump_tweets %>%
            created_at >= ymd("2015-06-17") & 
            created_at < ymd("2016-11-08")) %>%
   filter(!is_retweet) %>%
-  arrange(created_at)
+  arrange(created_at) %>% 
+  as_tibble()
 ```
 
 We can now use data visualization to explore the possibility that two different groups were tweeting from these devices. For each tweet, we will extract the hour, East Coast time (EST), it was tweeted and then compute the proportion of tweets tweeted at each hour for each device:
 
 ```{r tweets-by-time-by-device}
-ds_theme_set()
 campaign_tweets %>%
   mutate(hour = hour(with_tz(created_at, "EST"))) %>%
   count(source, hour) %>%
@@ -150,7 +150,7 @@ Now we are now ready to extract the words for all our tweets.
 ```{r, message=FALSE, warning=FALSE}
 tweet_words <- campaign_tweets %>% 
   mutate(text = str_replace_all(text, links, ""))  %>%
-  unnest_tokens(word, text, token = "tweets") 
+  unnest_tokens(word, text, token = "tweets")
 ```
 
 

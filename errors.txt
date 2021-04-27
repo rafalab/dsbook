@@ -326,6 +326,11 @@ get_slope <- function(x, y) cor(x, y) / (sd(x) * sd(y))
 Should be
 get_slope <- function(x, y) cor(x, y) * sd(y) / sd(x)
 
+307 in pdf
+
+$2*\bar{X}-1 = 0.04$ 
+should be
+$2\bar{X}-1 = 0.04$ 
 
 Page 344, 372 in pdf
 
@@ -476,6 +481,42 @@ If the outcomes are binary, both RMSE and MSE are equivalent to accuracy, since
 Should be
 If the outcomes are binary, both RMSE and MSE are equivalent to one minus accuracy, since  
 
+page 484
+
+Turn data frame to tibble. Change
+
+Now we are now ready to extract the words for all our tweets. 
+
+
+```{r}
+campaign_tweets <- trump_tweets %>% 
+  extract(source, "source", "Twitter for (.*)") %>%
+  filter(source %in% c("Android", "iPhone") &
+           created_at >= ymd("2015-06-17") & 
+           created_at < ymd("2016-11-08")) %>%
+  filter(!is_retweet) %>%
+  arrange(created_at)
+```
+
+to
+
+
+```{r}
+campaign_tweets <- trump_tweets %>% 
+  extract(source, "source", "Twitter for (.*)") %>%
+  filter(source %in% c("Android", "iPhone") &
+           created_at >= ymd("2015-06-17") & 
+           created_at < ymd("2016-11-08")) %>%
+  filter(!is_retweet) %>%
+  arrange(created_at) %>% 
+  as_tibble()
+```
+
+page 485
+
+remove ds_theme_set()
+
+
 Page 538, 566 in pdf
 
 
@@ -541,8 +582,6 @@ sqrt(mean((y_hat - test_set$son)^2))
 ```
 
 page 561 in pdf
-
-Change : to \ref
 
 
 To illustrate logistic regression, we will apply it to our previous predicting sex example:
@@ -670,6 +709,68 @@ plot_cond_prob <- function(p_hat=NULL){
   stat_contour(breaks=c(0.5),color="black")
 }
 ```
+page 604 in pdf
+
+Change:
+
+The accuracy is almost 0.95!
+```{r}
+y_hat_knn <- predict(fit_knn, x_test[, col_index], type="class")
+cm <- confusionMatrix(y_hat_knn, factor(y_test))
+cm$overall["Accuracy"]
+```
+
+We now achieve an accuracy of about 0.95. 
+
+to
+
+We now achieve a high accuracy:
+```{r}
+y_hat_knn <- predict(fit_knn, x_test[, col_index], type="class")
+cm <- confusionMatrix(y_hat_knn, factor(y_test))
+cm$overall["Accuracy"]
+```
+
+page 605 
+
+to make compilation faster
+
+change
+
+
+```{r mnist-rf, message=FALSE, warning=FALSE, cache=TRUE}
+library(randomForest)
+control <- trainControl(method="cv", number = 5)
+grid <- data.frame(mtry = c(1, 5, 10, 25, 50, 100))
+
+train_rf <-  train(x[, col_index], y, 
+                   method = "rf", 
+                   ntree = 150,
+                   trControl = control,
+                   tuneGrid = grid,
+                   nSamp = 5000)
+
+ggplot(train_rf)
+train_rf$bestTune
+```
+
+Now that we have optimized our algorithm, we are ready to fit our final model:
+
+```{r, cache=TRUE}
+fit_rf <- randomForest(x[, col_index], y, 
+                       minNode = train_rf$bestTune$mtry)
+```
+
+To check that we ran enough trees we can use the plot function:
+
+```{r, eval=FALSE}
+plot(fit_rf)
+```
+
+
+
+to
+
 
 page 637
 

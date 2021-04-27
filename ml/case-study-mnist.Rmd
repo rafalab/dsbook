@@ -127,14 +127,14 @@ Once we optimize our algorithm, we can fit it to the entire dataset:
 fit_knn <- knn3(x[, col_index], y,  k = 3)
 ```
 
-The accuracy is almost 0.95!
+We now achieve a high accuracy:
 ```{r}
 y_hat_knn <- predict(fit_knn, x_test[, col_index], type="class")
 cm <- confusionMatrix(y_hat_knn, factor(y_test))
 cm$overall["Accuracy"]
 ```
 
-We now achieve an accuracy of about 0.95. From the specificity and sensitivity, we also see that 8s are the hardest to detect and the most commonly incorrectly predicted digit is 7.
+From the specificity and sensitivity, we also see that 8s are the hardest to detect and the most commonly incorrectly predicted digit is 7.
 
 ```{r}
 cm$byClass[,1:2]
@@ -149,7 +149,7 @@ Because with random forest the fitting is the slowest part of the procedure rath
 Finally, to compute on a smaller dataset, we will take a random sample of the observations when constructing each tree. We can change this number with the `nSamp` argument.
 
 
-```{r mnist-rf, message=FALSE, warning=FALSE, cache=TRUE}
+```{r mnist-rf, message=FALSE, warning=FALSE, eval=FALSE}
 library(randomForest)
 control <- trainControl(method="cv", number = 5)
 grid <- data.frame(mtry = c(1, 5, 10, 25, 50, 100))
@@ -160,16 +160,19 @@ train_rf <-  train(x[, col_index], y,
                    trControl = control,
                    tuneGrid = grid,
                    nSamp = 5000)
-
-ggplot(train_rf)
-train_rf$bestTune
 ```
 
 Now that we have optimized our algorithm, we are ready to fit our final model:
 
-```{r, cache=TRUE}
+```{r, eval=FALSE}
 fit_rf <- randomForest(x[, col_index], y, 
                        minNode = train_rf$bestTune$mtry)
+```
+
+```{r, echo=FALSE}
+## we hard wire to 10 do make book compilation faster.
+## we ran previous code once to determin 10 was the best
+fit_rf <- randomForest(x[, col_index], y,  minNode = 10)
 ```
 
 To check that we ran enough trees we can use the plot function:
@@ -177,7 +180,6 @@ To check that we ran enough trees we can use the plot function:
 ```{r, eval=FALSE}
 plot(fit_rf)
 ```
-
 
 We see that we achieve high accuracy:
 
