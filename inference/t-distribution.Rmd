@@ -28,11 +28,9 @@ $$
 CLT tells us that Z is approximately normally distributed with expected value 0 and standard error 1. But in practice we don't know $\sigma$ so we use:
 
 $$
-Z = \frac{\bar{X} - d}{s/\sqrt{N}}
+t = \frac{\bar{X} - d}{s/\sqrt{N}}
 $$
-
-
-By substituting $\sigma$ with $s$ we introduce some variability. The theory tells us that $Z$ follows a t-distribution with $N-1$ _degrees of freedom_. The degrees of freedom is a parameter that controls the variability via fatter tails:
+This is referred to a _t-statistic_. By substituting $\sigma$ with $s$ we introduce some variability. The theory tells us that $t$ follows a _student t-distribution_ with $N-1$ _degrees of freedom_. The degrees of freedom is a parameter that controls the variability via fatter tails:
 
 ```{r t-distribution-examples, echo=FALSE}
 x <- seq(-5,5, len=100)
@@ -44,7 +42,7 @@ If we are willing to assume the pollster effect data is normally distributed, ba
 one_poll_per_pollster %>%
   ggplot(aes(sample=spread)) + stat_qq()
 ```
-then $Z$ follows a t-distribution with $N-1$ degrees of freedom. So perhaps a better confidence interval for $d$ is:
+then $t$ follows a t-distribution with $N-1$ degrees of freedom. So perhaps a better confidence interval for $d$ is:
 
 
 ```{r}
@@ -65,6 +63,8 @@ is bigger than
 ```{r}
 qnorm(0.975)
 ```
+
+Using the t-distribution and the t-statistic is the basis for _t-tests_, widely used approach for computing p-values. To learn more about t-tests, you can consult any statistics textbook.
 
 The t-distribution can also be used to model errors in bigger deviations that are more likely than with the normal distribution, as seen in the densities we previously saw. Fivethirtyeight uses the t-distribution to generate errors that better model the deviations we see in election data. For example, in Wisconsin the average of six polls was 7% in favor of Clinton with a standard deviation of 1%, but Trump won by 0.7%. Even after taking into account the overall bias, this 7.7% residual is more in line with t-distributed data than the normal distribution.
 

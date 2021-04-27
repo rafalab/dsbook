@@ -1755,15 +1755,15 @@ Z = \frac{\bar{X} - d}{\sigma/\sqrt{N}}
 \]</span></p>
 <p>CLT tells us that Z is approximately normally distributed with expected value 0 and standard error 1. But in practice we don’t know <span class="math inline">\(\sigma\)</span> so we use:</p>
 <p><span class="math display">\[
-Z = \frac{\bar{X} - d}{s/\sqrt{N}}
-\]</span></p>
-<p>By substituting <span class="math inline">\(\sigma\)</span> with <span class="math inline">\(s\)</span> we introduce some variability. The theory tells us that <span class="math inline">\(Z\)</span> follows a t-distribution with <span class="math inline">\(N-1\)</span> <em>degrees of freedom</em>. The degrees of freedom is a parameter that controls the variability via fatter tails:</p>
+t = \frac{\bar{X} - d}{s/\sqrt{N}}
+\]</span>
+This is referred to a <em>t-statistic</em>. By substituting <span class="math inline">\(\sigma\)</span> with <span class="math inline">\(s\)</span> we introduce some variability. The theory tells us that <span class="math inline">\(t\)</span> follows a <em>student t-distribution</em> with <span class="math inline">\(N-1\)</span> <em>degrees of freedom</em>. The degrees of freedom is a parameter that controls the variability via fatter tails:</p>
 <p><img src="book_files/figure-html/t-distribution-examples-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>If we are willing to assume the pollster effect data is normally distributed, based on the sample data <span class="math inline">\(X_1, \dots, X_N\)</span>,</p>
 <div class="sourceCode" id="cb627"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb627-1"><a href="models.html#cb627-1"></a>one_poll_per_pollster <span class="op">%&gt;%</span></span>
 <span id="cb627-2"><a href="models.html#cb627-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">sample=</span>spread)) <span class="op">+</span><span class="st"> </span><span class="kw">stat_qq</span>()</span></code></pre></div>
 <p><img src="book_files/figure-html/poll-spread-qq-1.png" width="70%" style="display: block; margin: auto;" />
-then <span class="math inline">\(Z\)</span> follows a t-distribution with <span class="math inline">\(N-1\)</span> degrees of freedom. So perhaps a better confidence interval for <span class="math inline">\(d\)</span> is:</p>
+then <span class="math inline">\(t\)</span> follows a t-distribution with <span class="math inline">\(N-1\)</span> degrees of freedom. So perhaps a better confidence interval for <span class="math inline">\(d\)</span> is:</p>
 <div class="sourceCode" id="cb628"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb628-1"><a href="models.html#cb628-1"></a>z &lt;-<span class="st"> </span><span class="kw">qt</span>(<span class="fl">0.975</span>,  <span class="kw">nrow</span>(one_poll_per_pollster)<span class="op">-</span><span class="dv">1</span>)</span>
 <span id="cb628-2"><a href="models.html#cb628-2"></a>one_poll_per_pollster <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb628-3"><a href="models.html#cb628-3"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">avg =</span> <span class="kw">mean</span>(spread), <span class="dt">moe =</span> z<span class="op">*</span><span class="kw">sd</span>(spread)<span class="op">/</span><span class="kw">sqrt</span>(<span class="kw">length</span>(spread))) <span class="op">%&gt;%</span><span class="st"> </span></span>
@@ -1778,6 +1778,7 @@ then <span class="math inline">\(Z\)</span> follows a t-distribution with <span 
 <p>is bigger than</p>
 <div class="sourceCode" id="cb630"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb630-1"><a href="models.html#cb630-1"></a><span class="kw">qnorm</span>(<span class="fl">0.975</span>)</span>
 <span id="cb630-2"><a href="models.html#cb630-2"></a><span class="co">#&gt; [1] 1.96</span></span></code></pre></div>
+<p>Using the t-distribution and the t-statistic is the basis for <em>t-tests</em>, widely used approach for computing p-values. To learn more about t-tests, you can consult any statistics textbook.</p>
 <p>The t-distribution can also be used to model errors in bigger deviations that are more likely than with the normal distribution, as seen in the densities we previously saw. Fivethirtyeight uses the t-distribution to generate errors that better model the deviations we see in election data. For example, in Wisconsin the average of six polls was 7% in favor of Clinton with a standard deviation of 1%, but Trump won by 0.7%. Even after taking into account the overall bias, this 7.7% residual is more in line with t-distributed data than the normal distribution.</p>
 <div class="sourceCode" id="cb631"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb631-1"><a href="models.html#cb631-1"></a><span class="kw">data</span>(<span class="st">&quot;polls_us_election_2016&quot;</span>)</span>
 <span id="cb631-2"><a href="models.html#cb631-2"></a>polls_us_election_<span class="dv">2016</span> <span class="op">%&gt;%</span></span>
