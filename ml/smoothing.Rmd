@@ -488,6 +488,7 @@ with $X_1$ and $X_2$ the two predictors defined in Section \@ref(two-or-seven). 
 
 ```{r, eval=FALSE}
 library(tidyverse)
+library(lubridate)
 library(purrr)
 library(pdftools)
 library(dslabs)
@@ -508,7 +509,7 @@ dat <- map_df(str_split(pdf_text(fn), "\n"), function(s){
     str_split_fixed("\\s+", n = 6) %>% .[,1:5] %>% as_tibble() %>% 
     setNames(c("day", header)) %>%
     mutate(month = month, day = as.numeric(day)) %>%
-    gather(year, deaths, -c(day, month)) %>%
+    pivot_longer(-c(day, month), names_to = "year", values_to = "deaths") %>%
     mutate(deaths = as.numeric(deaths))
 }) %>%
   mutate(month = recode(month, 

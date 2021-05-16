@@ -36,7 +36,7 @@ movielens %>%
             n_movies = n_distinct(movieId))
 ```
 
-If we multiply those two numbers, we get a number larger than 5 million, yet our data table has about 100,000 rows. This implies that not every user rated every movie. So we can think of these data as a very large matrix, with users on the rows and movies on the columns, with many empty cells. The `gather` function permits us to convert it to this format, but if we try it for the entire matrix, it will crash R. Let's show the matrix for six users and four movies.
+If we multiply those two numbers, we get a number larger than 5 million, yet our data table has about 100,000 rows. This implies that not every user rated every movie. So we can think of these data as a very large matrix, with users on the rows and movies on the columns, with many empty cells. The `pivot_wider` function permits us to convert it to this format, but if we try it for the entire matrix, it will crash R. Let's show the matrix for six users and four movies.
 
 ```{r, echo=FALSE}
 keep <- movielens %>% 
@@ -50,7 +50,7 @@ tab <- movielens %>%
   select(userId, title, rating) %>% 
   mutate(title = str_remove(title, ", The"),
          title = str_remove(title, ":.*")) %>%
-  spread(title, rating)
+  pivot_wider(names_from="title", values_from="rating")
 
 if(knitr::is_html_output()){
   knitr::kable(tab, "html") %>%
@@ -683,7 +683,7 @@ train_small <- movielens %>%
 
 y <- train_small %>% 
   select(userId, movieId, rating) %>%
-  spread(movieId, rating) %>%
+  pivot_wider(names_from = "movieId", values_from = "rating") %>%
   as.matrix()
 ```
 

@@ -493,6 +493,7 @@ We will see an example of `augment` in the next section.
 1\. In a previous section, we computed the correlation between mothers and daughters, mothers and sons, fathers and daughters, and fathers and sons, and noticed that the highest correlation is between fathers and sons and the lowest is between mothers and sons. We can compute these correlations using:
 
 ```{r, eval=FALSE}
+library(HistData)
 data("GaltonFamilies")
 set.seed(1)
 galton_heights <- GaltonFamilies %>%
@@ -501,7 +502,7 @@ galton_heights <- GaltonFamilies %>%
   ungroup()
 
 cors <- galton_heights %>% 
-  gather(parent, parentHeight, father:mother) %>%
+  pivot_longer(father:mother, names_to = "parent", values_to = "parentHeight") %>%
   mutate(child = ifelse(gender == "female", "daughter", "son")) %>%
   unite(pair, c("parent", "child")) %>% 
   group_by(pair) %>%

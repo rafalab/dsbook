@@ -8,7 +8,7 @@ ds_theme_set()
 
 ## Adapted from Hadley Wickham and Garrett Grolemund's r4ds
 options(digits = 3, width = 72, formatR.indent = 2, dplyr.summarise.inform = FALSE,
-        dplyr.print_min = 5, dplyr.print_max = 5)
+        dplyr.print_min = 5, dplyr.print_max = 5, ggrepel.max.overlaps = 100)
 
 knitr::opts_chunk$set(
   comment = "#>",

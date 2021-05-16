@@ -206,7 +206,7 @@ For each word, we want to know if it is more likely to come from an Android twee
 ```{r}
 android_iphone_or <- tweet_words %>%
   count(word, source) %>%
-  spread(source, n, fill = 0) %>%
+  pivot_wider(names_from = "source", values_from = "n", values_fill = 0) %>%
   mutate(or = (Android + 0.5) / (sum(Android) - Android + 0.5) / 
            ( (iPhone + 0.5) / (sum(iPhone) - iPhone + 0.5)))
 ```
@@ -290,7 +290,7 @@ Now we are ready to perform a quantitative analysis comparing Android and iPhone
 sentiment_counts <- tweet_words %>%
   left_join(nrc, by = "word") %>%
   count(source, sentiment) %>%
-  spread(source, n) %>%
+  pivot_wider(names_from = "source", values_from = "n") %>%
   mutate(sentiment = replace_na(sentiment, replace = "none"))
 sentiment_counts
 ```

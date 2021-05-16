@@ -297,7 +297,8 @@ We can see column names `nameFirst` and `nameLast`. Use the `left_join` function
 co2_wide <- data.frame(matrix(co2, ncol = 12, byrow = TRUE)) %>% 
   setNames(1:12) %>%
   mutate(year = 1959:1997) %>%
-  gather(month, co2, -year, convert = TRUE)
+  pivot_longer(-year, names_to = "month", values_to = "co2") %>%
+  mutate(month = as.numeric(month))
 ```
 
 We want to see if the monthly trend is changing so we are going to remove the year effects and then plot the results. We will first compute the year averages. Use the `group_by` and `summarize` to compute the average co2 for each year. Save in an object called `yearly_avg`.

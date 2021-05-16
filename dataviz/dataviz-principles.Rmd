@@ -598,7 +598,7 @@ library(ggrepel)
 dat %>% 
   mutate(year = paste0("life_expectancy_", year)) %>%
   select(country, year, life_expectancy) %>% 
-  spread(year, life_expectancy) %>% 
+  pivot_wider(names_from = "year", values_from="life_expectancy") %>% 
   mutate(average = (life_expectancy_2015 + life_expectancy_2010)/2,
          difference = life_expectancy_2015 - life_expectancy_2010) %>%
   ggplot(aes(average, difference, label = country)) + 
@@ -704,7 +704,7 @@ knitr::include_graphics(file.path(img_path,"fig8b.png"))
 
 Humans are not good at seeing in three dimensions (which explains why it is hard to parallel park) and our limitation is even worse with regard to pseudo-three-dimensions. To see this, try to determine the values of the survival variable in the plot above. Can you tell when the purple ribbon intersects the red one? This is an example in which we can easily use color to represent the categorical variable instead of using a pseudo-3D:
 
-```{r colors-for-different-lines,  echo=FALSE}
+```{r colors-for-different-lines, echo=FALSE}
 ##First read data
 url <- "https://github.com/kbroman/Talk_Graphs/raw/master/R/fig8dat.csv"
 dat <- read.csv(url)

@@ -295,7 +295,7 @@ library(tidyverse)
 
 ### `summarize` {#summarize}
 
-The `summarize` function in __dplyr__ provides a way to compute summary statistics with intuitive and readable code. We start with a simple example based on heights. The `heights` dataset includes  heights and sex reported by students in an in-class survey. 
+The `summarize` function in __dplyr__ provides a way to compute summary statistics with intuitive and readable code. We start with a simple example based on heights. The `heights` dataset includes heights and sex reported by students in an in-class survey. 
 
 ```{r}
 library(dplyr)
@@ -321,24 +321,7 @@ s$average
 s$standard_deviation
 ```
 
-As with most other __dplyr__ functions, `summarize` is aware of the variable names and we can use them directly. So when inside the call to the `summarize` function we write `mean(height)`, the function is accessing the column with the name "height" and then computing the average of the resulting numeric vector. We can compute any other summary that operates on vectors and returns a single value. For example, we can add the median, minimum, and maximum heights like this:
-
-```{r}
-heights %>% 
-  filter(sex == "Female") %>%
-  summarize(median = median(height), minimum = min(height), 
-            maximum = max(height))
-```
-
-We can obtain these three values with just one line using the `quantile` function: for example, `quantile(x, c(0,0.5,1))` returns the min (0th percentile), median (50th percentile), and max (100th percentile) of the vector `x`. However, if we attempt to use a function like this that returns two or more values inside `summarize`:
-
-```{r, eval=FALSE}
-heights %>% 
-  filter(sex == "Female") %>%
-  summarize(range = quantile(height, c(0, 0.5, 1)))
-```
-
-we will receive an error: `Error: expecting result of length one, got : 2`. With the function `summarize`, we can only call functions that return a single value. In Section \@ref(do), we will learn how to deal with functions that return more than one value.
+As with most other __dplyr__ functions, `summarize` is aware of the variable names and we can use them directly. So when inside the call to the `summarize` function we write `mean(height)`, the function is accessing the column with the name "height" and then computing the average of the resulting numeric vector. We can compute any other summary that operates on vectors and returns a single value. 
 
 For another example of how we can use the `summarize` function, let's compute the average murder rate for the United States. Remember our data table includes total murders and population size for each state and we have already used __dplyr__ to add a murder rate column:
 
@@ -362,7 +345,65 @@ us_murder_rate
 
 This computation counts larger states proportionally to their size which results in a larger value.
 
-### `pull`
+
+### Multiple summaries
+
+Suppose we want three summaries from the same variable such as the median, minimum, and maximum heights. We can use `summarize` like this:
+ 
+
+But we can obtain these three values with just one line using the `quantile` function: `quantile(x, c(0.5, 0, 1))` returns the median (50th percentile), the min (0th percentile), and max (100th percentile) of the vector `x`. We can use it with `summarize` like this:
+
+```{r}
+heights %>% 
+  filter(sex == "Female") %>%
+  summarize(median_min_max = quantile(height, c(0.5, 0, 1)))
+```
+
+However, notice that the summaries are returned in a row each. To obtain the results in different columns, we have to define a function that returns a data frame like this:
+
+```{r}
+median_min_max <- function(x){
+  qs <- quantile(x, c(0.5, 0, 1))
+  data.frame(median = qs[1], minimum = qs[2], maximum = qs[3])
+}
+heights %>% 
+  filter(sex == "Female") %>%
+  summarize(median_min_max(height))
+```
+
+In the next section we learn how useful this approach can be when summarizing by group.
+
+### Group then summarize with `group_by` {#group-by}
+
+A common operation in data exploration is to first split data into groups and then compute summaries for each group. For example, we may want to compute the average and standard deviation for men's and women's heights separately. The `group_by` function helps us do this. 
+
+If we type this:
+
+```{r}
+heights %>% group_by(sex)
+```
+
+The result does not look very different from `heights`, except we see `Groups: sex [2]` when we print the object. Although not immediately obvious from its appearance, this is now a special data frame called a _grouped data frame_, and __dplyr__ functions, in particular `summarize`, will behave differently when acting on this object. Conceptually, you can think of this table as many tables, with the same columns but not necessarily the same number of rows, stacked together in one object. When we summarize the data after grouping, this is what happens:
+
+```{r}
+heights %>% 
+  group_by(sex) %>%
+  summarize(average = mean(height), standard_deviation = sd(height))
+```
+
+The `summarize` function applies the summarization to each group separately.
+
+For another example, let's compute the median, minimum, and maximum murder rate in the four regions of the country using the `median_min_max` defined above:
+
+
+```{r}
+murders %>% 
+  group_by(region) %>%
+  summarize(median_min_max(rate))
+```
+
+
+## `pull`
 
 The `us_murder_rate` object defined above represents just one number. Yet we are storing it in a data frame:
 
@@ -394,34 +435,6 @@ which is now a numeric:
 
 ```{r}
 class(us_murder_rate)
-```
-
-### Group then summarize with `group_by` {#group-by}
-
-A common operation in data exploration is to first split data into groups and then compute summaries for each group. For example, we may want to compute the average and standard deviation for men's and women's heights separately. The `group_by` function helps us do this. 
-
-If we type this:
-
-```{r}
-heights %>% group_by(sex)
-```
-
-The result does not look very different from `heights`, except we see `Groups: sex [2]` when we print the object. Although not immediately obvious from its appearance, this is now a special data frame called a _grouped data frame_, and __dplyr__ functions, in particular `summarize`, will behave differently when acting on this object. Conceptually, you can think of this table as many tables, with the same columns but not necessarily the same number of rows, stacked together in one object. When we summarize the data after grouping, this is what happens:
-
-```{r}
-heights %>% 
-  group_by(sex) %>%
-  summarize(average = mean(height), standard_deviation = sd(height))
-```
-
-The `summarize` function applies the summarization to each group separately.
-
-For another example, let's compute the median murder rate in the four regions of the country:
-
-```{r}
-murders %>% 
-  group_by(region) %>%
-  summarize(median_rate = median(rate))
 ```
 
 ## Sorting data frames
@@ -649,64 +662,6 @@ rates <-   filter(murders, region == "South") %>%
 median(rates)
 ```
 
-In the next section, we will see other instances in which using the `.` is useful. 
-
-## `do` {#do}
-
-The tidyverse functions know how to interpret grouped tibbles. Furthermore, to facilitate stringing commands through the pipe `%>%`, tidyverse functions consistently return data frames, since this assures that the output of a function is accepted as the input of another. But most R functions do not recognize grouped tibbles nor do they return data frames. The `quantile` function is an example we described in Section \@ref(summarize). The `do` function serves as a bridge between R functions such as `quantile` and the tidyverse. The `do` function understands grouped tibbles and always returns a data frame.
-
-In Section \@ref(summarize), we noted that if we attempt to use `quantile` to obtain the min, median and max in one call, we will receive an error: `Error: expecting result of length one, got : 2`.
-
-```{r, eval=FALSE}
-data(heights)
-heights %>% 
-  filter(sex == "Female") %>%
-  summarize(range = quantile(height, c(0, 0.5, 1)))
-```
-
-We can use the `do` function to fix this. 
-
-First we have to write a function that fits into the tidyverse approach: that is, it receives a data frame and returns a data frame. 
-
-```{r}
-my_summary <- function(dat){
-  x <- quantile(dat$height, c(0, 0.5, 1))
-  tibble(min = x[1], median = x[2], max = x[3])
-}
-```
-
-We can now apply the function to the heights dataset to obtain the summaries:
-
-```{r}
-heights %>% 
-  group_by(sex) %>% 
-  my_summary
-```
-
-But this is not what we want. We want a summary for each sex and the code returned just one summary. This is because `my_summary` is not part of the tidyverse and does not know how to handled grouped tibbles. `do` makes this connection:
-
-```{r}
-heights %>% 
-  group_by(sex) %>% 
-  do(my_summary(.))
-```
-
-Note that here we need to use the dot operator. The tibble created by `group_by`  is piped to `do`. Within the call to `do`, the name of this tibble is `.` and we want to send it to `my_summary`. If you do not use the dot, then `my_summary` has _no argument_ and returns an error telling us that `argument "dat"` is missing. You can see the error by typing:
-
-```{r, eval=FALSE}
-heights %>% 
-  group_by(sex) %>% 
-  do(my_summary())
-```
-
-If you do not use the parenthesis, then the function is not executed and instead `do` tries to return the function. This gives an error because `do` must always return a data frame. You can see the error by typing:
-
-
-```{r, eval=FALSE}
-heights %>% 
-  group_by(sex) %>% 
-  do(my_summary)
-```
 
 ## The __purrr__ package
 
