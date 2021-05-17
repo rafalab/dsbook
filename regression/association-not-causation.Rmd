@@ -75,7 +75,7 @@ If we performed regression on this group and interpreted the p-value, we would i
 library(broom)
 sim_data %>% 
   filter(group == res$group[which.max(res$r)]) %>%
-  do(tidy(lm(y ~ x, data = .))) %>% 
+  summarize(tidy(lm(y ~ x))) %>% 
   filter(term == "x")
 ```
 
@@ -157,7 +157,7 @@ GaltonFamilies %>%
   filter(childNum == 1 & gender == "male") %>%
   select(father, childHeight) %>%
   rename(son = childHeight) %>% 
-  do(tidy(lm(father ~ son, data = .)))
+  summarize(tidy(lm(father ~ son)))
 ```
 
 The model fits the data very well. If we look at the mathematical formulation of the model above, it could easily be incorrectly interpreted so as to suggest that the son being tall caused the father to be tall. But given what we know about genetics and biology, we know it's the other way around. The model is technically correct. The estimates and p-values were obtained correctly as well. What is wrong here is the interpretation.
@@ -191,7 +191,7 @@ admissions %>% group_by(gender) %>%
   summarize(total_admitted = round(sum(admitted / 100 * applicants)), 
             not_admitted = sum(applicants) - sum(total_admitted)) %>%
   select(-gender) %>% 
-  do(tidy(chisq.test(.))) %>% .$p.value
+  summarize(tidy(chisq.test(.))) %>% .$p.value
 ```
 
 But closer inspection shows a paradoxical result. Here are the percent admissions by major:
@@ -349,7 +349,7 @@ Construct the two-by-two table used for the conclusion about differences in awar
   
 6\. We definitely do not see the same level of confounding as in the UC Berkeley example. It is hard to say there is a confounder here. However, we do see that, based on the observed rates, some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But, unlike the UC Berkeley example, women are not more likely to apply for the harder subjects. So perhaps some of the selection committees are biased and others are not.  
 
-But, before we conclude this, we must check if these differences are any different than what we get by chance. Are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. Perform a Chi-square test for each discipline. Hint: define a function that receives the total of a two-by-two table and returns a data frame with the p-value. Use the 0.5 correction. Then use the do function. 
+But, before we conclude this, we must check if these differences are any different than what we get by chance. Are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. Perform a Chi-square test for each discipline. Hint: define a function that receives the total of a two-by-two table and returns a data frame with the p-value. Use the 0.5 correction. Then use the `summarize` function. 
 
  
 7\. For the medical sciences, there appears to be a statistically significant difference. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 might be considered an example of cherry picking. 

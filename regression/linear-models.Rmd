@@ -112,7 +112,7 @@ hr_slope
 
 Regardless, it seems that if we stratify by HR, we have bivariate distributions for runs versus BB. Similarly, if we stratify by BB, we have approximate bivariate normal distributions for HR versus runs. 
 
-###  Multivariate regression
+###  multivariable regression
 
 It is somewhat complex to be computing regression lines for each strata. We are essentially fitting models like this:
 
@@ -130,7 +130,7 @@ $$
 
 This model suggests that if the number of HR is fixed at $x_2$, we observe a linear relationship between runs and BB with an intercept of $\beta_0 + \beta_2 x_2$. Our exploratory data analysis suggested this. The model also suggests that as the number of HR grows, the intercept growth is linear as well and determined by $\beta_1 x_1$. 
 
-In this analysis, referred to as _multivariate regression_, you will often hear people say that the BB slope $\beta_1$ is _adjusted_ for the HR effect. If the model is correct then confounding has been accounted for. But how do we estimate $\beta_1$ and $\beta_2$ from the data? For this, we learn about linear models and least squares estimates.
+In this analysis, referred to as _multivariable regression_, you will often hear people say that the BB slope $\beta_1$ is _adjusted_ for the HR effect. If the model is correct then confounding has been accounted for. But how do we estimate $\beta_1$ and $\beta_2$ from the data? For this, we learn about linear models and least squares estimates.
 
 ## Least squares estimates {#lse}
 
@@ -364,7 +364,7 @@ dat %>%
   summarize(slope = get_slope(BB, R))
 ```
 
-We argued that the slopes are similar and that the differences were perhaps due to random variation. To provide a more rigorous defense of the slopes being the same, which led to our multivariate model, we could compute confidence intervals for each slope. We have not learned the formula for this, but the `lm` function provides enough information to construct them. 
+We argued that the slopes are similar and that the differences were perhaps due to random variation. To provide a more rigorous defense of the slopes being the same, which led to our multivariable model, we could compute confidence intervals for each slope. We have not learned the formula for this, but the `lm` function provides enough information to construct them. 
 
 First, note that if we try to use the `lm` function to get the estimated slope like this:
 
@@ -377,60 +377,25 @@ dat %>%
 we don't get the result we want. The `lm` function ignores the `group_by`. This is expected because `lm` is not part of the __tidyverse__ and does not know how to handle the outcome of a grouped tibble.
 
 The __tidyverse__ functions know how to interpret grouped tibbles. Furthermore, to facilitate stringing commands through the pipe `%>%`, __tidyverse__ functions consistently return data frames, since this assures that the output of a function is accepted as the input of another. 
-But most R functions do not recognize grouped tibbles nor do they return data frames. The `lm` function is an example. The `do` functions serves as a bridge between R functions, such as `lm`, and the __tidyverse__. The `do` function understands grouped tibbles and always returns a data frame.
+But most R functions do not recognize grouped tibbles nor do they return data frames. The `lm` function is an example. However, we can write a function that uses `lm` to compute and return the wanted summaries in a data frame and then use the `summarize` function: 
 
-So, let's try to use the `do` function to fit a regression line to each HR strata:
 
 ```{r}
-dat %>%  
-  group_by(HR) %>%
-  do(fit = lm(R ~ BB, data = .))
-```
-
-Notice that we did in fact fit a regression line to each strata. The `do` function will create a data frame with the first column being the strata value and a column named `fit` (we chose the name, but it can be anything). The column will contain the result of the `lm` call. Therefore, the returned tibble has a column with `lm` objects, which is not very useful. 
-
-Also, if we do not name a column (note above we named it `fit`), then `do` will return the actual output of `lm`, not a data frame, and this will result in an error since `do` is expecting a data frame as output.
-
-```{r, eval=FALSE}
-dat %>%  
-  group_by(HR) %>%
-  do(lm(R ~ BB, data = .))
-```
-
-`Error: Results 1, 2, 3, 4, 5, ... must be data frames, not lm`
-
-
-For a useful data frame to be constructed, the output of the function must be a data frame too. We could build a function that returns only what we want in the form of a data frame:
-
-```{r}
-get_slope <- function(data){
-  fit <- lm(R ~ BB, data = data)
-  data.frame(slope = fit$coefficients[2], 
-             se = summary(fit)$coefficient[2,2])
+get_slope <- function(x, y){
+  fit <- lm(y ~ x)
+  tibble(slope = fit$coefficients[2], 
+         se = summary(fit)$coefficient[2,2])
 }
-```
-
-And then use `do` **without** naming the output, since we are already getting a data frame: 
-
-```{r}
 dat %>%  
   group_by(HR) %>%
-  do(get_slope(.))
+  summarize(get_slope(BB, R))
 ```
 
-If we name the output, then we get something we do not want, a column containing  data frames:
+Here is an example in which we return both estimated parameters:
 
 ```{r}
-dat %>%  
-  group_by(HR) %>%
-  do(slope = get_slope(.))
-```
-
-This is not very useful, so let's cover one last feature of `do`. If the data frame being returned has more than one row, these will be concatenated appropriately. Here is an example in which we return both estimated parameters:
-
-```{r}
-get_lse <- function(data){
-  fit <- lm(R ~ BB, data = data)
+get_lse <- function(x, y){
+  fit <- lm(y ~ x)
   data.frame(term = names(fit$coefficients),
     slope = fit$coefficients, 
     se = summary(fit)$coefficient[,2])
@@ -438,7 +403,7 @@ get_lse <- function(data){
 
 dat %>%  
   group_by(HR) %>%
-  do(get_lse(.))
+  summarize(get_lse(BB, R))
 ```
 
 If you think this is all a bit too complicated, you are not alone. To simplify things, we introduce the __broom__ package which was designed to facilitate the use of model fitting functions, such as `lm`, with the __tidyverse__.
@@ -461,12 +426,12 @@ We can add other important summaries, such as confidence intervals:
 tidy(fit, conf.int = TRUE)
 ```
 
-Because the outcome is a data frame, we can immediately use it with `do` to string together the commands that produce the table we are after. Because a data frame is returned, we can filter and select the rows and columns we want, which facilitates working with __ggplot2__:
+Because the outcome is a data frame, we can immediately use it with `summarize` to string together the commands that produce the table we are after. Because a data frame is returned, we can filter and select the rows and columns we want, which facilitates working with __ggplot2__:
 
 ```{r do-tidy-example} 
 dat %>%  
   group_by(HR) %>%
-  do(tidy(lm(R ~ BB, data = .), conf.int = TRUE)) %>%
+  summarize(tidy(lm(R ~ BB), conf.int = TRUE)) %>%
   filter(term == "BB") %>%
   select(HR, estimate, conf.low, conf.high) %>%
   ggplot(aes(HR, y = estimate, ymin = conf.low, ymax = conf.high)) +
@@ -474,7 +439,7 @@ dat %>%
   geom_point()
 ```
 
-Now we return to discussing our original task of determining if slopes changed. The plot we just made, using `do` and `tidy`, shows that the confidence intervals overlap, which provides a nice visual confirmation that our assumption that the slope does not change is safe.
+Now we return to discussing our original task of determining if slopes changed. The plot we just made, using `summarize` and `tidy`, shows that the confidence intervals overlap, which provides a nice visual confirmation that our assumption that the slope does not change is safe.
 
 The other functions provided by __broom__, `glance`, and `augment`, relate to model-specific and observation-specific outcomes, respectively. Here, we can see the model fit summaries `glance` returns:
 
@@ -523,13 +488,13 @@ Are these differences statistically significant? To answer this, we will compute
 5\. Fit a linear regression model to obtain the effects of BB and HR on Runs (at the team level) in 1971. Use the `tidy` function in the __broom__ package to obtain the results in a data frame.
 
     
-6\. Now let's repeat the above for each year since 1961 and make a plot. Use `do` and the __broom__ package to fit this model for every year since 1961. 
+6\. Now let's repeat the above for each year since 1961 and make a plot. Use `summarize` and the __broom__ package to fit this model for every year since 1961. 
 
    
 7\. Use the results of the previous exercise to plot the estimated effects of BB on runs.
 
    
-8\. __Advanced__. Write a function that takes R, HR, and BB as arguments and fits two linear models: `R ~ BB` and `R~BB+HR`. Then use the `do` function to obtain the `BB` for both models for each year since 1961. Then plot these against each other as a function of time.
+8\. __Advanced__. Write a function that takes R, HR, and BB as arguments and fits two linear models: `R ~ BB` and `R~BB+HR`. Then use the `summary` function to obtain the `BB` for both models for each year since 1961. Then plot these against each other as a function of time.
 
 
 ## Case study: Moneyball (continued)
@@ -563,7 +528,7 @@ tidy(fit, conf.int = TRUE)
 ```
 
 
-When we fit the model with only one variable, the estimated slopes were `r bb_slope` and `r hr_slope` for BB and HR, respectively. Note that when fitting the multivariate model both go down, with the BB effect decreasing much more. 
+When we fit the model with only one variable, the estimated slopes were `r bb_slope` and `r hr_slope` for BB and HR, respectively. Note that when fitting the multivariable model both go down, with the BB effect decreasing much more. 
 
 Now we want to construct a metric to pick players, we need to consider singles, doubles, and triples as well. Can we build a model that predicts runs based on all these outcomes? 
 
