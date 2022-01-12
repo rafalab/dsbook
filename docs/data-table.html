@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Chapter 15 Random variables | Introduction to Data Science</title>
+  <title>Chapter 6 data.table | Introduction to Data Science</title>
   <meta name="description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown." />
   <meta name="generator" content="bookdown 0.22 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Chapter 15 Random variables | Introduction to Data Science" />
+  <meta property="og:title" content="Chapter 6 data.table | Introduction to Data Science" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Chapter 15 Random variables | Introduction to Data Science" />
+  <meta name="twitter:title" content="Chapter 6 data.table | Introduction to Data Science" />
   
   <meta name="twitter:description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown." />
   
@@ -31,8 +31,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="probability.html"/>
-<link rel="next" href="inference.html"/>
+<link rel="prev" href="importing-data.html"/>
+<link rel="next" href="introduction-to-data-visualization.html"/>
 <script src="libs/header-attrs-2.9/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -1043,485 +1043,213 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="random-variables" class="section level1" number="15">
-<h1><span class="header-section-number">Chapter 15</span> Random variables</h1>
-<p>In data science, we often deal with data that is affected by chance in some way: the data comes from a random sample, the data is affected by measurement error, or the data measures some outcome that is random in nature. Being able to quantify the uncertainty introduced by randomness is one of the most important jobs of a data analyst. Statistical inference offers a framework, as well as several practical tools, for doing this. The first step is to learn how to mathematically describe random variables.</p>
-<p>In this chapter, we introduce random variables and their properties starting with their application to games of chance. We then describe some of the events surrounding the financial crisis of 2007-2008<a href="#fn51" class="footnote-ref" id="fnref51"><sup>51</sup></a> using probability theory. This financial crisis was in part caused by underestimating the risk of certain securities<a href="#fn52" class="footnote-ref" id="fnref52"><sup>52</sup></a> sold by financial institutions. Specifically, the risks of mortgage-backed securities (MBS) and collateralized debt obligations (CDO) were grossly underestimated. These assets were sold at prices that assumed most homeowners would make their monthly payments, and the probability of this not occurring was calculated as being low. A combination of factors resulted in many more defaults than were expected, which led to a price crash of these securities. As a consequence, banks lost so much money that they needed government bailouts to avoid closing down completely.</p>
-<div id="random-variables-1" class="section level2" number="15.1">
-<h2><span class="header-section-number">15.1</span> Random variables</h2>
-<p>Random variables are numeric outcomes resulting from random processes. We can easily generate random variables using some of the simple examples we have shown. For example, define <code>X</code> to be 1 if a bead is blue and red otherwise:</p>
-<div class="sourceCode" id="cb520"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb520-1"><a href="random-variables.html#cb520-1" aria-hidden="true" tabindex="-1"></a>beads <span class="ot">&lt;-</span> <span class="fu">rep</span>( <span class="fu">c</span>(<span class="st">&quot;red&quot;</span>, <span class="st">&quot;blue&quot;</span>), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>))</span>
-<span id="cb520-2"><a href="random-variables.html#cb520-2" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">sample</span>(beads, <span class="dv">1</span>) <span class="sc">==</span> <span class="st">&quot;blue&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span></code></pre></div>
-<p>Here <code>X</code> is a random variable: every time we select a new bead the outcome changes randomly. See below:</p>
-<div class="sourceCode" id="cb521"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb521-1"><a href="random-variables.html#cb521-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ifelse</span>(<span class="fu">sample</span>(beads, <span class="dv">1</span>) <span class="sc">==</span> <span class="st">&quot;blue&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb521-2"><a href="random-variables.html#cb521-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span>
-<span id="cb521-3"><a href="random-variables.html#cb521-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ifelse</span>(<span class="fu">sample</span>(beads, <span class="dv">1</span>) <span class="sc">==</span> <span class="st">&quot;blue&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb521-4"><a href="random-variables.html#cb521-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span>
-<span id="cb521-5"><a href="random-variables.html#cb521-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ifelse</span>(<span class="fu">sample</span>(beads, <span class="dv">1</span>) <span class="sc">==</span> <span class="st">&quot;blue&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb521-6"><a href="random-variables.html#cb521-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-<p>Sometimes it’s 1 and sometimes it’s 0.</p>
+<div id="data.table" class="section level1" number="6">
+<h1><span class="header-section-number">Chapter 6</span> data.table</h1>
+<p>In this book we use tidyverse packages to illustrate because beginners find the code readable and this permits us to focus on data analysis and statistical concepts. However, there are other approaches to wrangling and analyzing data in R that are faster and better at handling large objects. The <strong>data.table</strong> package is one of the most popular and in this chapter we provide a very quick introduction. There are several online resources, including this introduction<a href="#fn19" class="footnote-ref" id="fnref19"><sup>19</sup></a> for those wanting to learn more.</p>
+<div id="manipulating-data-tables" class="section level2" number="6.1">
+<h2><span class="header-section-number">6.1</span> Manipulating data tables</h2>
+<p><code>data.table</code> is separate package that needs to be installed. Once installed we need to load it:</p>
+<div class="sourceCode" id="cb254"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb254-1"><a href="data-table.html#cb254-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span></code></pre></div>
+<p>We will provide example code showing the <strong>data.table</strong> approaches to <strong>dplyr</strong>’s <code>mutate</code>, <code>filter</code>, <code>select</code>, <code>group_by</code>, and <code>summarize</code> shown in Chapter <a href="tidyverse.html#tidyverse">4</a>. As done in that chapter we will use the <code>murders</code> dataset:</p>
+<p>The first step when using <strong>data.table</strong> is to convert the data frame into a <code>data.table</code> object using the <code>setDT</code> function:</p>
+<div class="sourceCode" id="cb255"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb255-1"><a href="data-table.html#cb255-1" aria-hidden="true" tabindex="-1"></a>murders <span class="ot">&lt;-</span><span class="fu">setDT</span>(murders)</span></code></pre></div>
+<p>Without this most of the approaches shown below will not work.</p>
+<div id="selecting" class="section level3" number="6.1.1">
+<h3><span class="header-section-number">6.1.1</span> Selecting</h3>
+<p>Selecting with <strong>data.table</strong> is done in a similar way to subsetting matrices. While with <strong>dplyr</strong> we write</p>
+<div class="sourceCode" id="cb256"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb256-1"><a href="data-table.html#cb256-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(murders, state, region)</span></code></pre></div>
+<p>In <strong>data.table</strong> we use notation similar to what is used with matrices:</p>
+<div class="sourceCode" id="cb257"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb257-1"><a href="data-table.html#cb257-1" aria-hidden="true" tabindex="-1"></a>murders[, <span class="fu">c</span>(<span class="st">&quot;state&quot;</span>, <span class="st">&quot;region&quot;</span>)] <span class="sc">|</span><span class="er">&gt;</span> <span class="fu">head</span>()</span>
+<span id="cb257-2"><a href="data-table.html#cb257-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         state region</span></span>
+<span id="cb257-3"><a href="data-table.html#cb257-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:    Alabama  South</span></span>
+<span id="cb257-4"><a href="data-table.html#cb257-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2:     Alaska   West</span></span>
+<span id="cb257-5"><a href="data-table.html#cb257-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3:    Arizona   West</span></span>
+<span id="cb257-6"><a href="data-table.html#cb257-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4:   Arkansas  South</span></span>
+<span id="cb257-7"><a href="data-table.html#cb257-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5: California   West</span></span>
+<span id="cb257-8"><a href="data-table.html#cb257-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6:   Colorado   West</span></span></code></pre></div>
+<p>We can also use the <code>.()</code> <strong>data.table</strong> notation to alert R that variables inside the parenthesis are column names, not objects in the R environment. So the above can also be written like this:</p>
+<div class="sourceCode" id="cb258"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb258-1"><a href="data-table.html#cb258-1" aria-hidden="true" tabindex="-1"></a>murders[, .(state, region)] <span class="sc">|</span><span class="er">&gt;</span> <span class="fu">head</span>()</span>
+<span id="cb258-2"><a href="data-table.html#cb258-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         state region</span></span>
+<span id="cb258-3"><a href="data-table.html#cb258-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:    Alabama  South</span></span>
+<span id="cb258-4"><a href="data-table.html#cb258-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2:     Alaska   West</span></span>
+<span id="cb258-5"><a href="data-table.html#cb258-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3:    Arizona   West</span></span>
+<span id="cb258-6"><a href="data-table.html#cb258-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4:   Arkansas  South</span></span>
+<span id="cb258-7"><a href="data-table.html#cb258-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5: California   West</span></span>
+<span id="cb258-8"><a href="data-table.html#cb258-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6:   Colorado   West</span></span></code></pre></div>
 </div>
-<div id="sampling-models" class="section level2" number="15.2">
-<h2><span class="header-section-number">15.2</span> Sampling models</h2>
-<p>Many data generation procedures, those that produce the data we study, can be modeled quite well as draws from an urn. For instance, we can model the process of polling likely voters as drawing 0s (Republicans) and 1s (Democrats) from an urn containing the 0 and 1 code for all likely voters. In epidemiological studies, we often assume that the subjects in our study are a random sample from the population of interest. The data related to a specific outcome can be modeled as a random sample from an urn containing the outcome for the entire population of interest. Similarly, in experimental research, we often assume that the individual organisms we are studying, for example worms, flies, or mice, are a random sample from a larger population. Randomized experiments can also be modeled by draws from an urn given the way individuals are assigned into groups: when getting assigned, you draw your group at random. Sampling models are therefore ubiquitous in data science. Casino games offer a plethora of examples of real-world situations in which sampling models are used to answer specific questions. We will therefore start with such examples.</p>
-<p>Suppose a very small casino hires you to consult on whether they should set up roulette wheels. To keep the example simple, we will assume that 1,000 people will play and that the only game you can play on the roulette wheel is to bet on red or black. The casino wants you to predict how much money they will make or lose. They want a range of values and, in particular, they want to know what’s the chance of losing money. If this probability is too high, they will pass on installing roulette wheels.</p>
-<p>We are going to define a random variable <span class="math inline">\(S\)</span> that will represent the casino’s total winnings. Let’s start by constructing the urn. A roulette wheel has 18 red pockets, 18 black pockets and 2 green ones. So playing a color in one game of roulette is equivalent to drawing from this urn:</p>
-<div class="sourceCode" id="cb522"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb522-1"><a href="random-variables.html#cb522-1" aria-hidden="true" tabindex="-1"></a>color <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;Black&quot;</span>, <span class="st">&quot;Red&quot;</span>, <span class="st">&quot;Green&quot;</span>), <span class="fu">c</span>(<span class="dv">18</span>, <span class="dv">18</span>, <span class="dv">2</span>))</span></code></pre></div>
-<p>The 1,000 outcomes from 1,000 people playing are independent draws from this urn. If red comes up, the gambler wins and the casino loses a dollar, so we draw a -$1. Otherwise, the casino wins a dollar and we draw a $1. To construct our random variable <span class="math inline">\(S\)</span>, we can use this code:</p>
-<div class="sourceCode" id="cb523"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb523-1"><a href="random-variables.html#cb523-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb523-2"><a href="random-variables.html#cb523-2" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">ifelse</span>(color <span class="sc">==</span> <span class="st">&quot;Red&quot;</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>),  n, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb523-3"><a href="random-variables.html#cb523-3" aria-hidden="true" tabindex="-1"></a>X[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>]</span>
-<span id="cb523-4"><a href="random-variables.html#cb523-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [1] -1  1  1 -1 -1 -1  1  1  1  1</span></span></code></pre></div>
-<p>Because we know the proportions of 1s and -1s, we can generate the draws with one line of code, without defining <code>color</code>:</p>
-<div class="sourceCode" id="cb524"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb524-1"><a href="random-variables.html#cb524-1" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>), n, <span class="at">replace =</span> <span class="cn">TRUE</span>, <span class="at">prob=</span><span class="fu">c</span>(<span class="dv">9</span><span class="sc">/</span><span class="dv">19</span>, <span class="dv">10</span><span class="sc">/</span><span class="dv">19</span>))</span></code></pre></div>
-<p>We call this a <strong>sampling model</strong> since we are modeling the random behavior of roulette with the sampling of draws from an urn. The total winnings <span class="math inline">\(S\)</span> is simply the sum of these 1,000 independent draws:</p>
-<div class="sourceCode" id="cb525"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb525-1"><a href="random-variables.html#cb525-1" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>), n, <span class="at">replace =</span> <span class="cn">TRUE</span>, <span class="at">prob=</span><span class="fu">c</span>(<span class="dv">9</span><span class="sc">/</span><span class="dv">19</span>, <span class="dv">10</span><span class="sc">/</span><span class="dv">19</span>))</span>
-<span id="cb525-2"><a href="random-variables.html#cb525-2" aria-hidden="true" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="fu">sum</span>(X)</span>
-<span id="cb525-3"><a href="random-variables.html#cb525-3" aria-hidden="true" tabindex="-1"></a>S</span>
-<span id="cb525-4"><a href="random-variables.html#cb525-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 22</span></span></code></pre></div>
+<div id="adding-a-column-or-changing-columns" class="section level3" number="6.1.2">
+<h3><span class="header-section-number">6.1.2</span> Adding a column or changing columns</h3>
+<p>We learned to use <strong>dplyr</strong> <code>mutate</code> function with this example:</p>
+<div class="sourceCode" id="cb259"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb259-1"><a href="data-table.html#cb259-1" aria-hidden="true" tabindex="-1"></a>murders <span class="ot">&lt;-</span> <span class="fu">mutate</span>(murders, <span class="at">rate =</span> total <span class="sc">/</span> population <span class="sc">*</span> <span class="dv">100000</span>)</span></code></pre></div>
+<p><strong>data.table</strong> uses an approach that avoids an new assignment (update by reference). This can help with large datasets that take up most of your computers memory. The <strong>data.table</strong> :=` function permits us to do this:</p>
+<div class="sourceCode" id="cb260"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb260-1"><a href="data-table.html#cb260-1" aria-hidden="true" tabindex="-1"></a>murders[, rate <span class="sc">:</span><span class="er">=</span> total <span class="sc">/</span> population <span class="sc">*</span> <span class="dv">100000</span>]</span></code></pre></div>
+<p>This adds a new column, <code>rate</code>, to the table. Notice that, as in <strong>dplyr</strong> we used <code>total</code> and <code>population</code> without quotes as done in <strong>dplyr</strong>.</p>
+<p>We can see that the new column is added:</p>
+<div class="sourceCode" id="cb261"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb261-1"><a href="data-table.html#cb261-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(murders)</span>
+<span id="cb261-2"><a href="data-table.html#cb261-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         state abb region population total rate</span></span>
+<span id="cb261-3"><a href="data-table.html#cb261-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:    Alabama  AL  South    4779736   135 2.82</span></span>
+<span id="cb261-4"><a href="data-table.html#cb261-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2:     Alaska  AK   West     710231    19 2.68</span></span>
+<span id="cb261-5"><a href="data-table.html#cb261-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3:    Arizona  AZ   West    6392017   232 3.63</span></span>
+<span id="cb261-6"><a href="data-table.html#cb261-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4:   Arkansas  AR  South    2915918    93 3.19</span></span>
+<span id="cb261-7"><a href="data-table.html#cb261-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5: California  CA   West   37253956  1257 3.37</span></span>
+<span id="cb261-8"><a href="data-table.html#cb261-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6:   Colorado  CO   West    5029196    65 1.29</span></span></code></pre></div>
+<p>To define new multiple columns we can use the <code>:=</code> function with multiple arguments:</p>
+<div class="sourceCode" id="cb262"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb262-1"><a href="data-table.html#cb262-1" aria-hidden="true" tabindex="-1"></a>murders[, <span class="st">&quot;:=&quot;</span>(<span class="at">rate =</span> total <span class="sc">/</span> population <span class="sc">*</span> <span class="dv">100000</span>, <span class="at">rank =</span> <span class="fu">rank</span>(population))]</span></code></pre></div>
 </div>
-<div id="the-probability-distribution-of-a-random-variable" class="section level2" number="15.3">
-<h2><span class="header-section-number">15.3</span> The probability distribution of a random variable</h2>
-<p>If you run the code above, you see that <span class="math inline">\(S\)</span> changes every time. This is, of course, because <span class="math inline">\(S\)</span> is a <strong>random variable</strong>. The probability distribution of a random variable tells us the probability of the observed value falling at any given interval. So, for example, if we want to know the probability that we lose money, we are asking the probability that <span class="math inline">\(S\)</span> is in the interval <span class="math inline">\(S&lt;0\)</span>.</p>
-<p>Note that if we can define a cumulative distribution function <span class="math inline">\(F(a) = \mbox{Pr}(S\leq a)\)</span>, then we will be able to answer any question related to the probability of events defined by our random variable <span class="math inline">\(S\)</span>, including the event <span class="math inline">\(S&lt;0\)</span>. We call this <span class="math inline">\(F\)</span> the random variable’s <em>distribution function</em>.</p>
-<p>We can estimate the distribution function for the random variable <span class="math inline">\(S\)</span> by using a Monte Carlo simulation to generate many realizations of the random variable. With this code, we run the experiment of having 1,000 people play roulette, over and over, specifically <span class="math inline">\(B = 10,000\)</span> times:</p>
-<div class="sourceCode" id="cb526"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb526-1"><a href="random-variables.html#cb526-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb526-2"><a href="random-variables.html#cb526-2" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
-<span id="cb526-3"><a href="random-variables.html#cb526-3" aria-hidden="true" tabindex="-1"></a>roulette_winnings <span class="ot">&lt;-</span> <span class="cf">function</span>(n){</span>
-<span id="cb526-4"><a href="random-variables.html#cb526-4" aria-hidden="true" tabindex="-1"></a>  X <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>), n, <span class="at">replace =</span> <span class="cn">TRUE</span>, <span class="at">prob=</span><span class="fu">c</span>(<span class="dv">9</span><span class="sc">/</span><span class="dv">19</span>, <span class="dv">10</span><span class="sc">/</span><span class="dv">19</span>))</span>
-<span id="cb526-5"><a href="random-variables.html#cb526-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>(X)</span>
-<span id="cb526-6"><a href="random-variables.html#cb526-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb526-7"><a href="random-variables.html#cb526-7" aria-hidden="true" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="fu">replicate</span>(B, <span class="fu">roulette_winnings</span>(n))</span></code></pre></div>
-<p>Now we can ask the following: in our simulations, how often did we get sums less than or equal to <code>a</code>?</p>
-<div class="sourceCode" id="cb527"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb527-1"><a href="random-variables.html#cb527-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(S <span class="sc">&lt;=</span> a)</span></code></pre></div>
-<p>This will be a very good approximation of <span class="math inline">\(F(a)\)</span> and we can easily answer the casino’s question: how likely is it that we will lose money? We can see it is quite low:</p>
-<div class="sourceCode" id="cb528"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb528-1"><a href="random-variables.html#cb528-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(S<span class="sc">&lt;</span><span class="dv">0</span>)</span>
-<span id="cb528-2"><a href="random-variables.html#cb528-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.0456</span></span></code></pre></div>
-<p>We can visualize the distribution of <span class="math inline">\(S\)</span> by creating a histogram showing the probability <span class="math inline">\(F(b)-F(a)\)</span> for several intervals <span class="math inline">\((a,b]\)</span>:</p>
-<p><img src="book_files/figure-html/normal-approximates-distribution-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>We see that the distribution appears to be approximately normal. A qq-plot will confirm that the normal approximation is close to a perfect approximation for this distribution. If, in fact, the distribution is normal, then all we need to define the distribution is the average and the standard deviation. Because we have the original values from which the distribution is created, we can easily compute these with <code>mean(S)</code> and <code>sd(S)</code>. The blue curve you see added to the histogram above is a normal density with this average and standard deviation.</p>
-<p>This average and this standard deviation have special names. They are referred to as the <em>expected value</em> and <em>standard error</em> of the random variable <span class="math inline">\(S\)</span>. We will say more about these in the next section.</p>
-<p>Statistical theory provides a way to derive the distribution of random variables defined as independent random draws from an urn. Specifically, in our example above, we can show that <span class="math inline">\((S+n)/2\)</span> follows a binomial distribution. We therefore do not need to run for Monte Carlo simulations to know the probability distribution of <span class="math inline">\(S\)</span>. We did this for illustrative purposes.</p>
-<p>We can use the function <code>dbinom</code> and <code>pbinom</code> to compute the probabilities exactly. For example, to compute <span class="math inline">\(\mbox{Pr}(S &lt; 0)\)</span> we note that:</p>
-<p><span class="math display">\[\mbox{Pr}(S &lt; 0) = \mbox{Pr}((S+n)/2 &lt; (0+n)/2)\]</span></p>
-<p>and we can use the <code>pbinom</code> to compute <span class="math display">\[\mbox{Pr}(S \leq 0)\]</span></p>
-<div class="sourceCode" id="cb529"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb529-1"><a href="random-variables.html#cb529-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb529-2"><a href="random-variables.html#cb529-2" aria-hidden="true" tabindex="-1"></a><span class="fu">pbinom</span>(n<span class="sc">/</span><span class="dv">2</span>, <span class="at">size =</span> n, <span class="at">prob =</span> <span class="dv">10</span><span class="sc">/</span><span class="dv">19</span>)</span>
-<span id="cb529-3"><a href="random-variables.html#cb529-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.0511</span></span></code></pre></div>
-<p>Because this is a discrete probability function, to get <span class="math inline">\(\mbox{Pr}(S &lt; 0)\)</span> rather than <span class="math inline">\(\mbox{Pr}(S \leq 0)\)</span>, we write:</p>
-<div class="sourceCode" id="cb530"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb530-1"><a href="random-variables.html#cb530-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pbinom</span>(n<span class="sc">/</span><span class="dv">2-1</span>, <span class="at">size =</span> n, <span class="at">prob =</span> <span class="dv">10</span><span class="sc">/</span><span class="dv">19</span>)</span>
-<span id="cb530-2"><a href="random-variables.html#cb530-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.0448</span></span></code></pre></div>
-<p>For the details of the binomial distribution, you can consult any basic probability book or even Wikipedia<a href="#fn53" class="footnote-ref" id="fnref53"><sup>53</sup></a>.</p>
-<p>Here we do not cover these details. Instead, we will discuss an incredibly useful approximation provided by mathematical theory that applies generally to sums and averages of draws from any urn: the Central Limit Theorem (CLT).</p>
+<div id="technical-detail-reference-versus-copy" class="section level3" number="6.1.3">
+<h3><span class="header-section-number">6.1.3</span> Technical detail: reference versus copy</h3>
+<p>The <strong>data.table</strong> package is designed to avoid wasting memory. So if you make a copy of a table, like this:</p>
+<div class="sourceCode" id="cb263"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb263-1"><a href="data-table.html#cb263-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">data.table</span>(<span class="at">a =</span> <span class="dv">1</span>)</span>
+<span id="cb263-2"><a href="data-table.html#cb263-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> x</span></code></pre></div>
+<p><code>y</code> is actually referencing <code>x</code>, it is not an new opject: it’s just another name for <code>x</code>. Until you change <code>y</code> a new object will not be made. However, the <code>:=</code> function changes <em>by reference</em> so if you change <code>x</code>, a new object is not made and <code>y</code> continues to be just another name for <code>x</code>:</p>
+<div class="sourceCode" id="cb264"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb264-1"><a href="data-table.html#cb264-1" aria-hidden="true" tabindex="-1"></a>x[,a <span class="sc">:</span><span class="er">=</span> <span class="dv">2</span>]</span>
+<span id="cb264-2"><a href="data-table.html#cb264-2" aria-hidden="true" tabindex="-1"></a>y</span>
+<span id="cb264-3"><a href="data-table.html#cb264-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    a</span></span>
+<span id="cb264-4"><a href="data-table.html#cb264-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1: 2</span></span></code></pre></div>
+<p>Note also that you can change <code>x</code> like this:</p>
+<div class="sourceCode" id="cb265"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb265-1"><a href="data-table.html#cb265-1" aria-hidden="true" tabindex="-1"></a>y[,a <span class="sc">:</span><span class="er">=</span> <span class="dv">1</span>]</span>
+<span id="cb265-2"><a href="data-table.html#cb265-2" aria-hidden="true" tabindex="-1"></a>x</span>
+<span id="cb265-3"><a href="data-table.html#cb265-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    a</span></span>
+<span id="cb265-4"><a href="data-table.html#cb265-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1: 1</span></span></code></pre></div>
+<p>To avoid this you can use the <code>copy</code> function, which forces the creation of an actual copy:</p>
+<div class="sourceCode" id="cb266"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb266-1"><a href="data-table.html#cb266-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">data.table</span>(<span class="at">a =</span> <span class="dv">1</span>)</span>
+<span id="cb266-2"><a href="data-table.html#cb266-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">copy</span>(x)</span>
+<span id="cb266-3"><a href="data-table.html#cb266-3" aria-hidden="true" tabindex="-1"></a>x[,a <span class="sc">:</span><span class="er">=</span> <span class="dv">2</span>]</span>
+<span id="cb266-4"><a href="data-table.html#cb266-4" aria-hidden="true" tabindex="-1"></a>y</span>
+<span id="cb266-5"><a href="data-table.html#cb266-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    a</span></span>
+<span id="cb266-6"><a href="data-table.html#cb266-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1: 1</span></span></code></pre></div>
 </div>
-<div id="distributions-versus-probability-distributions" class="section level2" number="15.4">
-<h2><span class="header-section-number">15.4</span> Distributions versus probability distributions</h2>
-<p>Before we continue, let’s make an important distinction and connection between the distribution of a list of numbers and a probability distribution. In the visualization chapter, we described how any list of numbers <span class="math inline">\(x_1,\dots,x_n\)</span> has a distribution. The definition is quite straightforward. We define <span class="math inline">\(F(a)\)</span> as the function that tells us what proportion of the list is less than or equal to <span class="math inline">\(a\)</span>. Because they are useful summaries when the distribution is approximately normal, we define the average and standard deviation. These are defined with a straightforward operation of the vector containing the list of numbers <code>x</code>:</p>
-<div class="sourceCode" id="cb531"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb531-1"><a href="random-variables.html#cb531-1" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">sum</span>(x)<span class="sc">/</span><span class="fu">length</span>(x)</span>
-<span id="cb531-2"><a href="random-variables.html#cb531-2" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>((x <span class="sc">-</span> m)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="fu">length</span>(x))</span></code></pre></div>
-<p>A random variable <span class="math inline">\(X\)</span> has a distribution function. To define this, we do not need a list of numbers. It is a theoretical concept. In this case, we define the distribution as the <span class="math inline">\(F(a)\)</span> that answers the question: what is the probability that <span class="math inline">\(X\)</span> is less than or equal to <span class="math inline">\(a\)</span>? There is no list of numbers.</p>
-<p>However, if <span class="math inline">\(X\)</span> is defined by drawing from an urn with numbers in it, then there is a list: the list of numbers inside the urn. In this case, the distribution of that list is the probability distribution of <span class="math inline">\(X\)</span> and the average and standard deviation of that list are the expected value and standard error of the random variable.</p>
-<p>Another way to think about it that does not involve an urn is to run a Monte Carlo simulation and generate a very large list of outcomes of <span class="math inline">\(X\)</span>. These outcomes are a list of numbers. The distribution of this list will be a very good approximation of the probability distribution of <span class="math inline">\(X\)</span>. The longer the list, the better the approximation. The average and standard deviation of this list will approximate the expected value and standard error of the random variable.</p>
-</div>
-<div id="notation-for-random-variables" class="section level2" number="15.5">
-<h2><span class="header-section-number">15.5</span> Notation for random variables</h2>
-<p>In statistical textbooks, upper case letters are used to denote random variables and we follow this convention here. Lower case letters are used for observed values. You will see some notation that includes both. For example, you will see events defined as <span class="math inline">\(X \leq x\)</span>. Here <span class="math inline">\(X\)</span> is a random variable, making it a random event, and <span class="math inline">\(x\)</span> is an arbitrary value and not random. So, for example, <span class="math inline">\(X\)</span> might represent the number on a die roll and <span class="math inline">\(x\)</span> will represent an actual value we see 1, 2, 3, 4, 5, or 6. So in this case, the probability of <span class="math inline">\(X=x\)</span> is 1/6 regardless of the observed value <span class="math inline">\(x\)</span>. This notation is a bit strange because, when we ask questions about probability, <span class="math inline">\(X\)</span> is not an observed quantity. Instead, it’s a random quantity that we will see in the future. We can talk about what we expect it to be, what values are probable, but not what it is. But once we have data, we do see a realization of <span class="math inline">\(X\)</span>. So data scientists talk of what could have been after we see what actually happened.</p>
-</div>
-<div id="the-expected-value-and-standard-error" class="section level2" number="15.6">
-<h2><span class="header-section-number">15.6</span> The expected value and standard error</h2>
-<p>We have described sampling models for draws. We will now go over the mathematical theory that lets us approximate the probability distributions for the sum of draws. Once we do this, we will be able to help the casino predict how much money they will make. The same approach we use for the sum of draws will be useful for describing the distribution of averages and proportion which we will need to understand how polls work.</p>
-<p>The first important concept to learn is the <em>expected value</em>.
-In statistics books, it is common to use letter <span class="math inline">\(\mbox{E}\)</span> like this:</p>
-<p><span class="math display">\[\mbox{E}[X]\]</span></p>
-<p>to denote the expected value of the random variable <span class="math inline">\(X\)</span>.</p>
-<p>A random variable will vary around its expected value in a way that if you take the average of many, many draws, the average of the draws will approximate the expected value, getting closer and closer the more draws you take.</p>
-<p>Theoretical statistics provides techniques that facilitate the calculation of expected values in different circumstances. For example, a useful formula tells us that the <em>expected value of a random variable defined by one draw is the average of the numbers in the urn</em>. In the urn used to model betting on red in roulette, we have 20 one dollars and 18 negative one dollars. The expected value is thus:</p>
-<p><span class="math display">\[
-\mbox{E}[X] = (20 + -18)/38
-\]</span></p>
-<p>which is about 5 cents. It is a bit counterintuitive to say that <span class="math inline">\(X\)</span> varies around 0.05, when the only values it takes is 1 and -1. One way to make sense of the expected value in this context is by realizing that if we play the game over and over, the casino wins, on average, 5 cents per game. A Monte Carlo simulation confirms this:</p>
-<div class="sourceCode" id="cb532"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb532-1"><a href="random-variables.html#cb532-1" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">10</span><span class="sc">^</span><span class="dv">6</span></span>
-<span id="cb532-2"><a href="random-variables.html#cb532-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>), B, <span class="at">replace =</span> <span class="cn">TRUE</span>, <span class="at">prob=</span><span class="fu">c</span>(<span class="dv">9</span><span class="sc">/</span><span class="dv">19</span>, <span class="dv">10</span><span class="sc">/</span><span class="dv">19</span>))</span>
-<span id="cb532-3"><a href="random-variables.html#cb532-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(x)</span>
-<span id="cb532-4"><a href="random-variables.html#cb532-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.0517</span></span></code></pre></div>
-<p>In general, if the urn has two possible outcomes, say <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, with proportions <span class="math inline">\(p\)</span> and <span class="math inline">\(1-p\)</span> respectively, the average is:</p>
-<p><span class="math display">\[\mbox{E}[X] = ap + b(1-p)\]</span></p>
-<p>To see this, notice that if there are <span class="math inline">\(n\)</span> beads in the urn, then we have <span class="math inline">\(np\)</span> <span class="math inline">\(a\)</span>s and <span class="math inline">\(n(1-p)\)</span> <span class="math inline">\(b\)</span>s and because the average is the sum, <span class="math inline">\(n\times a \times p + n\times b \times (1-p)\)</span>, divided by the total <span class="math inline">\(n\)</span>, we get that the average is <span class="math inline">\(ap + b(1-p)\)</span>.</p>
-<p>Now the reason we define the expected value is because this mathematical definition turns out to be useful for approximating the probability distributions of sum, which then is useful for describing the distribution of averages and proportions. The first useful fact is that the <em>expected value of the sum of the draws</em> is:</p>
-<p><span class="math display">\[
-\mbox{}\mbox{number of draws } \times \mbox{ average of the numbers in the urn}
-\]</span></p>
-<p>So if 1,000 people play roulette, the casino expects to win, on average, about 1,000 <span class="math inline">\(\times\)</span> $0.05 = $50. But this is an expected value. How different can one observation be from the expected value? The casino really needs to know this. What is the range of possibilities? If negative numbers are too likely, they will not install roulette wheels. Statistical theory once again answers this question. The <em>standard error</em> (SE) gives us an idea of the size of the variation around the expected value. In statistics books, it’s common to use:</p>
-<p><span class="math display">\[\mbox{SE}[X]\]</span></p>
-<p>to denote the standard error of a random variable.</p>
-<p><strong>If our draws are independent</strong>, then the <em>standard error of the sum</em> is given by the equation:</p>
-<p><span class="math display">\[
-\sqrt{\mbox{number of draws }} \times \mbox{ standard deviation of the numbers in the urn}
-\]</span></p>
-<p>Using the definition of standard deviation, we can derive, with a bit of math, that if an urn contains two values <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> with proportions <span class="math inline">\(p\)</span> and <span class="math inline">\((1-p)\)</span>, respectively, the standard deviation is:</p>
-<p><span class="math display">\[\mid b - a \mid \sqrt{p(1-p)}.\]</span></p>
-<p>So in our roulette example, the standard deviation of the values inside the urn is: <span class="math inline">\(\mid 1 - (-1) \mid \sqrt{10/19 \times 9/19}\)</span> or:</p>
-<div class="sourceCode" id="cb533"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb533-1"><a href="random-variables.html#cb533-1" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">90</span>)<span class="sc">/</span><span class="dv">19</span></span>
-<span id="cb533-2"><a href="random-variables.html#cb533-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.999</span></span></code></pre></div>
-<p>The standard error tells us the typical difference between a random variable and its expectation. Since one draw is obviously the sum of just one draw, we can use the formula above to calculate that the random variable defined by one draw has an expected value of 0.05 and a standard error of about 1. This makes sense since we either get 1 or -1, with 1 slightly favored over -1.</p>
-<p>Using the formula above, the sum of 1,000 people playing has standard error of about $32:</p>
-<div class="sourceCode" id="cb534"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb534-1"><a href="random-variables.html#cb534-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb534-2"><a href="random-variables.html#cb534-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(n) <span class="sc">*</span> <span class="dv">2</span> <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">90</span>)<span class="sc">/</span><span class="dv">19</span></span>
-<span id="cb534-3"><a href="random-variables.html#cb534-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 31.6</span></span></code></pre></div>
-<p>As a result, when 1,000 people bet on red, the casino is expected to win $50 with a standard error of $32. It therefore seems like a safe bet. But we still haven’t answered the question: how likely is it to lose money? Here the CLT will help.</p>
-<p><strong>Advanced note</strong>: Before continuing we should point out that exact probability calculations for the casino winnings can be performed with the binomial distribution. However, here we focus on the CLT, which can be generally applied to sums of random variables in a way that the binomial distribution can’t.</p>
-<div id="population-sd-versus-the-sample-sd" class="section level3" number="15.6.1">
-<h3><span class="header-section-number">15.6.1</span> Population SD versus the sample SD</h3>
-<p>The standard deviation of a list <code>x</code> (below we use heights as an example) is defined as the square root of the average of the squared differences:</p>
-<div class="sourceCode" id="cb535"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb535-1"><a href="random-variables.html#cb535-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dslabs)</span>
-<span id="cb535-2"><a href="random-variables.html#cb535-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> heights<span class="sc">$</span>height</span>
-<span id="cb535-3"><a href="random-variables.html#cb535-3" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">mean</span>(x)</span>
-<span id="cb535-4"><a href="random-variables.html#cb535-4" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((x<span class="sc">-</span>m)<span class="sc">^</span><span class="dv">2</span>))</span></code></pre></div>
-<p>Using mathematical notation we write:</p>
-<p><span class="math display">\[
-\mu = \frac{1}{n} \sum_{i=1}^n x_i \\
-\sigma =  \sqrt{\frac{1}{n} \sum_{i=1}^n (x_i - \mu)^2}
-\]</span></p>
-<p>However, be aware that the <code>sd</code> function returns a slightly different result:</p>
-<div class="sourceCode" id="cb536"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb536-1"><a href="random-variables.html#cb536-1" aria-hidden="true" tabindex="-1"></a><span class="fu">identical</span>(s, <span class="fu">sd</span>(x))</span>
-<span id="cb536-2"><a href="random-variables.html#cb536-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span>
-<span id="cb536-3"><a href="random-variables.html#cb536-3" aria-hidden="true" tabindex="-1"></a>s<span class="sc">-</span><span class="fu">sd</span>(x)</span>
-<span id="cb536-4"><a href="random-variables.html#cb536-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] -0.00194</span></span></code></pre></div>
-<p>This is because the <code>sd</code> function R does not return the <code>sd</code> of the list, but rather uses a formula that estimates standard deviations of a population from a random sample <span class="math inline">\(X_1, \dots, X_N\)</span> which, for reasons not discussed here, divide the sum of squares by the <span class="math inline">\(N-1\)</span>.</p>
-<p><span class="math display">\[
-\bar{X} = \frac{1}{N} \sum_{i=1}^N X_i, \,\,\,\,
-s =  \sqrt{\frac{1}{N-1} \sum_{i=1}^N (X_i - \bar{X})^2}
-\]</span></p>
-<p>You can see that this is the case by typing:</p>
-<div class="sourceCode" id="cb537"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb537-1"><a href="random-variables.html#cb537-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
-<span id="cb537-2"><a href="random-variables.html#cb537-2" aria-hidden="true" tabindex="-1"></a>s<span class="sc">-</span><span class="fu">sd</span>(x)<span class="sc">*</span><span class="fu">sqrt</span>((n<span class="dv">-1</span>) <span class="sc">/</span> n)</span>
-<span id="cb537-3"><a href="random-variables.html#cb537-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-<p>For all the theory discussed here, you need to compute the actual standard deviation as defined:</p>
-<div class="sourceCode" id="cb538"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb538-1"><a href="random-variables.html#cb538-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="fu">mean</span>((x<span class="sc">-</span>m)<span class="sc">^</span><span class="dv">2</span>))</span></code></pre></div>
-<p>So be careful when using the <code>sd</code> function in R. However, keep in mind that throughout the book we sometimes use the <code>sd</code> function when we really want the actual SD. This is because when the list size is big, these two are practically equivalent since <span class="math inline">\(\sqrt{(N-1)/N} \approx 1\)</span>.</p>
+<div id="subsetting-1" class="section level3" number="6.1.4">
+<h3><span class="header-section-number">6.1.4</span> Subsetting</h3>
+<p>With <strong>dplyr</strong> we filtered like this:</p>
+<div class="sourceCode" id="cb267"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb267-1"><a href="data-table.html#cb267-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(murders, rate <span class="sc">&lt;=</span> <span class="fl">0.7</span>)</span></code></pre></div>
+<p>With <strong>data.table</strong> we again use an approach similar to subsetting matrices, except <strong>data.table</strong> knows that <code>rate</code> refers to a column name and not an object in the R environment:</p>
+<div class="sourceCode" id="cb268"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb268-1"><a href="data-table.html#cb268-1" aria-hidden="true" tabindex="-1"></a>murders[rate <span class="sc">&lt;=</span> <span class="fl">0.7</span>]</span>
+<span id="cb268-2"><a href="data-table.html#cb268-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            state abb        region population total  rate rank</span></span>
+<span id="cb268-3"><a href="data-table.html#cb268-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:        Hawaii  HI          West    1360301     7 0.515   12</span></span>
+<span id="cb268-4"><a href="data-table.html#cb268-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2:          Iowa  IA North Central    3046355    21 0.689   22</span></span>
+<span id="cb268-5"><a href="data-table.html#cb268-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3: New Hampshire  NH     Northeast    1316470     5 0.380   10</span></span>
+<span id="cb268-6"><a href="data-table.html#cb268-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4:  North Dakota  ND North Central     672591     4 0.595    4</span></span>
+<span id="cb268-7"><a href="data-table.html#cb268-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5:       Vermont  VT     Northeast     625741     2 0.320    3</span></span></code></pre></div>
+<p>Notice that we can combine the filter and select into one succint command. Here are the state names and rates for those with rates below 0.7.</p>
+<div class="sourceCode" id="cb269"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb269-1"><a href="data-table.html#cb269-1" aria-hidden="true" tabindex="-1"></a>murders[rate <span class="sc">&lt;=</span> <span class="fl">0.7</span>, .(state, rate)]</span>
+<span id="cb269-2"><a href="data-table.html#cb269-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            state  rate</span></span>
+<span id="cb269-3"><a href="data-table.html#cb269-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:        Hawaii 0.515</span></span>
+<span id="cb269-4"><a href="data-table.html#cb269-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2:          Iowa 0.689</span></span>
+<span id="cb269-5"><a href="data-table.html#cb269-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3: New Hampshire 0.380</span></span>
+<span id="cb269-6"><a href="data-table.html#cb269-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4:  North Dakota 0.595</span></span>
+<span id="cb269-7"><a href="data-table.html#cb269-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5:       Vermont 0.320</span></span></code></pre></div>
+<p>Compare to the <strong>dplyr</strong> approach</p>
+<div class="sourceCode" id="cb270"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb270-1"><a href="data-table.html#cb270-1" aria-hidden="true" tabindex="-1"></a>murders <span class="sc">%&gt;%</span> <span class="fu">filter</span>(rate <span class="sc">&lt;=</span> <span class="fl">0.7</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(state, rate)</span></code></pre></div>
 </div>
 </div>
-<div id="central-limit-theorem" class="section level2" number="15.7">
-<h2><span class="header-section-number">15.7</span> Central Limit Theorem</h2>
-<p>The Central Limit Theorem (CLT) tells us that when the number of draws, also called the <em>sample size</em>, is large, the probability distribution of the sum of the independent draws is approximately normal. Because sampling models are used for so many data generation processes, the CLT is considered one of the most important mathematical insights in history.</p>
-<p>Previously, we discussed that if we know that the distribution of a list of numbers is approximated by the normal distribution, all we need to describe the list are the average and standard deviation. We also know that the same applies to probability distributions. If a random variable has a probability distribution that is approximated with the normal distribution, then all we need to describe the probability distribution are the average and standard deviation, referred to as the expected value and standard error.</p>
-<p>We previously ran this Monte Carlo simulation:</p>
-<div class="sourceCode" id="cb539"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb539-1"><a href="random-variables.html#cb539-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb539-2"><a href="random-variables.html#cb539-2" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
-<span id="cb539-3"><a href="random-variables.html#cb539-3" aria-hidden="true" tabindex="-1"></a>roulette_winnings <span class="ot">&lt;-</span> <span class="cf">function</span>(n){</span>
-<span id="cb539-4"><a href="random-variables.html#cb539-4" aria-hidden="true" tabindex="-1"></a>  X <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>), n, <span class="at">replace =</span> <span class="cn">TRUE</span>, <span class="at">prob=</span><span class="fu">c</span>(<span class="dv">9</span><span class="sc">/</span><span class="dv">19</span>, <span class="dv">10</span><span class="sc">/</span><span class="dv">19</span>))</span>
-<span id="cb539-5"><a href="random-variables.html#cb539-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>(X)</span>
-<span id="cb539-6"><a href="random-variables.html#cb539-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb539-7"><a href="random-variables.html#cb539-7" aria-hidden="true" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="fu">replicate</span>(B, <span class="fu">roulette_winnings</span>(n))</span></code></pre></div>
-<p>The Central Limit Theorem (CLT) tells us that the sum <span class="math inline">\(S\)</span> is approximated by a normal distribution.
-Using the formulas above, we know that the expected value and standard error are:</p>
-<div class="sourceCode" id="cb540"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb540-1"><a href="random-variables.html#cb540-1" aria-hidden="true" tabindex="-1"></a>n <span class="sc">*</span> (<span class="dv">20-18</span>)<span class="sc">/</span><span class="dv">38</span> </span>
-<span id="cb540-2"><a href="random-variables.html#cb540-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 52.6</span></span>
-<span id="cb540-3"><a href="random-variables.html#cb540-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(n) <span class="sc">*</span> <span class="dv">2</span> <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">90</span>)<span class="sc">/</span><span class="dv">19</span> </span>
-<span id="cb540-4"><a href="random-variables.html#cb540-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 31.6</span></span></code></pre></div>
-<p>The theoretical values above match those obtained with the Monte Carlo simulation:</p>
-<div class="sourceCode" id="cb541"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb541-1"><a href="random-variables.html#cb541-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(S)</span>
-<span id="cb541-2"><a href="random-variables.html#cb541-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 52.2</span></span>
-<span id="cb541-3"><a href="random-variables.html#cb541-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(S)</span>
-<span id="cb541-4"><a href="random-variables.html#cb541-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 31.7</span></span></code></pre></div>
-<p>Using the CLT, we can skip the Monte Carlo simulation and instead compute the probability of the casino losing money using this approximation:</p>
-<div class="sourceCode" id="cb542"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb542-1"><a href="random-variables.html#cb542-1" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> n <span class="sc">*</span> (<span class="dv">20-18</span>)<span class="sc">/</span><span class="dv">38</span></span>
-<span id="cb542-2"><a href="random-variables.html#cb542-2" aria-hidden="true" tabindex="-1"></a>se <span class="ot">&lt;-</span>  <span class="fu">sqrt</span>(n) <span class="sc">*</span> <span class="dv">2</span> <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">90</span>)<span class="sc">/</span><span class="dv">19</span> </span>
-<span id="cb542-3"><a href="random-variables.html#cb542-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pnorm</span>(<span class="dv">0</span>, mu, se)</span>
-<span id="cb542-4"><a href="random-variables.html#cb542-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.0478</span></span></code></pre></div>
-<p>which is also in very good agreement with our Monte Carlo result:</p>
-<div class="sourceCode" id="cb543"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb543-1"><a href="random-variables.html#cb543-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(S <span class="sc">&lt;</span> <span class="dv">0</span>)</span>
-<span id="cb543-2"><a href="random-variables.html#cb543-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.0458</span></span></code></pre></div>
-<div id="how-large-is-large-in-the-central-limit-theorem" class="section level3" number="15.7.1">
-<h3><span class="header-section-number">15.7.1</span> How large is large in the Central Limit Theorem?</h3>
-<p>The CLT works when the number of draws is large. But large is a relative term. In many circumstances as few as 30 draws is enough to make the CLT useful. In some specific instances, as few as 10 is enough. However, these should not be considered general rules. Note, for example, that when the probability of success is very small, we need much larger sample sizes.</p>
-<p>By way of illustration, let’s consider the lottery. In the lottery, the chances of winning are less than 1 in a million. Thousands of people play so the number of draws is very large. Yet the number of winners, the sum of the draws, range between 0 and 4. This sum is certainly not well approximated by a normal distribution, so the CLT does not apply, even with the very large sample size. This is generally true when the probability of a success is very low. In these cases, the Poisson distribution is more appropriate.</p>
-<p>You can examine the properties of the Poisson distribution using <code>dpois</code> and <code>ppois</code>. You can generate random variables following this distribution with <code>rpois</code>. However, we do not cover the theory here. You can learn about the Poisson distribution in any probability textbook and even Wikipedia<a href="#fn54" class="footnote-ref" id="fnref54"><sup>54</sup></a></p>
+<div id="exercises-15" class="section level2" number="6.2">
+<h2><span class="header-section-number">6.2</span> Exercises</h2>
+<p>1. Load the <strong>data.table</strong> package and the murders dataset and conevrt it to <code>data.table</code> object</p>
+<div class="sourceCode" id="cb271"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb271-1"><a href="data-table.html#cb271-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb271-2"><a href="data-table.html#cb271-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dslabs)</span>
+<span id="cb271-3"><a href="data-table.html#cb271-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(murders)</span>
+<span id="cb271-4"><a href="data-table.html#cb271-4" aria-hidden="true" tabindex="-1"></a>murders <span class="ot">&lt;-</span> <span class="fu">setDT</span>(murders)</span></code></pre></div>
+<p>Remember you can add columns like this:</p>
+<div class="sourceCode" id="cb272"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb272-1"><a href="data-table.html#cb272-1" aria-hidden="true" tabindex="-1"></a>murders[, population_in_millions <span class="sc">:</span><span class="er">=</span> population <span class="sc">/</span> <span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>]</span></code></pre></div>
+<p>Add a murders column named <code>rate</code> with the per 100,000 murder rate as in the example code above.</p>
+<p>2. Add a column <code>rank</code> containing the rank, from highest to lowest murder rate.</p>
+<p>3. If we want to only show the states and population sizes we can use:</p>
+<div class="sourceCode" id="cb273"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb273-1"><a href="data-table.html#cb273-1" aria-hidden="true" tabindex="-1"></a>murders[, .(state, population)] </span></code></pre></div>
+<p>Show the state names and abbreviations in <code>murders</code>.</p>
+<p>4. You can show just the New York row like this:</p>
+<div class="sourceCode" id="cb274"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb274-1"><a href="data-table.html#cb274-1" aria-hidden="true" tabindex="-1"></a>murders[state <span class="sc">==</span> <span class="st">&quot;New York&quot;</span>]</span></code></pre></div>
+<p>You can use other logical vectors to filter rows.</p>
+<p>Show the top 5 states with the highest murder rates. After we add murder rate and rank, do not change the murders dataset, just show the result. Remember that you can filter based on the <code>rank</code> column.</p>
+<p>5. We can remove rows using the <code>!=</code> operator. For example, to remove Florida, we would do this:</p>
+<div class="sourceCode" id="cb275"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb275-1"><a href="data-table.html#cb275-1" aria-hidden="true" tabindex="-1"></a>no_florida <span class="ot">&lt;-</span> murders[state <span class="sc">!=</span> <span class="st">&quot;Florida&quot;</span>]</span></code></pre></div>
+<p>Create a new data frame called <code>no_south</code> that removes states from the South region. How many states are in this category? You can use the function <code>nrow</code> for this.</p>
+<p>6. We can also use <code>%in%</code> to filter. You can therefore see the data from New York and Texas like this:</p>
+<div class="sourceCode" id="cb276"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb276-1"><a href="data-table.html#cb276-1" aria-hidden="true" tabindex="-1"></a>murders[state <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;New York&quot;</span>, <span class="st">&quot;Texas&quot;</span>)]</span></code></pre></div>
+<p>Create a new data frame called <code>murders_nw</code> with only the states from the Northeast and the West. How many states are in this category?</p>
+<p>7. Suppose you want to live in the Northeast or West <strong>and</strong> want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with <code>filter</code>. Here is an example in which we filter to keep only small states in the Northeast region.</p>
+<div class="sourceCode" id="cb277"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb277-1"><a href="data-table.html#cb277-1" aria-hidden="true" tabindex="-1"></a>murders[population <span class="sc">&lt;</span> <span class="dv">5000000</span> <span class="sc">&amp;</span> region <span class="sc">==</span> <span class="st">&quot;Northeast&quot;</span>]</span></code></pre></div>
+<p>Make sure <code>murders</code> has been defined with <code>rate</code> and <code>rank</code> and still has all states. Create a table called <code>my_states</code> that contains rows for states satisfying both the conditions: it is in the Northeast or West and the murder rate is less than 1. Show only the state name, the rate, and the rank.</p>
+</div>
+<div id="summarizing-data-1" class="section level2" number="6.3">
+<h2><span class="header-section-number">6.3</span> Summarizing data</h2>
+<p>As an example we will use the <code>heights</code> dataset:</p>
+<div class="sourceCode" id="cb278"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb278-1"><a href="data-table.html#cb278-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb278-2"><a href="data-table.html#cb278-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dslabs)</span>
+<span id="cb278-3"><a href="data-table.html#cb278-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(heights)</span>
+<span id="cb278-4"><a href="data-table.html#cb278-4" aria-hidden="true" tabindex="-1"></a>heights <span class="ot">&lt;-</span> <span class="fu">setDT</span>(heights)</span></code></pre></div>
+<p>In <strong>data.table</strong> we can call functions inside <code>.()</code> and they will be applied to rows. So the equivalent of</p>
+<div class="sourceCode" id="cb279"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb279-1"><a href="data-table.html#cb279-1" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> heights <span class="sc">%&gt;%</span> </span>
+<span id="cb279-2"><a href="data-table.html#cb279-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">average =</span> <span class="fu">mean</span>(height), <span class="at">standard_deviation =</span> <span class="fu">sd</span>(height))</span></code></pre></div>
+<p>in <strong>dplyr</strong> is the following:</p>
+<div class="sourceCode" id="cb280"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb280-1"><a href="data-table.html#cb280-1" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> heights[, .(<span class="at">average =</span> <span class="fu">mean</span>(height), <span class="at">standard_deviation =</span> <span class="fu">sd</span>(height))]</span></code></pre></div>
+<p>Note that this permits a compact way of subsetting and then summarizing. Instead of</p>
+<div class="sourceCode" id="cb281"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb281-1"><a href="data-table.html#cb281-1" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> heights <span class="sc">%&gt;%</span> </span>
+<span id="cb281-2"><a href="data-table.html#cb281-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(sex <span class="sc">==</span> <span class="st">&quot;Female&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb281-3"><a href="data-table.html#cb281-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">average =</span> <span class="fu">mean</span>(height), <span class="at">standard_deviation =</span> <span class="fu">sd</span>(height))</span></code></pre></div>
+<p>we can write:</p>
+<div class="sourceCode" id="cb282"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb282-1"><a href="data-table.html#cb282-1" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> heights[sex <span class="sc">==</span> <span class="st">&quot;Female&quot;</span>, .(<span class="at">average =</span> <span class="fu">mean</span>(height), <span class="at">standard_deviation =</span> <span class="fu">sd</span>(height))]</span></code></pre></div>
+<div id="multiple-summaries-1" class="section level3" number="6.3.1">
+<h3><span class="header-section-number">6.3.1</span> Multiple summaries</h3>
+<p>In the <a href="tidyverse.html#tidyverse">4</a> chapter we defined the function:</p>
+<div class="sourceCode" id="cb283"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb283-1"><a href="data-table.html#cb283-1" aria-hidden="true" tabindex="-1"></a>median_min_max <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb283-2"><a href="data-table.html#cb283-2" aria-hidden="true" tabindex="-1"></a>  qs <span class="ot">&lt;-</span> <span class="fu">quantile</span>(x, <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="dv">0</span>, <span class="dv">1</span>))</span>
+<span id="cb283-3"><a href="data-table.html#cb283-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">median =</span> qs[<span class="dv">1</span>], <span class="at">minimum =</span> qs[<span class="dv">2</span>], <span class="at">maximum =</span> qs[<span class="dv">3</span>])</span>
+<span id="cb283-4"><a href="data-table.html#cb283-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Similar to dplyr we can call this function within <code>.()</code> to obtain the three number summary:</p>
+<div class="sourceCode" id="cb284"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb284-1"><a href="data-table.html#cb284-1" aria-hidden="true" tabindex="-1"></a>heights[, .(<span class="fu">median_min_max</span>(height))]</span>
+<span id="cb284-2"><a href="data-table.html#cb284-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    median minimum maximum</span></span>
+<span id="cb284-3"><a href="data-table.html#cb284-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:   68.5      50    82.7</span></span></code></pre></div>
+</div>
+<div id="group-then-summarize" class="section level3" number="6.3.2">
+<h3><span class="header-section-number">6.3.2</span> Group then summarize</h3>
+<p>The <code>group_by</code> followed by <code>summarize</code> in <strong>dplyr</strong> is performed in one line in <strong>data.table</strong>. We simply add the <code>by</code> argument to split the data into groups based on the values in categorical variable:</p>
+<div class="sourceCode" id="cb285"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb285-1"><a href="data-table.html#cb285-1" aria-hidden="true" tabindex="-1"></a>heights[, .(<span class="at">average =</span> <span class="fu">mean</span>(height), <span class="at">standard_deviation =</span> <span class="fu">sd</span>(height)), by <span class="ot">=</span> sex]</span>
+<span id="cb285-2"><a href="data-table.html#cb285-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       sex average standard_deviation</span></span>
+<span id="cb285-3"><a href="data-table.html#cb285-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:   Male    69.3               3.61</span></span>
+<span id="cb285-4"><a href="data-table.html#cb285-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2: Female    64.9               3.76</span></span></code></pre></div>
 </div>
 </div>
-<div id="statistical-properties-of-averages" class="section level2" number="15.8">
-<h2><span class="header-section-number">15.8</span> Statistical properties of averages</h2>
-<p>There are several useful mathematical results that we used above and often employ when working with data. We list them below.</p>
-<p>1. The expected value of the sum of random variables is the sum of each random variable’s expected value. We can write it like this:</p>
-<p><span class="math display">\[ 
-\mbox{E}[X_1+X_2+\dots+X_n] =  \mbox{E}[X_1] + \mbox{E}[X_2]+\dots+\mbox{E}[X_n]
-\]</span></p>
-<p>If the <span class="math inline">\(X\)</span> are independent draws from the urn, then they all have the same expected value. Let’s call it <span class="math inline">\(\mu\)</span> and thus:</p>
-<p><span class="math display">\[ 
-\mbox{E}[X_1+X_2+\dots+X_n]=  n\mu
-\]</span></p>
-<p>which is another way of writing the result we show above for the sum of draws.</p>
-<p>2. The expected value of a non-random constant times a random variable is the non-random constant times the expected value of a random variable. This is easier to explain with symbols:</p>
-<p><span class="math display">\[
-\mbox{E}[aX] =  a\times\mbox{E}[X]
-\]</span></p>
-<p>To see why this is intuitive, consider change of units. If we change the units of a random variable, say from dollars to cents, the expectation should change in the same way. A consequence of the above two facts is that the expected value of the average of independent draws from the same urn is the expected value of the urn, call it <span class="math inline">\(\mu\)</span> again:</p>
-<p><span class="math display">\[
-\mbox{E}[(X_1+X_2+\dots+X_n) / n]=   \mbox{E}[X_1+X_2+\dots+X_n] / n = n\mu/n = \mu 
-\]</span></p>
-<p>3. The square of the standard error of the sum of <strong>independent</strong> random variables is the sum of the square of the standard error of each random variable. This one is easier to understand in math form:</p>
-<p><span class="math display">\[ 
-\mbox{SE}[X_1+X_2+\dots+X_n] = \sqrt{\mbox{SE}[X_1]^2 + \mbox{SE}[X_2]^2+\dots+\mbox{SE}[X_n]^2  }
-\]</span></p>
-<p>The square of the standard error is referred to as the <em>variance</em> in statistical textbooks. Note that this particular property is not as intuitive as the previous three and more in depth explanations can be found in statistics textbooks.</p>
-<p>4. The standard error of a non-random constant times a random variable is the non-random constant times the random variable’s standard error. As with the expectation:
-<span class="math display">\[
-\mbox{SE}[aX] =  a \times \mbox{SE}[X]
-\]</span></p>
-<p>To see why this is intuitive, again think of units.</p>
-<p>A consequence of 3 and 4 is that the standard error of the average of independent draws from the same urn is the standard deviation of the urn divided by the square root of <span class="math inline">\(n\)</span> (the number of draws), call it <span class="math inline">\(\sigma\)</span>:</p>
-<p><span class="math display">\[
-\begin{aligned}
-\mbox{SE}[(X_1+X_2+\dots+X_n) / n] &amp;=   \mbox{SE}[X_1+X_2+\dots+X_n]/n \\
-&amp;= \sqrt{\mbox{SE}[X_1]^2+\mbox{SE}[X_2]^2+\dots+\mbox{SE}[X_n]^2}/n \\
-&amp;= \sqrt{\sigma^2+\sigma^2+\dots+\sigma^2}/n\\
-&amp;= \sqrt{n\sigma^2}/n\\
-&amp;= \sigma / \sqrt{n}    
-\end{aligned}
-\]</span></p>
-<p>5. If <span class="math inline">\(X\)</span> is a normally distributed random variable, then if <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> are non-random constants, <span class="math inline">\(aX + b\)</span> is also a normally distributed random variable. All we are doing is changing the units of the random variable by multiplying by <span class="math inline">\(a\)</span>, then shifting the center by <span class="math inline">\(b\)</span>.</p>
-<p>Note that statistical textbooks use the Greek letters <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> to denote the expected value and standard error, respectively. This is because <span class="math inline">\(\mu\)</span> is the Greek letter for <span class="math inline">\(m\)</span>, the first letter of <em>mean</em>, which is another term used for expected value. Similarly, <span class="math inline">\(\sigma\)</span> is the Greek letter for <span class="math inline">\(s\)</span>, the first letter of standard error.</p>
-</div>
-<div id="law-of-large-numbers" class="section level2" number="15.9">
-<h2><span class="header-section-number">15.9</span> Law of large numbers</h2>
-<p>An important implication of the final result is that the standard error of the average becomes smaller and smaller as <span class="math inline">\(n\)</span> grows larger. When <span class="math inline">\(n\)</span> is very large, then the standard error is practically 0 and the average of the draws converges to the average of the urn. This is known in statistical textbooks as the law of large numbers or the law of averages.</p>
-<div id="misinterpreting-law-of-averages" class="section level3" number="15.9.1">
-<h3><span class="header-section-number">15.9.1</span> Misinterpreting law of averages</h3>
-<p>The law of averages is sometimes misinterpreted. For example, if you toss a coin 5 times and see a head each time, you might hear someone argue that the next toss is probably a tail because of the law of averages: on average we should see 50% heads and 50% tails. A similar argument would be to say that red “is due” on the roulette wheel after seeing black come up five times in a row. These events are independent so the chance of a coin landing heads is 50% regardless of the previous 5. This is also the case for the roulette outcome. The law of averages applies only when the number of draws is very large and not in small samples. After a million tosses, you will definitely see about 50% heads regardless of the outcome of the first five tosses.</p>
-<p>Another funny misuse of the law of averages is in sports when TV sportscasters predict a player is about to succeed because they have failed a few times in a row.</p>
+<div id="sorting-data-frames-1" class="section level2" number="6.4">
+<h2><span class="header-section-number">6.4</span> Sorting data frames</h2>
+<p>We can order rows using the same approach we use for filter. Here are the states ordered by murder rate</p>
+<div class="sourceCode" id="cb286"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb286-1"><a href="data-table.html#cb286-1" aria-hidden="true" tabindex="-1"></a>murders[<span class="fu">order</span>(population)] <span class="sc">|</span><span class="er">&gt;</span> <span class="fu">head</span>()</span>
+<span id="cb286-2"><a href="data-table.html#cb286-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                   state abb        region population total   rate rank</span></span>
+<span id="cb286-3"><a href="data-table.html#cb286-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:              Wyoming  WY          West     563626     5  0.887    1</span></span>
+<span id="cb286-4"><a href="data-table.html#cb286-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2: District of Columbia  DC         South     601723    99 16.453    2</span></span>
+<span id="cb286-5"><a href="data-table.html#cb286-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3:              Vermont  VT     Northeast     625741     2  0.320    3</span></span>
+<span id="cb286-6"><a href="data-table.html#cb286-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4:         North Dakota  ND North Central     672591     4  0.595    4</span></span>
+<span id="cb286-7"><a href="data-table.html#cb286-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5:               Alaska  AK          West     710231    19  2.675    5</span></span>
+<span id="cb286-8"><a href="data-table.html#cb286-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6:         South Dakota  SD North Central     814180     8  0.983    6</span></span></code></pre></div>
+<p>N To sort the table in descending order, we can order by the negative of <code>population</code> or use the <code>decreasing</code> argument:</p>
+<div class="sourceCode" id="cb287"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb287-1"><a href="data-table.html#cb287-1" aria-hidden="true" tabindex="-1"></a>murders[<span class="fu">order</span>(population, <span class="at">decreasing =</span> <span class="cn">TRUE</span>)] </span></code></pre></div>
+<div id="nested-sorting-1" class="section level3" number="6.4.1">
+<h3><span class="header-section-number">6.4.1</span> Nested sorting</h3>
+<p>Similarly, we can perform nested ordering by including more than one variable in order</p>
+<div class="sourceCode" id="cb288"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb288-1"><a href="data-table.html#cb288-1" aria-hidden="true" tabindex="-1"></a>murders[<span class="fu">order</span>(region, rate)] </span></code></pre></div>
+<p>``</p>
 </div>
 </div>
-<div id="exercises-26" class="section level2" number="15.10">
-<h2><span class="header-section-number">15.10</span> Exercises</h2>
-<p>1. In American Roulette you can also bet on green. There are 18 reds, 18 blacks and 2 greens (0 and 00). What are the chances the green comes out?</p>
-<p>2. The payout for winning on green is $17 dollars. This means that if you bet a dollar and it lands on green, you get $17. Create a sampling model using sample to simulate the random variable <span class="math inline">\(X\)</span> for your winnings. Hint: see the example below for how it should look like when betting on red.</p>
-<div class="sourceCode" id="cb544"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb544-1"><a href="random-variables.html#cb544-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>), <span class="dv">1</span>, <span class="at">prob =</span> <span class="fu">c</span>(<span class="dv">9</span><span class="sc">/</span><span class="dv">19</span>, <span class="dv">10</span><span class="sc">/</span><span class="dv">19</span>))</span></code></pre></div>
-<p>3. Compute the expected value of <span class="math inline">\(X\)</span>.</p>
-<p>4. Compute the standard error of <span class="math inline">\(X\)</span>.</p>
-<p>5. Now create a random variable <span class="math inline">\(S\)</span> that is the sum of your winnings after betting on green 1000 times. Hint: change the argument <code>size</code> and <code>replace</code> in your answer to question 2. Start your code by setting the seed to 1 with <code>set.seed(1)</code>.</p>
-<p>6. What is the expected value of <span class="math inline">\(S\)</span>?</p>
-<p>7. What is the standard error of <span class="math inline">\(S\)</span>?</p>
-<p>8. What is the probability that you end up winning money? Hint: use the CLT.</p>
-<p>9. Create a Monte Carlo simulation that generates 1,000 outcomes of <span class="math inline">\(S\)</span>. Compute the average and standard deviation of the resulting list to confirm the results of 6 and 7. Start your code by setting the seed to 1 with <code>set.seed(1)</code>.</p>
-<p>10. Now check your answer to 8 using the Monte Carlo result.</p>
-<p>11. The Monte Carlo result and the CLT approximation are close, but not that close. What could account for this?</p>
-<ol style="list-style-type: lower-alpha">
-<li>1,000 simulations is not enough. If we do more, they match.</li>
-<li>The CLT does not work as well when the probability of success is small. In this case, it was 1/19. If we make the number of roulette plays bigger, they will match better.</li>
-<li>The difference is within rounding error.</li>
-<li>The CLT only works for averages.</li>
-</ol>
-<p>12. Now create a random variable <span class="math inline">\(Y\)</span> that is your average winnings per bet after playing off your winnings after betting on green 1,000 times.</p>
-<p>13. What is the expected value of <span class="math inline">\(Y\)</span>?</p>
-<p>14. What is the standard error of <span class="math inline">\(Y\)</span>?</p>
-<p>15. What is the probability that you end up with winnings per game that are positive? Hint: use the CLT.</p>
-<p>16. Create a Monte Carlo simulation that generates 2,500 outcomes of <span class="math inline">\(Y\)</span>. Compute the average and standard deviation of the resulting list to confirm the results of 6 and 7. Start your code by setting the seed to 1 with <code>set.seed(1)</code>.</p>
-<p>17. Now check your answer to 8 using the Monte Carlo result.</p>
-<p>18. The Monte Carlo result and the CLT approximation are now much closer. What could account for this?</p>
-<ol style="list-style-type: lower-alpha">
-<li>We are now computing averages instead of sums.</li>
-<li>2,500 Monte Carlo simulations is not better than 1,000.</li>
-<li>The CLT works better when the sample size is larger. We increased from 1,000 to 2,500.</li>
-<li>It is not closer. The difference is within rounding error.</li>
-</ol>
-
-</div>
-<div id="case-study-the-big-short" class="section level2" number="15.11">
-<h2><span class="header-section-number">15.11</span> Case study: The Big Short</h2>
-<div id="interest-rates-explained-with-chance-model" class="section level3" number="15.11.1">
-<h3><span class="header-section-number">15.11.1</span> Interest rates explained with chance model</h3>
-<p>More complex versions of the sampling models we have discussed are also used by banks to decide interest rates. Suppose you run a small bank that has a history of identifying potential homeowners that can be trusted to make payments. In fact, historically, in a given year, only 2% of your customers default, meaning that they don’t pay back the money that you lent them. However, you are aware that if you simply loan money to everybody without interest, you will end up losing money due to this 2%. Although you know 2% of your clients will probably default, you don’t know which ones. Yet by charging everybody just a bit extra in interest, you can make up the losses incurred due to that 2% and also cover your operating costs. You can also make a profit, but if you set the interest rates too high, your clients will go to another bank. We use all these facts and some probability theory to decide what interest rate you should charge.</p>
-<p>Suppose your bank will give out 1,000 loans for $180,000 this year. Also, after adding up all costs, suppose your bank loses $200,000 per foreclosure. For simplicity, we assume this includes all operational costs. A sampling model for this scenario can be coded like this:</p>
-<div class="sourceCode" id="cb545"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb545-1"><a href="random-variables.html#cb545-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb545-2"><a href="random-variables.html#cb545-2" aria-hidden="true" tabindex="-1"></a>loss_per_foreclosure <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">200000</span></span>
-<span id="cb545-3"><a href="random-variables.html#cb545-3" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fl">0.02</span> </span>
-<span id="cb545-4"><a href="random-variables.html#cb545-4" aria-hidden="true" tabindex="-1"></a>defaults <span class="ot">&lt;-</span> <span class="fu">sample</span>( <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), n, <span class="at">prob=</span><span class="fu">c</span>(<span class="dv">1</span><span class="sc">-</span>p, p), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb545-5"><a href="random-variables.html#cb545-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(defaults <span class="sc">*</span> loss_per_foreclosure)</span>
-<span id="cb545-6"><a href="random-variables.html#cb545-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] -4200000</span></span></code></pre></div>
-<p>Note that the total loss defined by the final sum is a random variable. Every time you run the above code, you get a different answer. We can easily construct a Monte Carlo simulation to get an idea of the distribution of this random variable.</p>
-<div class="sourceCode" id="cb546"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb546-1"><a href="random-variables.html#cb546-1" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
-<span id="cb546-2"><a href="random-variables.html#cb546-2" aria-hidden="true" tabindex="-1"></a>losses <span class="ot">&lt;-</span> <span class="fu">replicate</span>(B, {</span>
-<span id="cb546-3"><a href="random-variables.html#cb546-3" aria-hidden="true" tabindex="-1"></a>    defaults <span class="ot">&lt;-</span> <span class="fu">sample</span>( <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), n, <span class="at">prob=</span><span class="fu">c</span>(<span class="dv">1</span><span class="sc">-</span>p, p), <span class="at">replace =</span> <span class="cn">TRUE</span>) </span>
-<span id="cb546-4"><a href="random-variables.html#cb546-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>(defaults <span class="sc">*</span> loss_per_foreclosure)</span>
-<span id="cb546-5"><a href="random-variables.html#cb546-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
-<!--
-Here is the distribution of this random variable:
-<img src="book_files/figure-html/losses-distribution-1.png" width="70%" style="display: block; margin: auto;" />
--->
-<p>We don’t really need a Monte Carlo simulation though. Using what we have learned, the CLT tells us that because our losses are a sum of independent draws, its distribution is approximately normal with expected value and standard errors given by:</p>
-<div class="sourceCode" id="cb547"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb547-1"><a href="random-variables.html#cb547-1" aria-hidden="true" tabindex="-1"></a>n<span class="sc">*</span>(p<span class="sc">*</span>loss_per_foreclosure <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>p)<span class="sc">*</span><span class="dv">0</span>)</span>
-<span id="cb547-2"><a href="random-variables.html#cb547-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] -4e+06</span></span>
-<span id="cb547-3"><a href="random-variables.html#cb547-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(n)<span class="sc">*</span><span class="fu">abs</span>(loss_per_foreclosure)<span class="sc">*</span><span class="fu">sqrt</span>(p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p))</span>
-<span id="cb547-4"><a href="random-variables.html#cb547-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 885438</span></span></code></pre></div>
-<p>We can now set an interest rate to guarantee that, on average, we break even. Basically, we need to add a quantity <span class="math inline">\(x\)</span> to each loan, which in this case are represented by draws, so that the expected value is 0. If we define <span class="math inline">\(l\)</span> to be the loss per foreclosure, we need:</p>
-<p><span class="math display">\[
-lp  + x(1-p) = 0
-\]</span></p>
-<p>which implies <span class="math inline">\(x\)</span> is</p>
-<div class="sourceCode" id="cb548"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb548-1"><a href="random-variables.html#cb548-1" aria-hidden="true" tabindex="-1"></a><span class="sc">-</span> loss_per_foreclosure<span class="sc">*</span>p<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>p)</span>
-<span id="cb548-2"><a href="random-variables.html#cb548-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 4082</span></span></code></pre></div>
-<p>or an interest rate of 0.023.</p>
-<p>However, we still have a problem. Although this interest rate guarantees that on average we break even, there is a 50% chance that we lose money. If our bank loses money, we have to close it down. We therefore need to pick an interest rate that makes it unlikely for this to happen. At the same time, if the interest rate is too high, our clients will go to another bank so we must be willing to take some risks. So let’s say that we want our chances of losing money to be 1 in 100, what does the <span class="math inline">\(x\)</span> quantity need to be now? This one is a bit harder. We want the sum <span class="math inline">\(S\)</span> to have:</p>
-<p><span class="math display">\[\mbox{Pr}(S&lt;0) = 0.01\]</span></p>
-<p>We know that <span class="math inline">\(S\)</span> is approximately normal. The expected value of <span class="math inline">\(S\)</span> is</p>
-<p><span class="math display">\[\mbox{E}[S] = \{ lp + x(1-p)\}n\]</span></p>
-<p>with <span class="math inline">\(n\)</span> the number of draws, which in this case represents loans. The standard error is</p>
-<p><span class="math display">\[\mbox{SD}[S] = |x-l| \sqrt{np(1-p)}.\]</span></p>
-<p>Because <span class="math inline">\(x\)</span> is positive and <span class="math inline">\(l\)</span> negative <span class="math inline">\(|x-l|=x-l\)</span>. Note that these are just an application of the formulas shown earlier, but using more compact symbols.</p>
-<p>Now we are going to use a mathematical “trick” that is very common in statistics. We add and subtract the same quantities to both sides of the event <span class="math inline">\(S&lt;0\)</span> so that the probability does not change and we end up with a standard normal random variable on the left, which will then permit us to write down an equation with only <span class="math inline">\(x\)</span> as an unknown. This “trick” is as follows:</p>
-<p>If <span class="math inline">\(\mbox{Pr}(S&lt;0) = 0.01\)</span> then
-<span class="math display">\[
-\mbox{Pr}\left(\frac{S - \mbox{E}[S]}{\mbox{SE}[S]} &lt; \frac{ - \mbox{E}[S]}{\mbox{SE}[S]}\right)
-\]</span>
-And remember <span class="math inline">\(\mbox{E}[S]\)</span> and <span class="math inline">\(\mbox{SE}[S]\)</span> are the expected value and standard error of <span class="math inline">\(S\)</span>, respectively. All we did above was add and divide by the same quantity on both sides. We did this because now the term on the left is a standard normal random variable, which we will rename <span class="math inline">\(Z\)</span>.
-Now we fill in the blanks with the actual formula for expected value and standard error:</p>
-<p><span class="math display">\[
-\mbox{Pr}\left(Z &lt;  \frac{- \{ lp + x(1-p)\}n}{(x-l) \sqrt{np(1-p)}}\right) = 0.01
-\]</span></p>
-<p>It may look complicated, but remember that <span class="math inline">\(l\)</span>, <span class="math inline">\(p\)</span> and <span class="math inline">\(n\)</span> are all known amounts, so eventually we will replace them with numbers.</p>
-<p>Now because the Z is a normal random with expected value 0 and standard error 1, it means that the quantity on the right side of the &lt; sign must be equal to:</p>
-<div class="sourceCode" id="cb549"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb549-1"><a href="random-variables.html#cb549-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qnorm</span>(<span class="fl">0.01</span>)</span>
-<span id="cb549-2"><a href="random-variables.html#cb549-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] -2.33</span></span></code></pre></div>
-<p>for the equation to hold true. Remember that <span class="math inline">\(z=\)</span><code>qnorm(0.01)</code> gives us the value of <span class="math inline">\(z\)</span> for which:</p>
-<p><span class="math display">\[
-\mbox{Pr}(Z \leq z) = 0.01
-\]</span></p>
-<p>So this means that the right side of the complicated equation must be <span class="math inline">\(z\)</span>=<code>qnorm(0.01)</code>.</p>
-<p><span class="math display">\[
-\frac{- \{ lp + x(1-p)\}n} {(x-l) \sqrt{n p (1-p)}} = z
-\]</span></p>
-<p>The trick works because we end up with an expression containing <span class="math inline">\(x\)</span> that we know has to be equal to a known quantity <span class="math inline">\(z\)</span>. Solving for <span class="math inline">\(x\)</span> is now simply algebra:</p>
-<p><span class="math display">\[ x = - l \frac{ np  - z \sqrt{np(1-p)}}{n(1-p) + z \sqrt{np(1-p)}}\]</span></p>
-<p>which is:</p>
-<div class="sourceCode" id="cb550"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb550-1"><a href="random-variables.html#cb550-1" aria-hidden="true" tabindex="-1"></a>l <span class="ot">&lt;-</span> loss_per_foreclosure</span>
-<span id="cb550-2"><a href="random-variables.html#cb550-2" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="fl">0.01</span>)</span>
-<span id="cb550-3"><a href="random-variables.html#cb550-3" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="sc">-</span>l<span class="sc">*</span>( n<span class="sc">*</span>p <span class="sc">-</span> z<span class="sc">*</span><span class="fu">sqrt</span>(n<span class="sc">*</span>p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p)))<span class="sc">/</span> ( n<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p) <span class="sc">+</span> z<span class="sc">*</span><span class="fu">sqrt</span>(n<span class="sc">*</span>p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p)))</span>
-<span id="cb550-4"><a href="random-variables.html#cb550-4" aria-hidden="true" tabindex="-1"></a>x</span>
-<span id="cb550-5"><a href="random-variables.html#cb550-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 6249</span></span></code></pre></div>
-<p>Our interest rate now goes up to 0.035. This is still a very competitive interest rate. By choosing this interest rate, we now have an expected profit per loan of:</p>
-<div class="sourceCode" id="cb551"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb551-1"><a href="random-variables.html#cb551-1" aria-hidden="true" tabindex="-1"></a>loss_per_foreclosure<span class="sc">*</span>p <span class="sc">+</span> x<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p)</span>
-<span id="cb551-2"><a href="random-variables.html#cb551-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2124</span></span></code></pre></div>
-<p>which is a total expected profit of about:</p>
-<div class="sourceCode" id="cb552"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb552-1"><a href="random-variables.html#cb552-1" aria-hidden="true" tabindex="-1"></a>n<span class="sc">*</span>(loss_per_foreclosure<span class="sc">*</span>p <span class="sc">+</span> x<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p)) </span>
-<span id="cb552-2"><a href="random-variables.html#cb552-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2124198</span></span></code></pre></div>
-<p>dollars!</p>
-<p>We can run a Monte Carlo simulation to double check our theoretical approximations:</p>
-<div class="sourceCode" id="cb553"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb553-1"><a href="random-variables.html#cb553-1" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">100000</span></span>
-<span id="cb553-2"><a href="random-variables.html#cb553-2" aria-hidden="true" tabindex="-1"></a>profit <span class="ot">&lt;-</span> <span class="fu">replicate</span>(B, {</span>
-<span id="cb553-3"><a href="random-variables.html#cb553-3" aria-hidden="true" tabindex="-1"></a>    draws <span class="ot">&lt;-</span> <span class="fu">sample</span>( <span class="fu">c</span>(x, loss_per_foreclosure), n, </span>
-<span id="cb553-4"><a href="random-variables.html#cb553-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">prob=</span><span class="fu">c</span>(<span class="dv">1</span><span class="sc">-</span>p, p), <span class="at">replace =</span> <span class="cn">TRUE</span>) </span>
-<span id="cb553-5"><a href="random-variables.html#cb553-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(draws)</span>
-<span id="cb553-6"><a href="random-variables.html#cb553-6" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb553-7"><a href="random-variables.html#cb553-7" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(profit)</span>
-<span id="cb553-8"><a href="random-variables.html#cb553-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2120124</span></span>
-<span id="cb553-9"><a href="random-variables.html#cb553-9" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(profit<span class="sc">&lt;</span><span class="dv">0</span>)</span>
-<span id="cb553-10"><a href="random-variables.html#cb553-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.0133</span></span></code></pre></div>
-</div>
-<div id="the-big-short" class="section level3" number="15.11.2">
-<h3><span class="header-section-number">15.11.2</span> The Big Short</h3>
-<p>One of your employees points out that since the bank is making 2,124 dollars per loan, the bank should give out more loans! Why just <span class="math inline">\(n\)</span>? You explain that finding those <span class="math inline">\(n\)</span> clients was hard. You need a group that is predictable and that keeps the chances of defaults low. He then points out that even if the probability of default is higher, as long as our expected value is positive, you can minimize your chances of losses by increasing <span class="math inline">\(n\)</span> and relying on the law of large numbers.</p>
-<p>He claims that even if the default rate is twice as high, say 4%, if we set the rate just a bit higher than this value:</p>
-<div class="sourceCode" id="cb554"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb554-1"><a href="random-variables.html#cb554-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fl">0.04</span></span>
-<span id="cb554-2"><a href="random-variables.html#cb554-2" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> (<span class="sc">-</span> loss_per_foreclosure<span class="sc">*</span>p<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>p)) <span class="sc">/</span> <span class="dv">180000</span></span>
-<span id="cb554-3"><a href="random-variables.html#cb554-3" aria-hidden="true" tabindex="-1"></a>r</span>
-<span id="cb554-4"><a href="random-variables.html#cb554-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.0463</span></span></code></pre></div>
-<p>we will profit. At 5%, we are guaranteed a positive expected value of:</p>
-<div class="sourceCode" id="cb555"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb555-1"><a href="random-variables.html#cb555-1" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
-<span id="cb555-2"><a href="random-variables.html#cb555-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> r<span class="sc">*</span><span class="dv">180000</span></span>
-<span id="cb555-3"><a href="random-variables.html#cb555-3" aria-hidden="true" tabindex="-1"></a>loss_per_foreclosure<span class="sc">*</span>p <span class="sc">+</span> x <span class="sc">*</span> (<span class="dv">1</span><span class="sc">-</span>p)</span>
-<span id="cb555-4"><a href="random-variables.html#cb555-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 640</span></span></code></pre></div>
-<p>and can minimize our chances of losing money by simply increasing <span class="math inline">\(n\)</span> since:</p>
-<p><span class="math display">\[
-\mbox{Pr}(S &lt; 0) = 
-\mbox{Pr}\left(Z &lt; - \frac{\mbox{E}[S]}{\mbox{SE}[S]}\right)
-\]</span>
-with <span class="math inline">\(Z\)</span> a standard normal random variable as shown earlier. If we define <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> to be the expected value and standard deviation of the urn, respectively (that is of a single loan), using the formulas above we have: <span class="math inline">\(\mbox{E}[S]= n\mu\)</span> and <span class="math inline">\(\mbox{SE}[S]= \sqrt{n}\sigma\)</span>. So if we define <span class="math inline">\(z\)</span>=<code>qnorm(0.01)</code>, we have:
-<span class="math display">\[
- - \frac{n\mu}{\sqrt{n}\sigma} = - \frac{\sqrt{n}\mu}{\sigma} = z
-\]</span>
-which implies that if we let:</p>
-<p><span class="math display">\[
-n \geq z^2 \sigma^2 / \mu^2
-\]</span>
-we are guaranteed to have a probability of less than 0.01. The implication is that, as long as <span class="math inline">\(\mu\)</span> is positive, we can find an <span class="math inline">\(n\)</span> that minimizes the probability of a loss. This is a form of the law of large numbers: when <span class="math inline">\(n\)</span> is large, our average earnings per loan converges to the expected earning <span class="math inline">\(\mu\)</span>.</p>
-<p>With <span class="math inline">\(x\)</span> fixed, now we can ask what <span class="math inline">\(n\)</span> do we need for the probability to be 0.01? In our example, if we give out:</p>
-<div class="sourceCode" id="cb556"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb556-1"><a href="random-variables.html#cb556-1" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="fl">0.01</span>)</span>
-<span id="cb556-2"><a href="random-variables.html#cb556-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">ceiling</span>((z<span class="sc">^</span><span class="dv">2</span><span class="sc">*</span>(x<span class="sc">-</span>l)<span class="sc">^</span><span class="dv">2</span><span class="sc">*</span>p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p))<span class="sc">/</span>(l<span class="sc">*</span>p <span class="sc">+</span> x<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p))<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb556-3"><a href="random-variables.html#cb556-3" aria-hidden="true" tabindex="-1"></a>n</span>
-<span id="cb556-4"><a href="random-variables.html#cb556-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 22163</span></span></code></pre></div>
-<p>loans, the probability of losing is about 0.01 and we are expected to earn a total of</p>
-<div class="sourceCode" id="cb557"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb557-1"><a href="random-variables.html#cb557-1" aria-hidden="true" tabindex="-1"></a>n<span class="sc">*</span>(loss_per_foreclosure<span class="sc">*</span>p <span class="sc">+</span> x <span class="sc">*</span> (<span class="dv">1</span><span class="sc">-</span>p))</span>
-<span id="cb557-2"><a href="random-variables.html#cb557-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 14184320</span></span></code></pre></div>
-<p>dollars! We can confirm this with a Monte Carlo simulation:</p>
-<div class="sourceCode" id="cb558"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb558-1"><a href="random-variables.html#cb558-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fl">0.04</span></span>
-<span id="cb558-2"><a href="random-variables.html#cb558-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fl">0.05</span><span class="sc">*</span><span class="dv">180000</span></span>
-<span id="cb558-3"><a href="random-variables.html#cb558-3" aria-hidden="true" tabindex="-1"></a>profit <span class="ot">&lt;-</span> <span class="fu">replicate</span>(B, {</span>
-<span id="cb558-4"><a href="random-variables.html#cb558-4" aria-hidden="true" tabindex="-1"></a>    draws <span class="ot">&lt;-</span> <span class="fu">sample</span>( <span class="fu">c</span>(x, loss_per_foreclosure), n, </span>
-<span id="cb558-5"><a href="random-variables.html#cb558-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">prob=</span><span class="fu">c</span>(<span class="dv">1</span><span class="sc">-</span>p, p), <span class="at">replace =</span> <span class="cn">TRUE</span>) </span>
-<span id="cb558-6"><a href="random-variables.html#cb558-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(draws)</span>
-<span id="cb558-7"><a href="random-variables.html#cb558-7" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb558-8"><a href="random-variables.html#cb558-8" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(profit)</span>
-<span id="cb558-9"><a href="random-variables.html#cb558-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 14205523</span></span></code></pre></div>
-<p>This seems like a no brainer. As a result, your colleague decides to leave your bank and start his own high-risk mortgage company. A few months later, your colleague’s bank has gone bankrupt. A book is written and eventually a movie is made relating the mistake your friend, and many others, made. What happened?</p>
-<p>Your colleague’s scheme was mainly based on this mathematical formula:
-<span class="math display">\[
-    \mbox{SE}[(X_1+X_2+\dots+X_n) / n] = \sigma / \sqrt{n}    
-\]</span></p>
-<p>By making <span class="math inline">\(n\)</span> large, we minimize the standard error of our per-loan profit. However, for this rule to hold, the <span class="math inline">\(X\)</span>s must be independent draws: one person defaulting must be independent of others defaulting. Note that in the case of averaging the <strong>same</strong> event over and over, an extreme example of events that are not independent, we get a standard error that is <span class="math inline">\(\sqrt{n}\)</span> times bigger:
-<span class="math display">\[
-    \mbox{SE}[(X_1+X_1+\dots+X_1) / n] =  \mbox{SE}[n X_1  / n] = \sigma &gt; \sigma / \sqrt{n} 
-\]</span></p>
-<p>To construct a more realistic simulation than the original one your colleague ran, let’s assume there is a global event that affects everybody with high-risk mortgages and changes their probability. We will assume that with 50-50 chance, all the probabilities go up or down slightly to somewhere between 0.03 and 0.05. But it happens to everybody at once, not just one person. These draws are no longer independent.</p>
-<div class="sourceCode" id="cb559"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb559-1"><a href="random-variables.html#cb559-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fl">0.04</span></span>
-<span id="cb559-2"><a href="random-variables.html#cb559-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fl">0.05</span><span class="sc">*</span><span class="dv">180000</span></span>
-<span id="cb559-3"><a href="random-variables.html#cb559-3" aria-hidden="true" tabindex="-1"></a>profit <span class="ot">&lt;-</span> <span class="fu">replicate</span>(B, {</span>
-<span id="cb559-4"><a href="random-variables.html#cb559-4" aria-hidden="true" tabindex="-1"></a>    new_p <span class="ot">&lt;-</span> <span class="fl">0.04</span> <span class="sc">+</span> <span class="fu">sample</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="fl">0.01</span>, <span class="fl">0.01</span>, <span class="at">length =</span> <span class="dv">100</span>), <span class="dv">1</span>)</span>
-<span id="cb559-5"><a href="random-variables.html#cb559-5" aria-hidden="true" tabindex="-1"></a>    draws <span class="ot">&lt;-</span> <span class="fu">sample</span>( <span class="fu">c</span>(x, loss_per_foreclosure), n, </span>
-<span id="cb559-6"><a href="random-variables.html#cb559-6" aria-hidden="true" tabindex="-1"></a>                        <span class="at">prob=</span><span class="fu">c</span>(<span class="dv">1</span><span class="sc">-</span>new_p, new_p), <span class="at">replace =</span> <span class="cn">TRUE</span>) </span>
-<span id="cb559-7"><a href="random-variables.html#cb559-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(draws)</span>
-<span id="cb559-8"><a href="random-variables.html#cb559-8" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
-<p>Note that our expected profit is still large:</p>
-<div class="sourceCode" id="cb560"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb560-1"><a href="random-variables.html#cb560-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(profit)</span>
-<span id="cb560-2"><a href="random-variables.html#cb560-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 14164538</span></span></code></pre></div>
-<p>However, the probability of the bank having negative earnings shoots up to:</p>
-<div class="sourceCode" id="cb561"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb561-1"><a href="random-variables.html#cb561-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(profit<span class="sc">&lt;</span><span class="dv">0</span>)</span>
-<span id="cb561-2"><a href="random-variables.html#cb561-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.346</span></span></code></pre></div>
-<p>Even scarier is that the probability of losing more than 10 million dollars is:</p>
-<div class="sourceCode" id="cb562"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb562-1"><a href="random-variables.html#cb562-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(profit <span class="sc">&lt;</span> <span class="sc">-</span><span class="dv">10000000</span>)</span>
-<span id="cb562-2"><a href="random-variables.html#cb562-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.239</span></span></code></pre></div>
-<p>To understand how this happens look at the distribution:</p>
-<div class="sourceCode" id="cb563"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb563-1"><a href="random-variables.html#cb563-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">profit_in_millions=</span>profit<span class="sc">/</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb563-2"><a href="random-variables.html#cb563-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(profit_in_millions)) <span class="sc">+</span> </span>
-<span id="cb563-3"><a href="random-variables.html#cb563-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">color=</span><span class="st">&quot;black&quot;</span>, <span class="at">binwidth =</span> <span class="dv">5</span>)</span></code></pre></div>
-<p><img src="book_files/figure-html/profit-distribution-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>The theory completely breaks down and the random variable has much more variability than expected. The financial meltdown of 2007 was due, among other things, to financial “experts” assuming independence when there was none.</p>
-</div>
-</div>
-<div id="exercises-27" class="section level2" number="15.12">
-<h2><span class="header-section-number">15.12</span> Exercises</h2>
-<p>1. Create a random variable <span class="math inline">\(S\)</span> with the earnings of your bank if you give out 10,000 loans, the default rate is 0.3, and you lose $200,000 in each foreclosure. Hint: use the code we showed in the previous section, but change the parameters.</p>
-<p>2. Run a Monte Carlo simulation with 10,000 outcomes for <span class="math inline">\(S\)</span>. Make a histogram of the results.</p>
-<p>3. What is the expected value of <span class="math inline">\(S\)</span>?</p>
-<p>4. What is the standard error of <span class="math inline">\(S\)</span>?</p>
-<p>5. Suppose we give out loans for $180,000. What should the interest rate be so that our expected value is 0?</p>
-<p>6. (Harder) What should the interest rate be so that the chance of losing money is 1 in 20? In math notation, what should the interest rate be so that <span class="math inline">\(\mbox{Pr}(S&lt;0) = 0.05\)</span> ?</p>
-<p>7. If the bank wants to minimize the probabilities of losing money, which of the following does <strong>not</strong> make interest rates go up?</p>
-<ol style="list-style-type: lower-alpha">
-<li>A smaller pool of loans.</li>
-<li>A larger probability of default.</li>
-<li>A smaller required probability of losing money.</li>
-<li>The number of Monte Carlo simulations.</li>
-</ol>
+<div id="exercises-16" class="section level2" number="6.5">
+<h2><span class="header-section-number">6.5</span> Exercises</h2>
+<p>For these exercises, we will be using the <strong>NHANES</strong> data.</p>
+<div class="sourceCode" id="cb289"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb289-1"><a href="data-table.html#cb289-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(NHANES)</span>
+<span id="cb289-2"><a href="data-table.html#cb289-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(NHANES)</span></code></pre></div>
+<p>1. We will provide some basic facts about blood pressure. First let’s select a group to set the standard. We will use 20-to-29-year-old females. <code>AgeDecade</code> is a categorical variable with these ages. Note that the category is coded like " 20-29", with a space in front! Use the <strong>data.table</strong> package to compute the average and standard deviation of systolic blood pressure as saved in the <code>BPSysAve</code> variable. Save it to a variable called <code>ref</code>.</p>
+<p>2. Report the min and max values for the same group.</p>
+<p>3. Compute the average and standard deviation for females, but for each age group separately rather than a selected decade as in question 1. Note that the age groups are defined by <code>AgeDecade</code>.</p>
+<p>4. Repeat exercise 3 for males.</p>
+<p>5. For males between the ages of 40-49, compare systolic blood pressure across race as reported in the <code>Race1</code> variable. Order the resulting table from lowest to highest average systolic blood pressure.</p>
 
 </div>
 </div>
+
+
+
 <div class="footnotes">
 <hr />
-<ol start="51">
-<li id="fn51"><p><a href="https://en.wikipedia.org/w/index.php?title=Financial_crisis_of_2007%E2%80%932008" class="uri">https://en.wikipedia.org/w/index.php?title=Financial_crisis_of_2007%E2%80%932008</a><a href="random-variables.html#fnref51" class="footnote-back">↩︎</a></p></li>
-<li id="fn52"><p><a href="https://en.wikipedia.org/w/index.php?title=Security_(finance)" class="uri">https://en.wikipedia.org/w/index.php?title=Security_(finance)</a><a href="random-variables.html#fnref52" class="footnote-back">↩︎</a></p></li>
-<li id="fn53"><p><a href="https://en.wikipedia.org/w/index.php?title=Binomial_distribution" class="uri">https://en.wikipedia.org/w/index.php?title=Binomial_distribution</a><a href="random-variables.html#fnref53" class="footnote-back">↩︎</a></p></li>
-<li id="fn54"><p><a href="https://en.wikipedia.org/w/index.php?title=Poisson_distribution" class="uri">https://en.wikipedia.org/w/index.php?title=Poisson_distribution</a><a href="random-variables.html#fnref54" class="footnote-back">↩︎</a></p></li>
+<ol start="19">
+<li id="fn19"><p><a href="https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html" class="uri">https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html</a><a href="data-table.html#fnref19" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>
@@ -1529,8 +1257,8 @@ we are guaranteed to have a probability of less than 0.01. The implication is th
           </div>
         </div>
       </div>
-<a href="probability.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="inference.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="importing-data.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="introduction-to-data-visualization.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -1562,7 +1290,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/prob/random-variables-sampling-models-clt.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/R/data_table.Rmd",
 "text": "Edit"
 },
 "history": {

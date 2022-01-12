@@ -161,25 +161,16 @@ json <- toJSON(example, pretty = TRUE)
 json
 ```
 
-The file above actually represents a data frame. To read it, we can use the function `fromJSON` from the __jsonlite__ package. Note that JSON files are often made available via the internet. Several organizations provide a JSON API or a web service that you can connect directly to and obtain data. Here is an example:
+The file above actually represents a data frame. To read it, we can use the function `fromJSON` from the __jsonlite__ package. Note that JSON files are often made available via the internet. Several organizations provide a JSON API or a web service that you can connect directly to and obtain data. Here is an example providing information Nobel prize winners:
 
 ```{r}
-library(jsonlite)
-res <- fromJSON('http://ergast.com/api/f1/2004/1/results.json')
-
-citi_bike <- fromJSON("http://citibikenyc.com/stations/json")
+nobel <- fromJSON("http://api.nobelprize.org/v1/prize.json")
 ```
 
-This downloads a list. The first argument tells you when you downloaded it:
+This downloads a list. The first argument is a table with information about Nobel prize winners:
 
 ```{r}
-citi_bike$executionTime
-```
-
-and the second is a data table:
-
-```{r}
-citi_bike$stationBeanList %>% as_tibble() 
+filter(nobel$prize, category == "literature" & year == "1971") %>% pull(laureates)
 ```
 
 You can learn much more by examining tutorials and help files from the __jsonlite__ package. This package is intended for relatively simple tasks such as converting data into tables. For more flexibility, we recommend `rjson`.

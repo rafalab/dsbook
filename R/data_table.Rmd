@@ -1,0 +1,322 @@
+# data.table {#data.table}
+
+In this book we use tidyverse packages to illustrate because beginners find the code readable and this permits us to focus on data analysis and statistical concepts. However, there are other approaches to wrangling and analyzing data in R that are faster and better at handling large objects. The __data.table__ package is one of the most popular and in this chapter we provide a very quick introduction. There are several online resources, including this introduction^[https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html] for those wanting to learn more.
+
+
+## Manipulating data tables
+
+`data.table` is separate package that needs to be installed. Once installed we need to load it:
+
+```{r, message=FALSE, warning=FALSE}
+library(data.table)
+```
+
+We will provide example code showing the __data.table__ approaches to __dplyr__'s `mutate`, `filter`, `select`, `group_by`, and `summarize` shown in Chapter \@ref(tidyverse). As done in that chapter we will use the `murders` dataset:
+
+```{r, echo=FALSE}
+library(dslabs)
+data(murders)
+```
+
+The first step when using __data.table__ is to convert the data frame into a `data.table` object using the `setDT` function:
+
+```{r}
+murders <-setDT(murders)
+```
+
+Without this most of the approaches shown below will not work.
+
+### Selecting 
+
+Selecting with __data.table__ is done in a similar way to subsetting matrices.  While with __dplyr__ we write
+
+```{r, eval=FALSE}
+select(murders, state, region)
+```
+
+In __data.table__ we use notation similar to what is used with matrices:
+
+```{r}
+murders[, c("state", "region")] |> head()
+```
+
+We can also use the `.()`  __data.table__ notation to alert R that variables inside the parenthesis are column names, not objects in the R environment. So the above can also be written like this:
+
+
+
+```{r}
+murders[, .(state, region)] |> head()
+```
+
+
+### Adding a column or changing columns
+
+We learned to use __dplyr__ `mutate` function with this example:
+```{r, eval=FALSE}
+murders <- mutate(murders, rate = total / population * 100000)
+```
+ 
+__data.table__ uses an approach  that avoids an new assignment (update by reference). This can help with large datasets that take up most of your computers memory. The __data.table__ :=` function permits us to do this:
+  
+```{r, message=FALSE}
+murders[, rate := total / population * 100000]
+```
+
+This adds a new column, `rate`, to the table. Notice that, as in __dplyr__ we used `total` and `population` without quotes as done in __dplyr__. 
+
+We can see that the new column is added:
+
+```{r}
+head(murders)
+```
+
+To define new multiple columns we can use the `:=` function with multiple arguments:
+
+```{r, message=FALSE}
+murders[, ":="(rate = total / population * 100000, rank = rank(population))]
+```
+
+### Technical detail: reference versus copy
+
+The __data.table__ package is designed to avoid wasting memory. So if you make a copy of a table, like this:
+
+```{r}
+x <- data.table(a = 1)
+y <- x
+```
+
+`y` is actually referencing `x`, it is not an new opject: it's just another name for `x`. Until you change `y` a new object will not be made. However, the `:=` function changes _by reference_ so if you change `x`, a new object is not made and `y` continues to be just another name for `x`:
+
+```{r}
+x[,a := 2]
+y
+```
+
+Note also that you can change `x` like this:
+
+```{r}
+y[,a := 1]
+x
+```
+
+
+To avoid this you can use the `copy` function, which forces the creation of an actual copy:
+
+```{r}
+x <- data.table(a = 1)
+y <- copy(x)
+x[,a := 2]
+y
+```
+
+
+### Subsetting 
+
+With __dplyr__ we filtered like this:
+
+```{r, eval=FALSE}
+filter(murders, rate <= 0.7)
+```
+
+With __data.table__ we again use an approach similar to subsetting matrices, except  __data.table__ knows that `rate` refers to a column name and not an object in the R environment:
+
+```{r}
+murders[rate <= 0.7]
+```
+
+
+Notice that we can combine the filter and select into one succint command. Here are the state names and rates for those with rates below 0.7.
+
+```{r}
+murders[rate <= 0.7, .(state, rate)]
+```
+
+Compare to the __dplyr__ approach
+
+```{r, eval=FALSE}
+murders %>% filter(rate <= 0.7) %>% select(state, rate)
+```
+
+## Exercises 
+
+1\. Load the __data.table__ package and the murders dataset and conevrt it to `data.table` object
+
+```{r, eval=FALSE}
+library(data.table)
+library(dslabs)
+data(murders)
+murders <- setDT(murders)
+```
+
+Remember you can add columns like this:
+
+
+```{r, eval=FALSE}
+murders[, population_in_millions := population / 10^6]
+```
+
+
+Add a murders column named `rate` with the per 100,000 murder rate as in the example code above.
+
+2\. Add a column `rank` containing the rank, from highest to lowest murder rate. 
+
+
+3\. If we want to only show the states and population sizes we can use:
+
+```{r, eval=FALSE}
+murders[, .(state, population)] 
+```
+
+Show the state names and abbreviations in `murders`. 
+
+4\. You can show just the New York row like this:
+
+```{r, eval=FALSE}
+murders[state == "New York"]
+```
+
+You can use other logical vectors to filter rows.
+
+Show the top 5 states with the highest murder rates. After we add murder rate and rank, do not change the murders dataset, just show the result. Remember that you can filter based on the `rank` column.
+
+ 
+5\. We can remove rows using the `!=` operator. For example, to remove Florida, we would do this:
+
+```{r, eval=FALSE}
+no_florida <- murders[state != "Florida"]
+```
+
+Create a new data frame called `no_south` that removes states from the South region. How many states are in this category? You can use the function `nrow` for this.
+
+
+6\. We can also use `%in%` to filter. You can therefore see the data from New York and Texas like this:
+
+```{r, eval=FALSE}
+murders[state %in% c("New York", "Texas")]
+```
+
+Create a new data frame called `murders_nw` with only the states from the Northeast and the West.  How many states are in this category? 
+
+
+7\. Suppose you want to live in the Northeast or West **and** want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with `filter`. Here is an example in which we filter to keep only small states in the Northeast region.
+
+```{r, eval=FALSE}
+murders[population < 5000000 & region == "Northeast"]
+```
+
+Make sure `murders` has been defined with `rate` and `rank` and still has all states. Create a table called `my_states` that contains rows for states satisfying both the conditions: it is in the Northeast or West and the murder rate is less than 1.  Show only the state name, the rate, and the rank.
+
+
+## Summarizing data
+
+As an example we will use the `heights` dataset:
+
+
+```{r}
+library(dplyr)
+library(dslabs)
+data(heights)
+heights <- setDT(heights)
+```
+
+In __data.table__ we can call functions inside `.()` and they will be applied to rows. So the equivalent of 
+```{r}
+s <- heights %>% 
+  summarize(average = mean(height), standard_deviation = sd(height))
+```
+
+in __dplyr__ is the following:
+
+```{r}
+s <- heights[, .(average = mean(height), standard_deviation = sd(height))]
+```
+
+
+Note that this permits a compact way of subsetting and then summarizing. Instead of 
+
+```{r, eval=FALSE}
+s <- heights %>% 
+  filter(sex == "Female") %>%
+  summarize(average = mean(height), standard_deviation = sd(height))
+```
+
+we can write:
+
+```{r}
+s <- heights[sex == "Female", .(average = mean(height), standard_deviation = sd(height))]
+```
+
+
+### Multiple summaries
+
+In the \@ref(tidyverse) chapter we defined the function:
+```{r}
+median_min_max <- function(x){
+  qs <- quantile(x, c(0.5, 0, 1))
+  data.frame(median = qs[1], minimum = qs[2], maximum = qs[3])
+}
+```
+
+Similar to dplyr we can call this function within `.()` to obtain the three number summary:
+```{r}
+heights[, .(median_min_max(height))]
+```
+
+### Group then summarize 
+
+The `group_by` followed by `summarize` in __dplyr__ is performed in one line in __data.table__. We simply add  the `by` argument to split the data into groups based on the values in categorical variable:
+
+
+```{r}
+heights[, .(average = mean(height), standard_deviation = sd(height)), by = sex]
+```
+
+## Sorting data frames
+
+
+We can order rows using the same approach we use for filter. Here are the states ordered by murder rate
+
+```{r}
+murders[order(population)] |> head()
+```
+
+N To sort the table in descending order, we can order by the negative of `population` or use the `decreasing` argument:
+
+```{r, eval=FALSE}
+murders[order(population, decreasing = TRUE)] 
+```
+
+### Nested sorting 
+
+Similarly, we can perform nested ordering by including more than one variable in order
+
+```{r, eval=FALSE}
+murders[order(region, rate)] 
+```
+``
+
+
+## Exercises 
+
+For these exercises, we will be using the __NHANES__ data.
+
+```{r, eval=FALSE}
+library(NHANES)
+data(NHANES)
+```
+
+1\. We will provide some basic facts about blood pressure. First let's select a group to set the standard. We will use 20-to-29-year-old females. `AgeDecade` is a categorical variable with these ages. Note that the category is coded like " 20-29", with a space in front! Use the __data.table__ package to compute the average and standard deviation of systolic blood pressure as saved in the `BPSysAve` variable. Save it to a variable called `ref`.
+
+
+
+2\. Report the min and max values for the same group.
+
+
+3\. Compute the average and standard deviation for females, but for each age group separately rather than a selected decade as in question 1. Note that the age groups are defined by `AgeDecade`. 
+
+4\. Repeat exercise 3 for males. 
+
+
+5\. For males between the ages of 40-49, compare systolic blood pressure across race as reported in the `Race1` variable. Order the resulting table from lowest to highest average systolic blood pressure.
+
+
