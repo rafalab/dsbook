@@ -24,7 +24,7 @@
 <meta name="author" content="Rafael A. Irizarry" />
 
 
-<meta name="date" content="2022-01-12" />
+<meta name="date" content="2022-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1045,20 +1045,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="data.table" class="section level1" number="6">
 <h1><span class="header-section-number">Chapter 6</span> data.table</h1>
-<p>In this book we use tidyverse packages to illustrate because beginners find the code readable and this permits us to focus on data analysis and statistical concepts. However, there are other approaches to wrangling and analyzing data in R that are faster and better at handling large objects. The <strong>data.table</strong> package is one of the most popular and in this chapter we provide a very quick introduction. There are several online resources, including this introduction<a href="#fn19" class="footnote-ref" id="fnref19"><sup>19</sup></a> for those wanting to learn more.</p>
+<p>In this book, we use tidyverse packages to illustrate because beginners find the code readable and this permits us to focus on data analysis and statistical concepts. However, there are other approaches to wrangling and analyzing data in R that are faster and better at handling large objects. The <strong>data.table</strong> package, for example, is one of the most popular and we therefore provide a very quick introduction in this chapter . There are several online resources, including this introduction<a href="#fn19" class="footnote-ref" id="fnref19"><sup>19</sup></a> for those wanting to learn more.</p>
 <div id="manipulating-data-tables" class="section level2" number="6.1">
 <h2><span class="header-section-number">6.1</span> Manipulating data tables</h2>
-<p><code>data.table</code> is separate package that needs to be installed. Once installed we need to load it:</p>
+<p><code>data.table</code> is a separate package that needs to be installed. Once installed, we then need to load it:</p>
 <div class="sourceCode" id="cb254"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb254-1"><a href="data-table.html#cb254-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span></code></pre></div>
-<p>We will provide example code showing the <strong>data.table</strong> approaches to <strong>dplyr</strong>’s <code>mutate</code>, <code>filter</code>, <code>select</code>, <code>group_by</code>, and <code>summarize</code> shown in Chapter <a href="tidyverse.html#tidyverse">4</a>. As done in that chapter we will use the <code>murders</code> dataset:</p>
+<p>We will provide example code showing the <strong>data.table</strong> approaches to <strong>dplyr</strong>’s <code>mutate</code>, <code>filter</code>, <code>select</code>, <code>group_by</code>, and <code>summarize</code> shown in Chapter <a href="tidyverse.html#tidyverse">4</a>. As in that chapter, we will use the <code>murders</code> dataset:</p>
 <p>The first step when using <strong>data.table</strong> is to convert the data frame into a <code>data.table</code> object using the <code>setDT</code> function:</p>
 <div class="sourceCode" id="cb255"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb255-1"><a href="data-table.html#cb255-1" aria-hidden="true" tabindex="-1"></a>murders <span class="ot">&lt;-</span><span class="fu">setDT</span>(murders)</span></code></pre></div>
-<p>Without this most of the approaches shown below will not work.</p>
+<p>Without this initial step, most of the approaches shown below will not work.</p>
 <div id="selecting" class="section level3" number="6.1.1">
 <h3><span class="header-section-number">6.1.1</span> Selecting</h3>
-<p>Selecting with <strong>data.table</strong> is done in a similar way to subsetting matrices. While with <strong>dplyr</strong> we write</p>
+<p>Selecting with <strong>data.table</strong> is done in a similar way to subsetting matrices. While with <strong>dplyr</strong> we write:</p>
 <div class="sourceCode" id="cb256"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb256-1"><a href="data-table.html#cb256-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(murders, state, region)</span></code></pre></div>
-<p>In <strong>data.table</strong> we use notation similar to what is used with matrices:</p>
+<p>In <strong>data.table</strong>, we use notation similar to what is used with matrices:</p>
 <div class="sourceCode" id="cb257"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb257-1"><a href="data-table.html#cb257-1" aria-hidden="true" tabindex="-1"></a>murders[, <span class="fu">c</span>(<span class="st">&quot;state&quot;</span>, <span class="st">&quot;region&quot;</span>)] <span class="sc">|</span><span class="er">&gt;</span> <span class="fu">head</span>()</span>
 <span id="cb257-2"><a href="data-table.html#cb257-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         state region</span></span>
 <span id="cb257-3"><a href="data-table.html#cb257-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:    Alabama  South</span></span>
@@ -1079,11 +1079,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="adding-a-column-or-changing-columns" class="section level3" number="6.1.2">
 <h3><span class="header-section-number">6.1.2</span> Adding a column or changing columns</h3>
-<p>We learned to use <strong>dplyr</strong> <code>mutate</code> function with this example:</p>
+<p>We learned to use the <strong>dplyr</strong> <code>mutate</code> function with this example:</p>
 <div class="sourceCode" id="cb259"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb259-1"><a href="data-table.html#cb259-1" aria-hidden="true" tabindex="-1"></a>murders <span class="ot">&lt;-</span> <span class="fu">mutate</span>(murders, <span class="at">rate =</span> total <span class="sc">/</span> population <span class="sc">*</span> <span class="dv">100000</span>)</span></code></pre></div>
-<p><strong>data.table</strong> uses an approach that avoids an new assignment (update by reference). This can help with large datasets that take up most of your computers memory. The <strong>data.table</strong> :=` function permits us to do this:</p>
+<p><strong>data.table</strong> uses an approach that avoids a new assignment (update by reference). This can help with large datasets that take up most of your computer’s memory. The <strong>data.table</strong> :=` function permits us to do this:</p>
 <div class="sourceCode" id="cb260"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb260-1"><a href="data-table.html#cb260-1" aria-hidden="true" tabindex="-1"></a>murders[, rate <span class="sc">:</span><span class="er">=</span> total <span class="sc">/</span> population <span class="sc">*</span> <span class="dv">100000</span>]</span></code></pre></div>
-<p>This adds a new column, <code>rate</code>, to the table. Notice that, as in <strong>dplyr</strong> we used <code>total</code> and <code>population</code> without quotes as done in <strong>dplyr</strong>.</p>
+<p>This adds a new column, <code>rate</code>, to the table. Notice that, as in <strong>dplyr</strong>, we used <code>total</code> and <code>population</code> without quotes.</p>
 <p>We can see that the new column is added:</p>
 <div class="sourceCode" id="cb261"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb261-1"><a href="data-table.html#cb261-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(murders)</span>
 <span id="cb261-2"><a href="data-table.html#cb261-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         state abb region population total rate</span></span>
@@ -1093,7 +1093,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb261-6"><a href="data-table.html#cb261-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4:   Arkansas  AR  South    2915918    93 3.19</span></span>
 <span id="cb261-7"><a href="data-table.html#cb261-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5: California  CA   West   37253956  1257 3.37</span></span>
 <span id="cb261-8"><a href="data-table.html#cb261-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6:   Colorado  CO   West    5029196    65 1.29</span></span></code></pre></div>
-<p>To define new multiple columns we can use the <code>:=</code> function with multiple arguments:</p>
+<p>To define new multiple columns, we can use the <code>:=</code> function with multiple arguments:</p>
 <div class="sourceCode" id="cb262"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb262-1"><a href="data-table.html#cb262-1" aria-hidden="true" tabindex="-1"></a>murders[, <span class="st">&quot;:=&quot;</span>(<span class="at">rate =</span> total <span class="sc">/</span> population <span class="sc">*</span> <span class="dv">100000</span>, <span class="at">rank =</span> <span class="fu">rank</span>(population))]</span></code></pre></div>
 </div>
 <div id="technical-detail-reference-versus-copy" class="section level3" number="6.1.3">
@@ -1101,17 +1101,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>The <strong>data.table</strong> package is designed to avoid wasting memory. So if you make a copy of a table, like this:</p>
 <div class="sourceCode" id="cb263"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb263-1"><a href="data-table.html#cb263-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">data.table</span>(<span class="at">a =</span> <span class="dv">1</span>)</span>
 <span id="cb263-2"><a href="data-table.html#cb263-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> x</span></code></pre></div>
-<p><code>y</code> is actually referencing <code>x</code>, it is not an new opject: it’s just another name for <code>x</code>. Until you change <code>y</code> a new object will not be made. However, the <code>:=</code> function changes <em>by reference</em> so if you change <code>x</code>, a new object is not made and <code>y</code> continues to be just another name for <code>x</code>:</p>
+<p><code>y</code> is actually referencing <code>x</code>, it is not an new opject: it’s just another name for <code>x</code>. Until you change <code>y</code>, a new object will not be made. However, the <code>:=</code> function changes <em>by reference</em> so if you change <code>x</code>, a new object is not made and <code>y</code> continues to be just another name for <code>x</code>:</p>
 <div class="sourceCode" id="cb264"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb264-1"><a href="data-table.html#cb264-1" aria-hidden="true" tabindex="-1"></a>x[,a <span class="sc">:</span><span class="er">=</span> <span class="dv">2</span>]</span>
 <span id="cb264-2"><a href="data-table.html#cb264-2" aria-hidden="true" tabindex="-1"></a>y</span>
 <span id="cb264-3"><a href="data-table.html#cb264-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    a</span></span>
 <span id="cb264-4"><a href="data-table.html#cb264-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1: 2</span></span></code></pre></div>
-<p>Note also that you can change <code>x</code> like this:</p>
+<p>You can also change <code>x</code> like this:</p>
 <div class="sourceCode" id="cb265"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb265-1"><a href="data-table.html#cb265-1" aria-hidden="true" tabindex="-1"></a>y[,a <span class="sc">:</span><span class="er">=</span> <span class="dv">1</span>]</span>
 <span id="cb265-2"><a href="data-table.html#cb265-2" aria-hidden="true" tabindex="-1"></a>x</span>
 <span id="cb265-3"><a href="data-table.html#cb265-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    a</span></span>
 <span id="cb265-4"><a href="data-table.html#cb265-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1: 1</span></span></code></pre></div>
-<p>To avoid this you can use the <code>copy</code> function, which forces the creation of an actual copy:</p>
+<p>To avoid this, you can use the <code>copy</code> function which forces the creation of an actual copy:</p>
 <div class="sourceCode" id="cb266"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb266-1"><a href="data-table.html#cb266-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">data.table</span>(<span class="at">a =</span> <span class="dv">1</span>)</span>
 <span id="cb266-2"><a href="data-table.html#cb266-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">copy</span>(x)</span>
 <span id="cb266-3"><a href="data-table.html#cb266-3" aria-hidden="true" tabindex="-1"></a>x[,a <span class="sc">:</span><span class="er">=</span> <span class="dv">2</span>]</span>
@@ -1121,9 +1121,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="subsetting-1" class="section level3" number="6.1.4">
 <h3><span class="header-section-number">6.1.4</span> Subsetting</h3>
-<p>With <strong>dplyr</strong> we filtered like this:</p>
+<p>With <strong>dplyr</strong>, we filtered like this:</p>
 <div class="sourceCode" id="cb267"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb267-1"><a href="data-table.html#cb267-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(murders, rate <span class="sc">&lt;=</span> <span class="fl">0.7</span>)</span></code></pre></div>
-<p>With <strong>data.table</strong> we again use an approach similar to subsetting matrices, except <strong>data.table</strong> knows that <code>rate</code> refers to a column name and not an object in the R environment:</p>
+<p>With <strong>data.table</strong>, we again use an approach similar to subsetting matrices, except <strong>data.table</strong> knows that <code>rate</code> refers to a column name and not an object in the R environment:</p>
 <div class="sourceCode" id="cb268"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb268-1"><a href="data-table.html#cb268-1" aria-hidden="true" tabindex="-1"></a>murders[rate <span class="sc">&lt;=</span> <span class="fl">0.7</span>]</span>
 <span id="cb268-2"><a href="data-table.html#cb268-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            state abb        region population total  rate rank</span></span>
 <span id="cb268-3"><a href="data-table.html#cb268-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:        Hawaii  HI          West    1360301     7 0.515   12</span></span>
@@ -1139,13 +1139,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb269-5"><a href="data-table.html#cb269-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3: New Hampshire 0.380</span></span>
 <span id="cb269-6"><a href="data-table.html#cb269-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4:  North Dakota 0.595</span></span>
 <span id="cb269-7"><a href="data-table.html#cb269-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5:       Vermont 0.320</span></span></code></pre></div>
-<p>Compare to the <strong>dplyr</strong> approach</p>
+<p>Compare to the <strong>dplyr</strong> approach:</p>
 <div class="sourceCode" id="cb270"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb270-1"><a href="data-table.html#cb270-1" aria-hidden="true" tabindex="-1"></a>murders <span class="sc">%&gt;%</span> <span class="fu">filter</span>(rate <span class="sc">&lt;=</span> <span class="fl">0.7</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(state, rate)</span></code></pre></div>
 </div>
 </div>
 <div id="exercises-15" class="section level2" number="6.2">
 <h2><span class="header-section-number">6.2</span> Exercises</h2>
-<p>1. Load the <strong>data.table</strong> package and the murders dataset and conevrt it to <code>data.table</code> object</p>
+<p>1. Load the <strong>data.table</strong> package and the murders dataset and convert it to <code>data.table</code> object:</p>
 <div class="sourceCode" id="cb271"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb271-1"><a href="data-table.html#cb271-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
 <span id="cb271-2"><a href="data-table.html#cb271-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dslabs)</span>
 <span id="cb271-3"><a href="data-table.html#cb271-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(murders)</span>
@@ -1154,7 +1154,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode" id="cb272"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb272-1"><a href="data-table.html#cb272-1" aria-hidden="true" tabindex="-1"></a>murders[, population_in_millions <span class="sc">:</span><span class="er">=</span> population <span class="sc">/</span> <span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>]</span></code></pre></div>
 <p>Add a murders column named <code>rate</code> with the per 100,000 murder rate as in the example code above.</p>
 <p>2. Add a column <code>rank</code> containing the rank, from highest to lowest murder rate.</p>
-<p>3. If we want to only show the states and population sizes we can use:</p>
+<p>3. If we want to only show the states and population sizes, we can use:</p>
 <div class="sourceCode" id="cb273"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb273-1"><a href="data-table.html#cb273-1" aria-hidden="true" tabindex="-1"></a>murders[, .(state, population)] </span></code></pre></div>
 <p>Show the state names and abbreviations in <code>murders</code>.</p>
 <p>4. You can show just the New York row like this:</p>
@@ -1164,26 +1164,26 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>5. We can remove rows using the <code>!=</code> operator. For example, to remove Florida, we would do this:</p>
 <div class="sourceCode" id="cb275"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb275-1"><a href="data-table.html#cb275-1" aria-hidden="true" tabindex="-1"></a>no_florida <span class="ot">&lt;-</span> murders[state <span class="sc">!=</span> <span class="st">&quot;Florida&quot;</span>]</span></code></pre></div>
 <p>Create a new data frame called <code>no_south</code> that removes states from the South region. How many states are in this category? You can use the function <code>nrow</code> for this.</p>
-<p>6. We can also use <code>%in%</code> to filter. You can therefore see the data from New York and Texas like this:</p>
+<p>6. We can also use <code>%in%</code> to filter. You can therefore see the data from New York and Texas as follows:</p>
 <div class="sourceCode" id="cb276"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb276-1"><a href="data-table.html#cb276-1" aria-hidden="true" tabindex="-1"></a>murders[state <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;New York&quot;</span>, <span class="st">&quot;Texas&quot;</span>)]</span></code></pre></div>
 <p>Create a new data frame called <code>murders_nw</code> with only the states from the Northeast and the West. How many states are in this category?</p>
 <p>7. Suppose you want to live in the Northeast or West <strong>and</strong> want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with <code>filter</code>. Here is an example in which we filter to keep only small states in the Northeast region.</p>
 <div class="sourceCode" id="cb277"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb277-1"><a href="data-table.html#cb277-1" aria-hidden="true" tabindex="-1"></a>murders[population <span class="sc">&lt;</span> <span class="dv">5000000</span> <span class="sc">&amp;</span> region <span class="sc">==</span> <span class="st">&quot;Northeast&quot;</span>]</span></code></pre></div>
-<p>Make sure <code>murders</code> has been defined with <code>rate</code> and <code>rank</code> and still has all states. Create a table called <code>my_states</code> that contains rows for states satisfying both the conditions: it is in the Northeast or West and the murder rate is less than 1. Show only the state name, the rate, and the rank.</p>
+<p>Make sure <code>murders</code> has been defined with <code>rate</code> and <code>rank</code> and still has all states. Create a table called <code>my_states</code> that contains rows for states satisfying both the conditions: they are in the Northeast or West and the murder rate is less than 1. Show only the state name, the rate, and the rank.</p>
 </div>
 <div id="summarizing-data-1" class="section level2" number="6.3">
 <h2><span class="header-section-number">6.3</span> Summarizing data</h2>
-<p>As an example we will use the <code>heights</code> dataset:</p>
+<p>As an example, we will use the <code>heights</code> dataset:</p>
 <div class="sourceCode" id="cb278"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb278-1"><a href="data-table.html#cb278-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb278-2"><a href="data-table.html#cb278-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dslabs)</span>
 <span id="cb278-3"><a href="data-table.html#cb278-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(heights)</span>
 <span id="cb278-4"><a href="data-table.html#cb278-4" aria-hidden="true" tabindex="-1"></a>heights <span class="ot">&lt;-</span> <span class="fu">setDT</span>(heights)</span></code></pre></div>
-<p>In <strong>data.table</strong> we can call functions inside <code>.()</code> and they will be applied to rows. So the equivalent of</p>
+<p>In <strong>data.table</strong>, we can call functions inside <code>.()</code> and they will be applied to rows. So the equivalent of:</p>
 <div class="sourceCode" id="cb279"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb279-1"><a href="data-table.html#cb279-1" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> heights <span class="sc">%&gt;%</span> </span>
 <span id="cb279-2"><a href="data-table.html#cb279-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">average =</span> <span class="fu">mean</span>(height), <span class="at">standard_deviation =</span> <span class="fu">sd</span>(height))</span></code></pre></div>
 <p>in <strong>dplyr</strong> is the following:</p>
 <div class="sourceCode" id="cb280"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb280-1"><a href="data-table.html#cb280-1" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> heights[, .(<span class="at">average =</span> <span class="fu">mean</span>(height), <span class="at">standard_deviation =</span> <span class="fu">sd</span>(height))]</span></code></pre></div>
-<p>Note that this permits a compact way of subsetting and then summarizing. Instead of</p>
+<p>Note that this permits a compact way of subsetting and then summarizing. Instead of:</p>
 <div class="sourceCode" id="cb281"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb281-1"><a href="data-table.html#cb281-1" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> heights <span class="sc">%&gt;%</span> </span>
 <span id="cb281-2"><a href="data-table.html#cb281-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(sex <span class="sc">==</span> <span class="st">&quot;Female&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb281-3"><a href="data-table.html#cb281-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">average =</span> <span class="fu">mean</span>(height), <span class="at">standard_deviation =</span> <span class="fu">sd</span>(height))</span></code></pre></div>
@@ -1191,12 +1191,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode" id="cb282"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb282-1"><a href="data-table.html#cb282-1" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> heights[sex <span class="sc">==</span> <span class="st">&quot;Female&quot;</span>, .(<span class="at">average =</span> <span class="fu">mean</span>(height), <span class="at">standard_deviation =</span> <span class="fu">sd</span>(height))]</span></code></pre></div>
 <div id="multiple-summaries-1" class="section level3" number="6.3.1">
 <h3><span class="header-section-number">6.3.1</span> Multiple summaries</h3>
-<p>In the <a href="tidyverse.html#tidyverse">4</a> chapter we defined the function:</p>
+<p>In the <a href="tidyverse.html#tidyverse">4</a> chapter, we defined the function:</p>
 <div class="sourceCode" id="cb283"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb283-1"><a href="data-table.html#cb283-1" aria-hidden="true" tabindex="-1"></a>median_min_max <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
 <span id="cb283-2"><a href="data-table.html#cb283-2" aria-hidden="true" tabindex="-1"></a>  qs <span class="ot">&lt;-</span> <span class="fu">quantile</span>(x, <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="dv">0</span>, <span class="dv">1</span>))</span>
 <span id="cb283-3"><a href="data-table.html#cb283-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">median =</span> qs[<span class="dv">1</span>], <span class="at">minimum =</span> qs[<span class="dv">2</span>], <span class="at">maximum =</span> qs[<span class="dv">3</span>])</span>
 <span id="cb283-4"><a href="data-table.html#cb283-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<p>Similar to dplyr we can call this function within <code>.()</code> to obtain the three number summary:</p>
+<p>Similar to dplyr, we can call this function within <code>.()</code> to obtain the three number summary:</p>
 <div class="sourceCode" id="cb284"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb284-1"><a href="data-table.html#cb284-1" aria-hidden="true" tabindex="-1"></a>heights[, .(<span class="fu">median_min_max</span>(height))]</span>
 <span id="cb284-2"><a href="data-table.html#cb284-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    median minimum maximum</span></span>
 <span id="cb284-3"><a href="data-table.html#cb284-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:   68.5      50    82.7</span></span></code></pre></div>
@@ -1212,7 +1212,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="sorting-data-frames-1" class="section level2" number="6.4">
 <h2><span class="header-section-number">6.4</span> Sorting data frames</h2>
-<p>We can order rows using the same approach we use for filter. Here are the states ordered by murder rate</p>
+<p>We can order rows using the same approach we use for filter. Here are the states ordered by murder rate:</p>
 <div class="sourceCode" id="cb286"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb286-1"><a href="data-table.html#cb286-1" aria-hidden="true" tabindex="-1"></a>murders[<span class="fu">order</span>(population)] <span class="sc">|</span><span class="er">&gt;</span> <span class="fu">head</span>()</span>
 <span id="cb286-2"><a href="data-table.html#cb286-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                   state abb        region population total   rate rank</span></span>
 <span id="cb286-3"><a href="data-table.html#cb286-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:              Wyoming  WY          West     563626     5  0.887    1</span></span>
