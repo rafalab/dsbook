@@ -148,16 +148,24 @@ We can easily construct an example of cause and effect reversal using the father
 
 $$X_i = \beta_0 + \beta_1 y_i + \varepsilon_i, i=1, \dots, N$$
 
-to the father and son height data, with $X_i$ the father height and $y_i$ the son height, we do get a statistically significant result:
+to the father and son height data, with $X_i$ the father height and $y_i$ the son height, we do get a statistically significant result. We use the `galton_heights` dataset defined in Section \@ref(galton):
 
-```{r}
+```{r, echo=FALSE}
 library(HistData)
 data("GaltonFamilies")
-GaltonFamilies %>%
-  filter(childNum == 1 & gender == "male") %>%
+
+set.seed(1983)
+galton_heights <- GaltonFamilies %>%
+  filter(gender == "male") %>%
+  group_by(family) %>%
+  sample_n(1) %>%
+  ungroup() %>%
   select(father, childHeight) %>%
-  rename(son = childHeight) %>% 
-  summarize(tidy(lm(father ~ son)))
+  rename(son = childHeight)
+```
+
+```{r}
+galton_heights %>% summarize(tidy(lm(father ~ son)))
 ```
 
 The model fits the data very well. If we look at the mathematical formulation of the model above, it could easily be incorrectly interpreted so as to suggest that the son being tall caused the father to be tall. But given what we know about genetics and biology, we know it's the other way around. The model is technically correct. The estimates and p-values were obtained correctly as well. What is wrong here is the interpretation.
