@@ -13,7 +13,7 @@ data("mnist_27")
 We can explore the data by plotting the two predictors and using colors to denote the labels:
 
 ```{r two-or-seven-scatter}
-mnist_27$train %>% ggplot(aes(x_1, x_2, color = y)) + geom_point()
+mnist_27$train |> ggplot(aes(x_1, x_2, color = y)) + geom_point()
 ```
 
 We can immediately see some patterns. For example, if $X_1$ (the upper left panel) is very large, then the digit is probably a 7. Also, for smaller values of $X_1$, the 2s appear to be in the mid range values of $X_2$. 
@@ -25,12 +25,12 @@ if(!exists("mnist")) mnist <- read_mnist()
 is <- mnist_27$index_train[c(which.min(mnist_27$train$x_1), which.max(mnist_27$train$x_1))]
 titles <- c("smallest","largest")
 tmp <- lapply(1:2, function(i){
-    expand.grid(Row=1:28, Column=1:28) %>%  
+    expand.grid(Row=1:28, Column=1:28) |>  
       mutate(label=titles[i],  
              value = mnist$train$images[is[i],])
 })
 tmp <- Reduce(rbind, tmp)
-p1 <- tmp %>% ggplot(aes(Row, Column, fill=value)) + 
+p1 <- tmp |> ggplot(aes(Row, Column, fill=value)) + 
   geom_raster(show.legend = FALSE) + 
   scale_y_reverse() +
   scale_fill_gradient(low="white", high="black") +
@@ -44,12 +44,12 @@ p1 <- tmp %>% ggplot(aes(Row, Column, fill=value)) +
 is <- mnist_27$index_train[c(which.min(mnist_27$train$x_2), which.max(mnist_27$train$x_2))]
 titles <- c("smallest","largest")
 tmp <- lapply(1:2, function(i){
-    expand.grid(Row=1:28, Column=1:28) %>%  
+    expand.grid(Row=1:28, Column=1:28) |>  
       mutate(label=titles[i],  
              value = mnist$train$images[is[i],])
 })
 tmp <- Reduce(rbind, tmp)
-p2 <- tmp %>% ggplot(aes(Row, Column, fill=value)) + 
+p2 <- tmp |> ggplot(aes(Row, Column, fill=value)) + 
     geom_raster(show.legend = FALSE) + 
     scale_y_reverse() +
     scale_fill_gradient(low="white", high="black") +
@@ -72,9 +72,9 @@ $$
 We fit it like this:
 
 ```{r}
-fit <- mnist_27$train %>%
-  mutate(y = ifelse(y==7, 1, 0)) %>%
-  lm(y ~ x_1 + x_2, data = .)
+fit <- mnist_27$train |>
+  mutate(y = ifelse(y==7, 1, 0)) |>
+  lm(y ~ x_1 + x_2, data = _)
 ```
 
 We can now build a decision rule based on the estimate of $\hat{p}(x_1, x_2)$:
@@ -92,7 +92,7 @@ Because we constructed the `mnist_27` example and we had at our disposal 60,000 
 We choose better colors and use the `stat_contour` function to draw a curve that separates pairs $(x_1,x_2)$ for which $p(x_1,x_2) > 0.5$ and pairs for which $p(x_1,x_2) < 0.5$:
 
 ```{r true-p-better-colors}
-mnist_27$true_p %>% ggplot(aes(x_1, x_2, z = p, fill = p)) +
+mnist_27$true_p |> ggplot(aes(x_1, x_2, z = p, fill = p)) +
   geom_raster() +
   scale_fill_gradientn(colors=c("#F8766D", "white", "#00BFC4")) +
   stat_contour(breaks=c(0.5), color="black")
@@ -112,13 +112,13 @@ Note that for this boundary, $x_2$ is a linear function of $x_1$. This implies t
 ```{r regression-p-hat, echo=FALSE, out.width="100%", fig.height=3, fig.width=7}
 p_hat <- predict(fit, newdata = mnist_27$true_p)
 p_hat <- scales::squish(p_hat, c(0, 1))
-p1 <- mnist_27$true_p %>% mutate(p_hat = p_hat) %>%
+p1 <- mnist_27$true_p |> mutate(p_hat = p_hat) |>
   ggplot(aes(x_1, x_2,  z=p_hat, fill=p_hat)) +
   geom_raster() +
   scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
   stat_contour(breaks=c(0.5), color="black") 
 
-p2 <- mnist_27$true_p %>% mutate(p_hat = p_hat) %>%
+p2 <- mnist_27$true_p |> mutate(p_hat = p_hat) |>
   ggplot() +
   stat_contour(aes(x_1, x_2, z=p_hat), breaks=c(0.5), color="black") + 
   geom_point(mapping = aes(x_1, x_2, color=y), data = mnist_27$test) 

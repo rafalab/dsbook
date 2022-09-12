@@ -350,14 +350,14 @@ If you print `iris$Species` you will see that the data is ordered by the species
 Let's compute the distance between each observation. You can clearly see the three species with one species very different from the other two:
 
 ```{r, eval=FALSE}
-x <- iris[,1:4] %>% as.matrix()
+x <- iris[,1:4] |> as.matrix()
 d <- dist(x)
 image(as.matrix(d), col = rev(RColorBrewer::brewer.pal(9, "RdBu")))
 ```
 
 ```{r iris-distances, fig.width = 4, fig.height = 4, out.width="50%", echo=FALSE}
 rafalib::mypar()
-x <- iris[,1:4] %>% as.matrix()
+x <- iris[,1:4] |> as.matrix()
 d <- dist(x)
 image(as.matrix(d), col = rev(RColorBrewer::brewer.pal(9, "RdBu")))
 ```
@@ -390,7 +390,7 @@ We can see this better by plotting the first two PCs with color representing the
 
 
 ```{r iris-pca}
-data.frame(pca$x[,1:2], Species=iris$Species) %>% 
+data.frame(pca$x[,1:2], Species=iris$Species) |> 
   ggplot(aes(PC1,PC2, fill = Species))+
   geom_point(cex=3, pch=21) +
   coord_fixed(ratio = 1)
@@ -440,8 +440,8 @@ And just by looking at the first two PCs we see information about the class. Her
 
 ```{r mnist-pca-1-2-scatter}
 data.frame(PC1 = pca$x[,1], PC2 = pca$x[,2],
-           label=factor(mnist$train$label)) %>%
-  sample_n(2000) %>% 
+           label=factor(mnist$train$label)) |>
+  sample_n(2000) |> 
   ggplot(aes(PC1, PC2, fill=label))+
   geom_point(cex=3, pch=21)
 ```
@@ -451,13 +451,13 @@ We can also _see_ the linear combinations on the grid to get an idea of what is 
 ```{r mnist-pca-1-4, echo = FALSE, out.width="100%", fig.width=6, fig.height=1.75}
 library(RColorBrewer)
 tmp <- lapply( c(1:4,781:784), function(i){
-    expand.grid(Row=1:28, Column=1:28) %>%
+    expand.grid(Row=1:28, Column=1:28) |>
       mutate(id=i, label=paste0("PC",i), 
              value = pca$rotation[,i])
 })
 tmp <- Reduce(rbind, tmp)
 
-tmp %>% filter(id<5) %>%
+tmp |> filter(id<5) |>
   ggplot(aes(Row, Column, fill=value)) +
   geom_raster() +
   scale_y_reverse() +
@@ -468,7 +468,7 @@ tmp %>% filter(id<5) %>%
 The lower variance PCs appear related to unimportant variability in the corners:
 
 ```{r mnist-pca-last,, echo = FALSE, out.width="100%", fig.width=6, fig.height=1.75}
-tmp %>% filter(id>5) %>%
+tmp |> filter(id>5) |>
   ggplot(aes(Row, Column, fill=value)) +
   geom_raster() +
   scale_y_reverse() +

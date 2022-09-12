@@ -4,17 +4,17 @@ In a previous section, we generated these data tables:
 ```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(dslabs)
-polls <- polls_us_election_2016 %>% 
+polls <- polls_us_election_2016 |> 
   filter(state == "U.S." & enddate >= "2016-10-31" &
-           (grade %in% c("A+","A","A-","B+") | is.na(grade))) %>% 
+           (grade %in% c("A+","A","A-","B+") | is.na(grade))) |> 
   mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
 
-one_poll_per_pollster <- polls %>% group_by(pollster) %>% 
-  filter(enddate == max(enddate)) %>%
+one_poll_per_pollster <- polls |> group_by(pollster) |> 
+  filter(enddate == max(enddate)) |>
   ungroup()
 
-results <- one_poll_per_pollster %>% 
-  summarize(avg = mean(spread), se = sd(spread)/sqrt(length(spread))) %>% 
+results <- one_poll_per_pollster |> 
+  summarize(avg = mean(spread), se = sd(spread)/sqrt(length(spread))) |> 
   mutate(start = avg - 1.96*se, end = avg + 1.96*se) 
 ```
 
@@ -112,15 +112,15 @@ The simulated data does not really seem to capture the features of the actual da
 
 
 ```{r simulated-data-without-bias, echo=FALSE, message=FALSE, warning=FALSE}
-polls %>% group_by(pollster) %>% 
-  filter(n() >= 6) %>% 
-  ungroup() %>%
-  select(pollster, spread) %>%
-  mutate(type = "Observed data", pollster = as.character(pollster)) %>%
+polls |> group_by(pollster) |> 
+  filter(n() >= 6) |> 
+  ungroup() |>
+  select(pollster, spread) |>
+  mutate(type = "Observed data", pollster = as.character(pollster)) |>
   bind_rows(tibble(spread = as.vector(X) , 
                       pollster = rep(as.character(1:I), each=J),
-                      type = "Simulated data")) %>%
-  mutate(type = factor(type, levels = c("Simulated data", "Observed data"))) %>%
+                      type = "Simulated data")) |>
+  mutate(type = factor(type, levels = c("Simulated data", "Observed data"))) |>
   ggplot(aes(pollster, spread)) + 
   geom_point() + 
   coord_flip() +
@@ -150,7 +150,7 @@ X <- sapply(1:I, function(i){
 The simulated data now looks more like the actual data:
 
 ```{r simulated-pollster-data, fig.height=3.78, fig.width=3, out.width="35%", echo=FALSE}
-data.frame(Spread = as.vector(X) , Pollster = as.factor(rep(1:I, each=J))) %>%
+data.frame(Spread = as.vector(X) , Pollster = as.factor(rep(1:I, each=J))) |>
   ggplot(aes(Pollster, Spread)) +
   geom_point() +
   scale_y_continuous(limit = c(-0.056, 0.092)) +
@@ -209,29 +209,29 @@ posterior_se <- sqrt( 1/ (1/sigma^2 + 1/tau^2))
 Up to now we have focused on the popular vote. But in the United States, elections are not decided by the popular vote but rather by what is known as the electoral college. Each state gets a number of electoral votes that depends, in a somewhat complex way, on the population size of the state. Here are the top 5 states ranked by electoral votes in 2016.
 
 ```{r}
-results_us_election_2016 %>% top_n(5, electoral_votes)
+results_us_election_2016 |> top_n(5, electoral_votes)
 ```
 
 With some minor exceptions we don't discuss, the electoral votes are won all or nothing. For example, if you win California by just 1 vote, you still get all 55 of its electoral votes. This means that by winning a few big states by a large margin, but losing many small states by small margins, you can win the popular vote and yet lose the electoral college. This happened in 1876, 1888, 2000, and 2016. The idea behind this is to avoid a few large states having the power to dominate the presidential election. Nonetheless, many people in the US consider the electoral college unfair and would like to see it abolished. 
 
-We are now ready to predict the electoral college result for 2016. We start by aggregating results from a poll taken during the last week before the election. We use the `str_detect`, a function we introduce later in Section \@ref(stringr), to remove polls that are not for entire states. 
+We are now ready to predict the electoral college result for 2016. We start by aggregating results from a poll taken during the last week before the election. We use the `grepl`, which finds strings in character vectors, to remove polls that are not for entire states. 
 
 ```{r}
-results <- polls_us_election_2016 %>%
+results <- polls_us_election_2016 |>
   filter(state!="U.S." & 
-           !str_detect(state, "CD") & 
+           !grepl("CD", state) & 
            enddate >="2016-10-31" & 
-           (grade %in% c("A+","A","A-","B+") | is.na(grade))) %>%
-  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) %>%
-  group_by(state) %>%
-  summarize(avg = mean(spread), sd = sd(spread), n = n()) %>%
+           (grade %in% c("A+","A","A-","B+") | is.na(grade))) |>
+  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) |>
+  group_by(state) |>
+  summarize(avg = mean(spread), sd = sd(spread), n = n()) |>
   mutate(state = as.character(state))
 ```
 
 Here are the five closest races according to the polls:
 
 ```{r}
-results %>% arrange(abs(avg))
+results |> arrange(abs(avg))
 ```
 
 We now introduce the command `left_join` that will let us easily add the number of electoral votes for each state from the dataset `us_electoral_votes_2016`. We will describe this function in detail in the Wrangling chapter. Here, we simply say that the function combines the two datasets so that the information from the second argument is added to the information in the first:
@@ -243,7 +243,7 @@ results <- left_join(results, results_us_election_2016, by = "state")
 Notice that some states have no polls because the winner is pretty much known:
 
 ```{r}
-results_us_election_2016 %>% filter(!state %in% results$state) %>% 
+results_us_election_2016 |> filter(!state %in% results$state) |> 
   pull(state)
 ```
 
@@ -252,7 +252,7 @@ No polls were conducted in DC, Rhode Island, Alaska, and Wyoming because Democra
 Because we can't estimate the standard deviation for states with just one poll, we will estimate it as the median of the standard deviations estimated for states with more than one poll:
 
 ```{r}
-results <- results %>%
+results <- results |>
   mutate(sd = ifelse(is.na(sd), median(results$sd, na.rm = TRUE), sd))
 ```
 
@@ -261,7 +261,7 @@ To make probabilistic arguments, we will use a Monte Carlo simulation. For each 
 ```{r, echo=FALSE}
 mu <- 0
 tau <- 0.02
-results %>% mutate(sigma = sd/sqrt(n), 
+results |> mutate(sigma = sd/sqrt(n), 
                    B = sigma^2 / (sigma^2 + tau^2),
                    posterior_mean = B * mu + (1 - B) * avg,
                    posterior_se = sqrt(1/ (1/sigma^2 + 1/tau^2)))
@@ -270,10 +270,10 @@ results %>% mutate(sigma = sd/sqrt(n),
 The estimates based on posterior do move the estimates towards 0, although the states with many polls are influenced less. This is expected as the more poll data we collect, the more we trust those results:
 
 ```{r posterior-versus-original-estimates, echo=FALSE}
-results %>% mutate(sigma = sd / sqrt(n), 
+results |> mutate(sigma = sd / sqrt(n), 
                    B = sigma^2 / (sigma^2 + tau^2),
                    posterior_mean = B * mu + (1 - B) * avg,
-                   posterior_se = sqrt(1/ (1/sigma^2 + 1/tau^2))) %>%
+                   posterior_se = sqrt(1/ (1/sigma^2 + 1/tau^2))) |>
   ggplot(aes(avg, posterior_mean, size = n)) + geom_point() + 
   geom_abline(slope = 1, intercept = 0)
 ```
@@ -285,14 +285,14 @@ B <- 10000
 mu <- 0
 tau <- 0.02
 clinton_EV <- replicate(B, {
-  results %>% mutate(sigma = sd/sqrt(n), 
+  results |> mutate(sigma = sd/sqrt(n), 
                    B = sigma^2 / (sigma^2 + tau^2),
                    posterior_mean = B * mu + (1 - B) * avg,
                    posterior_se = sqrt(1 / (1/sigma^2 + 1/tau^2)),
                    result = rnorm(length(posterior_mean), 
                                   posterior_mean, posterior_se),
-                   clinton = ifelse(result > 0, electoral_votes, 0)) %>% 
-    summarize(clinton = sum(clinton)) %>% 
+                   clinton = ifelse(result > 0, electoral_votes, 0)) |> 
+    summarize(clinton = sum(clinton)) |> 
     pull(clinton) + 7
 })
 
@@ -303,7 +303,7 @@ This model gives Clinton over 99% chance of winning.
 <!--Here is a histogram of the Monte Carlo outcomes:
 
 ```{r election-forecast-posterior-no-bias, echo=FALSE}
-data.frame(clinton_EV) %>% 
+data.frame(clinton_EV) |> 
   ggplot(aes(clinton_EV)) + 
   geom_histogram(binwidth = 1) +
   geom_vline(xintercept = 269)
@@ -319,14 +319,14 @@ $\sqrt{\sigma^2/N + \sigma_b^2}$. FiveThirtyEight, which models the general bias
 tau <- 0.02
 bias_sd <- 0.03
 clinton_EV_2 <- replicate(1000, {
-  results %>% mutate(sigma = sqrt(sd^2/n  + bias_sd^2),  
+  results |> mutate(sigma = sqrt(sd^2/n  + bias_sd^2),  
                    B = sigma^2 / (sigma^2 + tau^2),
                    posterior_mean = B*mu + (1-B)*avg,
                    posterior_se = sqrt( 1/ (1/sigma^2 + 1/tau^2)),
                    result = rnorm(length(posterior_mean), 
                                   posterior_mean, posterior_se),
-                   clinton = ifelse(result>0, electoral_votes, 0)) %>% 
-    summarize(clinton = sum(clinton) + 7) %>% 
+                   clinton = ifelse(result>0, electoral_votes, 0)) |> 
+    summarize(clinton = sum(clinton) + 7) |> 
     pull(clinton)
 })
 mean(clinton_EV_2 > 269)
@@ -335,7 +335,7 @@ mean(clinton_EV_2 > 269)
 This gives us a much more sensible estimate. Looking at the outcomes of the simulation, we see how the bias term adds variability to the final results.
 
 ```{r comparison-forecast-with-and-without-bias, echo=FALSE}
-data.frame(no_bias=clinton_EV, with_bias=clinton_EV_2) %>% gather(approach, result) %>%
+data.frame(no_bias=clinton_EV, with_bias=clinton_EV_2) |> gather(approach, result) |>
   ggplot(aes(result)) + 
   geom_histogram(binwidth = 1) +
   geom_vline(xintercept = 269) +
@@ -353,15 +353,15 @@ Forecasters like to make predictions well before the election. The predictions a
 To make sure the variability we observe is not due to pollster effects, let's study data from one pollster:
 
 ```{r poplular-vote-time-trend}
-one_pollster <- polls_us_election_2016 %>% 
-  filter(pollster == "Ipsos" & state == "U.S.") %>% 
+one_pollster <- polls_us_election_2016 |> 
+  filter(pollster == "Ipsos" & state == "U.S.") |> 
   mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
 ```
 
 Since there is no pollster effect, then perhaps the theoretical standard error matches the data-derived standard deviation. We compute both here:
 
 ```{r}
-se <- one_pollster %>% 
+se <- one_pollster |> 
   summarize(empirical = sd(spread), 
             theoretical = 2 * sqrt(mean(spread) * (1 - mean(spread)) /
                                      min(samplesize)))
@@ -378,7 +378,7 @@ The models we have described include pollster-to-pollster variability and sampli
 
 
 ```{r time-trend-estimate, echo=FALSE}
-one_pollster %>% ggplot(aes(enddate, spread)) + 
+one_pollster |> ggplot(aes(enddate, spread)) + 
   geom_point() + 
   geom_smooth(method = "loess", span = 0.1)
 ```
@@ -386,12 +386,12 @@ one_pollster %>% ggplot(aes(enddate, spread)) +
 Some of the peaks and valleys we see coincide with events such as the party conventions, which tend to give the candidate a boost. We can see the peaks and valleys are consistent across several pollsters:
 
 ```{r time-trend-estimate-several-pollsters, echo=FALSE}
-polls_us_election_2016 %>%
-  filter(state == "U.S.") %>%
-  group_by(pollster) %>%
-  filter(n()>=10) %>%
-  ungroup() %>%
-  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) %>%
+polls_us_election_2016 |>
+  filter(state == "U.S.") |>
+  group_by(pollster) |>
+  filter(n()>=10) |>
+  ungroup() |>
+  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) |>
   ggplot(aes(enddate, spread)) + 
   geom_smooth(method = "loess", span = 0.1) + 
   geom_point(aes(color=pollster), show.legend = FALSE, alpha=0.6) 
@@ -416,15 +416,15 @@ $$
 We usually see the estimated $f(t)$ not for the difference, but for the actual percentages for each candidate like this:
 
 ```{r trend-estimate-for-all-pollsters, warning=FALSE, message=FALSE, echo=FALSE}
-polls_us_election_2016 %>%
-  filter(state == "U.S." & enddate>="2016-07-01") %>%
-  select(enddate, pollster, rawpoll_clinton, rawpoll_trump) %>%
-  rename(Clinton = rawpoll_clinton, Trump = rawpoll_trump) %>%
-  gather(candidate, percentage, -enddate, -pollster) %>% 
-  mutate(candidate = factor(candidate, levels = c("Trump","Clinton")))%>%
-  group_by(pollster) %>%
-  filter(n()>=10) %>%
-  ungroup() %>%
+polls_us_election_2016 |>
+  filter(state == "U.S." & enddate>="2016-07-01") |>
+  select(enddate, pollster, rawpoll_clinton, rawpoll_trump) |>
+  rename(Clinton = rawpoll_clinton, Trump = rawpoll_trump) |>
+  gather(candidate, percentage, -enddate, -pollster) |> 
+  mutate(candidate = factor(candidate, levels = c("Trump","Clinton")))|>
+  group_by(pollster) |>
+  filter(n()>=10) |>
+  ungroup() |>
   ggplot(aes(enddate, percentage, color = candidate)) +  
   geom_point(show.legend = FALSE, alpha=0.4)  + 
   geom_smooth(method = "loess", span = 0.15) +
@@ -441,8 +441,8 @@ Once a model like the one above is selected, we can use historical and present d
 library(tidyverse)
 library(dslabs)
 data("polls_us_election_2016")
-polls <- polls_us_election_2016 %>% 
-  filter(state != "U.S." & enddate >= "2016-10-31") %>% 
+polls <- polls_us_election_2016 |> 
+  filter(state != "U.S." & enddate >= "2016-10-31") |> 
   mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
 ```
 
@@ -451,11 +451,11 @@ Now for each poll use the CLT to create a 95% confidence interval for the spread
 2\. You can add the final result to the `cis` table you just created using the `right_join` function like this:
 
 ```{r, eval=FALSE}
-add <- results_us_election_2016 %>% 
-  mutate(actual_spread = clinton/100 - trump/100) %>% 
+add <- results_us_election_2016 |> 
+  mutate(actual_spread = clinton/100 - trump/100) |> 
   select(state, actual_spread)
-cis <- cis %>% 
-  mutate(state = as.character(state)) %>% 
+cis <- cis |> 
+  mutate(state = as.character(state)) |> 
   left_join(add, by = "state")
 ```
 

@@ -79,9 +79,9 @@ library(rvest)
 url <- paste0("https://en.wikipedia.org/w/index.php?title=",
               "Gun_violence_in_the_United_States_by_state",
               "&direction=prev&oldid=810166167")
-murders_raw <- read_html(url) %>%
-  html_node("table") %>%
-  html_table() %>%
+murders_raw <- read_html(url) |>
+  html_node("table") |>
+  html_table() |>
   setNames(c("state", "population", "total", "murder_rate"))
 ```
 
@@ -111,7 +111,7 @@ We can use the `str_detect` function to see that two of the three columns have c
 
 ```{r}
 commas <- function(x) any(str_detect(x, ","))
-murders_raw %>% summarize_all(commas)
+murders_raw |> summarize_all(commas)
 ```
 
 We can then use the `str_replace_all` function to remove them:
@@ -133,7 +133,7 @@ identical(test_1, test_2)
 So we can obtain our desired table using:
 
 ```{r}
-murders_new <- murders_raw %>% mutate_at(2:3, parse_number)
+murders_new <- murders_raw |> mutate_at(2:3, parse_number)
 head(murders_new)
 ```
 
@@ -174,9 +174,9 @@ sum(is.na(x))
 We can see some of the entries that are not successfully converted by using `filter` to keep only the entries resulting in `NA`s:
 
 ```{r, warning=FALSE}
-reported_heights %>% 
-  mutate(new_height = as.numeric(height)) %>%
-  filter(is.na(new_height)) %>% 
+reported_heights |> 
+  mutate(new_height = as.numeric(height)) |>
+  filter(is.na(new_height)) |> 
   head(n=10)
 ```
 
@@ -202,8 +202,8 @@ not_inches <- function(x, smallest = 50, tallest = 84){
 
 We apply this function and find the number of problematic entries:
 ```{r}
-problems <- reported_heights %>% 
-  filter(not_inches(height)) %>%
+problems <- reported_heights |> 
+  filter(not_inches(height)) |>
   pull(height)
 length(problems)
 ```
@@ -215,14 +215,14 @@ We can now view all the cases by simply printing them. We don't do that here bec
 
 ```{r, echo=FALSE}
 pattern <- "^\\d\\s*'\\s*\\d{1,2}\\.*\\d*'*\"*$"
-str_subset(problems, pattern) %>% head(n=10) %>% cat()
+str_subset(problems, pattern) |> head(n=10) |> cat()
 ```
 
 2\. A pattern of the form `x.y` or `x,y` with `x` feet and `y` inches. Here are ten examples:
 
 ```{r, echo=FALSE}
 pattern <- "^[4-6]\\s*[\\.|,]\\s*([0-9]|10|11)$"
-str_subset(problems, pattern) %>% head(n=10) %>% cat()
+str_subset(problems, pattern) |> head(n=10) |> cat()
 ```
 
 
@@ -231,7 +231,7 @@ str_subset(problems, pattern) %>% head(n=10) %>% cat()
 ```{r, echo=FALSE}
 ind <- which(between(suppressWarnings(as.numeric(problems))/2.54, 54, 81) )
 ind <- ind[!is.na(ind)]
-problems[ind] %>% head(n=10) %>% cat
+problems[ind] |> head(n=10) |> cat()
 ```
 
 Once we see these large groups following specific patterns, we can develop a plan of attack. Remember that there is rarely just one way to perform these tasks. Here we pick one that helps us teach several useful techniques. But surely there is a more efficient way of performing the task.
@@ -624,7 +624,7 @@ sum(str_detect(problems, pattern))
 To see why this is, we show some examples that expose why we don't have more matches:
 
 ```{r, eval=FALSE}
-problems[c(2, 10, 11, 12, 15)] %>% str_view(pattern)
+problems[c(2, 10, 11, 12, 15)] |> str_view(pattern)
 ```
 
 ```{r, echo=FALSE}
@@ -651,10 +651,10 @@ pattern <- "^[4-7]'\\d{1,2}$"
 If we do this replacement before the matching, we get many more matches:
 
 ```{r}
-problems %>% 
-  str_replace("feet|ft|foot", "'") %>% # replace feet, ft, foot with ' 
-  str_replace("inches|in|''|\"", "") %>% # remove all inches symbols
-  str_detect(pattern) %>% 
+problems |> 
+  str_replace("feet|ft|foot", "'") |> # replace feet, ft, foot with ' 
+  str_replace("inches|in|''|\"", "") |> # remove all inches symbols
+  str_detect(pattern) |> 
   sum()
 ```
 
@@ -666,11 +666,11 @@ For now, we improve our pattern by adding `\\s*` in front of and after the feet 
 
 ```{r}
 pattern <- "^[4-7]\\s*'\\s*\\d{1,2}$"
-problems %>% 
-  str_replace("feet|ft|foot", "'") %>% # replace feet, ft, foot with ' 
-  str_replace("inches|in|''|\"", "") %>% # remove all inches symbols
-  str_detect(pattern) %>% 
-  sum
+problems |> 
+  str_replace("feet|ft|foot", "'") |> # replace feet, ft, foot with ' 
+  str_replace("inches|in|''|\"", "") |> # remove all inches symbols
+  str_detect(pattern) |> 
+  sum()
 ```
 
 We might be tempted to avoid doing this by removing all the spaces with `str_replace_all`. However, when doing such an operation we need to make sure that it does not have unintended effects. In our reported heights examples, this will be a problem because some entries are of the form `x y` with space separating the feet from the inches. If we remove all spaces, we will incorrectly turn `x y` into `xy` which implies that a `6 1` would become `61` inches instead of `73` inches. 
@@ -713,14 +713,14 @@ Let's break this one down:
 
 We can see that it appears to be working:
 ```{r}
-str_subset(problems, pattern_with_groups) %>% head()
+str_subset(problems, pattern_with_groups) |> head()
 ```
 
 and will be able to perform the search and replace:
 
 ```{r}
-str_subset(problems, pattern_with_groups) %>% 
-  str_replace(pattern_with_groups, "\\1'\\2") %>% head
+str_subset(problems, pattern_with_groups) |> 
+  str_replace(pattern_with_groups, "\\1'\\2") |> head()
 ```
 
 Again, we will deal with the inches-larger-than-twelve challenge later.
@@ -738,8 +738,8 @@ not_inches_or_cm <- function(x, smallest = 50, tallest = 84){
   !ind
 }
 
-problems <- reported_heights %>% 
-  filter(not_inches_or_cm(height)) %>%
+problems <- reported_heights |> 
+  filter(not_inches_or_cm(height)) |>
   pull(height)
 length(problems)
 ```
@@ -747,9 +747,9 @@ length(problems)
 Let's see what proportion of these fit our pattern after the processing steps we developed above:
 
 ```{r}
-converted <- problems %>% 
-  str_replace("feet|foot|ft", "'") %>% # convert feet symbols to '
-  str_replace("inches|in|''|\"", "") %>%  # remove inches symbols
+converted <- problems |> 
+  str_replace("feet|foot|ft", "'") |> # convert feet symbols to '
+  str_replace("inches|in|''|\"", "") |>  # remove inches symbols
   str_replace("^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$", "\\1'\\2")# change format
 
 pattern <- "^[4-7]\\s*'\\s*\\d{1,2}$"
@@ -855,12 +855,12 @@ We now put all of what we have learned together into a function that takes a str
 
 ```{r}
 convert_format <- function(s){
-  s %>%
-    str_replace("feet|foot|ft", "'") %>% 
-    str_replace_all("inches|in|''|\"|cm|and", "") %>%  
-    str_replace("^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$", "\\1'\\2") %>% 
-    str_replace("^([56])'?$", "\\1'0") %>% 
-    str_replace("^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2") %>%  
+  s |>
+    str_replace("feet|foot|ft", "'") |> 
+    str_replace_all("inches|in|''|\"|cm|and", "") |>  
+    str_replace("^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$", "\\1'\\2") |> 
+    str_replace("^([56])'?$", "\\1'0") |> 
+    str_replace("^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2") |>  
     str_trim() 
 }
 ```
@@ -881,7 +881,7 @@ Note that we can perform the above operation more efficiently with the function 
 Now we can see which problematic entries remain:
 
 ```{r}
-converted <- problems %>% words_to_numbers() %>% convert_format()
+converted <- problems |> words_to_numbers() |> convert_format()
 remaining_problems <- converted[not_inches_or_cm(converted)]
 pattern <- "^[4-7]\\s*'\\s*\\d+\\.?\\d*$"
 index <- str_detect(remaining_problems, pattern)
@@ -903,14 +903,14 @@ tab <- data.frame(x = s)
 In Section \@ref(separate) we learned about the `separate` function, which can be used to achieve our current goal:
 
 ```{r}
-tab %>% separate(x, c("feet", "inches"), sep = "'")
+tab |> separate(x, c("feet", "inches"), sep = "'")
 ```
 
 The `extract` function from the __tidyr__ package lets us use regex groups to extract the desired values. Here is the equivalent to the code above using `separate` but using `extract`:  
 
 ```{r}
 library(tidyr)
-tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
+tab |> extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
 ```
 
 So why do we even need the new function `extract`? We have seen how small changes can throw off exact pattern matching. Groups in regex give us more flexibility. For example, if we define:
@@ -923,13 +923,13 @@ tab <- data.frame(x = s)
 and we only want the numbers, `separate` fails:
 
 ```{r}
-tab %>% separate(x, c("feet","inches"), sep = "'", fill = "right")
+tab |> separate(x, c("feet","inches"), sep = "'", fill = "right")
 ```
 
 However, we can use `extract`. The regex here is a bit more complicated since we have to permit `'` with spaces and `feet`. We also do not want the `"` included in the value, so we do not include that in the group:
 
 ```{r}
-tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
+tab |> extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
 ```
 
 
@@ -946,31 +946,31 @@ pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
 
 smallest <- 50
 tallest <- 84
-new_heights <- reported_heights %>% 
+new_heights <- reported_heights |> 
   mutate(original = height, 
-         height = words_to_numbers(height) %>% convert_format()) %>%
-  extract(height, c("feet", "inches"), regex = pattern, remove = FALSE) %>% 
-  mutate_at(c("height", "feet", "inches"), as.numeric) %>%
-  mutate(guess = 12 * feet + inches) %>%
+         height = words_to_numbers(height) |> convert_format()) |>
+  extract(height, c("feet", "inches"), regex = pattern, remove = FALSE) |> 
+  mutate_at(c("height", "feet", "inches"), as.numeric) |>
+  mutate(guess = 12 * feet + inches) |>
   mutate(height = case_when(
     is.na(height) ~ as.numeric(NA),
     between(height, smallest, tallest) ~ height,  #inches
     between(height/2.54, smallest, tallest) ~ height/2.54, #cm
     between(height*100/2.54, smallest, tallest) ~ height*100/2.54, #meters
-    TRUE ~ as.numeric(NA))) %>%
+    TRUE ~ as.numeric(NA))) |>
   mutate(height = ifelse(is.na(height) & 
                            inches < 12 & between(guess, smallest, tallest),
-                         guess, height)) %>%
+                         guess, height)) |>
   select(-guess)
 ```
 
 We can check all the entries we converted by typing:
 
 ```{r, eval=FALSE}
-new_heights %>%
-  filter(not_inches(original)) %>%
-  select(original, height) %>% 
-  arrange(height) %>%
+new_heights |>
+  filter(not_inches(original)) |>
+  select(original, height) |> 
+  arrange(height) |>
   View()
 ```
 
@@ -978,7 +978,7 @@ new_heights %>%
 A final observation is that if we look at the shortest students in our course:
 
 ```{r}
-new_heights %>% arrange(height) %>% head(n=7)
+new_heights |> arrange(height) |> head(n=7)
 ```
 
 We see heights of 53, 54, and 55. In the originals, we also have 51 and 52. These short heights are rare and it is likely that the students actually meant `5'1`, `5'2`, `5'3`, `5'4`, and `5'5`. Because we are not completely sure, we will leave them as reported. The object `new_heights` contains our final solution for this case study.
@@ -995,14 +995,14 @@ lines <- readLines(filename)
 This function reads-in the data line-by-line to create a vector of strings. In this case, one string for each row in the spreadsheet. The first six lines are:
 
 ```{r}
-lines %>% head()
+lines |> head()
 ```
 
 We want to extract the values that are separated by a comma for each string in the vector. The command `str_split` does exactly this:
 
 ```{r}
 x <- str_split(lines, ",") 
-x %>% head(2)
+x |> head(2)
 ```
 
 Note that the first entry has the column names, so we can separate that out:
@@ -1016,7 +1016,7 @@ To convert our list into a data frame, we can use a shortcut provided by the `ma
 
 ```{r}
 library(purrr)
-map(x, function(y) y[1]) %>% head(2)
+map(x, function(y) y[1]) |> head(2)
 ```
 
 However, because this is such a common task, __purrr__ provides a shortcut. If the second argument receives an integer instead of a function, it assumes we want that entry. So the code above can be written more efficiently like this:
@@ -1032,19 +1032,19 @@ dat <- tibble(map_chr(x, 1),
               map_chr(x, 2),
               map_chr(x, 3),
               map_chr(x, 4),
-              map_chr(x, 5)) %>%
-  mutate_all(parse_guess) %>%
+              map_chr(x, 5)) |>
+  mutate_all(parse_guess) |>
   setNames(col_names)
-dat %>% head
+dat |> head()
 ```
 
 If you learn more about the __purrr__ package, you will learn that you perform the above with the following, more efficient, code:
 
 ```{r}
-dat <- x %>%
-  transpose() %>%
-  map( ~ parse_guess(unlist(.))) %>%
-  setNames(col_names) %>% 
+dat <- x |>
+  transpose() |>
+  map( ~ parse_guess(unlist(.))) |>
+  setNames(col_names) |> 
   as_tibble() 
 ```
 
@@ -1056,8 +1056,8 @@ x <- str_split(lines, ",", simplify = TRUE)
 col_names <- x[1,]
 x <- x[-1,]
 colnames(x) <- col_names
-x %>% as_tibble() %>%
-  mutate_all(parse_guess) %>%
+x |> as_tibble() |>
+  mutate_all(parse_guess) |>
   head(5)
 ```
 
@@ -1068,7 +1068,7 @@ One of the datasets provided in __dslabs__ shows scientific funding rates by gen
 ```{r}
 library(dslabs)
 data("research_funding_rates")
-research_funding_rates %>% 
+research_funding_rates |> 
   select("discipline", "success_rates_men", "success_rates_women")
 ```
 
@@ -1135,9 +1135,9 @@ cat(substr(the_names_1, options()$width, nchar(the_names_1)))
 We want to create one vector with one name for each column. Using some of the functions we have just learned, we do this. Let's start with `the_names_1`, shown above. We want to remove the leading space and anything following the comma. We use regex for the latter. Then we can obtain the elements by splitting strings separated by space.  We want to split only when there are 2 or more spaces to avoid splitting `Success rates`. So we use the regex `\\s{2,}`
 
 ```{r}
-the_names_1 <- the_names_1 %>%
-  str_trim() %>%
-  str_replace_all(",\\s.", "") %>%
+the_names_1 <- the_names_1 |>
+  str_trim() |>
+  str_replace_all(",\\s.", "") |>
   str_split("\\s{2,}", simplify = TRUE)
 the_names_1 
 ```
@@ -1152,8 +1152,8 @@ cat(substr(the_names_2, options()$width, nchar(the_names_2)))
 Here we want to trim the leading space and then split by space as we did for the first line:
 
 ```{r}
-the_names_2 <- the_names_2 %>%
-  str_trim() %>%
+the_names_2 <- the_names_2 |>
+  str_trim() |>
   str_split("\\s+", simplify = TRUE)
 the_names_2
 ```
@@ -1163,8 +1163,8 @@ We can then join these to generate one name for each column:
 
 ```{r}
 tmp_names <- str_c(rep(the_names_1, each = 3), the_names_2[-1], sep = "_")
-the_names <- c(the_names_2[1], tmp_names) %>%
-  str_to_lower() %>%
+the_names <- c(the_names_2[1], tmp_names) |>
+  str_to_lower() |>
   str_replace_all("\\s", "_")
 the_names
 ```
@@ -1172,13 +1172,13 @@ the_names
 Now we are ready to get the actual data. By examining the `tab` object, we notice that the information is in lines 6 through 14. We can use `str_split` again to achieve our goal:
 
 ```{r}
-new_research_funding_rates <- tab[6:14] %>%
-  str_trim %>%
-  str_split("\\s{2,}", simplify = TRUE) %>%
-  data.frame() %>%
-  setNames(the_names) %>%
+new_research_funding_rates <- tab[6:14] |>
+  str_trim() |>
+  str_split("\\s{2,}", simplify = TRUE) |>
+  data.frame() |>
+  setNames(the_names) |>
   mutate_at(-1, parse_number)
-new_research_funding_rates %>% as_tibble()
+new_research_funding_rates |> as_tibble()
 ```
 
 We can see that the objects are identical:
@@ -1202,8 +1202,8 @@ data("gapminder")
 Suppose we want to show life expectancy time series by country for the Caribbean:
 
 ```{r caribbean}
-gapminder %>% 
-  filter(region == "Caribbean") %>%
+gapminder |> 
+  filter(region == "Caribbean") |>
   ggplot(aes(year, life_expectancy, color = country)) +
   geom_line()
 ```
@@ -1211,9 +1211,9 @@ gapminder %>%
 The plot is what we want, but much of the space is wasted to accommodate some of the long country names.
 <!--
 ```{r}
-gapminder %>% 
-  filter(region == "Caribbean") %>%
-  filter(str_length(country) >= 12) %>%
+gapminder |> 
+  filter(region == "Caribbean") |>
+  filter(str_length(country) >= 12) |>
   distinct(country) 
 ```
 -->
@@ -1221,12 +1221,12 @@ We have four countries with names longer than 12 characters. These names appear 
 
 
 ```{r caribbean-with-nicknames}
-gapminder %>% filter(region=="Caribbean") %>%
+gapminder |> filter(region=="Caribbean") |>
   mutate(country = recode(country, 
                           `Antigua and Barbuda` = "Barbuda",
                           `Dominican Republic` = "DR",
                           `St. Vincent and the Grenadines` = "St. Vincent",
-                          `Trinidad and Tobago` = "Trinidad")) %>%
+                          `Trinidad and Tobago` = "Trinidad")) |>
   ggplot(aes(year, life_expectancy, color = country)) +
   geom_line()
 ```

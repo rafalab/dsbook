@@ -18,12 +18,12 @@ Linear regression can be considered a machine learning algorithm. In Section \@r
 library(HistData)
 
 set.seed(1983)
-galton_heights <- GaltonFamilies %>%
-  filter(gender == "male") %>%
-  group_by(family) %>%
-  sample_n(1) %>%
-  ungroup() %>%
-  select(father, childHeight) %>%
+galton_heights <- GaltonFamilies |>
+  filter(gender == "male") |>
+  group_by(family) |>
+  sample_n(1) |>
+  ungroup() |>
+  select(father, childHeight) |>
   rename(son = childHeight)
 ```
 
@@ -33,8 +33,8 @@ Suppose you are tasked with building a machine learning algorithm that predicts 
 y <- galton_heights$son
 test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
 
-train_set <- galton_heights %>% slice(-test_index)
-test_set <- galton_heights %>% slice(test_index)
+train_set <- galton_heights |> slice(-test_index)
+test_set <- galton_heights |> slice(test_index)
 ```
 
 In this case, if we were just ignoring the father's height and guessing the son's height, we would guess the average height of sons.
@@ -108,8 +108,8 @@ There are many other versions of `predict` and many machine learning algorithms 
 ```{r, eval=FALSE}
 n <- 100
 Sigma <- 9*matrix(c(1.0, 0.5, 0.5, 1.0), 2, 2)
-dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) %>%
-  data.frame() %>% setNames(c("x", "y"))
+dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) |>
+  data.frame() |> setNames(c("x", "y"))
 ```
 
 Use the __caret__ package to partition into a test and training set of equal size. Train a linear model and report the RMSE. Repeat this exercise 100 times and make a histogram of the RMSEs and report the average and standard deviation. Hint: adapt the code shown earlier like this: 
@@ -117,8 +117,8 @@ Use the __caret__ package to partition into a test and training set of equal siz
 ```{r, eval=FALSE}
 y <- dat$y
 test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
-train_set <- dat %>% slice(-test_index)
-test_set <- dat %>% slice(test_index)
+train_set <- dat |> slice(-test_index)
+test_set <- dat |> slice(test_index)
 fit <- lm(y ~ x, data = train_set)
 y_hat <- fit$coef[1] + fit$coef[2]*test_set$x
 sqrt(mean((y_hat - test_set$y)^2))
@@ -144,8 +144,8 @@ d. The RMSE is not a random variable.
 ```{r, eval=FALSE}
 n <- 100
 Sigma <- 9*matrix(c(1, 0.95, 0.95, 1), 2, 2)
-dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) %>%
-  data.frame() %>% setNames(c("x", "y"))
+dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) |>
+  data.frame() |> setNames(c("x", "y"))
 ```
 
 Repeat the exercise and note what happens to the RMSE now.
@@ -164,8 +164,8 @@ d. These are both examples of regression, so the RMSE has to be the same.
 ```{r, eval=FALSE}
 n <- 1000
 Sigma <- matrix(c(1, 3/4, 3/4, 3/4, 1, 0, 3/4, 0, 1), 3, 3)
-dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) %>%
-  data.frame() %>% setNames(c("y", "x_1", "x_2"))
+dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) |>
+  data.frame() |> setNames(c("y", "x_1", "x_2"))
 ```
 
 Note that `y` is correlated with both `x_1` and `x_2`, but the two predictors are independent of each other.
@@ -181,8 +181,8 @@ Use the __caret__ package to partition into a test and training set of equal siz
 ```{r, eval=FALSE}
 n <- 1000
 Sigma <- matrix(c(1.0, 0.75, 0.75, 0.75, 1.0, 0.95, 0.75, 0.95, 1.0), 3, 3)
-dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) %>%
-  data.frame() %>% setNames(c("y", "x_1", "x_2"))
+dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) |>
+  data.frame() |> setNames(c("y", "x_1", "x_2"))
 ```
 
 Use the __caret__ package to partition into a test and training set of equal size. Compare the RMSE when using just `x_1`, just `x_2`, and both `x_1` and `x_2` Train a linear model and report the RMSE. 
@@ -219,19 +219,19 @@ $$
 As an example, let's provide a prediction for a student that is 66 inches tall.  What is the conditional probability of being female if you are 66 inches tall? In our dataset, we can estimate this by rounding to the nearest inch and computing:
 
 ```{r}
-train_set %>% 
-  filter(round(height) == 66) %>%
+train_set |> 
+  filter(round(height) == 66) |>
   summarize(y_hat = mean(sex=="Female"))
 ```
 
 To construct a prediction algorithm, we want to estimate the proportion of the population that is female for any given height $X=x$, which we write as the conditional probability described above: $\mbox{Pr}( Y = 1 | X=x)$. Let's see what this looks like for several values of $x$ (we will remove strata of $x$ with few data points):
 
 ```{r height-and-sex-conditional-probabilities}
-heights %>% 
-  mutate(x = round(height)) %>%
-  group_by(x) %>%
-  filter(n() >= 10) %>%
-  summarize(prop = mean(sex == "Female")) %>%
+heights |> 
+  mutate(x = round(height)) |>
+  group_by(x) |>
+  filter(n() >= 10) |>
+  summarize(prop = mean(sex == "Female")) |>
   ggplot(aes(x, prop)) +
   geom_point()
 ```
@@ -245,8 +245,8 @@ Note: because $p_0(x) = 1 - p_1(x)$, we will only estimate $p_1(x)$ and drop the
 If we convert the factors to 0s and 1s, we can estimate $\beta_0$ and $\beta_1$ with least squares. 
 
 ```{r}
-lm_fit <- mutate(train_set, y = as.numeric(sex == "Female")) %>% 
-  lm(y ~ height, data = .)
+lm_fit <- mutate(train_set, y = as.numeric(sex == "Female")) |> 
+  lm(y ~ height, data = _)
 ```
 
 
@@ -260,7 +260,7 @@ To form a prediction, we define a _decision rule_:  predict female if $\hat{p}(x
 
 ```{r}
 p_hat <- predict(lm_fit, test_set)
-y_hat <- ifelse(p_hat > 0.5, "Female", "Male") %>% factor()
+y_hat <- ifelse(p_hat > 0.5, "Female", "Male") |> factor()
 confusionMatrix(y_hat, test_set$sex)$overall[["Accuracy"]]
 ```
 
@@ -271,11 +271,11 @@ We see this method does substantially better than guessing.
 The function $\beta_0 + \beta_1 x$ can take any value including negatives and values larger than 1. In fact, the estimate $\hat{p}(x)$ computed in the linear regression section does indeed become negative.
 
 ```{r regression-prediction}
-heights %>% 
-  mutate(x = round(height)) %>%
-  group_by(x) %>%
-  filter(n() >= 10) %>%
-  summarize(prop = mean(sex == "Female")) %>%
+heights |> 
+  mutate(x = round(height)) |>
+  group_by(x) |>
+  filter(n() >= 10) |>
+  summarize(prop = mean(sex == "Female")) |>
   ggplot(aes(x, prop)) +
   geom_point() + 
   geom_abline(intercept = lm_fit$coef[1], slope = lm_fit$coef[2])
@@ -291,9 +291,9 @@ But we are estimating a probability: $\mbox{Pr}( Y = 1 \mid X = x)$ which is con
 
 The idea of generalized linear models (GLM) is to 1) define a distribution of $Y$ that is consistent with it's possible outcomes and 
 2) find a function $g$ so that $g(\mbox{Pr}( Y = 1 \mid X = x))$ can be modeled as a linear combination of predictors. 
-Logistic regression is the most commonly used GLM. It is an extension of linear regression that assures that the estimate of  $\mbox{Pr}( Y = 1 \mid X = x)$ is between 0 and 1. This approach makes use of the  _logistic_ transformation introduced in Section \@ref(logit):  
+Logistic regression is the most commonly used GLM. It is an extension of linear regression that assures that the estimate of  $\mbox{Pr}( Y = 1 \mid X = x)$ is between 0 and 1. This approach makes use of the  _logistic_ transformation defined as:
 
-$$ g(p) = \log \frac{p}{1-p}$$
+$$ g(p) = \log \frac{p}{1-p}.$$
 
 This logistic transformation converts probability to log odds. As discussed in the data visualization lecture, the odds tell us how much more likely it is something will happen compared to not happening. $p=0.5$ means the odds are 1 to 1, thus the odds are 1. If $p=0.75$, the odds are 3 to 1. A nice characteristic of this transformation is that it converts probabilities to be symmetric around 0. Here is a plot of $g(p)$ versus $p$:
 
@@ -314,9 +314,9 @@ With this model, we can no longer use least squares. Instead we compute the _max
 In R, we can fit the logistic regression model with the function `glm`: generalized linear models. This function is more general than logistic regression so we need to specify the model we want through the `family` parameter:
 
 ```{r}
-glm_fit <- train_set %>% 
-  mutate(y = as.numeric(sex == "Female")) %>%
-  glm(y ~ height, data=., family = "binomial")
+glm_fit <- train_set |> 
+  mutate(y = as.numeric(sex == "Female")) |>
+  glm(y ~ height, data = _, family = "binomial")
 ```
 
 We can obtain prediction using the predict function:
@@ -330,14 +330,14 @@ When using `predict` with a `glm` object, we have to specify that we want `type=
 This model fits the data slightly better than the line:
 
 ```{r conditional-prob-glm-fit, echo=FALSE }
-tmp <- heights %>% 
-  mutate(x = round(height)) %>%
-  group_by(x) %>%
-  filter(n() >= 10) %>%
+tmp <- heights |> 
+  mutate(x = round(height)) |>
+  group_by(x) |>
+  filter(n() >= 10) |>
   summarize(prop = mean(sex == "Female")) 
-logistic_curve <- data.frame(x = seq(min(tmp$x), max(tmp$x))) %>%
+logistic_curve <- data.frame(x = seq(min(tmp$x), max(tmp$x))) |>
   mutate(p_hat = plogis(glm_fit$coef[1] + glm_fit$coef[2]*x))
-tmp %>% 
+tmp |> 
   ggplot(aes(x, prop)) +
   geom_point() +
   geom_line(data = logistic_curve,
@@ -347,17 +347,17 @@ tmp %>%
 Because we have an estimate $\hat{p}(x)$, we can obtain predictions:
 
 ```{r}
-y_hat_logit <- ifelse(p_hat_logit > 0.5, "Female", "Male") %>% factor
+y_hat_logit <- ifelse(p_hat_logit > 0.5, "Female", "Male") |> factor()
 confusionMatrix(y_hat_logit, test_set$sex)$overall[["Accuracy"]]
 ```
 
 The resulting predictions are similar. This is because the two estimates of $p(x)$ are larger than 1/2 in about the same region of x:
 
 ```{r glm-prediction, echo = FALSE}
-data.frame(x = seq(min(tmp$x), max(tmp$x))) %>%
+data.frame(x = seq(min(tmp$x), max(tmp$x))) |>
   mutate(logistic = plogis(glm_fit$coef[1] + glm_fit$coef[2]*x),
-         regression = lm_fit$coef[1] + lm_fit$coef[2]*x) %>%
-  gather(method, p_x, -x) %>%
+         regression = lm_fit$coef[1] + lm_fit$coef[2]*x) |>
+  gather(method, p_x, -x) |>
   ggplot(aes(x, p_x, color = method)) + 
   geom_line() +
   geom_hline(yintercept = 0.5, lty = 5)
@@ -402,7 +402,7 @@ plot_cond_prob <- function(p_hat=NULL){
   if(!is.null(p_hat)){
     tmp <- mutate(tmp, p=p_hat)
   }
-  tmp %>% ggplot(aes(x_1, x_2, z=p, fill=p)) +
+  tmp |> ggplot(aes(x_1, x_2, z=p, fill=p)) +
   geom_raster(show.legend = FALSE) +
   scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
   stat_contour(breaks=c(0.5),color="black")
@@ -411,7 +411,7 @@ plot_cond_prob <- function(p_hat=NULL){
 
 ```{r logistic-p-hat}
 p_hat <- predict(fit_glm, newdata = mnist_27$true_p, type = "response")
-mnist_27$true_p %>% mutate(p_hat = p_hat) %>%
+mnist_27$true_p |> mutate(p_hat = p_hat) |>
   ggplot(aes(x_1, x_2,  z=p_hat, fill=p_hat)) +
   geom_raster() +
   scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
@@ -441,9 +441,9 @@ make_data <- function(n = 1000, p = 0.5,
   f_1 <- rnorm(n, mu_1, sigma_1)
   x <- ifelse(y == 1, f_1, f_0)
   test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
-  list(train = data.frame(x = x, y = as.factor(y)) %>% 
+  list(train = data.frame(x = x, y = as.factor(y)) |> 
          slice(-test_index),
-       test = data.frame(x = x, y = as.factor(y)) %>% 
+       test = data.frame(x = x, y = as.factor(y)) |> 
          slice(test_index))
 }
 dat <- make_data()
@@ -452,7 +452,7 @@ dat <- make_data()
 Note that we have defined a variable `x` that is predictive of a binary outcome `y`.
 
 ```{r, eval=FALSE}
-dat$train %>% ggplot(aes(x, color = y)) + geom_density()
+dat$train |> ggplot(aes(x, color = y)) + geom_density()
 ```
 
 Compare the accuracy of linear regression and logistic regression. 

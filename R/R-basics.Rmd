@@ -30,8 +30,8 @@ dat <- tibble(country = toupper(c("US", "Italy", "Canada", "UK", "Japan", "Germa
              code = c("us", "it", "ca", "gb", "jp", "de", "fr", "ru"))
 
 
-dat %>% 
-  mutate(country = reorder(country, -count)) %>%
+dat |> 
+  mutate(country = reorder(country, -count)) |>
   ggplot(aes(country, count, label = label)) +
   geom_bar(stat = "identity", fill = "darkred") +
   geom_text(nudge_y = 0.2, color = "darkred", size = 5) +
@@ -60,8 +60,8 @@ Or even worse, this version from [everytown.org](https://everytownresearch.org):
 dat <- tibble(country = toupper(c("United States", "Canada", "Portugal", "Ireland", "Italy", "Belgium", "Finland", "France", "Netherlands", "Denmark", "Sweden", "Slovakia", "Austria", "New Zealand", "Australia", "Spain", "Czech Republic", "Hungary", "Germany", "United Kingdom", "Norway", "Japan", "Republic of Korea")),
               count = c(3.61, 0.5, 0.48, 0.35, 0.35, 0.33, 0.26, 0.20, 0.20, 0.20, 0.19, 0.19, 0.18, 0.16, 0.16, 0.15, 0.12, 0.10, 0.06, 0.04, 0.04, 0.01, 0.01))
 
-dat %>% 
-  mutate(country = reorder(country, count)) %>%
+dat |> 
+  mutate(country = reorder(country, count)) |>
   ggplot(aes(country, count, label = count)) +   
   geom_bar(stat = "identity", fill = "darkred", width = 0.5) +
   geom_text(nudge_y = 0.2,  size = 3) +
@@ -84,9 +84,9 @@ library(dslabs)
 
 fifty_states <- map_data("state")
 data(murders) 
-murders %>% mutate(murder_rate = total/population*10^5,
+murders |> mutate(murder_rate = total/population*10^5,
                   state = tolower(state), 
-                  colors= factor(ceiling(pmin(murder_rate, 9)))) %>%
+                  colors= factor(ceiling(pmin(murder_rate, 9)))) |>
   ggplot(aes(map_id = state)) + 
   geom_map(aes(fill = colors), color = "black", map = fifty_states) + 
   expand_limits(x = fifty_states$long, y = fifty_states$lat) +
@@ -579,7 +579,9 @@ We won't be using lists until later, but you might encounter one in your own exp
 
 Matrices are another type of object that are common in R. Matrices are similar to data frames in that they are two-dimensional: they have rows and columns. However, like numeric, character and logical vectors, entries in matrices have to be all the same type. For this reason data frames are much more useful for storing data, since we can have characters, factors, and numbers in them. 
 
-Yet matrices have a major advantage over data frames: we can perform matrix algebra operations, a powerful type of mathematical technique. We do not describe these operations in this book, but much of what happens in the background when you perform a data analysis involves matrices. We cover matrices in more detail in Chapter \@ref(matrix-algebra) but describe them briefly here since some of the functions we will learn return matrices. 
+Yet matrices have a major advantage over data frames: we can perform matrix algebra operations, a powerful type of mathematical technique. We do not describe these operations in this book, but much of what happens in the background when you perform a data analysis involves matrices. We only cover matrices briefly here since some of the functions we will learn return matrices. However, if you plan to perform more advanced work, we highly recommend learning more as they are widely used in data analysis.
+
+<!--We cover matrices in more detail in Chapter \@ref(matrix-algebra) but describe them briefly here since some of the functions we will learn return matrices. -->
 
 We can define a matrix using the `matrix` function. We need to specify the number of rows and columns.
 
@@ -976,10 +978,10 @@ To summarize, let's look at the results of the three functions we have introduce
 ```{r, echo=FALSE}
 tmp <- data.frame(original=x, sort=sort(x), order=order(x), rank=rank(x))
 if(knitr::is_html_output()){
-  knitr::kable(tmp, "html") %>%
+  knitr::kable(tmp, "html") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+  knitr::kable(tmp, "latex", booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```

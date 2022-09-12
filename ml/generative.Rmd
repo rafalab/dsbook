@@ -34,15 +34,15 @@ data("heights")
 y <- heights$height
 set.seed(1995)
 test_index <- createDataPartition(y, times = 1, p = 0.5, list = FALSE)
-train_set <- heights %>% slice(-test_index)
-test_set <- heights %>% slice(test_index)
+train_set <- heights |> slice(-test_index)
+test_set <- heights |> slice(test_index)
 ```
 
 In this case, the Naive Bayes approach is particularly appropriate because we know that the normal distribution is a good approximation for the conditional distributions of height given sex for both classes $Y=1$ (female) and $Y=0$ (male). This implies that we can approximate the conditional distributions $f_{X|Y=1}$ and $f_{X|Y=0}$ by simply estimating averages and standard deviations from the data:
 
 ```{r}
-params <- train_set %>% 
-  group_by(sex) %>% 
+params <- train_set |> 
+  group_by(sex) |> 
   summarize(avg = mean(height), sd = sd(height))
 params
 ```
@@ -50,7 +50,7 @@ params
 The prevalence, which we will denote with $\pi = \mbox{Pr}(Y=1)$, can be estimated from the data with: 
 
 ```{r}
-pi <- train_set %>% summarize(pi=mean(sex=="Female")) %>% pull(pi)
+pi <- train_set |> summarize(pi=mean(sex=="Female")) |> pull(pi)
 pi
 ```
 
@@ -68,16 +68,16 @@ p_hat_bayes <- f1*pi / (f1*pi + f0*(1 - pi))
 Our Naive Bayes estimate $\hat{p}(x)$ looks a lot like our logistic regression estimate:
 
 ```{r conditional-prob-glm-fit-2, echo=FALSE }
-tmp <- heights %>% 
-  mutate(x = round(height)) %>%
-  group_by(x) %>%
-  filter(n() >= 10) %>%
+tmp <- heights |> 
+  mutate(x = round(height)) |>
+  group_by(x) |>
+  filter(n() >= 10) |>
   summarize(prob = mean(sex == "Female")) 
-naive_bayes_curve <- data.frame(x = seq(min(tmp$x), max(tmp$x))) %>%
+naive_bayes_curve <- data.frame(x = seq(min(tmp$x), max(tmp$x))) |>
   mutate(p_hat = dnorm(x, params$avg[1], params$sd[1])*pi/
            (dnorm(x, params$avg[1], params$sd[1])*pi +
               dnorm(x, params$avg[2], params$sd[2])*(1-pi)))
-tmp %>% 
+tmp |> 
   ggplot(aes(x, prob)) +
   geom_point() +
   geom_line(data = naive_bayes_curve,
@@ -145,8 +145,8 @@ data("mnist_27")
 In this case, we have two predictors so we assume each one is bivariate normal. This implies that we need to estimate two averages, two standard deviations, and a correlation for each case $Y=1$ and $Y=0$. Once we have these, we can approximate the distributions $f_{X_1,X_2|Y=1}$ and $f_{X_1, X_2|Y=0}$. We can easily estimate parameters from the data:
 
 ```{r}
-params <- mnist_27$train %>% 
-  group_by(y) %>% 
+params <- mnist_27$train |> 
+  group_by(y) |> 
   summarize(avg_1 = mean(x_1), avg_2 = mean(x_2), 
             sd_1= sd(x_1), sd_2 = sd(x_2), 
             r = cor(x_1, x_2))
@@ -156,7 +156,7 @@ params
 Here we provide a visual way of showing the approach. We plot the data and use contour plots to give an idea of what the two estimated normal densities look like (we show the curve representing a region that includes 95% of the points):
 
 ```{r qda-explained}
-mnist_27$train %>% mutate(y = factor(y)) %>% 
+mnist_27$train |> mutate(y = factor(y)) |> 
   ggplot(aes(x_1, x_2, fill = y, color=y)) + 
   geom_point(show.legend = FALSE) + 
   stat_ellipse(type="norm", lwd = 1.5)
@@ -186,7 +186,7 @@ plot_cond_prob <- function(p_hat=NULL){
   if(!is.null(p_hat)){
     tmp <- mutate(tmp, p=p_hat)
   }
-  tmp %>% ggplot(aes(x_1, x_2, z=p, fill=p)) +
+  tmp |> ggplot(aes(x_1, x_2, z=p, fill=p)) +
   geom_raster(show.legend = FALSE) +
   scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
   stat_contour(breaks=c(0.5),color="black")
@@ -206,7 +206,7 @@ grid.arrange(p2, p1, nrow = 1)
 One reason QDA does not work as well as the kernel methods is perhaps because the assumption of normality does not quite hold. Although for the 2s it seems reasonable, for the 7s it does seem to be off. Notice the slight curvature in the points for the 7s:
 
 ```{r qda-does-not-fit, out.width="100%"}
-mnist_27$train %>% mutate(y = factor(y)) %>% 
+mnist_27$train |> mutate(y = factor(y)) |> 
   ggplot(aes(x_1, x_2, fill = y, color=y)) + 
   geom_point(show.legend = FALSE) + 
   stat_ellipse(type="norm") +
@@ -226,13 +226,13 @@ In this case, we would compute just one pair of standard deviations and one corr
 <!--so the parameters would look something like this:
 
 ```{r}
-params <- mnist_27$train %>% 
-  group_by(y) %>% 
+params <- mnist_27$train |> 
+  group_by(y) |> 
   summarize(avg_1 = mean(x_1), avg_2 = mean(x_2), 
             sd_1= sd(x_1), sd_2 = sd(x_2), 
             r = cor(x_1,x_2))
 
-params <- params %>% mutate(sd_1 = mean(sd_1), sd_2=mean(sd_2), r=mean(r))
+params <- params |> mutate(sd_1 = mean(sd_1), sd_2=mean(sd_2), r=mean(r))
 params 
 ```
 -->
@@ -240,13 +240,13 @@ and the distributions looks like this:
 
 ```{r lda-explained, echo=FALSE}
 tmp <- lapply(1:2, function(i){
-  with(params[i,], MASS::mvrnorm(1000, mu = c(avg_1, avg_2), Sigma = matrix(c(sd_1^2, sd_1*sd_2*r, sd_1*sd_2*r, sd_2^2), 2, 2))) %>%
-    as.data.frame() %>% 
-    setNames(c("x_1", "x_2")) %>% 
+  with(params[i,], MASS::mvrnorm(1000, mu = c(avg_1, avg_2), Sigma = matrix(c(sd_1^2, sd_1*sd_2*r, sd_1*sd_2*r, sd_2^2), 2, 2))) |>
+    as.data.frame() |> 
+    setNames(c("x_1", "x_2")) |> 
     mutate(y  = factor(c(2,7)[i]))
 })
 tmp <- do.call(rbind, tmp)
-mnist_27$train %>% mutate(y = factor(y)) %>% 
+mnist_27$train |> mutate(y = factor(y)) |> 
   ggplot() + 
   geom_point(aes(x_1, x_2, color=y), show.legend = FALSE) + 
   stat_ellipse(aes(x_1, x_2, color = y), data = tmp, type="norm", lwd = 1.5)
@@ -322,7 +322,7 @@ test_set <- data.frame(y = factor(y[-index_train]),
 Here is the training data:
 
 ```{r mnist-27-training-data}
-train_set %>% ggplot(aes(x_1, x_2, color=y)) + geom_point()
+train_set |> ggplot(aes(x_1, x_2, color=y)) + geom_point()
 ```
 
 We can use the __caret__ package to train the QDA model:
@@ -334,13 +334,13 @@ train_qda <- train(y ~ ., method = "qda", data = train_set)
 Now we estimate three conditional probabilities (although they have to add to 1):
 
 ```{r}
-predict(train_qda, test_set, type = "prob") %>% head()
+predict(train_qda, test_set, type = "prob") |> head()
 ```
 
 Our predictions are one of the three classes:
 
 ```{r}
-predict(train_qda, test_set) %>% head()
+predict(train_qda, test_set) |> head()
 ```
 
 The confusion matrix is therefore a 3 by 3 table:
@@ -359,7 +359,7 @@ To visualize what parts of the region are called 1, 2, and 7 we now need three c
 GS <- 150
 new_x <- expand.grid(x_1 = seq(min(train_set$x_1), max(train_set$x_1), len=GS),
                      x_2 = seq(min(train_set$x_2), max(train_set$x_2), len=GS))
-new_x %>% mutate(y_hat = predict(train_qda, new_x)) %>%
+new_x |> mutate(y_hat = predict(train_qda, new_x)) |>
   ggplot(aes(x_1, x_2, color = y_hat, z = as.numeric(y_hat))) +
   geom_point(size = 0.5, pch = 16) + 
   stat_contour(breaks=c(1.5, 2.5),color="black") + 
@@ -376,7 +376,7 @@ The accuracy for LDA,
 is much worse because the model is more rigid. This is what the decision rule looks like:
 
 ```{r lda-too-rigid, echo=FALSE}
-new_x %>% mutate(y_hat = predict(train_lda, new_x)) %>%
+new_x |> mutate(y_hat = predict(train_lda, new_x)) |>
   ggplot(aes(x_1, x_2, color = y_hat, z = as.numeric(y_hat))) +
   geom_point(size = 0.5, pch = 16) + 
   stat_contour(breaks=c(1.5, 2.5),color="black") + 
@@ -394,7 +394,7 @@ are much better with an accuracy of
 `r caret::confusionMatrix(predict(train_knn, test_set), test_set$y)$overall["Accuracy"]`. The decision rule looks like this:
 
 ```{r three-classes-knn-better, echo=FALSE}
-new_x %>% mutate(y_hat = predict(train_knn, new_x)) %>%
+new_x |> mutate(y_hat = predict(train_knn, new_x)) |>
   ggplot(aes(x_1, x_2, color = y_hat, z = as.numeric(y_hat))) +
   geom_point(size = 0.5, pch = 16) + 
   stat_contour(breaks=c(1.5, 2.5),color="black") + 
@@ -404,7 +404,7 @@ new_x %>% mutate(y_hat = predict(train_knn, new_x)) %>%
 Note that one of the limitations of generative models here is due to the lack of fit of the normal assumption, in particular for class 1.
 
 ```{r three-classes-lack-of-fit}
-train_set %>% mutate(y = factor(y)) %>% 
+train_set |> mutate(y = factor(y)) |> 
   ggplot(aes(x_1, x_2, fill = y, color=y)) + 
   geom_point(show.legend = FALSE) + 
   stat_ellipse(type="norm") 

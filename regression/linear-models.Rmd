@@ -7,9 +7,9 @@ library(tidyverse)
 library(Lahman)
 get_slope <- function(x, y) cor(x, y) * sd(y) / sd(x)
 
-bb_slope <- Teams %>% 
-  filter(yearID %in% 1961:2001 ) %>% 
-  mutate(BB_per_game = BB/G, R_per_game = R/G) %>% 
+bb_slope <- Teams |> 
+  filter(yearID %in% 1962:2001 ) |> 
+  mutate(BB_per_game = BB/G, R_per_game = R/G) |> 
   summarize(slope = get_slope(BB_per_game, R_per_game))
 
 bb_slope 
@@ -21,9 +21,9 @@ We are again reminded that association is not causation. The data does provide s
 Note that if we compute the regression line slope for singles we get:
 
 ```{r}
-singles_slope <- Teams %>% 
-  filter(yearID %in% 1961:2001 ) %>%
-  mutate(Singles_per_game = (H-HR-X2B-X3B)/G, R_per_game = R/G) %>%
+singles_slope <- Teams |> 
+  filter(yearID %in% 1962:2001 ) |>
+  mutate(Singles_per_game = (H-HR-X2B-X3B)/G, R_per_game = R/G) |>
   summarize(slope = get_slope(Singles_per_game, R_per_game))
 
 singles_slope 
@@ -34,9 +34,9 @@ which is a lower value than what we obtain for BB.
 Also, notice that a single gets you to first base just like a BB. Those that know about baseball will tell you that with a single, runners on base have a better chance of scoring than with a BB. So how can BB be more predictive of runs? The reason this happen is because of confounding. Here we show the correlation between HR, BB, and singles:
 
 ```{r}
-Teams %>% 
-  filter(yearID %in% 1961:2001 ) %>% 
-  mutate(Singles = (H-HR-X2B-X3B)/G, BB = BB/G, HR = HR/G) %>%  
+Teams |> 
+  filter(yearID %in% 1962:2001 ) |> 
+  mutate(Singles = (H-HR-X2B-X3B)/G, BB = BB/G, HR = HR/G) |>  
   summarize(cor(BB, HR), cor(Singles, HR), cor(BB, Singles))
 ```
 
@@ -47,17 +47,17 @@ It turns out that pitchers, afraid of HRs, will sometimes avoid throwing strikes
 A first approach is to keep HRs fixed at a certain value and then examine the relationship between BB and runs. As we did when we stratified fathers by rounding to the closest inch, here we can stratify HR per game to the closest ten. We filter out the strata with few points to avoid highly variable estimates:
 
 ```{r}
-dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
+dat <- Teams |> filter(yearID %in% 1962:2001) |>
   mutate(HR_strata = round(HR/G, 1), 
          BB_per_game = BB / G,
-         R_per_game = R / G) %>%
+         R_per_game = R / G) |>
   filter(HR_strata >= 0.4 & HR_strata <=1.2) 
 ```
 
 and then make a scatterplot for each strata:
 
 ```{r runs-vs-bb-by-hr-strata, out.width="80%", fig.height=5}
-dat %>% 
+dat |> 
   ggplot(aes(BB_per_game, R_per_game)) +  
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm") +
@@ -67,8 +67,8 @@ dat %>%
 Remember that the regression slope for predicting runs with BB was `r round(bb_slope, 1)`. Once we stratify by HR, these slopes are substantially reduced:
 
 ```{r}
-dat %>%  
-  group_by(HR_strata) %>%
+dat |>  
+  group_by(HR_strata) |>
   summarize(slope = get_slope(BB_per_game, R_per_game))
 ```
 
@@ -78,13 +78,13 @@ In fact, the values above are closer to the slope we obtained from singles, `r r
 Although our understanding of the application tells us that HR cause BB but not the other way around, we can still check if stratifying by BB makes the effect of BB go down. To do this, we use the same code except that we swap HR and BBs to get this plot:
 
 ```{r runs-vs-hr-by-bb-strata, out.width="100%",echo=FALSE}
-dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
+dat <- Teams |> filter(yearID %in% 1962:2001) |>
   mutate(BB_strata = round(BB/G,1), 
          HR_per_game = HR/G,
-         R_per_game = R/G) %>%
+         R_per_game = R/G) |>
   filter(BB_strata >= 2.8 & BB_strata <= 3.9)
 
-dat %>% 
+dat |> 
   ggplot(aes(HR_per_game, R_per_game)) +  
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm") +
@@ -94,7 +94,7 @@ dat %>%
 In this case, the slopes do not change much from the original:
 
 ```{r}
-dat %>% group_by(BB_strata) %>%
+dat |> group_by(BB_strata) |>
    summarize(slope = get_slope(HR_per_game, R_per_game))
 ```
 
@@ -102,9 +102,9 @@ They are reduced a bit, which is consistent with the fact that BB do in fact cau
 
 
 ```{r}
-hr_slope <- Teams %>% 
-  filter(yearID %in% 1961:2001 ) %>% 
-  mutate(HR_per_game = HR/G, R_per_game = R/G) %>% 
+hr_slope <- Teams |> 
+  filter(yearID %in% 1962:2001 ) |> 
+  mutate(HR_per_game = HR/G, R_per_game = R/G) |> 
   summarize(slope = get_slope(HR_per_game, R_per_game))
 
 hr_slope
@@ -178,12 +178,12 @@ This quantity is called the residual sum of squares (RSS). Once we find the valu
 library(HistData)
 data("GaltonFamilies")
 set.seed(1983)
-galton_heights <- GaltonFamilies %>%
-  filter(gender == "male") %>%
-  group_by(family) %>%
-  sample_n(1) %>%
-  ungroup() %>%
-  select(father, childHeight) %>%
+galton_heights <- GaltonFamilies |>
+  filter(gender == "male") |>
+  group_by(family) |>
+  sample_n(1) |>
+  ungroup() |>
+  select(father, childHeight) |>
   rename(son = childHeight)
 ```
 
@@ -202,7 +202,7 @@ So for any pair of values, we get an RSS. Here is a plot of the RSS as a functio
 beta1 = seq(0, 1, len=nrow(galton_heights))
 results <- data.frame(beta1 = beta1,
                       rss = sapply(beta1, rss, beta0 = 25))
-results %>% ggplot(aes(beta1, rss)) + geom_line() + 
+results |> ggplot(aes(beta1, rss)) + geom_line() + 
   geom_line(aes(beta1, rss))
 ```
 
@@ -244,9 +244,9 @@ The LSE is derived from the data $y_1,\dots,y_N$, which are a realization of ran
 B <- 1000
 N <- 50
 lse <- replicate(B, {
-  sample_n(galton_heights, N, replace = TRUE) %>% 
-    lm(son ~ father, data = .) %>% 
-    .$coef 
+  sample_n(galton_heights, N, replace = TRUE) |> 
+    lm(son ~ father, data = _) |> 
+    coef()
 })
 lse <- data.frame(beta_0 = lse[1,], beta_1 = lse[2,]) 
 ```
@@ -255,9 +255,9 @@ We can see the variability of the estimates by plotting their distributions:
 
 ```{r lse-distributions, out.width="100%", fig.width=6, fig.height=3, echo=FALSE}
 library(gridExtra)
-p1 <- lse %>% ggplot(aes(beta_0)) + 
+p1 <- lse |> ggplot(aes(beta_0)) + 
   geom_histogram(binwidth = 5, color = "black") 
-p2 <- lse %>% ggplot(aes(beta_1)) + 
+p2 <- lse |> ggplot(aes(beta_1)) + 
   geom_histogram(binwidth = 0.1, color = "black") 
 grid.arrange(p1, p2, ncol = 2)
 ```
@@ -265,15 +265,16 @@ grid.arrange(p1, p2, ncol = 2)
 The reason these look normal is because the central limit theorem applies here as well: for large enough $N$, the least squares estimates will be approximately normal with expected value $\beta_0$ and $\beta_1$, respectively. The standard errors are a bit complicated to compute, but mathematical theory does allow us to compute them and they are included in the summary provided by the `lm` function. Here it is for one of our simulated data sets:
 
 ```{r}
- sample_n(galton_heights, N, replace = TRUE) %>% 
-  lm(son ~ father, data = .) %>% 
-  summary %>% .$coef
+ sample_n(galton_heights, N, replace = TRUE) |> 
+  lm(son ~ father, data = _) |> 
+  summary() |> 
+  coef()
 ```
 
 You can see that the standard errors estimates reported by the `summary` are close to the standard errors from the simulation:
 
 ```{r}
-lse %>% summarize(se_0 = sd(beta_0), se_1 = sd(beta_1))
+lse |> summarize(se_0 = sd(beta_0), se_1 = sd(beta_1))
 ```
 
 The `summary` function also reports t-statistics (`t value`) and p-values (`Pr(>|t|)`). The t-statistic is not actually based on the central limit theorem but rather on the assumption that the $\varepsilon$s follow a normal distribution. Under this assumption, mathematical theory tells us that the LSE divided by their standard error, $\hat{\beta}_0 / \hat{\mbox{SE}}(\hat{\beta}_0 )$ and $\hat{\beta}_1 / \hat{\mbox{SE}}(\hat{\beta}_1 )$, follow a t-distribution with $N-p$ degrees of freedom, with $p$ the number of parameters in our model. In the case of height $p=2$, the two p-values are testing the null hypothesis that $\beta_0 = 0$ and $\beta_1=0$, respectively. 
@@ -294,7 +295,7 @@ When we plot $\hat{Y}$ versus $x$, we see the regression line.
 Keep in mind that the prediction $\hat{Y}$ is also a random variable and mathematical theory tells us what the standard errors are. If we assume the errors are normal, or have a large enough sample size, we can use theory to construct confidence intervals as well. In fact, the __ggplot2__ layer `geom_smooth(method = "lm")` that we previously used plots $\hat{Y}$ and surrounds it by confidence intervals:
 
 ```{r father-son-regression}
-galton_heights %>% ggplot(aes(son, father)) +
+galton_heights |> ggplot(aes(son, father)) +
   geom_point() +
   geom_smooth(method = "lm")
 ```
@@ -302,7 +303,7 @@ galton_heights %>% ggplot(aes(son, father)) +
 The R function `predict` takes an `lm` object as input and returns the prediction. If requested, the standard errors and other information from which we can construct confidence intervals is provided:
 
 ```{r father-son-predictor}
-fit <- galton_heights %>% lm(son ~ father, data = .) 
+fit <- galton_heights |> lm(son ~ father, data = _) 
 
 y_hat <- predict(fit, se.fit = TRUE)
 
@@ -318,16 +319,16 @@ We have shown how BB and singles have similar predictive power for scoring runs.
 
 ```{r, eval=FALSE}
 library(Lahman)
-dat <- Batting %>% filter(yearID == 2002) %>%
+dat <- Batting |> filter(yearID == 2002) |>
   mutate(pa = AB + BB, 
-         singles = (H - X2B - X3B - HR) / pa, bb = BB / pa) %>%
-  filter(pa >= 100) %>%
+         singles = (H - X2B - X3B - HR) / pa, bb = BB / pa) |>
+  filter(pa >= 100) |>
   select(playerID, singles, bb)
 ```
 
 Now compute a similar table but with rates computed over 1999-2001. 
 
-2\. In Section \@ref(joins) we learn about the `inner_join`, which you can use to have the 2001 data and averages in the same table: 
+2\. You can use the `inner_join` function to combine the 2001 data and averages in the same table: 
 
 ```{r, eval = FALSE}
 dat <- inner_join(dat, avg, by = "playerID")
@@ -347,11 +348,11 @@ Compute the correlation between 2002 and the previous seasons for singles and BB
 To see how we use the `lm` function in a more complex analysis, let's go back to the baseball example. In a previous example, we estimated regression lines to predict runs for BB in different HR strata. We first constructed a data frame similar to this:
 
 ```{r}
-dat <- Teams %>% filter(yearID %in% 1961:2001) %>%
+dat <- Teams |> filter(yearID %in% 1962:2001) |>
   mutate(HR = round(HR/G, 1), 
          BB = BB/G,
-         R = R/G) %>%
-  select(HR, BB, R) %>%
+         R = R/G) |>
+  select(HR, BB, R) |>
   filter(HR >= 0.4 & HR<=1.2) 
 ```
 
@@ -359,8 +360,8 @@ Since we didn't know the `lm` function, to compute the regression line in each s
 
 ```{r, eval=FALSE}
 get_slope <- function(x, y) cor(x, y) * sd(y) / sd(x)
-dat %>%  
-  group_by(HR) %>%
+dat |>  
+  group_by(HR) |>
   summarize(slope = get_slope(BB, R))
 ```
 
@@ -369,14 +370,14 @@ We argued that the slopes are similar and that the differences were perhaps due 
 First, note that if we try to use the `lm` function to get the estimated slope like this:
 
 ```{r}
-dat %>%  
-  group_by(HR) %>%
-  lm(R ~ BB, data = .) %>% .$coef
+dat |>  
+  group_by(HR) |>
+  lm(R ~ BB, data = _) |> coef()
 ```
 
 we don't get the result we want. The `lm` function ignores the `group_by`. This is expected because `lm` is not part of the __tidyverse__ and does not know how to handle the outcome of a grouped tibble.
 
-The __tidyverse__ functions know how to interpret grouped tibbles. Furthermore, to facilitate stringing commands through the pipe `%>%`, __tidyverse__ functions consistently return data frames, since this assures that the output of a function is accepted as the input of another. 
+The __tidyverse__ functions know how to interpret grouped tibbles. Furthermore, to facilitate stringing commands through the pipe `|>`, __tidyverse__ functions consistently return data frames, since this assures that the output of a function is accepted as the input of another. 
 But most R functions do not recognize grouped tibbles nor do they return data frames. The `lm` function is an example. However, we can write a function that uses `lm` to compute and return the wanted summaries in a data frame and then use the `summarize` function: 
 
 
@@ -386,8 +387,8 @@ get_slope <- function(x, y){
   tibble(slope = fit$coefficients[2], 
          se = summary(fit)$coefficient[2,2])
 }
-dat %>%  
-  group_by(HR) %>%
+dat |>  
+  group_by(HR) |>
   summarize(get_slope(BB, R))
 ```
 
@@ -401,8 +402,8 @@ get_lse <- function(x, y){
     se = summary(fit)$coefficient[,2])
 }
 
-dat %>%  
-  group_by(HR) %>%
+dat |>  
+  group_by(HR) |>
   summarize(get_lse(BB, R))
 ```
 
@@ -429,11 +430,11 @@ tidy(fit, conf.int = TRUE)
 Because the outcome is a data frame, we can immediately use it with `summarize` to string together the commands that produce the table we are after. Because a data frame is returned, we can filter and select the rows and columns we want, which facilitates working with __ggplot2__:
 
 ```{r do-tidy-example} 
-dat %>%  
-  group_by(HR) %>%
-  summarize(tidy(lm(R ~ BB), conf.int = TRUE)) %>%
-  filter(term == "BB") %>%
-  select(HR, estimate, conf.low, conf.high) %>%
+dat |>  
+  group_by(HR) |>
+  summarize(tidy(lm(R ~ BB), conf.int = TRUE)) |>
+  filter(term == "BB") |>
+  select(HR, estimate, conf.low, conf.high) |>
   ggplot(aes(HR, y = estimate, ymin = conf.low, ymax = conf.high)) +
   geom_errorbar() +
   geom_point()
@@ -461,16 +462,16 @@ We will see an example of `augment` in the next section.
 library(HistData)
 data("GaltonFamilies")
 set.seed(1)
-galton_heights <- GaltonFamilies %>%
-  group_by(family, gender) %>%
-  sample_n(1) %>%
+galton_heights <- GaltonFamilies |>
+  group_by(family, gender) |>
+  sample_n(1) |>
   ungroup()
 
-cors <- galton_heights %>% 
-  pivot_longer(father:mother, names_to = "parent", values_to = "parentHeight") %>%
-  mutate(child = ifelse(gender == "female", "daughter", "son")) %>%
-  unite(pair, c("parent", "child")) %>% 
-  group_by(pair) %>%
+cors <- galton_heights |> 
+  pivot_longer(father:mother, names_to = "parent", values_to = "parentHeight") |>
+  mutate(child = ifelse(gender == "female", "daughter", "son")) |>
+  unite(pair, c("parent", "child")) |> 
+  group_by(pair) |>
   summarize(cor = cor(parentHeight, childHeight))
 ```
 
@@ -488,13 +489,13 @@ Are these differences statistically significant? To answer this, we will compute
 5\. Fit a linear regression model to obtain the effects of BB and HR on Runs (at the team level) in 1971. Use the `tidy` function in the __broom__ package to obtain the results in a data frame.
 
     
-6\. Now let's repeat the above for each year since 1961 and make a plot. Use `summarize` and the __broom__ package to fit this model for every year since 1961. 
+6\. Now let's repeat the above for each year since 1962 and make a plot. Use `summarize` and the __broom__ package to fit this model for every year since 1962. 
 
    
 7\. Use the results of the previous exercise to plot the estimated effects of BB on runs.
 
    
-8\. __Advanced__. Write a function that takes R, HR, and BB as arguments and fits two linear models: `R ~ BB` and `R~BB+HR`. Then use the `summary` function to obtain the `BB` for both models for each year since 1961. Then plot these against each other as a function of time.
+8\. __Advanced__. Write a function that takes R, HR, and BB as arguments and fits two linear models: `R ~ BB` and `R~BB+HR`. Then use the `summary` function to obtain the `BB` for both models for each year since 1962. Then plot these against each other as a function of time.
 
 
 ## Case study: Moneyball (continued)
@@ -515,10 +516,10 @@ with $Y_i$ runs per game for team $i$, $x_{i,1}$ walks per game, and $x_{i,2}$. 
 
 
 ```{r}
-fit <- Teams %>% 
-  filter(yearID %in% 1961:2001) %>% 
-  mutate(BB = BB/G, HR = HR/G,  R = R/G) %>%  
-  lm(R ~ BB + HR, data = .)
+fit <- Teams |> 
+  filter(yearID %in% 1962:2001) |> 
+  mutate(BB = BB/G, HR = HR/G,  R = R/G) |>  
+  lm(R ~ BB + HR, data = _)
 ```
 
 We can use `tidy` to see a nice summary:
@@ -543,18 +544,22 @@ with $x_{i,1}, x_{i,2}, x_{i,3}, x_{i,4}, x_{i,5}$ representing BB, singles, dou
 Using `lm`, we can quickly find the LSE for the parameters using:
 
 ```{r}
-fit <- Teams %>% 
-  filter(yearID %in% 1961:2001) %>% 
+teams_data <- Teams |> 
+  filter(yearID %in% 1962:2002) |> 
   mutate(BB = BB / G, 
          singles = (H - X2B - X3B - HR) / G, 
          doubles = X2B / G, 
          triples = X3B / G, 
          HR = HR / G,
-         R = R / G) %>%  
-  lm(R ~ BB + singles + doubles + triples + HR, data = .)
+         R = R / G) |>
+  select(teamID, yearID, BB, singles, doubles, triples, HR, R)
+
+fit <- teams_data |>  
+  filter(yearID <= 2001) |> 
+  lm(R ~ BB + singles + doubles + triples + HR, data = _)
 ```
 
-We can see the coefficients using `tidy`:
+Note we fit the  model to data up until 2001, the year before we will construct our team. We can see the coefficients using `tidy`:
 
 ```{r}
 coefs <- tidy(fit, conf.int = TRUE)
@@ -565,15 +570,8 @@ coefs
 To see how well our metric actually predicts runs, we can predict the number of runs for each team in 2002 using the function `predict`, then make a plot:
 
 ```{r model-predicts-runs}
-Teams %>% 
-  filter(yearID %in% 2002) %>% 
-  mutate(BB = BB/G, 
-         singles = (H-X2B-X3B-HR)/G, 
-         doubles = X2B/G, 
-         triples =X3B/G, 
-         HR=HR/G,
-         R=R/G)  %>% 
-  mutate(R_hat = predict(fit, newdata = .)) %>%
+teams_data$R_hat <- predict(fit, newdata = teams_data)
+teams_data %>% filter(yearID == 2002) %>%
   ggplot(aes(R_hat, R, label = teamID)) + 
   geom_point() +
   geom_text(nudge_x=0.1, cex = 2) + 
@@ -595,19 +593,20 @@ To define a player-specific metric, we have a bit more work to do. A challenge h
 To make the per-game team rate comparable to the per-plate-appearance player rate, we compute the average number of team plate appearances per game:
 
 ```{r}
-pa_per_game <- Batting %>% filter(yearID == 2002) %>% 
-  group_by(teamID) %>%
-  summarize(pa_per_game = sum(AB+BB)/max(G)) %>% 
-  pull(pa_per_game) %>% 
-  mean
+pa_per_game <- Batting |> filter(yearID == 2002) |> 
+  group_by(teamID) |>
+  summarize(pa_per_game = sum(AB+BB)/max(G)) |> 
+  pull(pa_per_game) |> 
+  mean()
 ```
 
 We compute the per-plate-appearance rates for players available in 2002 on data from 1997-2001. To avoid small sample artifacts, we filter players with less than 200 plate appearances per year. Here is the entire calculation in one line:
 
 ```{r}
-players <- Batting %>% filter(yearID %in% 1997:2001) %>% 
-  group_by(playerID) %>%
-  mutate(PA = BB + AB) %>%
+players <- Batting |> 
+  filter(yearID %in% 1997:2001) |> 
+  group_by(playerID) |>
+  mutate(PA = BB + AB) |>
   summarize(G = sum(PA)/pa_per_game,
     BB = sum(BB)/G,
     singles = sum(H-X2B-X3B-HR)/G,
@@ -615,10 +614,11 @@ players <- Batting %>% filter(yearID %in% 1997:2001) %>%
     triples = sum(X3B)/G, 
     HR = sum(HR)/G,
     AVG = sum(H)/sum(AB),
-    PA = sum(PA)) %>%
-  filter(PA >= 1000) %>%
-  select(-G) %>%
-  mutate(R_hat = predict(fit, newdata = .))
+    PA = sum(PA)) |>
+  filter(PA >= 1000) |>
+  select(-G)
+
+players$R_hat = predict(fit, newdata = players)
 ```
 
 The player-specific predicted runs computed here can be interpreted as the number of runs we predict a team will score if all batters are exactly like that player. The distribution shows that there is wide variability across players:
@@ -629,15 +629,15 @@ qplot(R_hat, data = players, binwidth = 0.5, color = I("black"))
 
 ### Adding salary and position information
 
-To actually build the team, we will need to know their salaries as well as their defensive position. For this, we join the `players` data frame we just created with the player information data frame included in some of the other Lahman data tables. We will learn more about the join function we learned in Section \@ref(joins). 
+To actually build the team, we will need to know their salaries as well as their defensive position. For this, we use the `righ_join` function to combine the `players` data frame we just created with the player information data frame included in some of the other Lahman data tables. 
 
 Start by adding the 2002 salary of each player:
 
 ```{r}
-players <- Salaries %>% 
-  filter(yearID == 2002) %>%
-  select(playerID, salary) %>%
-  right_join(players, by="playerID")
+players <- Salaries |> 
+  filter(yearID == 2002) |>
+  select(playerID, salary) |>
+  right_join(players, by = "playerID")
 ```
 
 Next, we add their defensive position. This is a somewhat complicated task because players play more than one position each year. The __Lahman__ package table `Appearances` tells how many games each player played in each position, so we can pick the position that was most played using `which.max` on each row. We use `apply` to do this. However, because some players are traded, they appear more than once on the table, so we first sum their appearances across teams.
@@ -647,46 +647,45 @@ Here, we pick the one position the player most played using the `top_n` function
 position_names <- 
   paste0("G_", c("p","c","1b","2b","3b","ss","lf","cf","rf", "dh"))
 
-tmp <- Appearances %>% 
-  filter(yearID == 2002) %>% 
-  group_by(playerID) %>%
-  summarize_at(position_names, sum) %>%
+tmp <- Appearances |> 
+  filter(yearID == 2002) |> 
+  group_by(playerID) |>
+  summarize_at(position_names, sum) |>
   ungroup()
   
-pos <- tmp %>%
-  select(position_names) %>%
-  apply(., 1, which.max) 
+pos <- tmp |>
+  select(all_of(position_names)) |>
+  apply(X = _, 1, which.max) 
 
-players <- tibble(playerID = tmp$playerID, POS = position_names[pos]) %>%
-  mutate(POS = str_to_upper(str_remove(POS, "G_"))) %>%
-  filter(POS != "P") %>%
-  right_join(players, by="playerID") %>%
+players <- tibble(playerID = tmp$playerID, POS = position_names[pos]) |>
+  mutate(POS = str_to_upper(str_remove(POS, "G_"))) |>
+  filter(POS != "P") |>
+  right_join(players, by="playerID") |>
   filter(!is.na(POS)  & !is.na(salary))
 ```
 
 Finally, we add their first and last name:
 
 ```{r}
-players <- Master %>%
-  select(playerID, nameFirst, nameLast, debut) %>%
-  mutate(debut = as.Date(debut)) %>%
+players <- People |>
+  select(playerID, nameFirst, nameLast, debut) |>
+  mutate(debut = as.Date(debut)) |>
   right_join(players, by="playerID")
 ```
 
 If you are a baseball fan, you will recognize the top 10 players:
 
 ```{r}
-players %>% select(nameFirst, nameLast, POS, salary, R_hat) %>% 
-  arrange(desc(R_hat)) %>% top_n(10) 
+players |> select(nameFirst, nameLast, POS, salary, R_hat) |> 
+  arrange(desc(R_hat)) |> top_n(10) 
 ```
-
 
 ### Picking nine players
 
 On average, players with a higher metric have higher salaries:
 
 ```{r predicted-runs-vs-salary}
-players %>% ggplot(aes(salary, R_hat, color = POS)) + 
+players |> ggplot(aes(salary, R_hat, color = POS)) + 
   geom_point() +
   scale_x_log10()
 ```
@@ -696,7 +695,7 @@ players %>% ggplot(aes(salary, R_hat, color = POS)) +
 Here we remake plot without players that debuted before 1998. We use the __lubridate__ function `year`, introduced in Section \@ref(lubridate).
 ```{r predicted-runs-vs-salary-no-rookies, message=FALSE, warning=FALSE}
 library(lubridate)
-players %>% filter(year(debut) < 1998) %>%
+players |> filter(year(debut) < 1998) |>
  ggplot(aes(salary, R_hat, color = POS)) + 
   geom_point() +
   scale_x_log10()
@@ -708,7 +707,7 @@ We can search for good deals by looking at players who produce many more runs th
 library(reshape2)
 library(lpSolve)
 
-players <- players %>% filter(lubridate::year(debut) < 1998) 
+players <- players |> filter(lubridate::year(debut) < 1998) 
 constraint_matrix <- acast(players, POS ~ playerID, fun.aggregate = length)
 npos <- nrow(constraint_matrix)
 constraint_matrix <- rbind(constraint_matrix, salary = players$salary)
@@ -717,15 +716,15 @@ constraint_limit <- c(rep(1, npos), 40*10^6)
 lp_solution <- lp("max", players$R_hat,
                   constraint_matrix, constraint_dir, constraint_limit,
                   all.int = TRUE) 
-our_team <- players %>%
-  filter(lp_solution$solution == 1) %>%
+our_team <- players |>
+  filter(lp_solution$solution == 1) |>
   arrange(desc(R_hat))
-tmp <- our_team %>% select(nameFirst, nameLast, POS, salary, R_hat) 
+tmp <- our_team |> select(nameFirst, nameLast, POS, salary, R_hat) 
 if(knitr::is_html_output()){
-  knitr::kable(tmp, "html") %>%
+  knitr::kable(tmp, "html") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+  knitr::kable(tmp, "latex", booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 
@@ -735,21 +734,21 @@ We see that all these players have above average BB and most have above average 
 
 ```{r, echo=FALSE}
 my_scale <- function(x) (x - median(x))/mad(x)
-tmp <- players %>% mutate(BB = my_scale(BB), 
+tmp <- players |> mutate(BB = my_scale(BB), 
                    singles = my_scale(singles),
                    doubles = my_scale(doubles),
                    triples = my_scale(triples),
                    HR = my_scale(HR),
                    AVG = my_scale(AVG),
-                   R_hat = my_scale(R_hat)) %>%
-  filter(playerID %in% our_team$playerID) %>%
-  select(nameLast, BB, singles, doubles, triples, HR, AVG, R_hat) %>%
+                   R_hat = my_scale(R_hat)) |>
+  filter(playerID %in% our_team$playerID) |>
+  select(nameLast, BB, singles, doubles, triples, HR, AVG, R_hat) |>
   arrange(desc(R_hat)) 
 if(knitr::is_html_output()){
-  knitr::kable(tmp, "html") %>%
+  knitr::kable(tmp, "html") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+  knitr::kable(tmp, "latex", booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```
@@ -768,12 +767,12 @@ Does the data confirm the existence of a sophomore slump? Let's take a look. Exa
 
 ```{r, echo=FALSE}
 library(Lahman)
-playerInfo <- Fielding %>% 
-  group_by(playerID) %>% 
-  arrange(desc(G)) %>%
-  slice(1) %>%
-  ungroup %>% 
-  left_join(Master, by="playerID") %>% 
+playerInfo <- Fielding |> 
+  group_by(playerID) |> 
+  arrange(desc(G)) |>
+  slice(1) |>
+  ungroup() |> 
+  left_join(People, by = "playerID") |> 
   select(playerID, nameFirst, nameLast, POS)
 ```
 
@@ -782,12 +781,12 @@ Now, we will create a table with only the ROY award winners and add their battin
 -->
 
 ```{r, echo=FALSE}
-ROY <- AwardsPlayers %>%
-  filter(awardID == "Rookie of the Year") %>% 
-  left_join(playerInfo, by="playerID") %>%
-  rename(rookie_year = yearID) %>%
-  right_join(Batting, by="playerID") %>% 
-  mutate(AVG = H/AB) %>% 
+ROY <- AwardsPlayers |>
+  filter(awardID == "Rookie of the Year") |> 
+  left_join(playerInfo, by="playerID") |>
+  rename(rookie_year = yearID) |>
+  right_join(Batting, by="playerID") |> 
+  mutate(AVG = H/AB) |> 
   filter(POS != "P")
 ```
 
@@ -795,12 +794,12 @@ ROY <- AwardsPlayers %>%
 We also will keep only the rookie and sophomore seasons and remove players that did not play sophomore seasons:
 -->
 ```{r, echo=FALSE}
-ROY <- ROY %>%  
-  filter(yearID == rookie_year | yearID == rookie_year+1) %>% 
-  group_by(playerID) %>% 
-  mutate(rookie = ifelse(yearID == min(yearID), "rookie", "sophomore")) %>%
-  filter(n() == 2) %>% 
-  ungroup %>%
+ROY <- ROY |>  
+  filter(yearID == rookie_year | yearID == rookie_year+1) |> 
+  group_by(playerID) |> 
+  mutate(rookie = ifelse(yearID == min(yearID), "rookie", "sophomore")) |>
+  filter(n() == 2) |> 
+  ungroup() |>
   select(playerID, rookie_year, rookie, nameFirst, nameLast, AVG) 
 ```
 <!--
@@ -808,15 +807,15 @@ Finally, we will use the `spread` function to have one column for the rookie and
 -->
 
 ```{r, echo=FALSE}
-ROY <- ROY %>% spread(rookie, AVG) %>% arrange(desc(rookie)) 
-tmp <- ROY %>% slice(1:5) %>%
+ROY <- ROY |> spread(rookie, AVG) |> arrange(desc(rookie)) 
+tmp <- ROY |> slice(1:5) |>
   select(nameFirst, nameLast, rookie_year, rookie, sophomore)
 if(knitr::is_html_output()){
-  knitr::kable(tmp, "html") %>%
+  knitr::kable(tmp, "html") |>
     kableExtra::kable_styling(bootstrap_options = "striped", 
                               full_width = FALSE)
 } else{
-  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+  knitr::kable(tmp, "latex", booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```
@@ -828,30 +827,30 @@ So is it "jitters" or "jinx"? To answer this question, let's turn our attention 
 <!--We perform similar operations to what we did above: -->
 
 ```{r, echo=FALSE}
-two_years <- Batting %>% 
-  filter(yearID %in% 2013:2014) %>% 
-  group_by(playerID, yearID) %>%  
-  filter(sum(AB) >= 130) %>% 
-  summarize(AVG = sum(H)/sum(AB)) %>% 
-  ungroup %>% 
-  spread(yearID, AVG) %>% 
-  filter(!is.na(`2013`) & !is.na(`2014`)) %>%
-  left_join(playerInfo, by="playerID") %>% 
-  filter(POS!="P") %>% 
-  select(-POS) %>%
-  arrange(desc(`2013`)) %>% 
+two_years <- Batting |> 
+  filter(yearID %in% 2013:2014) |> 
+  group_by(playerID, yearID) |>  
+  filter(sum(AB) >= 130) |> 
+  summarize(AVG = sum(H)/sum(AB)) |> 
+  ungroup() |> 
+  spread(yearID, AVG) |> 
+  filter(!is.na(`2013`) & !is.na(`2014`)) |>
+  left_join(playerInfo, by="playerID") |> 
+  filter(POS!="P") |> 
+  select(-POS) |>
+  arrange(desc(`2013`)) |> 
   select(nameFirst, nameLast, `2013`, `2014`)
 ```  
 
 The same pattern arises when we look at the top performers: batting averages go down for most of the top performers.
 
 ```{r, echo=FALSE}
-tmp <- two_years %>% slice(1:5) 
+tmp <- two_years |> slice(1:5) 
 if(knitr::is_html_output()){
-  knitr::kable(tmp, "html") %>%
+  knitr::kable(tmp, "html") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+  knitr::kable(tmp, "latex", booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```
@@ -859,12 +858,12 @@ if(knitr::is_html_output()){
 But these are not rookies! Also, look at what happens to the worst performers of 2013:
 
 ```{r, echo=FALSE}
-tmp <- arrange(two_years, `2013`) %>% slice(1:5)
+tmp <- arrange(two_years, `2013`) |> slice(1:5)
 if(knitr::is_html_output()){
-  knitr::kable(tmp, "html") %>%
+  knitr::kable(tmp, "html") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+  knitr::kable(tmp, "latex", booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```
@@ -897,7 +896,7 @@ falling_object <- rfalling_object()
 The assistants hand the data to Galileo and this is what he sees:
 
 ```{r gravity}
-falling_object %>% 
+falling_object |> 
   ggplot(aes(time, observed_distance)) + 
   geom_point() +
   ylab("Distance in meters") + 
@@ -921,16 +920,16 @@ To pose a new physical theory and start making predictions about other falling o
 LSE calculations do not require the errors to be approximately normal. The `lm` function will find the $\beta$ s that will minimize the residual sum of squares:
 
 ```{r}
-fit <- falling_object %>% 
-  mutate(time_sq = time^2) %>% 
-  lm(observed_distance~time+time_sq, data=.)
+fit <- falling_object |> 
+  mutate(time_sq = time^2) |> 
+  lm(observed_distance~time+time_sq, data = _)
 tidy(fit)
 ```
 
 Let's check if the estimated parabola fits the data. The __broom__ function `augment` lets us do this easily:
 
 ```{r falling-object-fit}
-augment(fit) %>% 
+augment(fit) |> 
   ggplot() +
   geom_point(aes(time, observed_distance)) + 
   geom_line(aes(time, .fitted), col = "blue")
@@ -964,22 +963,22 @@ They called this on-base-percentage plus slugging percentage (OPS). Although the
 1\. Compute the OPS for each team in the 2001 season. Then plot Runs per game versus OPS.
 
      
-2\. For every year since 1961, compute the correlation between runs per game and OPS; then plot these correlations as a function of year.
+2\. For every year since 1962, compute the correlation between runs per game and OPS; then plot these correlations as a function of year.
 
 
 
 3\. Note that we can rewrite OPS as a weighted average of BBs, singles, doubles, triples, and HRs. We know that the weights for doubles, triples, and HRs are 2, 3, and 4 times that of singles. But what about BB? What is the weight for BB relative to singles? Hint: the weight for BB relative to singles will be a function of AB and PA.
 
    
-4\. Note that the weight for BB, $\frac{\mbox{AB}}{\mbox{PA}}$, will change from team to team. To see how variable it is, compute and plot this quantity for each team for each year since 1961. Then plot it again, but instead of computing it for every team, compute and plot the ratio for the entire year. Then, once you are convinced that there is not much of a time or team trend, report the overall average.
+4\. Note that the weight for BB, $\frac{\mbox{AB}}{\mbox{PA}}$, will change from team to team. To see how variable it is, compute and plot this quantity for each team for each year since 1962. Then plot it again, but instead of computing it for every team, compute and plot the ratio for the entire year. Then, once you are convinced that there is not much of a time or team trend, report the overall average.
  
 
-5\. So now we know that the formula for OPS is proportional to $0.91 \times \mbox{BB} + \mbox{singles} + 2 \times \mbox{doubles} + 3 \times \mbox{triples} + 4 \times \mbox{HR}$. Let's see how these coefficients compare to those obtained with regression. Fit a regression model to the data after 1961, as done earlier: using per game statistics for each year for each team. After fitting this model, report the coefficients as weights relative to the coefficient for singles.
+5\. So now we know that the formula for OPS is proportional to $0.91 \times \mbox{BB} + \mbox{singles} + 2 \times \mbox{doubles} + 3 \times \mbox{triples} + 4 \times \mbox{HR}$. Let's see how these coefficients compare to those obtained with regression. Fit a regression model to the data after 1962, as done earlier: using per game statistics for each year for each team. After fitting this model, report the coefficients as weights relative to the coefficient for singles.
 
 
-6\. We see that our linear regression model coefficients follow the same general trend as those used by OPS, but with slightly less weight for metrics other than singles. For each team in years after 1961, compute the OPS, the predicted runs with the regression model and compute the correlation between the two as well as the correlation with runs per game.
+6\. We see that our linear regression model coefficients follow the same general trend as those used by OPS, but with slightly less weight for metrics other than singles. For each team in years after 1962, compute the OPS, the predicted runs with the regression model and compute the correlation between the two as well as the correlation with runs per game.
 
-7\. We see that using the regression approach predicts runs slightly better than OPS, but not that much. However, note that we have been computing OPS and predicting runs for teams when these measures are used to evaluate players. Let's show that OPS is quite similar to what one obtains with regression at the player level. For the 1961 season and after, compute the OPS and the predicted runs from our model for each player and plot them. Use the PA per game correction we used in the previous chapter:
+7\. We see that using the regression approach predicts runs slightly better than OPS, but not that much. However, note that we have been computing OPS and predicting runs for teams when these measures are used to evaluate players. Let's show that OPS is quite similar to what one obtains with regression at the player level. For the 1962 season and after, compute the OPS and the predicted runs from our model for each player and plot them. Use the PA per game correction we used in the previous chapter:
 
 8\. What players have show the largest difference between their rank by predicted runs and OPS?
 

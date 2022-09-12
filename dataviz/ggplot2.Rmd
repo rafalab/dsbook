@@ -33,11 +33,11 @@ data(murders)
 library(ggthemes)
 library(ggrepel)
 
-r <- murders %>% 
-  summarize(pop=sum(population), tot=sum(total)) %>% 
-  mutate(rate = tot/pop*10^6) %>% pull(rate)
+r <- murders |> 
+  summarize(pop=sum(population), tot=sum(total)) |> 
+  mutate(rate = tot/pop*10^6) |> pull(rate)
 
-murders %>% ggplot(aes(x = population/10^6, y = total, label = abb)) +  
+murders |> ggplot(aes(x = population/10^6, y = total, label = abb)) +  
   geom_abline(intercept = log10(r), lty=2, col="darkgrey") +
   geom_point(aes(color=region), size = 3) +
   geom_text_repel() + 
@@ -93,7 +93,7 @@ ggplot(data = murders)
 We can also pipe the data in as the first argument. So this line of code is equivalent to the one above:
 
 ```{r ggplot-example-2}
-murders %>% ggplot()
+murders |> ggplot()
 ```
 
 It renders a plot, in this case a blank slate since no geometry has been defined. The only style choice we see is a grey background.
@@ -117,7 +117,7 @@ p
 In `ggplot2` we create graphs by adding _layers_. Layers can define geometries, compute summary statistics, define what scales to use, or even change styles.
 To add layers, we use the symbol `+`. In general, a line of code will look like this:
 
->> DATA %>% `ggplot()` + LAYER 1 + LAYER 2 + ... + LAYER N
+>> DATA |> `ggplot()` + LAYER 1 + LAYER 2 + ... + LAYER N
 
 Usually, the first added layer defines the geometry. We want to make a scatterplot. What geometry do we use?
 
@@ -160,7 +160,7 @@ and, as expected, we see that at least two arguments are required `x` and `y`.
   __Aesthetic mappings__ describe how properties of the data connect with features of the graph, such as distance along an axis, size, or color. The `aes` function connects data with what we see on the graph by defining aesthetic mappings and will be one of the functions you use most often when plotting. The outcome of the `aes` function is often used as the argument of a geometry function. This example produces a scatterplot of total murders versus population in millions:
  
 ```{r, eval = FALSE}
-murders %>% ggplot() + 
+murders |> ggplot() + 
   geom_point(aes(x = population/10^6, y = total))
 ```
  
@@ -235,7 +235,7 @@ args(ggplot)
 If we define a mapping in `ggplot`, all the geometries that are added as layers will default to this mapping. We redefine `p`:
 
 ```{r}
-p <- murders %>% ggplot(aes(population/10^6, total, label = abb))
+p <- murders |> ggplot(aes(population/10^6, total, label = abb))
 ```
 
 and then we can simply write the following code to produce the previous plot:
@@ -302,7 +302,7 @@ We are almost there! All we have left to do is add color, a legend, and optional
 We can change the color of the points using the `col` argument in the `geom_point` function. To facilitate demonstration of new features, we will redefine `p` to be everything except the points layer:
 
 ```{r}
-p <-  murders %>% ggplot(aes(population/10^6, total, label = abb)) +   
+p <-  murders |> ggplot(aes(population/10^6, total, label = abb)) +   
   geom_text(nudge_x = 0.05) + 
   scale_x_log10() +
   scale_y_log10() +
@@ -336,8 +336,8 @@ We often want to add shapes or annotation to figures that are not derived direct
 Here we want to add a line that represents the average murder rate for the entire country. Once we determine the per million rate to be $r$, this line is defined by the formula: $y = r x$, with $y$ and $x$ our axes: total murders and population in millions, respectively. In the log-scale this line turns into: $\log(y) = \log(r) + \log(x)$. So in our plot it's a line with slope 1 and intercept $\log(r)$. To compute this value, we use our __dplyr__ skills:
 
 ```{r}
-r <- murders %>% 
-  summarize(rate = sum(total) /  sum(population) * 10^6) %>% 
+r <- murders |> 
+  summarize(rate = sum(total) /  sum(population) * 10^6) |> 
   pull(rate)
 ```
 
@@ -397,11 +397,11 @@ Now that we are done testing, we can write one piece of code that produces our d
 library(ggthemes)
 library(ggrepel)
 
-r <- murders %>% 
-  summarize(rate = sum(total) /  sum(population) * 10^6) %>%
+r <- murders |> 
+  summarize(rate = sum(total) /  sum(population) * 10^6) |>
   pull(rate)
 
-murders %>% ggplot(aes(population/10^6, total, label = abb)) +   
+murders |> ggplot(aes(population/10^6, total, label = abb)) +   
   geom_abline(intercept = log10(r), lty = 2, color = "darkgrey") +
   geom_point(aes(col=region), size = 3) +
   geom_text_repel() + 
@@ -434,7 +434,7 @@ y <- murders$total
 and we want to make a scatterplot with ggplot, we would have to type something like:
 
 ```{r, eval=FALSE}
-data.frame(x = x, y = y) %>% 
+data.frame(x = x, y = y) |> 
   ggplot(aes(x, y)) +
   geom_point()
 ```
@@ -487,7 +487,7 @@ p <- ggplot(murders)
 and we can also use the pipe:
 
 ```{r, eval = FALSE}
-p <- murders %>% ggplot()
+p <- murders |> ggplot()
 ```
 
 What is class of the object `p`?
@@ -502,7 +502,7 @@ c. A scatterplot.
 d. A histogram.
 
 
-3\. Using the pipe `%>%`, create an object `p` but this time associated with the `heights` dataset instead of the `murders` dataset. 
+3\. Using the pipe `|>`, create an object `p` but this time associated with the `heights` dataset instead of the `murders` dataset. 
 
    
 
@@ -519,7 +519,7 @@ d. `murders` and `size`.
 6\. To create the scatterplot we add a layer with `geom_point`. The aesthetic mappings require us to define the x-axis and y-axis variables, respectively. So the code looks like this:
 
 ```{r, eval=FALSE}
-murders %>% ggplot(aes(x = , y = )) +
+murders |> ggplot(aes(x = , y = )) +
   geom_point()
 ```
 
@@ -529,7 +529,7 @@ except we have to define the two variables `x` and `y`. Fill this out with the c
 7\. Note that if we don't use argument names, we can obtain the same plot by making sure we enter the variable names in the right order like this:
 
 ```{r, eval=FALSE}
-murders %>% ggplot(aes(population, total)) +
+murders |> ggplot(aes(population, total)) +
   geom_point()
 ```
 
@@ -539,7 +539,7 @@ Remake the plot but now with total in the x-axis and population in the y-axis.
 8\. If instead of points we want to add text, we can use the `geom_text()` or `geom_label()` geometries. The following code 
 
 ```{r, eval=FALSE}
-murders %>% ggplot(aes(population, total)) + geom_label()
+murders |> ggplot(aes(population, total)) + geom_label()
 ```
 
 will give us the error message: `Error: geom_label requires the following missing aesthetics: label`
@@ -579,7 +579,7 @@ d. Because we want all colors to be blue, we do not need to map colors, just use
 14\. Now we are going to change the x-axis to a log scale to account for the fact the distribution of population is skewed. Let's start by defining an object `p` holding the plot we have made up to now
 
 ```{r, eval=FALSE}
-p <- murders %>% 
+p <- murders |> 
   ggplot(aes(population, total, label = abb, color = region)) +
   geom_label() 
 ```

@@ -21,11 +21,11 @@ library(tidyverse)
 library(ggthemes)
 library(ggrepel)
 
-r <- murders %>% 
-  summarize(pop=sum(population), tot=sum(total)) %>% 
-  mutate(rate = tot/pop*10^6) %>% pull(rate)
+r <- murders |> 
+  summarize(pop=sum(population), tot=sum(total)) |> 
+  mutate(rate = tot/pop*10^6) |> pull(rate)
 
-murders %>% ggplot(aes(x = population/10^6, y = total, label = abb)) +  
+murders |> ggplot(aes(x = population/10^6, y = total, label = abb)) +  
   geom_abline(intercept = log10(r), lty=2, col="darkgrey") +
   geom_point(aes(color=region), size = 3) +
   geom_text_repel() + 
@@ -50,15 +50,15 @@ A particularly effective example is a Wall Street Journal article^[http://graphi
 #knitr::include_graphics(file.path(img_path,"wsj-vaccines.png"))
 data(us_contagious_diseases)
 the_disease <- "Measles"
-dat <- us_contagious_diseases %>%
-  filter(!state%in%c("Hawaii","Alaska") & disease == the_disease) %>%
-  mutate(rate = count / population * 10000 * 52 / weeks_reporting) %>%
+dat <- us_contagious_diseases |>
+  filter(!state%in%c("Hawaii","Alaska") & disease == the_disease) |>
+  mutate(rate = count / population * 10000 * 52 / weeks_reporting) |>
   mutate(state = reorder(state, rate))
 
 jet.colors <-
 colorRampPalette(c("#F0FFFF", "cyan", "#007FFF", "yellow", "#FFBF00", "orange", "red", "#7F0000"), bias = 2.25)
 
-dat %>% ggplot(aes(year, state, fill = rate)) +
+dat |> ggplot(aes(year, state, fill = rate)) +
   geom_tile(color = "white", size=0.35) +
   scale_x_continuous(expand=c(0,0)) +
   scale_fill_gradientn(colors = jet.colors(16), na.value = 'white') +
@@ -83,8 +83,8 @@ the article^[https://www.nytimes.com/2011/02/19/nyregion/19schools.html], these 
 data("nyc_regents_scores")
 nyc_regents_scores$total <- rowSums(nyc_regents_scores[,-1], na.rm=TRUE)
 
-nyc_regents_scores %>% 
-  filter(!is.na(score)) %>%
+nyc_regents_scores |> 
+  filter(!is.na(score)) |>
   ggplot(aes(score, total)) + 
   annotate("rect", xmin = 65, xmax = 99, ymin = 0, ymax = 35000, alpha = .5) +
   geom_bar(stat = "identity", color = "black", fill = "#C4843C") + 
@@ -114,41 +114,73 @@ Many widely used data analysis tools were initiated by discoveries made via EDA.
 
 Data visualization is also now pervasive in philanthropic and educational organizations. In the talks New Insights on Poverty^[https://www.ted.com/talks/hans_rosling_reveals_new_insights_on_poverty?language=en] and The Best Stats You've Ever Seen^[https://www.ted.com/talks/hans_rosling_shows_the_best_stats_you_ve_ever_seen], Hans Rosling forces us to notice the unexpected with a series of plots related to world health and economics. In his videos, he uses animated graphs to show us how the world is changing and how old narratives are no longer true.
 
+```{r, echo=FALSE}
+html_flag <- knitr::is_html_output()
+fh <- knitr::opts_chunk$get("fig.height")
+fw <- knitr::opts_chunk$get("fig.width")
+print(html_flag)
+print(fh)
+print(fw)
+```
 
-```{r gampnider-example-plot, echo=FALSE, warning=FALSE}
+
+```{r gampnider-example-plot, message=FALSE, echo=FALSE, warning=FALSE, fig.height=if (html_flag) fw else fh}
 data(gapminder)
 
 west <- c("Western Europe","Northern Europe","Southern Europe",
           "Northern America","Australia and New Zealand")
 
-gapminder <- gapminder %>% 
+gapminder <- gapminder |> 
   mutate(group = case_when(
     region %in% west ~ "The West",
     region %in% c("Eastern Asia", "South-Eastern Asia") ~ "East Asia",
     region %in% c("Caribbean", "Central America", "South America") ~ "Latin America",
     continent == "Africa" & region != "Northern Africa" ~ "Sub-Saharan Africa",
     TRUE ~ "Others"))
-gapminder <- gapminder %>% 
+gapminder <- gapminder |> 
   mutate(group = factor(group, levels = rev(c("Others", "Latin America", "East Asia","Sub-Saharan Africa", "The West"))))
 
 years <- c(1962, 2013)
-p <- filter(gapminder, year%in%years & !is.na(group) & 
-         !is.na(fertility) & !is.na(life_expectancy)) %>%
-  mutate(population_in_millions = population/10^6) %>%
-  ggplot( aes(fertility, y=life_expectancy, col = group, size = population_in_millions)) +
-  geom_point(alpha = 0.8) +
-  guides(size=FALSE) +
-  theme(plot.title = element_blank(), legend.title = element_blank()) + 
-  coord_cartesian(ylim = c(30, 85)) + 
-  xlab("Fertility rate (births per woman)") +
-  ylab("Life Expectancy") + 
-  geom_text(aes(x=7, y=82, label=year), cex=12, color="grey") +
-  facet_grid(. ~ year)
+
+if(html_flag){
+  
+  if(!file.exists(file.path(img_path,"gapminder.gif"))){
+  
+    library(gganimate)
+    p <- filter(gapminder, year%in%years & !is.na(group) & 
+                  !is.na(fertility) & !is.na(life_expectancy)) |>
+      mutate(population_in_millions = population/10^6) |>
+      ggplot(aes(fertility, y = life_expectancy, col = group, size = population_in_millions)) +
+      geom_point(alpha = 0.8) +
+      guides(size = "none") +
+      labs(title = '{frame_time}', x = 'Fertility rate (births per woman)', y = 'Life expectancy') +
+      theme(legend.title = element_blank(),
+            plot.title = element_text(size=30, color = "grey", hjust = 1, vjust = -6)) +
+      transition_time(year) +
+      ease_aes('linear')
     
-p + theme(strip.background = element_blank(),
-    strip.text.x = element_blank(),
-   strip.text.y = element_blank(),
-   legend.position = "top")
+    p <- animate(p, 100, 10, height = 4, width = 6, units = "in", res = 150)
+    anim_save(file.path(img_path,"gapminder.gif"), p)
+  }
+  knitr::include_graphics(file.path(img_path, "gapminder.gif"))
+} else{
+  filter(gapminder, year%in%years & !is.na(group) & 
+           !is.na(fertility) & !is.na(life_expectancy)) |>
+    mutate(population_in_millions = population/10^6) |>
+    ggplot( aes(fertility, y=life_expectancy, col = group, size = population_in_millions)) +
+    geom_point(alpha = 0.8) +
+    guides(size = "none") +
+    theme(plot.title = element_blank(), legend.title = element_blank()) + 
+    coord_cartesian(ylim = c(30, 85)) + 
+    xlab("Fertility rate (births per woman)") +
+    ylab("Life Expectancy") + 
+    geom_text(aes(x=7, y=82, label=year), cex=12, color="grey") +
+    facet_grid(. ~ year) + 
+    theme(strip.background = element_blank(),
+          strip.text.x = element_blank(),
+          strip.text.y = element_blank(),
+          legend.position = "top")
+}
 ```
 
 It is also important to note that mistakes, biases, systematic errors and other unexpected problems often lead to data that should be handled with care. Failure to discover these problems can give rise to flawed analyses and false discoveries. As an example, consider that measurement devices sometimes fail and that most data analysis procedures are not designed to detect these. 

@@ -43,8 +43,8 @@ To think of this as a machine learning problem, consider that we want to predict
 
 ```{r linear-regression-not-flexible, echo=FALSE}
 resid <- ifelse(lm(margin~day, data = polls_2008)$resid > 0, "+", "-")
-polls_2008 %>% 
-  mutate(resid = resid) %>% 
+polls_2008 |> 
+  mutate(resid = resid) |> 
   ggplot(aes(day, margin)) + 
   geom_smooth(method = "lm", se = FALSE, color = "black") +
   geom_point(aes(color = resid), size = 3)
@@ -73,12 +73,12 @@ The idea behind _bin smoothing_ is to make this calculation with each value of $
 
 ```{r binsmoother-expained, echo=FALSE}
 span <- 3.5
-tmp <- polls_2008 %>%
-  crossing(center = polls_2008$day) %>%
-  mutate(dist = abs(day - center)) %>%
+tmp <- polls_2008 |>
+  crossing(center = polls_2008$day) |>
+  mutate(dist = abs(day - center)) |>
   filter(dist <= span) 
 
-tmp %>% filter(center %in% c(-125, -55)) %>%
+tmp |> filter(center %in% c(-125, -55)) |>
   ggplot(aes(day, margin)) +   
   geom_point(data = polls_2008, size = 3, alpha = 0.5, color = "grey") +
   geom_point(size = 2) +    
@@ -96,7 +96,7 @@ fit <- with(polls_2008, ksmooth(day, margin, kernel="box", x.points = day, bandw
 bin_fit <- data.frame(x = fit$x, .fitted=fit$y)
   
 if(!file.exists(file.path(img_path,"binsmoother-animation.gif"))){
-  p <- tmp %>% 
+  p <- tmp |> 
     ggplot() +
     geom_smooth(aes(day, margin, group = center, frame = center), method = "lm", formula=y~1, se = FALSE) +
     geom_point(aes(day, margin), data = polls_2008, size = 3, alpha = .5, color = "grey") +
@@ -110,12 +110,12 @@ if(knitr::is_html_output()){
   knitr::include_graphics(file.path(img_path,"binsmoother-animation.gif"))
 } else{
   centers <- quantile(tmp$center, seq(1,6)/6)
-  tmp_bin_fit <- crossing(center=centers,bin_fit) %>%
-    group_by(center) %>%
-    filter(x <= center) %>%
+  tmp_bin_fit <- crossing(center=centers,bin_fit) |>
+    group_by(center) |>
+    filter(x <= center) |>
     ungroup()
         
-  tmp %>% filter(center %in% centers) %>%
+  tmp |> filter(center %in% centers) |>
     ggplot() +
     geom_smooth(aes(day, margin), method = "lm", formula=y~1, se = FALSE) +
     geom_point(aes(day, margin), data = polls_2008, size = 3, alpha = .5, color = "grey") +
@@ -133,7 +133,7 @@ span <- 7
 fit <- with(polls_2008, 
             ksmooth(day, margin, kernel = "box", bandwidth = span))
 
-polls_2008 %>% mutate(smooth = fit$y) %>%
+polls_2008 |> mutate(smooth = fit$y) |>
   ggplot(aes(day, margin)) +
     geom_point(size = 3, alpha = .5, color = "grey") + 
   geom_line(aes(day, smooth), color="red")
@@ -155,16 +155,16 @@ The `ksmooth` function provides a "smoother" option which uses the normal densit
 ```{r gaussian-kernel, echo=FALSE, out.width="80%", fig.height=3, fig.width=6}
 x_0 <- -125
 
-p1 <- data.frame(x = polls_2008$day) %>% mutate(w_0 = 1*I(abs(x - x_0)<=span/2)) %>%
-  mutate(w_0 = w_0/sum(w_0)) %>%
+p1 <- data.frame(x = polls_2008$day) |> mutate(w_0 = 1*I(abs(x - x_0)<=span/2)) |>
+  mutate(w_0 = w_0/sum(w_0)) |>
   ggplot(aes(x, w_0)) +
   geom_step() +
   ggtitle("Box")
 
 tmp <- with(data.frame(day = seq(min(polls_2008$day), max(polls_2008$day), .25)), 
                        ksmooth(day, 1*I(day == x_0), kernel = "normal", x.points = day, bandwidth = span))
-p2 <- data.frame(x = tmp$x, w_0 = tmp$y) %>%
-  mutate(w_0 = w_0/sum(w_0)) %>%
+p2 <- data.frame(x = tmp$x, w_0 = tmp$y) |>
+  mutate(w_0 = w_0/sum(w_0)) |>
   ggplot(aes(x, w_0)) +
   geom_line() +
   ggtitle("Normal")
@@ -175,11 +175,11 @@ gridExtra::grid.arrange(p1, p2, ncol = 2)
 With this animation, we see that points on the edge get less weight (the size of the point is proportional to its weight):
 
 ```{r kernel-animation, echo=FALSE, warning=FALSE} 
-tmp <- polls_2008 %>%
-  crossing(center = polls_2008$day) %>%
-  mutate(dist = abs(day - center)) %>%
-  filter(dist <= span) %>% 
-  mutate(weight =  dnorm(dist, 0, span/2.54))%>%
+tmp <- polls_2008 |>
+  crossing(center = polls_2008$day) |>
+  mutate(dist = abs(day - center)) |>
+  filter(dist <= span) |> 
+  mutate(weight =  dnorm(dist, 0, span/2.54))|>
   mutate(weight = weight/max(weight))
 
 span <- 7
@@ -187,7 +187,7 @@ fit <- with(polls_2008, ksmooth(day, margin, kernel="normal", x.points = day, ba
 bin_fit <- data.frame(x = fit$x, .fitted=fit$y)
 
 if(!file.exists(file.path(img_path,"kernel-animation.gif"))){
-  p <- tmp %>%
+  p <- tmp |>
     ggplot() +
     geom_smooth(aes(day, margin, group = center, weight = weight, frame = center), method = "lm", formula=y~1, se=FALSE) +
     geom_point(aes(day, margin), data = polls_2008, size = 3, alpha = .5, color = "grey") +
@@ -201,12 +201,12 @@ if(knitr::is_html_output()){
   knitr::include_graphics(file.path(img_path,"kernel-animation.gif"))
 } else{
   centers <- quantile(tmp$center, seq(1,6)/6)
-  tmp_bin_fit <- crossing(center=centers,bin_fit) %>%
-    group_by(center) %>%
-    filter(x <= center) %>%
+  tmp_bin_fit <- crossing(center=centers,bin_fit) |>
+    group_by(center) |>
+    filter(x <= center) |>
     ungroup()
         
-  tmp %>% filter(center %in% centers) %>%
+  tmp |> filter(center %in% centers) |>
     ggplot() +
     geom_smooth(aes(day, margin), method = "lm", formula=y~1, se = FALSE) +
     geom_point(aes(day, margin, size = weight), data = polls_2008, size = 3, alpha = .5, color = "grey") +
@@ -224,7 +224,7 @@ span <- 7
 fit <- with(polls_2008, 
             ksmooth(day, margin, kernel = "normal", bandwidth = span))
 
-polls_2008 %>% mutate(smooth = fit$y) %>%
+polls_2008 |> mutate(smooth = fit$y) |>
   ggplot(aes(day, margin)) +
   geom_point(size = 3, alpha = .5, color = "grey") + 
   geom_line(aes(day, smooth), color="red")
@@ -255,14 +255,14 @@ For every point $x_0$, loess defines a window and fits a line within that window
 ```{r loess, echo=FALSE}
 span <- 21/diff(range(polls_2008$day))
 
-tmp <- polls_2008 %>%
-  crossing(center = polls_2008$day) %>%
-  mutate(dist = abs(day - center)) %>%
-  filter(rank(dist) / n() <= span) %>%
+tmp <- polls_2008 |>
+  crossing(center = polls_2008$day) |>
+  mutate(dist = abs(day - center)) |>
+  filter(rank(dist) / n() <= span) |>
   mutate(weight = (1 - (dist / max(dist)) ^ 3) ^ 3)
 
-tmp %>% 
-  filter(center %in% c(-125, -55)) %>%
+tmp |> 
+  filter(center %in% c(-125, -55)) |>
   ggplot(aes(day, margin)) +   
   scale_size(range = c(0, 3)) +
   geom_smooth(aes(group = center, weight = weight), 
@@ -294,12 +294,12 @@ if(knitr::is_html_output()){
   knitr::include_graphics(file.path(img_path,"loess-animation.gif"))
 } else{
   centers <- quantile(tmp$center, seq(1,6)/6)
-  tmp_loess_fit <- crossing(center=centers, loess_fit) %>%
-    group_by(center) %>%
-    filter(day <= center) %>%
+  tmp_loess_fit <- crossing(center=centers, loess_fit) |>
+    group_by(center) |>
+    filter(day <= center) |>
     ungroup()
         
-  tmp %>% filter(center %in% centers) %>%
+  tmp |> filter(center %in% centers) |>
     ggplot() +
     geom_smooth(aes(day, margin), method = "lm", se = FALSE) +
     geom_point(aes(day, margin, size = weight), data = polls_2008, size = 3, alpha = .5, color = "grey") +
@@ -317,7 +317,7 @@ span <- 21/total_days
 
 fit <- loess(margin ~ day, degree=1, span = span, data=polls_2008)
 
-polls_2008 %>% mutate(smooth = fit$fitted) %>%
+polls_2008 |> mutate(smooth = fit$fitted) |>
   ggplot(aes(day, margin)) +
   geom_point(size = 3, alpha = .5, color = "grey") +
   geom_line(aes(day, smooth), color="red")
@@ -328,14 +328,14 @@ Different spans give us different estimates. We can see how different window siz
 ```{r loess-multi-span-animation, echo=FALSE, warning=FALSE} 
 spans <- c(.66, 0.25, 0.15, 0.10)
 
-fits <- tibble(span = spans) %>% 
-  group_by(span) %>% 
+fits <- tibble(span = spans) |> 
+  group_by(span) |> 
   do(broom::augment(loess(margin ~ day, degree=1, span = .$span, data=polls_2008)))
 
-tmp <- fits %>%
-  crossing(center = polls_2008$day) %>%
-  mutate(dist = abs(day - center)) %>%
-  filter(rank(dist) / n() <= span) %>%
+tmp <- fits |>
+  crossing(center = polls_2008$day) |>
+  mutate(dist = abs(day - center)) |>
+  filter(rank(dist) / n() <= span) |>
   mutate(weight = (1 - (dist / max(dist)) ^ 3) ^ 3)
 
 if(!file.exists(file.path(img_path, "loess-multi-span-animation.gif"))){
@@ -354,12 +354,12 @@ if(knitr::is_html_output()){
   knitr::include_graphics(file.path(img_path,"loess-multi-span-animation.gif"))
 } else{
   centers <- quantile(tmp$center, seq(1,3)/3)
-  tmp_fits <- crossing(center=centers, fits) %>%
-    group_by(center) %>%
-    filter(day <= center) %>%
+  tmp_fits <- crossing(center=centers, fits) |>
+    group_by(center) |>
+    filter(day <= center) |>
     ungroup()
         
-  tmp %>% filter(center %in% centers) %>%
+  tmp |> filter(center %in% centers) |>
     ggplot() +
     geom_smooth(aes(day, margin), method = "lm", se = FALSE) +
     geom_point(aes(day, margin, size = weight), data = polls_2008, size = 3, alpha = .5, color = "grey") +
@@ -373,7 +373,7 @@ if(knitr::is_html_output()){
 Here are the final estimates:
 
 ```{r loess-final, echo=FALSE}
-tmp %>% ggplot(aes(day, margin)) +
+tmp |> ggplot(aes(day, margin)) +
   geom_point(size = 2, alpha = .5, color = "grey") +
   geom_line(aes(day, .fitted), data = fits, color = "red") +
   facet_wrap(~span)
@@ -408,14 +408,14 @@ x_0 <- -125
 
 tmp <- with(data.frame(day = seq(min(polls_2008$day), max(polls_2008$day), .25)), 
                        ksmooth(day, 1*I(day == x_0), kernel = "normal", x.points = day, bandwidth = 7))
-p1 <- data.frame(x = tmp$x, w_0 = tmp$y) %>%
-  mutate(w_0 = w_0/sum(w_0)) %>%
+p1 <- data.frame(x = tmp$x, w_0 = tmp$y) |>
+  mutate(w_0 = w_0/sum(w_0)) |>
   ggplot(aes(x, w_0)) +
   geom_line() +
   ggtitle("Normal")
 
-p2 <- data.frame(x = seq(min(polls_2008$day), max(polls_2008$day), length.out = 100)) %>%
-  mutate(w_0 = (1 - (abs(x-x_0)/21)^3)^3*I(abs(x-x_0)<=21)) %>%
+p2 <- data.frame(x = seq(min(polls_2008$day), max(polls_2008$day), length.out = 100)) |>
+  mutate(w_0 = (1 - (abs(x-x_0)/21)^3)^3*I(abs(x-x_0)<=21)) |>
   ggplot(aes(x, w_0)) +
   geom_line()  +
   ggtitle("Tri-weight")
@@ -444,7 +444,7 @@ fit_1 <- loess(margin ~ day, degree=1, span = span, data=polls_2008)
 fit_2 <- loess(margin ~ day, span = span, data=polls_2008)
 
 
-polls_2008 %>% mutate(smooth_1 = fit_1$fitted, smooth_2 = fit_2$fitted) %>%
+polls_2008 |> mutate(smooth_1 = fit_1$fitted, smooth_2 = fit_2$fitted) |>
   ggplot(aes(day, margin)) +
   geom_point(size = 3, alpha = .5, color = "grey") +
   geom_line(aes(day, smooth_1), color="red", lty = 2) +
@@ -459,7 +459,7 @@ The `degree = 2` gives us more wiggly results. We actually prefer `degree = 1` a
 `ggplot` uses loess in its `geom_smooth` function: 
 
 ```{r ggplot-loess-default, warning=FALSE, message=FALSE}
-polls_2008 %>% ggplot(aes(day, margin)) +
+polls_2008 |> ggplot(aes(day, margin)) +
   geom_point() + 
   geom_smooth(method = loess)
 ```
@@ -468,7 +468,7 @@ But be careful with default parameters as they are rarely optimal.
 However, you can conveniently change them:
 
 ```{r ggplot-loess-degree-1, warning=FALSE, message=FALSE}
-polls_2008 %>% ggplot(aes(day, margin)) +
+polls_2008 |> ggplot(aes(day, margin)) +
   geom_point() + 
   geom_smooth(method = loess, method.args = list(span = 0.15, degree = 1))
 ```
@@ -505,19 +505,19 @@ dat <- map_df(str_split(pdf_text(fn), "\n"), function(s){
   n <- str_count(s, "\\d+")
   out <- c(1:header_index, which(n == 1), 
            which(n >= 28), tail_index:length(s))
-  s[-out] %>%  str_remove_all("[^\\d\\s]") %>% str_trim() %>%
-    str_split_fixed("\\s+", n = 6) %>% .[,1:5] %>% as_tibble() %>% 
-    setNames(c("day", header)) %>%
-    mutate(month = month, day = as.numeric(day)) %>%
-    pivot_longer(-c(day, month), names_to = "year", values_to = "deaths") %>%
+  s[-out] |>  str_remove_all("[^\\d\\s]") |> str_trim() |>
+    str_split_fixed("\\s+", n = 6) |> .[,1:5] |> as_tibble() |> 
+    setNames(c("day", header)) |>
+    mutate(month = month, day = as.numeric(day)) |>
+    pivot_longer(-c(day, month), names_to = "year", values_to = "deaths") |>
     mutate(deaths = as.numeric(deaths))
-}) %>%
+}) |>
   mutate(month = recode(month, 
                         "JAN" = 1, "FEB" = 2, "MAR" = 3, 
                         "APR" = 4, "MAY" = 5, "JUN" = 6, 
                         "JUL" = 7, "AGO" = 8, "SEP" = 9, 
-                        "OCT" = 10, "NOV" = 11, "DEC" = 12)) %>%
-  mutate(date = make_date(year, month, day)) %>%
+                        "OCT" = 10, "NOV" = 11, "DEC" = 12)) |>
+  mutate(date = make_date(year, month, day)) |>
   filter(date <= "2018-05-01")
 ```
 
@@ -531,8 +531,8 @@ Use the `loess` function to obtain a smooth estimate of the expected number of d
 library(broom)
 library(dslabs)
 data("mnist_27")
-mnist_27$train %>% 
-  glm(y ~ x_2, family = "binomial", data = .) %>% 
+mnist_27$train |> 
+  glm(y ~ x_2, family = "binomial", data = _) |> 
   tidy()
 ```
 

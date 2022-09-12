@@ -11,7 +11,7 @@ Let's start by loading the data and showing a plot of the predictors with outcom
 library(tidyverse)
 library(dslabs)
 data("mnist_27")
-mnist_27$test %>% ggplot(aes(x_1, x_2, color = y)) +  geom_point()
+mnist_27$test |> ggplot(aes(x_1, x_2, color = y)) +  geom_point()
 ```
 
 We will use these data to estimate the conditional probability function 
@@ -24,6 +24,10 @@ as defined in Section \@ref(smoothing-ml-connection). With k-nearest neighbors (
 
 To implement the algorithm, we can use the `knn3` function from the __caret__ package. Looking at the help file for this package, we see that we can call it in one of two ways. We will use the first in which we specify a _formula_ and a data frame. The data frame contains all the data to be used. The formula has the form `outcome ~ predictor_1 + predictor_2 + predictor_3` and so on. Therefore, we would type `y ~ x_1 + x_2`. If we are going to use all the predictors, we can use the `.` like this `y ~ .`. The final call looks like this:
 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(caret)
+```
 
 ```{r, eval=FALSE}
 library(caret)
@@ -47,9 +51,9 @@ confusionMatrix(y_hat_knn, mnist_27$test$y)$overall["Accuracy"]
 
 In Section \@ref(two-or-seven) we used linear regression to generate an estimate. 
 ```{r}
-fit_lm <- mnist_27$train %>% 
-  mutate(y = ifelse(y == 7, 1, 0)) %>% 
-  lm(y ~ x_1 + x_2, data = .)
+fit_lm <- mnist_27$train |> 
+  mutate(y = ifelse(y == 7, 1, 0)) |> 
+  lm(y ~ x_1 + x_2, data = _)
 p_hat_lm <- predict(fit_lm, mnist_27$test)
 y_hat_lm <- factor(ifelse(p_hat_lm > 0.5, 7, 2))
 confusionMatrix(y_hat_lm, mnist_27$test$y)$overall["Accuracy"]
@@ -65,7 +69,7 @@ plot_cond_prob <- function(p_hat=NULL){
   if(!is.null(p_hat)){
     tmp <- mutate(tmp, p=p_hat)
   }
-  tmp %>% ggplot(aes(x_1, x_2, z=p, fill=p)) +
+  tmp |> ggplot(aes(x_1, x_2, z=p, fill=p)) +
   geom_raster(show.legend = FALSE) +
   scale_fill_gradientn(colors=c("#F8766D","white","#00BFC4")) +
   stat_contour(breaks=c(0.5),color="black")
@@ -115,8 +119,9 @@ confusionMatrix(y_hat_knn_1, mnist_27$test$y)$overall["Accuracy"]
 
 We can see the over-fitting problem in this figure. 
 ```{r knn-1-overfit, echo=FALSE, out.width="100%"}
-p1 <- mnist_27$true_p %>% 
-  mutate(knn = predict(knn_fit_1, newdata = .)[,2]) %>%
+tmp <- mnist_27$true_p
+tmp$knn <- predict(knn_fit_1, newdata =  mnist_27$true_p)[,2]
+p1 <- tmp |>
   ggplot() +
   geom_point(data = mnist_27$train, aes(x_1, x_2, color= y),
              pch=21, show.legend = FALSE) +
@@ -124,8 +129,7 @@ p1 <- mnist_27$true_p %>%
   stat_contour(aes(x_1, x_2, z = knn), breaks=c(0.5), color="black") +
   ggtitle("Train set")
 
-p2 <- mnist_27$true_p %>% 
-  mutate(knn = predict(knn_fit_1, newdata = .)[,2]) %>%
+p2 <- tmp |>
   ggplot() +
   geom_point(data = mnist_27$test, aes(x_1, x_2, color= y), 
              pch=21, show.legend = FALSE) +
@@ -196,9 +200,9 @@ accuracy <- map_df(ks, function(k){
 Note that we estimate accuracy by using both the training set and the test set. We can now plot the accuracy estimates for each value of $k$:
 
 ```{r accuracy-vs-k-knn, echo=FALSE}
-accuracy %>% mutate(k = ks) %>%
-  gather(set, accuracy, -k) %>%
-  mutate(set = factor(set, levels = c("train", "test"))) %>%
+accuracy |> mutate(k = ks) |>
+  gather(set, accuracy, -k) |>
+  mutate(set = factor(set, levels = c("train", "test"))) |>
   ggplot(aes(k, accuracy, color = set)) + 
   geom_line() +
   geom_point() 
@@ -363,7 +367,7 @@ n <- 1000
 p <- 10000
 x <- matrix(rnorm(n * p), n, p)
 colnames(x) <- paste("x", 1:ncol(x), sep = "_")
-y <- rbinom(n, 1, 0.5) %>% factor()
+y <- rbinom(n, 1, 0.5) |> factor()
 
 x_subset <- x[ ,sample(p, 100)]
 ```

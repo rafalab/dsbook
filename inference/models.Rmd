@@ -39,7 +39,7 @@ polls <- map_df(Ns, function(N) {
     low = 2*(x_hat - 1.96*se_hat) - 1, 
     high = 2*(x_hat + 1.96*se_hat) - 1,
     sample_size = N)
-}) %>% mutate(poll = seq_along(Ns))
+}) |> mutate(poll = seq_along(Ns))
 
 ```
 
@@ -69,8 +69,8 @@ sum(polls$sample_size)
 participants. Basically, we construct an estimate of the spread, let's call it $d$, with a weighted average in the following way:
 
 ```{r}
-d_hat <- polls %>% 
-  summarize(avg = sum(estimate*sample_size) / sum(sample_size)) %>% 
+d_hat <- polls |> 
+  summarize(avg = sum(estimate*sample_size) / sum(sample_size)) |> 
   pull(avg)
 ```
 
@@ -105,10 +105,10 @@ Since the 2008 elections, other organizations have started their own election fo
 #knitr::include_graphics(file.path(img_path, "pollster-2016-predictions.png"))
 tmp <- data.frame(NYT = "  85%", `538` = "  71%", HuffPost = "  98%", PW = "  89%", PEC = " >99%", DK = "  92%", Cook = " Lean Dem", Roth = " Lean Dem", check.names = FALSE, row.names = "Win Prob")
 if(knitr::is_html_output()){
-  knitr::kable(tmp, "html") %>%
+  knitr::kable(tmp, "html") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+  knitr::kable(tmp, "latex", booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```
@@ -136,7 +136,7 @@ my_qgamma <- function(mean = 1, sd = 1){
   qgamma(c(0.1,0.9), shape = shape, scale = scale)
 }
 
-tmp <- tibble(candidate = c("Clinton", "Trump", "Johnson"), avg = c(48.5, 44.9, 5.0), avg_txt = c("48.5%", "44.9%", "5.0%"), sd = rep(2, 3), m = my_dgamma(avg, avg, sd)) %>%
+tmp <- tibble(candidate = c("Clinton", "Trump", "Johnson"), avg = c(48.5, 44.9, 5.0), avg_txt = c("48.5%", "44.9%", "5.0%"), sd = rep(2, 3), m = my_dgamma(avg, avg, sd)) |>
   mutate(candidate = reorder(candidate, -avg))
 
 xx <- seq(0, 75, len = 300)
@@ -158,7 +158,7 @@ tmp_3 <- map_df(1:3, function(i){
          y = my_dgamma(xx, tmp$avg[i], tmp$sd[i]))
 })
          
-tmp_2 %>% 
+tmp_2 |> 
   ggplot(aes(x, ymax = y, ymin = 0)) +
   geom_ribbon(fill = "grey") + 
   facet_grid(candidate~., switch="y") +
@@ -197,7 +197,7 @@ data(polls_us_election_2016)
 The table includes results for national polls, as well as state polls, taken during the year prior to the election. For this first example, we will filter the data to include national polls conducted during the week before the election. We also remove polls that FiveThirtyEight has determined not to be reliable and graded with a "B" or less. Some polls have not been graded and we include those:
 
 ```{r}
-polls <- polls_us_election_2016 %>% 
+polls <- polls_us_election_2016 |> 
   filter(state == "U.S." & enddate >= "2016-10-31" &
            (grade %in% c("A+","A","A-","B+") | is.na(grade)))
 ```
@@ -205,7 +205,7 @@ polls <- polls_us_election_2016 %>%
 We add a spread estimate:
 
 ```{r}
-polls <- polls %>% 
+polls <- polls |> 
   mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
 ```
 
@@ -215,8 +215,8 @@ For this example, we will assume that there are only two parties and call $p$ th
 We have `r nrow(polls)` estimates of the spread. The theory we learned tells us that these estimates are a random variable with a probability distribution that is approximately normal. The expected value is the election night spread $d$ and the standard error is $2\sqrt{p (1 - p) / N}$. Assuming the urn model we described earlier is a good one, we can use this information to construct a confidence interval based on the aggregated data. The estimated spread is:
 
 ```{r}
-d_hat <- polls %>% 
-  summarize(d_hat = sum(spread * samplesize) / sum(samplesize)) %>% 
+d_hat <- polls |> 
+  summarize(d_hat = sum(spread * samplesize) / sum(samplesize)) |> 
   pull(d_hat)
 ```
 
@@ -232,7 +232,7 @@ So we report a spread of `r round(d_hat*100,2)`\% with a margin of error of `r r
 
 A histogram of the reported spreads shows a problem:
 ```{r polls-2016-spread-histogram}
-polls %>%
+polls |>
   ggplot(aes(spread)) +
   geom_histogram(color="black", binwidth = .01)
 ```
@@ -244,14 +244,14 @@ The data does not appear to be normally distributed and the standard error appea
 Notice that various pollsters are involved and some are taking several polls a week:
 
 ```{r}
-polls %>% group_by(pollster) %>% summarize(n())
+polls |> group_by(pollster) |> summarize(n())
 ```
 
 Let's visualize the data for the pollsters that are regularly polling:
 
 ```{r pollster-bias, echo=FALSE}
-polls %>% group_by(pollster) %>% 
-  filter(n() >= 6) %>%
+polls |> group_by(pollster) |> 
+  filter(n() >= 6) |>
   ggplot(aes(pollster, spread)) + 
   geom_point() +
   coord_flip()
@@ -260,8 +260,8 @@ polls %>% group_by(pollster) %>%
 This plot reveals an unexpected result. First, consider that the standard error predicted by theory for each poll:
 
 ```{r}
-polls %>% group_by(pollster) %>% 
-  filter(n() >= 6) %>%
+polls |> group_by(pollster) |> 
+  filter(n() >= 6) |>
   summarize(se = 2 * sqrt(p_hat * (1-p_hat) / median(samplesize)))
 ```
 
@@ -275,8 +275,8 @@ In the following section, rather than use the urn model theory, we are instead g
 For each pollster, let's collect their last reported result before the election:
 
 ```{r}
-one_poll_per_pollster <- polls %>% group_by(pollster) %>% 
-  filter(enddate == max(enddate)) %>%
+one_poll_per_pollster <- polls |> group_by(pollster) |> 
+  filter(enddate == max(enddate)) |>
   ungroup()
 ```
 
@@ -310,9 +310,9 @@ sd(one_poll_per_pollster$spread)
 We are now ready to form a new confidence interval based on our new data-driven model:
 
 ```{r}
-results <- one_poll_per_pollster %>% 
+results <- one_poll_per_pollster |> 
   summarize(avg = mean(spread), 
-            se = sd(spread) / sqrt(length(spread))) %>% 
+            se = sd(spread) / sqrt(length(spread))) |> 
   mutate(start = avg - 1.96 * se, 
          end = avg + 1.96 * se) 
 round(results * 100, 1)
@@ -331,7 +331,7 @@ Let's revisit the heights dataset. Suppose we consider the males in our course t
 ```{r, eval=FALSE}
 library(dslabs)
 data(heights)
-x <- heights %>% filter(sex == "Male") %>%
+x <- heights |> filter(sex == "Male") |>
   pull(height)
 ```
     
@@ -361,11 +361,11 @@ d. Contains no information.
 
 ```{r, eval=FALSE}
 data(polls_us_election_2016)
-polls <- polls_us_election_2016 %>% 
+polls <- polls_us_election_2016 |> 
   filter(pollster %in% c("Rasmussen Reports/Pulse Opinion Research",
                          "The Times-Picayune/Lucid") &
            enddate >= "2016-10-15" &
-           state == "U.S.") %>% 
+           state == "U.S.") |> 
   mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) 
 ```
 
@@ -398,8 +398,8 @@ d. Are $b_1 = 0$ and $b_2 = 0$ ?
 10\. Suppose we define $\bar{Y}_1$ as the average of poll results from the first poll, $Y_{1,1},\dots,Y_{1,N_1}$ with $N_1$ the number of polls conducted by the first pollster:
 
 ```{r, eval=FALSE}
-polls %>% 
-  filter(pollster=="Rasmussen Reports/Pulse Opinion Research") %>% 
+polls |> 
+  filter(pollster=="Rasmussen Reports/Pulse Opinion Research") |> 
   summarize(N_1 = n())
 ```
 
@@ -442,12 +442,12 @@ is called the t-statistic. Now notice that we have more than two pollsters. We c
 For this exercise, create a new table:
 
 ```{r, eval=FALSE}
-polls <- polls_us_election_2016 %>% 
+polls <- polls_us_election_2016 |> 
   filter(enddate >= "2016-10-15" &
-           state == "U.S.") %>%
-  group_by(pollster) %>%
-  filter(n() >= 5) %>% 
-  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) %>%
+           state == "U.S.") |>
+  group_by(pollster) |>
+  filter(n() >= 5) |> 
+  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) |>
   ungroup()
 ```
 

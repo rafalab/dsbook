@@ -63,7 +63,7 @@ Note that we are completely ignoring the predictor and simply guessing the sex.
 In machine learning applications, it is useful to use factors to represent the categorical outcomes because R functions developed for machine learning, such as those in the __caret__ package, require or recommend that categorical outcomes be coded as factors. So convert `y_hat` to factors using the `factor` function:
 
 ```{r}
-y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE) %>%
+y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE) |>
   factor(levels = levels(test_set$sex))
 ```
 
@@ -78,13 +78,13 @@ Not surprisingly, our accuracy is about 50%. We are guessing!
 Can we do better? Exploratory data analysis suggests we can because, on average, males are slightly taller than females:
 
 ```{r}
-heights %>% group_by(sex) %>% summarize(mean(height), sd(height))
+heights |> group_by(sex) |> summarize(mean(height), sd(height))
 ```
 
 But how do we make use of this insight? Let's try another simple approach: predict `Male` if height is within two standard deviations from the average male:
 
 ```{r}
-y_hat <- ifelse(x > 62, "Male", "Female") %>% 
+y_hat <- ifelse(x > 62, "Male", "Female") |> 
   factor(levels = levels(test_set$sex))
 ```
 
@@ -101,7 +101,7 @@ Here we examine the accuracy of 10 different cutoffs and pick the one yielding t
 ```{r}
 cutoff <- seq(61, 70)
 accuracy <- map_dbl(cutoff, function(x){
-  y_hat <- ifelse(train_set$height > x, "Male", "Female") %>% 
+  y_hat <- ifelse(train_set$height > x, "Male", "Female") |> 
     factor(levels = levels(test_set$sex))
   mean(y_hat == train_set$sex)
 })
@@ -110,7 +110,7 @@ accuracy <- map_dbl(cutoff, function(x){
 We can make a plot showing the accuracy obtained on the training set for males and females:
 
 ```{r accuracy-vs-cutoff, echo=FALSE}
-data.frame(cutoff, accuracy) %>% 
+data.frame(cutoff, accuracy) |> 
   ggplot(aes(cutoff, accuracy)) + 
   geom_point() + 
   geom_line() 
@@ -132,7 +132,7 @@ best_cutoff
 We can now test this cutoff on our test set to make sure our accuracy is not overly optimistic:
 
 ```{r}
-y_hat <- ifelse(test_set$height > best_cutoff, "Male", "Female") %>% 
+y_hat <- ifelse(test_set$height > best_cutoff, "Male", "Female") |> 
   factor(levels = levels(test_set$sex))
 y_hat <- factor(y_hat)
 mean(y_hat == test_set$sex)
@@ -153,9 +153,9 @@ table(predicted = y_hat, actual = test_set$sex)
 If we study this table closely, it reveals a problem. If we compute the accuracy separately for each sex, we get:
 
 ```{r}
-test_set %>% 
-  mutate(y_hat = y_hat) %>%
-  group_by(sex) %>% 
+test_set |> 
+  mutate(y_hat = y_hat) |>
+  group_by(sex) |> 
   summarize(accuracy = mean(y_hat == sex))
 ```
 
@@ -193,10 +193,10 @@ colnames(mat) <- c("Actually Positive", "Actually Negative")
 rownames(mat) <- c("Predicted positive", "Predicted negative")
 tmp <- as.data.frame(mat)
 if(knitr::is_html_output()){
-  knitr::kable(tmp, "html") %>%
+  knitr::kable(tmp, "html") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(tmp, "latex", booktabs = TRUE) %>%
+  knitr::kable(tmp, "latex", booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```
@@ -265,7 +265,7 @@ Let's rebuild our prediction algorithm, but this time maximizing the F-score ins
 ```{r}
 cutoff <- seq(61, 70)
 F_1 <- map_dbl(cutoff, function(x){
-  y_hat <- ifelse(train_set$height > x, "Male", "Female") %>% 
+  y_hat <- ifelse(train_set$height > x, "Male", "Female") |> 
     factor(levels = levels(test_set$sex))
   F_meas(data = y_hat, reference = factor(train_set$sex))
 })
@@ -274,7 +274,7 @@ F_1 <- map_dbl(cutoff, function(x){
 As before, we can plot these $F_1$ measures versus the cutoffs:
 
 ```{r f_1-vs-cutoff, echo=FALSE}
-data.frame(cutoff, F_1) %>% 
+data.frame(cutoff, F_1) |> 
   ggplot(aes(cutoff, F_1)) + 
   geom_point() + 
   geom_line() 
@@ -295,7 +295,7 @@ best_cutoff
 A cutoff of `r best_cutoff` makes more sense than 64. Furthermore, it balances the specificity and sensitivity of our confusion matrix:
 
 ```{r}
-y_hat <- ifelse(test_set$height > best_cutoff, "Male", "Female") %>% 
+y_hat <- ifelse(test_set$height > best_cutoff, "Male", "Female") |> 
   factor(levels = levels(test_set$sex))
 sensitivity(data = y_hat, reference = test_set$sex)
 specificity(data = y_hat, reference = test_set$sex)
@@ -321,7 +321,7 @@ When comparing the two methods (guessing versus using a height cutoff), we looke
 ```{r}
 p <- 0.9
 n <- length(test_index)
-y_hat <- sample(c("Male", "Female"), n, replace = TRUE, prob=c(p, 1-p)) %>% 
+y_hat <- sample(c("Male", "Female"), n, replace = TRUE, prob=c(p, 1-p)) |> 
   factor(levels = levels(test_set$sex))
 mean(y_hat == test_set$sex)
 ```
@@ -339,7 +339,7 @@ The ROC curve plots sensitivity (TPR) versus 1 - specificity or the false positi
 probs <- seq(0, 1, length.out = 10)
 guessing <- map_df(probs, function(p){
   y_hat <- 
-    sample(c("Male", "Female"), n, replace = TRUE, prob=c(p, 1-p)) %>% 
+    sample(c("Male", "Female"), n, replace = TRUE, prob=c(p, 1-p)) |> 
     factor(levels = c("Female", "Male"))
   list(method = "Guessing",
        FPR = 1 - specificity(y_hat, test_set$sex),
@@ -354,7 +354,7 @@ We can use similar code to compute these values for our our second approach. By 
 ```{r, echo=FALSE}
 cutoffs <- c(50, seq(60, 75), 80)
 height_cutoff <- map_df(cutoffs, function(x){
-  y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
+  y_hat <- ifelse(test_set$height > x, "Male", "Female") |> 
     factor(levels = c("Female", "Male"))
    list(method = "Height cutoff",
         FPR = 1-specificity(y_hat, test_set$sex),
@@ -363,7 +363,7 @@ height_cutoff <- map_df(cutoffs, function(x){
 ```
 <!--
 ```{r roc-2, echo=FALSE}
-bind_rows(guessing, height_cutoff) %>%
+bind_rows(guessing, height_cutoff) |>
   ggplot(aes(FPR, TPR, color = method)) +
   geom_line() +
   geom_point() +
@@ -375,7 +375,7 @@ bind_rows(guessing, height_cutoff) %>%
 ```{r roc-3, echo=FALSE, fig.width=6, fig.height=3}
 library(ggrepel)
 tmp_1 <- map_df(cutoffs, function(x){
-  y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
+  y_hat <- ifelse(test_set$height > x, "Male", "Female") |> 
     factor(levels = c("Female", "Male"))
    list(method = "Height cutoff",
         cutoff = x, 
@@ -384,7 +384,7 @@ tmp_1 <- map_df(cutoffs, function(x){
 }) 
 tmp_2 <- map_df(probs, function(p){
   y_hat <- 
-    sample(c("Male", "Female"), n, replace = TRUE, prob=c(p, 1-p)) %>% 
+    sample(c("Male", "Female"), n, replace = TRUE, prob=c(p, 1-p)) |> 
     factor(levels = c("Female", "Male"))
   list(method = "Guessing",
        cutoff = round(p,1),
@@ -392,7 +392,7 @@ tmp_2 <- map_df(probs, function(p){
        TPR = sensitivity(y_hat, test_set$sex))
 })
 
-bind_rows(tmp_1, tmp_2) %>%
+bind_rows(tmp_1, tmp_2) |>
   ggplot(aes(FPR, TPR, label = cutoff, color = method)) +
   geom_line() +
   geom_point() +
@@ -409,7 +409,7 @@ ROC curves have one weakness and it is that neither of the measures plotted depe
 ```{r precision-recall-1, warning=FALSE, message=FALSE, echo=FALSE}
 guessing <- map_df(probs, function(p){
   y_hat <- sample(c("Male", "Female"), length(test_index), 
-                  replace = TRUE, prob=c(p, 1-p)) %>% 
+                  replace = TRUE, prob=c(p, 1-p)) |> 
     factor(levels = c("Female", "Male"))
   list(method = "Guess",
     recall = sensitivity(y_hat, test_set$sex),
@@ -417,17 +417,17 @@ guessing <- map_df(probs, function(p){
 })
 
 height_cutoff <- map_df(cutoffs, function(x){
-  y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
+  y_hat <- ifelse(test_set$height > x, "Male", "Female") |> 
     factor(levels = c("Female", "Male"))
   list(method = "Height cutoff",
        recall = sensitivity(y_hat, test_set$sex),
     precision = precision(y_hat, test_set$sex))
 })
-tmp_1 <- bind_rows(guessing, height_cutoff) %>% mutate(Positive = "Y = 1 if Female") 
+tmp_1 <- bind_rows(guessing, height_cutoff) |> mutate(Positive = "Y = 1 if Female") 
 
 guessing <- map_df(probs, function(p){
   y_hat <- sample(c("Male", "Female"), length(test_index), replace = TRUE, 
-                  prob=c(p, 1-p)) %>% 
+                  prob=c(p, 1-p)) |> 
     factor(levels = c("Male", "Female"))
   list(method = "Guess",
     recall = sensitivity(y_hat, relevel(test_set$sex, "Male", "Female")),
@@ -435,15 +435,15 @@ guessing <- map_df(probs, function(p){
 })
 
 height_cutoff <- map_df(cutoffs, function(x){
-  y_hat <- ifelse(test_set$height > x, "Male", "Female") %>% 
+  y_hat <- ifelse(test_set$height > x, "Male", "Female") |> 
     factor(levels = c("Male", "Female"))
   list(method = "Height cutoff",
        recall = sensitivity(y_hat, relevel(test_set$sex, "Male", "Female")),
     precision = precision(y_hat, relevel(test_set$sex, "Male", "Female")))
 })
-tmp_2 <- bind_rows(guessing, height_cutoff) %>% mutate(Positive = "Y = 1 if Male") 
+tmp_2 <- bind_rows(guessing, height_cutoff) |> mutate(Positive = "Y = 1 if Male") 
 
-bind_rows(tmp_1, tmp_2) %>%
+bind_rows(tmp_1, tmp_2) |>
   ggplot(aes(recall, precision, color = method)) +
   geom_line() +
   geom_point() +
@@ -500,12 +500,12 @@ The `reported_height` and `height` datasets were collected from three classes ta
 ```{r, eval=FALSE}
 library(lubridate)
 data("reported_heights")
-dat <- mutate(reported_heights, date_time = ymd_hms(time_stamp)) %>%
+dat <- mutate(reported_heights, date_time = ymd_hms(time_stamp)) |>
   filter(date_time >= make_date(2016, 01, 25) & 
-           date_time < make_date(2016, 02, 1)) %>%
+           date_time < make_date(2016, 02, 1)) |>
   mutate(type = ifelse(day(date_time) == 25 & hour(date_time) == 8 & 
                          between(minute(date_time), 15, 30),
-                       "inclass", "online")) %>% select(sex, type)
+                       "inclass", "online")) |> select(sex, type)
 x <- dat$type
 y <- factor(dat$sex, c("Female", "Male"))
 ```

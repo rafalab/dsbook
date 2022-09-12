@@ -34,10 +34,10 @@ tmp <- tibble(outcome="?",
               'feature 4' = "$X_4$",
               'feature 5' = "$X_5$")
 if(knitr::is_html_output()){
-  knitr::kable(tmp, "html", align = "c") %>%
+  knitr::kable(tmp, "html", align = "c") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(tmp, "latex", align="c", escape = FALSE, booktabs = TRUE) %>%
+  knitr::kable(tmp, "latex", align="c", escape = FALSE, booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```
@@ -57,10 +57,10 @@ tmp_2 <- rbind(c("$\\vdots$", "$\\vdots$", "$\\vdots$", "$\\vdots$", "$\\vdots$"
 colnames(tmp_2) <- names(tmp)
 tmp <- bind_rows(tmp, as_tibble(tmp_2))
 if(knitr::is_html_output()){
-  knitr::kable(tmp, "html") %>%
+  knitr::kable(tmp, "html") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(tmp, "latex", escape = FALSE, booktabs = TRUE) %>%
+  knitr::kable(tmp, "latex", escape = FALSE, booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```
@@ -87,12 +87,12 @@ what are the outcomes and features. Below are three images of written digits. Th
 ```{r digit-images-example, echo=FALSE, cache=TRUE}
 if(!exists("mnist")) mnist <- read_mnist()
 tmp <- lapply( c(1,4,5), function(i){
-    expand.grid(Row=1:28, Column=1:28) %>%  
+    expand.grid(Row=1:28, Column=1:28) |>  
       mutate(id=i, label=mnist$train$label[i],  
              value = unlist(mnist$train$images[i,])) 
 })
 tmp <- Reduce(rbind, tmp)
-tmp %>% ggplot(aes(Row, Column, fill=value)) + 
+tmp |> ggplot(aes(Row, Column, fill=value)) + 
     geom_raster(show.legend = FALSE) + 
     scale_y_reverse() +
     scale_fill_gradient(low="white", high="black") +
@@ -102,7 +102,7 @@ tmp %>% ggplot(aes(Row, Column, fill=value)) +
 The images are converted into $28 \times 28 = 784$ pixels and, for each pixel, we obtain a grey scale intensity between 0 (white) and 255 (black), which we consider continuous for now. The following plot shows the individual features for each image:
 
 ```{r example-images, echo=FALSE}
-tmp %>% ggplot(aes(Row, Column, fill=value)) + 
+tmp |> ggplot(aes(Row, Column, fill=value)) + 
     geom_point(pch=21) + 
     scale_y_reverse() +
     scale_fill_gradient(low="white", high="black") +

@@ -20,10 +20,12 @@ Real Clear Politics^[http://www.realclearpolitics.com] is an example of a news a
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #knitr::include_graphics(file.path(img_path,"rcp-polls.png"))
-url <- "https://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html"
+#url <- "https://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html"
+url <- "https://web.archive.org/web/20161108012231/https://www.realclearpolitics.com/epolls/2016/president/us/general_election_trump_vs_clinton-5491.html"
 library(rvest)
-tab <- read_html(url) %>% html_node("table") %>% html_table()
-tab <- tab %>% mutate(Poll = stringr::str_remove(Poll, "\\/.*")) %>%
+tab <- read_html(url) |> html_elements("table")
+tab <- tab[[1]] |> html_table() |> 
+  mutate(Poll = stringr::str_remove(Poll, "\\/.*")) |>
   mutate(Poll = case_when(
     Poll == "BloombergBloomberg" ~ "Bloomberg",
     Poll == "FOX NewsFOX News" ~ "FOX News",
@@ -32,10 +34,10 @@ tab <- tab %>% mutate(Poll = stringr::str_remove(Poll, "\\/.*")) %>%
     TRUE ~ Poll))
 names(tab) <- stringr::str_remove_all(names(tab), "\\s(.*)")    
 if(knitr::is_html_output()){
-  knitr::kable(tab, "html") %>%
+  knitr::kable(tab, "html") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(tab, "latex", booktabs = TRUE) %>%
+  knitr::kable(tab, "latex", booktabs = TRUE) |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```
@@ -55,7 +57,7 @@ We start by connecting probability theory to the task of using polls to learn ab
 
 To help us understand the connection between polls and what we have learned, let's construct a similar situation to the one pollsters face. To mimic the challenge real pollsters face in terms of competing with other pollsters for media attention, we will use an urn full of beads to represent  voters and pretend we are competing for a \$25 dollar prize. The challenge is to guess the spread between the proportion of blue and red beads in this urn (in this case, a pickle jar):
 
-```{r, echo=FALSE, out.width=300}
+```{r, echo=FALSE, out.width="30%"}
 #, out.width="1.5in"}
 ## For latex version this needs to be out.width = "30%"
 ## For html version out.width = 300
@@ -150,7 +152,7 @@ One problem is that we do not know $p$, so we can't compute the standard error. 
 ```{r standard-error-versus-sample-size, echo=FALSE, message=FALSE, warning=FALSE}
 p <- 0.51
 N <- 10^seq(1,5, len=100)
-data.frame(N=N, SE = sqrt(p*(1-p)/N)) %>% ggplot(aes(N, SE)) + geom_line() + scale_x_continuous(breaks = c(10,100,1000,10000), trans = "log10")
+data.frame(N=N, SE = sqrt(p*(1-p)/N)) |> ggplot(aes(N, SE)) + geom_line() + scale_x_continuous(breaks = c(10,100,1000,10000), trans = "log10")
 ```
 
 From the plot we see that we would need a poll of over 10,000 people to get the standard error that low. We rarely see polls of this size due in part to costs. From the Real Clear Politics table, we learn that the sample sizes in opinion polls range from 500-3,500 people. For a sample size of 1,000 and $p=0.51$, the standard error is:

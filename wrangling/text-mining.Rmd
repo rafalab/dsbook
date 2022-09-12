@@ -23,9 +23,9 @@ In general, we can extract data directly from Twitter using the __rtweet__ packa
 
 ```{r, eval=FALSE}
 url <- 'http://www.trumptwitterarchive.com/data/realdonaldtrump/%s.json'
-trump_tweets <- map(2009:2017, ~sprintf(url, .x)) %>%
-  map_df(jsonlite::fromJSON, simplifyDataFrame = TRUE) %>%
-  filter(!is_retweet & !str_detect(text, '^"')) %>%
+trump_tweets <- map(2009:2017, ~sprintf(url, .x)) |>
+  map_df(jsonlite::fromJSON, simplifyDataFrame = TRUE) |>
+  filter(!is_retweet & !str_detect(text, '^"')) |>
   mutate(created_at = parse_date_time(created_at, 
                                       orders = "a b! d! H!:M!:S! z!* Y!",
                                       tz="EST")) 
@@ -53,37 +53,37 @@ names(trump_tweets)
 The help file `?trump_tweets` provides details on what each variable represents. The tweets are represented by the `text` variable:
 
 ```{r}
-trump_tweets$text[16413] %>% str_wrap(width = options()$width) %>% cat
+trump_tweets$text[16413] |> str_wrap(width = options()$width) |> cat()
 ```
 
 and the source variable tells us which device was used to compose and upload each tweet:
 
 ```{r}
-trump_tweets %>% count(source) %>% arrange(desc(n)) %>% head(5)
+trump_tweets |> count(source) |> arrange(desc(n)) |> head(5)
 ```
 
 We are interested in what happened during the campaign, so for this analysis we will focus on what was tweeted between the day Trump announced his campaign and election day. We define the following table containing just the tweets from that time period. Note that we use `extract` to remove the `Twitter for` part of the source and filter out retweets.
 
 ```{r}
-campaign_tweets <- trump_tweets %>% 
-  extract(source, "source", "Twitter for (.*)") %>%
+campaign_tweets <- trump_tweets |> 
+  extract(source, "source", "Twitter for (.*)") |>
   filter(source %in% c("Android", "iPhone") &
            created_at >= ymd("2015-06-17") & 
-           created_at < ymd("2016-11-08")) %>%
-  filter(!is_retweet) %>%
-  arrange(created_at) %>% 
+           created_at < ymd("2016-11-08")) |>
+  filter(!is_retweet) |>
+  arrange(created_at) |> 
   as_tibble()
 ```
 
 We can now use data visualization to explore the possibility that two different groups were tweeting from these devices. For each tweet, we will extract the hour, East Coast time (EST), it was tweeted and then compute the proportion of tweets tweeted at each hour for each device:
 
 ```{r tweets-by-time-by-device}
-campaign_tweets %>%
-  mutate(hour = hour(with_tz(created_at, "EST"))) %>%
-  count(source, hour) %>%
-  group_by(source) %>%
-  mutate(percent = n / sum(n)) %>%
-  ungroup %>%
+campaign_tweets |>
+  mutate(hour = hour(with_tz(created_at, "EST"))) |>
+  count(source, hour) |>
+  group_by(source) |>
+  mutate(percent = n / sum(n)) |>
+  ungroup() |>
   ggplot(aes(hour, percent, color = source)) +
   geom_line() +
   geom_point() +
@@ -113,16 +113,16 @@ poem <- c("Roses are red,", "Violets are blue,",
 example <- tibble(line = c(1, 2, 3, 4),
                       text = poem)
 example
-example %>% unnest_tokens(word, text)
+example |> unnest_tokens(word, text)
 ```
 
 Now let's look at an example from the tweets. We will look at tweet number 3008 because it will later permit us to illustrate a couple of points:
 
 ```{r}
 i <- 3008
-campaign_tweets$text[i] %>% str_wrap(width = 65) %>% cat()
-campaign_tweets[i,] %>% 
-  unnest_tokens(word, text) %>%
+campaign_tweets$text[i] |> str_wrap(width = 65) |> cat()
+campaign_tweets[i,] |> 
+  unnest_tokens(word, text) |>
   pull(word) 
 ```
 
@@ -130,8 +130,8 @@ Note that the function tries to convert tokens into words. To do this, however, 
 
 
 ```{r, message=FALSE, warning=FALSE}
-campaign_tweets[i,] %>% 
-  unnest_tokens(word, text, token = "tweets") %>%
+campaign_tweets[i,] |> 
+  unnest_tokens(word, text, token = "tweets") |>
   pull(word)
 ```
 
@@ -139,17 +139,17 @@ Another minor adjustment we want to make is to remove the links to pictures:
 
 ```{r, message=FALSE, warning=FALSE}
 links <- "https://t.co/[A-Za-z\\d]+|&amp;"
-campaign_tweets[i,] %>% 
-  mutate(text = str_replace_all(text, links, ""))  %>%
-  unnest_tokens(word, text, token = "tweets") %>%
+campaign_tweets[i,] |> 
+  mutate(text = str_replace_all(text, links, ""))  |>
+  unnest_tokens(word, text, token = "tweets") |>
   pull(word)
 ```
 
 Now we are now ready to extract the words for all our tweets. 
 
 ```{r, message=FALSE, warning=FALSE}
-tweet_words <- campaign_tweets %>% 
-  mutate(text = str_replace_all(text, links, ""))  %>%
+tweet_words <- campaign_tweets |> 
+  mutate(text = str_replace_all(text, links, ""))  |>
   unnest_tokens(word, text, token = "tweets")
 ```
 
@@ -157,8 +157,8 @@ tweet_words <- campaign_tweets %>%
 And we can now answer questions such as "what are the most commonly used words?":
 
 ```{r}
-tweet_words %>% 
-  count(word) %>%
+tweet_words |> 
+  count(word) |>
   arrange(desc(n))
 ```
 
@@ -171,19 +171,19 @@ stop_words
 If we filter out rows representing stop words with `filter(!word %in% stop_words$word)`:
 
 ```{r, message=FALSE, warning=FALSE}
-tweet_words <- campaign_tweets %>% 
-  mutate(text = str_replace_all(text, links, ""))  %>%
-  unnest_tokens(word, text, token = "tweets") %>%
+tweet_words <- campaign_tweets |> 
+  mutate(text = str_replace_all(text, links, ""))  |>
+  unnest_tokens(word, text, token = "tweets") |>
   filter(!word %in% stop_words$word ) 
 ```
 
 we end up with a much more informative set of top 10 tweeted words:
 
 ```{r}
-tweet_words %>% 
-  count(word) %>%
-  top_n(10, n) %>%
-  mutate(word = reorder(word, n)) %>%
+tweet_words |> 
+  count(word) |>
+  top_n(10, n) |>
+  mutate(word = reorder(word, n)) |>
   arrange(desc(n))
 ```
 
@@ -191,22 +191,22 @@ Some exploration of the resulting words (not shown here) reveals a couple of unw
 
 
 ```{r, message=FALSE, warning=FALSE}
-tweet_words <- campaign_tweets %>% 
-  mutate(text = str_replace_all(text, links, ""))  %>%
-  unnest_tokens(word, text, token = "tweets") %>%
+tweet_words <- campaign_tweets |> 
+  mutate(text = str_replace_all(text, links, ""))  |>
+  unnest_tokens(word, text, token = "tweets") |>
   filter(!word %in% stop_words$word &
-           !str_detect(word, "^\\d+$")) %>%
+           !str_detect(word, "^\\d+$")) |>
   mutate(word = str_replace(word, "^'", ""))
 ```
 
 Now that we have all our words in a table, along with information about what device was used to compose the tweet they came from, we can start exploring which words are more common when comparing Android to iPhone. 
 
-For each word, we want to know if it is more likely to come from an Android tweet or an iPhone tweet. In Section \@ref(association-tests) we introduced the odds ratio as a summary statistic useful for quantifying these differences. For each device and a given word, let's call it `y`, we compute the odds or the ratio between the proportion of words that are `y` and not `y` and compute the ratio of those odds. Here we will have many proportions that are 0, so we use the 0.5 correction described in Section \@ref(association-tests).
+For each word, we want to know if it is more likely to come from an Android tweet or an iPhone tweet. Odds ratio are a summary statistic useful for quantifying these differences. .For each device and a given word, let's call it `y`, we compute the odds or the ratio between the proportion of words that are `y` and not `y` and compute the ratio of those odds. Here we will have many proportions that are 0, so we use the 0.5 correction. You can learn more about odds ratio in an statistics or epidemiology textbook.
 
 ```{r}
-android_iphone_or <- tweet_words %>%
-  count(word, source) %>%
-  pivot_wider(names_from = "source", values_from = "n", values_fill = 0) %>%
+android_iphone_or <- tweet_words |>
+  count(word, source) |>
+  pivot_wider(names_from = "source", values_from = "n", values_fill = 0) |>
   mutate(or = (Android + 0.5) / (sum(Android) - Android + 0.5) / 
            ( (iPhone + 0.5) / (sum(iPhone) - iPhone + 0.5)))
 ```
@@ -214,21 +214,21 @@ android_iphone_or <- tweet_words %>%
 Here are the highest odds ratios for Android
 
 ```{r}
-android_iphone_or %>% arrange(desc(or))
+android_iphone_or |> arrange(desc(or))
 ```
 
 and the top for iPhone:
 ```{r}
-android_iphone_or %>% arrange(or)
+android_iphone_or |> arrange(or)
 ```  
 
 Given that several of these words are overall low frequency words, we can impose a filter based on the total frequency like this:
 
 ```{r}
-android_iphone_or %>% filter(Android+iPhone > 100) %>%
+android_iphone_or |> filter(Android+iPhone > 100) |>
   arrange(desc(or))
 
-android_iphone_or %>% filter(Android+iPhone > 100) %>%
+android_iphone_or |> filter(Android+iPhone > 100) |>
   arrange(or)
 ```
 
@@ -260,17 +260,17 @@ get_sentiments("afinn")
 The `loughran` and `nrc` lexicons provide several different sentiments. Note that these also have to be downloaded the first time you use them.
 
 ```{r}
-get_sentiments("loughran") %>% count(sentiment)
+get_sentiments("loughran") |> count(sentiment)
 ```
 
 ```{r}
-get_sentiments("nrc") %>% count(sentiment)
+get_sentiments("nrc") |> count(sentiment)
 ```
 
 For our analysis, we are interested in exploring the different sentiments of each tweet so we will use the `nrc` lexicon:
 
 ```{r}
-nrc <- get_sentiments("nrc") %>%
+nrc <- get_sentiments("nrc") |>
   select(word, sentiment)
 ```
 
@@ -278,8 +278,8 @@ We can combine the words and sentiments using `inner_join`, which will only keep
 
 
 ```{r}
-tweet_words %>% inner_join(nrc, by = "word") %>% 
-  select(source, word, sentiment) %>% 
+tweet_words |> inner_join(nrc, by = "word") |> 
+  select(source, word, sentiment) |> 
   sample_n(5)
 ```
 
@@ -287,10 +287,10 @@ Now we are ready to perform a quantitative analysis comparing Android and iPhone
 
 
 ```{r}
-sentiment_counts <- tweet_words %>%
-  left_join(nrc, by = "word") %>%
-  count(source, sentiment) %>%
-  pivot_wider(names_from = "source", values_from = "n") %>%
+sentiment_counts <- tweet_words |>
+  left_join(nrc, by = "word") |>
+  count(source, sentiment) |>
+  pivot_wider(names_from = "source", values_from = "n") |>
   mutate(sentiment = replace_na(sentiment, replace = "none"))
 sentiment_counts
 ```
@@ -298,24 +298,24 @@ sentiment_counts
 For each sentiment, we can compute the odds of being in the device: proportion of words with sentiment versus proportion of words without, and then compute the odds ratio comparing the two devices.
 
 ```{r}
-sentiment_counts %>%
+sentiment_counts |>
   mutate(Android = Android / (sum(Android) - Android) , 
          iPhone = iPhone / (sum(iPhone) - iPhone), 
-         or = Android/iPhone) %>%
+         or = Android/iPhone) |>
   arrange(desc(or))
 ```
  
-So we do see some differences and the order is interesting: the largest three sentiments are disgust, anger, and negative! But are these differences just due to chance? How does this compare if we are just assigning sentiments at random? To answer this question we can compute, for each sentiment, an odds ratio and a confidence interval, as defined in Section \@ref(association-tests). We will add the two values we need to form a two-by-two table and the odds ratio:
+So we do see some differences and the order is interesting: the largest three sentiments are disgust, anger, and negative! But are these differences just due to chance? How does this compare if we are just assigning sentiments at random? To answer this question we can compute, for each sentiment, an odds ratio and a confidence interval. We will add the two values we need to form a two-by-two table and the odds ratio:
 
 ```{r}
 library(broom)
-log_or <- sentiment_counts %>%
+log_or <- sentiment_counts |>
   mutate(log_or = log((Android / (sum(Android) - Android)) / 
       (iPhone / (sum(iPhone) - iPhone))),
           se = sqrt(1/Android + 1/(sum(Android) - Android) + 
                       1/iPhone + 1/(sum(iPhone) - iPhone)),
           conf.low = log_or - qnorm(0.975)*se,
-          conf.high = log_or + qnorm(0.975)*se) %>%
+          conf.high = log_or + qnorm(0.975)*se) |>
   arrange(desc(log_or))
   
 log_or
@@ -324,8 +324,8 @@ log_or
 A graphical visualization shows some sentiments that are clearly overrepresented:
 
 ```{r tweets-log-odds-ratio}
-log_or %>%
-  mutate(sentiment = reorder(sentiment, log_or)) %>%
+log_or |>
+  mutate(sentiment = reorder(sentiment, log_or)) |>
   ggplot(aes(x = sentiment, ymin = conf.low, ymax = conf.high)) +
   geom_errorbar() +
   geom_point(aes(sentiment, log_or)) +
@@ -338,19 +338,19 @@ We see that the disgust, anger, negative, sadness, and fear sentiments are assoc
 If we are interested in exploring which specific words are driving these differences, we can refer  back to our `android_iphone_or` object:
 
 ```{r}
-android_iphone_or %>% inner_join(nrc) %>%
-  filter(sentiment == "disgust" & Android + iPhone > 10) %>%
+android_iphone_or |> inner_join(nrc) |>
+  filter(sentiment == "disgust" & Android + iPhone > 10) |>
   arrange(desc(or))
 ``` 
 
 and we can make a graph:
 
 ```{r log-odds-by-word, out.width="100%"}
-android_iphone_or %>% inner_join(nrc, by = "word") %>%
-  mutate(sentiment = factor(sentiment, levels = log_or$sentiment)) %>%
-  mutate(log_or = log(or)) %>%
-  filter(Android + iPhone > 10 & abs(log_or)>1) %>%
-  mutate(word = reorder(word, log_or)) %>%
+android_iphone_or |> inner_join(nrc, by = "word") |>
+  mutate(sentiment = factor(sentiment, levels = log_or$sentiment)) |>
+  mutate(log_or = log(or)) |>
+  filter(Android + iPhone > 10 & abs(log_or)>1) |>
+  mutate(word = reorder(word, log_or)) |>
   ggplot(aes(word, log_or, fill = log_or < 0)) +
   facet_wrap(~sentiment, scales = "free_x", nrow = 2) + 
   geom_bar(stat="identity", show.legend = FALSE) +

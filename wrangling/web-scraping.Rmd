@@ -107,7 +107,7 @@ We don't show the output here because it includes thousands of characters, but i
  
 
 ```{r} 
-tab <- h %>% html_nodes("table")
+tab <- h |> html_nodes("table")
 ```
 
 Now, instead of the entire webpage, we just have the html code for the tables in the page:
@@ -127,14 +127,14 @@ This is clearly not a tidy dataset, not even a data frame. In the code above, yo
 
 
 ```{r}
-tab <- tab[[1]] %>% html_table
+tab <- tab[[1]] |> html_table()
 class(tab)
 ```
 
 We are now much closer to having a usable data table:
 
 ```{r}
-tab <- tab %>% setNames(c("state", "population", "total", "murder_rate")) 
+tab <- tab |> setNames(c("state", "population", "total", "murder_rate")) 
 head(tab)
 ```
 
@@ -170,7 +170,7 @@ nobel <- fromJSON("http://api.nobelprize.org/v1/prize.json")
 This downloads a list. The first argument is a table with information about Nobel prize winners:
 
 ```{r}
-filter(nobel$prize, category == "literature" & year == "1971") %>% pull(laureates)
+filter(nobel$prize, category == "literature" & year == "1971") |> pull(laureates)
 ```
 
 You can learn much more by examining tutorials and help files from the __jsonlite__ package. This package is intended for relatively simple tasks such as converting data into tables. For more flexibility, we recommend `rjson`.
@@ -244,7 +244,7 @@ Remove the first component and then use `sapply` and `html_table` to convert eac
 
 
 ```{r, eval=FALSE}
-tab_1 <- tab_1 %>%
+tab_1 <- tab_1 |>
   mutate(Team = ifelse(Team == "N.Y. Yankees", "NY Yankees", Team))
 ```
 

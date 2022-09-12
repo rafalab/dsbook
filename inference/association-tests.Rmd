@@ -19,8 +19,8 @@ The main evidence for this conclusion comes down to a comparison of the percenta
 library(tidyverse)
 library(dslabs)
 data("research_funding_rates")
-research_funding_rates %>% select(discipline, applications_total, 
-                                  success_rates_total) %>% head()
+research_funding_rates |> select(discipline, applications_total, 
+                                  success_rates_total) |> head()
 ```
 
 We have these values for each gender:
@@ -31,9 +31,9 @@ names(research_funding_rates)
 We can compute the totals that were successful and the totals that were not as follows:
 
 ```{r}
-totals <- research_funding_rates %>% 
-  select(-discipline) %>% 
-  summarize_all(sum) %>%
+totals <- research_funding_rates |> 
+  select(-discipline) |> 
+  summarize_all(sum) |>
   summarize(yes_men = awards_men, 
             no_men = applications_men - awards_men, 
             yes_women = awards_women, 
@@ -43,7 +43,7 @@ totals <- research_funding_rates %>%
 So we see that a larger percent of men than women received awards:
 
 ```{r}
-totals %>% summarize(percent_men = yes_men/(yes_men+no_men),
+totals |> summarize(percent_men = yes_men/(yes_men+no_men),
                      percent_women = yes_women/(yes_women+no_women))
 ```
 
@@ -71,9 +71,9 @@ with 4 blue (correct answer) and 4 red (incorrect answer) balls. Remember, she k
 Under the null hypothesis that she is simply guessing, each ball
 has the same chance of being picked. We can then use combinations to
 figure out each probability. The probability of picking 3 is
-${4 \choose 3} {4 \choose 1} / {8 \choose 4} = 16/70$. The probability of
+$\binom{4}{3} \binom{4}{1} / \binom{8}{4} = 16/70$. The probability of
 picking all 4 correct is
-${4 \choose 4} {4 \choose 0}/{8 \choose 4}= 1/70$.
+$\binom{4}{4} \binom{4}{0} / \binom{8}{4}= 1/70$.
 Thus, the chance of observing a 3 or something more extreme,
 under the null hypothesis, is $\approx 0.24$. This is the p-value. The
 procedure that produced this p-value is called _Fisher's exact test_ and
@@ -109,17 +109,17 @@ another approach, the Chi-squared test, which is described below.
 Imagine we have `r prettyNum(totals, ,big.mark=",")` applicants, some are men and some are women and some get funded, whereas others don't. We saw that the success rates for men and woman were:
 
 ```{r}
-totals %>% summarize(percent_men = yes_men/(yes_men+no_men),
+totals |> summarize(percent_men = yes_men/(yes_men+no_men),
                      percent_women = yes_women/(yes_women+no_women))
 ```
 
 respectively. Would we see this again if we randomly assign funding at the overall rate:
 
 ```{r}
-rate <- totals %>%
+rate <- totals |>
   summarize(percent_total = 
               (yes_men + yes_women)/
-              (yes_men + no_men +yes_women + no_women)) %>%
+              (yes_men + no_men +yes_women + no_women)) |>
   pull(percent_total)
 rate
 ```
@@ -146,7 +146,7 @@ a deviation this large or larger. This test uses an asymptotic result, similar t
 The R function `chisq.test` takes a two-by-two table and returns the results from the test:
 
 ```{r}
-chisq_test <- two_by_two %>% select(-awarded) %>% chisq.test()
+chisq_test <- two_by_two |> select(-awarded) |> chisq.test()
 ```
 
 We see that the p-value is 0.0509:
@@ -193,10 +193,10 @@ mat <- cbind(c(" a "," c "), c(" b "," d "))
 colnames(mat) <- c("Men","Women")
 rownames(mat) <- c("Awarded", "Not Awarded")
 if(knitr::is_html_output()){
-  knitr::kable(mat, "html", align = "c") %>%
+  knitr::kable(mat, "html", align = "c") |>
     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
 } else{
-  knitr::kable(mat, "latex", booktabs = TRUE, align = "c") %>%
+  knitr::kable(mat, "latex", booktabs = TRUE, align = "c") |>
     kableExtra::kable_styling(font_size = 8)
 }
 ```
@@ -228,8 +228,8 @@ By exponentiating these two numbers we can construct a confidence interval of th
 Using R we can compute this confidence interval as follows:
 ```{r}
 log_or <- log(odds_men / odds_women)
-se <- two_by_two %>% select(-awarded) %>%
-  summarize(se = sqrt(sum(1/men) + sum(1/women))) %>%
+se <- two_by_two |> select(-awarded) |>
+  summarize(se = sqrt(sum(1/men) + sum(1/women))) |>
   pull(se)
 ci <- log_or + c(-1,1) * qnorm(0.975) * se
 ```
@@ -267,9 +267,10 @@ Note that the relationship between odds ratio and p-value is not one-to-one. It 
 Notice what happens to the p-value if we multiply our two-by-two table by 10, which does not change the odds ratio:
 
 ```{r}
-two_by_two %>% select(-awarded) %>%
-  mutate(men = men*10, women = women*10) %>%
-  chisq.test() %>% .$p.value
+two_by_two_x_10 <- two_by_two |> 
+  select(-awarded) |>
+  mutate(men = men*10, women = women*10) 
+chisq.test(two_by_two_x_10)$p.value
 ```
 
 ## Exercises

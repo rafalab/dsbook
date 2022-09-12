@@ -12,7 +12,7 @@ For this reason, R defines a data type just for dates and times. We saw an examp
 library(tidyverse)
 library(dslabs)
 data("polls_us_election_2016")
-polls_us_election_2016$startdate %>% head
+polls_us_election_2016$startdate |> head()
 ```
 
 These look like strings, but they are not:
@@ -24,19 +24,19 @@ class(polls_us_election_2016$startdate)
 Look at what happens when we convert them to numbers:
 
 ```{r}
-as.numeric(polls_us_election_2016$startdate) %>% head
+as.numeric(polls_us_election_2016$startdate) |> head()
 ```
 
 It turns them into days since the epoch. The `as.Date` function can convert a character into a date. So to see that the epoch is day 0 we can type
 
 ```{r}
-as.Date("1970-01-01") %>% as.numeric
+as.Date("1970-01-01") |> as.numeric()
 ```
 
 Plotting functions, such as those in ggplot, are aware of the date format. This means that, for example, a scatterplot can use the numeric representation to decide on the position of the point, but include the string in the labels:
 
 ```{r rawpolls-vs-time}
-polls_us_election_2016 %>% filter(pollster == "Ipsos" & state =="U.S.") %>%
+polls_us_election_2016 |> filter(pollster == "Ipsos" & state =="U.S.") |>
   ggplot(aes(startdate, rawpoll_trump)) +
   geom_line()
 ```
@@ -55,7 +55,7 @@ We will take a random sample of dates to show some of the useful things one can 
 
 ```{r}
 set.seed(2002)
-dates <- sample(polls_us_election_2016$startdate, 10) %>% sort
+dates <- sample(polls_us_election_2016$startdate, 10) |> sort()
 dates
 ```
 
@@ -126,9 +126,9 @@ You can see all the available time zones with `OlsonNames()` function.
 We can also extract hours, minutes, and seconds: 
 
 ```{r}
-now() %>% hour()
-now() %>% minute()
-now() %>% second()
+now() |> hour()
+now() |> minute()
+now() |> second()
 ```
 
 The package also includes a function to parse strings into times as well as parsers for time objects that include dates:
@@ -158,11 +158,12 @@ make_date(1980:1989)
 Another very useful function is the `round_date`. It can be used to _round_ dates to nearest year, quarter,  month, week, day, hour, minutes, or seconds. So if we want to group all the polls by week of the year we can do the following:
 
 ```{r poll-margin-versus-week}
-polls_us_election_2016 %>% 
-  mutate(week = round_date(startdate, "week")) %>%
-  group_by(week) %>%
-  summarize(margin = mean(rawpoll_clinton - rawpoll_trump)) %>%
-  qplot(week, margin, data = .)
+polls_us_election_2016 |> 
+  mutate(week = round_date(startdate, "week")) |>
+  group_by(week) |>
+  summarize(margin = mean(rawpoll_clinton - rawpoll_trump)) |>
+  ggplot(aes(week, margin)) +
+  geom_point()
 ```
 
 
@@ -190,19 +191,19 @@ dat <- map_df(str_split(pdf_text(fn), "\n"), function(s){
   n <- str_count(s, "\\d+")
   out <- c(1:header_index, which(n == 1), 
            which(n >= 28), tail_index:length(s))
-  s[-out] %>%  str_remove_all("[^\\d\\s]") %>% str_trim() %>%
-    str_split_fixed("\\s+", n = 6) %>% .[,1:5] %>% as_tibble() %>% 
-    setNames(c("day", header)) %>%
-    mutate(month = month, day = as.numeric(day)) %>%
-    pivot_longer(-c(day, month), names_to = "year", values_to = "deaths") %>%
+  s[-out] |>  str_remove_all("[^\\d\\s]") |> str_trim() |>
+    str_split_fixed("\\s+", n = 6) |> .[,1:5] |> as_tibble() |> 
+    setNames(c("day", header)) |>
+    mutate(month = month, day = as.numeric(day)) |>
+    pivot_longer(-c(day, month), names_to = "year", values_to = "deaths") |>
     mutate(deaths = as.numeric(deaths))
-}) %>%
+}) |>
   mutate(month = recode(month, 
                         "JAN" = 1, "FEB" = 2, "MAR" = 3, 
                         "APR" = 4, "MAY" = 5, "JUN" = 6, 
                         "JUL" = 7, "AGO" = 8, "SEP" = 9, 
-                        "OCT" = 10, "NOV" = 11, "DEC" = 12)) %>%
-  mutate(date = make_date(year, month, day)) %>%
+                        "OCT" = 10, "NOV" = 11, "DEC" = 12)) |>
+  mutate(date = make_date(year, month, day)) |>
   filter(date <= "2018-05-01")
 ```
 

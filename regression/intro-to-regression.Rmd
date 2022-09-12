@@ -16,12 +16,12 @@ library(HistData)
 data("GaltonFamilies")
 
 set.seed(1983)
-galton_heights <- GaltonFamilies %>%
-  filter(gender == "male") %>%
-  group_by(family) %>%
-  sample_n(1) %>%
-  ungroup() %>%
-  select(father, childHeight) %>%
+galton_heights <- GaltonFamilies |>
+  filter(gender == "male") |>
+  group_by(family) |>
+  sample_n(1) |>
+  ungroup() |>
+  select(father, childHeight) |>
   rename(son = childHeight)
 ```
 
@@ -30,14 +30,14 @@ In the exercises, we will look at other relationships including mothers and daug
 Suppose we were asked to summarize the father and son data. Since both distributions are well approximated by the normal distribution, we could use the two averages and two standard deviations as summaries:
 
 ```{r, message=FALSE, warning=FALSE}
-galton_heights %>% 
+galton_heights |> 
   summarize(mean(father), sd(father), mean(son), sd(son))
 ```
 
 However, this summary fails to describe an important characteristic of the data: the trend that the taller the father, the taller the son. 
 
 ```{r scatterplot, fig.height = 3, fig.width = 3, out.width="40%"}
-galton_heights %>% ggplot(aes(father, son)) + 
+galton_heights |> ggplot(aes(father, son)) + 
   geom_point(alpha = 0.5)
 ```
 
@@ -73,7 +73,7 @@ A similar derivation, but with $x$ and its exact opposite, proves the correlatio
 For other pairs, the correlation is in between -1 and 1. The correlation between father and son's heights is about 0.5:
 
 ```{r}
-galton_heights %>% summarize(r = cor(father, son)) %>% pull(r)
+galton_heights |> summarize(r = cor(father, son)) |> pull(r)
 ```
 
 To see what data looks like for different values of $\rho$, here are six examples of pairs with correlations ranging from -0.9 to 0.99:
@@ -85,7 +85,7 @@ sim_data <- lapply(cors,function(r) MASS::mvrnorm(n,c(0,0), matrix(c(1,r,r,1),2,
 sim_data <- Reduce(rbind, sim_data)
 sim_data <- cbind( rep(cors, each=n), sim_data)
 colnames(sim_data) <- c("r","x","y")
-as.data.frame(sim_data) %>% 
+as.data.frame(sim_data) |> 
   ggplot(aes(x,y)) + 
   facet_wrap(~r) + 
   geom_point(alpha = 0.5) +
@@ -103,8 +103,8 @@ In most data science applications, we observe data that includes random variatio
 By way of illustration, let's assume that the `r nrow(galton_heights)` pairs of fathers and sons is our entire population. A less fortunate geneticist can only afford measurements from a random sample of 25 pairs. The sample correlation can be computed with:
 
 ```{r}
-R <- sample_n(galton_heights, 25, replace = TRUE) %>% 
-  summarize(r = cor(father, son)) %>% pull(r)
+R <- sample_n(galton_heights, 25, replace = TRUE) |> 
+  summarize(r = cor(father, son)) |> pull(r)
 ```
 
 `R` is a random variable. We can run a Monte Carlo simulation to see its distribution:
@@ -113,8 +113,8 @@ R <- sample_n(galton_heights, 25, replace = TRUE) %>%
 B <- 1000
 N <- 25
 R <- replicate(B, {
-  sample_n(galton_heights, N, replace = TRUE) %>% 
-    summarize(r=cor(father, son)) %>% 
+  sample_n(galton_heights, N, replace = TRUE) |> 
+    summarize(r=cor(father, son)) |> 
     pull(r)
 })
 qplot(R, geom = "histogram", binwidth = 0.05, color = I("black"))
@@ -151,10 +151,10 @@ If you increase $N$, you will see the distribution converging to normal.
 Correlation is not always a good summary of the relationship between two variables. The following four artificial datasets, referred to as Anscombe's quartet, famously illustrate this point. All these pairs have a correlation of 0.82:
 
 ```{r ascombe-quartet,echo=FALSE}
-anscombe %>% mutate(row = seq_len(n())) %>%
-  gather(name, value, -row) %>% 
-  separate(name, c("axis", "group"), sep=1) %>%
-  spread(axis, value) %>% select(-row) %>%
+anscombe |> mutate(row = seq_len(n())) |>
+  gather(name, value, -row) |> 
+  separate(name, c("axis", "group"), sep=1) |>
+  spread(axis, value) |> select(-row) |>
   ggplot(aes(x,y)) +
   facet_wrap(~group)  +
   geom_smooth(method="lm", fill=NA, fullrange=TRUE) + 
@@ -170,7 +170,7 @@ Suppose we are asked to guess the height of a randomly selected son and we don't
 
 It turns out that if we were able to collect data from a very large number of fathers that are 72 inches, the distribution of their sons' heights would be normally distributed. This implies that the average of the distribution computed on this subset would be our best prediction. 
 
-In general, we call this approach _conditioning_. The general idea is that we stratify a population into groups and compute summaries in each group. Conditioning is therefore related to the concept of stratification described in Section \@ref(stratification). To provide a mathematical description of conditioning, consider we have a population of pairs of values $(x_1,y_1),\dots,(x_n,y_n)$, for example all father and son heights in England. In the previous chapter we learned that if you take a random pair $(X,Y)$, the expected value and best predictor of $Y$ is $\mbox{E}(Y) = \mu_y$, the population average $1/n\sum_{i=1}^n y_i$. However, we are no longer interested in the general population, instead we are interested in only the subset of a population with a specific $x_i$ value, 72 inches in our example. This subset of the population, is also a population and thus the same principles and properties we have learned apply. The $y_i$ in the subpopulation have a distribution, referred to as the _conditional distribution_, and this distribution has an expected value referred to as the _conditional expectation_. In our example, the conditional expectation is the average height of all sons in England with fathers that are 72 inches. The statistical notation for the conditional expectation is
+In general, we call this approach _conditioning_. The general idea is that we stratify a population into groups and compute summaries in each group. To provide a mathematical description of conditioning, consider we have a population of pairs of values $(x_1,y_1),\dots,(x_n,y_n)$, for example all father and son heights in England. In the previous chapter we learned that if you take a random pair $(X,Y)$, the expected value and best predictor of $Y$ is $\mbox{E}(Y) = \mu_y$, the population average $1/n\sum_{i=1}^n y_i$. However, we are no longer interested in the general population, instead we are interested in only the subset of a population with a specific $x_i$ value, 72 inches in our example. This subset of the population, is also a population and thus the same principles and properties we have learned apply. The $y_i$ in the subpopulation have a distribution, referred to as the _conditional distribution_, and this distribution has an expected value referred to as the _conditional expectation_. In our example, the conditional expectation is the average height of all sons in England with fathers that are 72 inches. The statistical notation for the conditional expectation is
 
 $$
 \mbox{E}(Y \mid X = x)
@@ -199,9 +199,9 @@ sum(galton_heights$father == 72.5)
 A practical way to improve these estimates of the conditional expectations, is to define strata of with similar values of $x$. In our example, we can round father heights to the nearest inch and assume that they are all 72 inches. If we do this, we end up with the following prediction for the son of a father that is 72 inches tall:
 
 ```{r}
-conditional_avg <- galton_heights %>% 
-  filter(round(father) == 72) %>%
-  summarize(avg = mean(son)) %>% 
+conditional_avg <- galton_heights |> 
+  filter(round(father) == 72) |>
+  summarize(avg = mean(son)) |> 
   pull(avg)
 conditional_avg
 ```
@@ -213,7 +213,7 @@ Note that a 72-inch father is taller than average -- specifically, (72.0 - `r ro
 If we want to make a prediction of any height, not just 72, we could apply the same approach to each strata. Stratification followed by boxplots lets us see the distribution of each group:
 
 ```{r boxplot-1, fig.height = 3, fig.width = 3, out.width="40%"}
-galton_heights %>% mutate(father_strata = factor(round(father))) %>% 
+galton_heights |> mutate(father_strata = factor(round(father))) |> 
   ggplot(aes(father_strata, son)) + 
   geom_boxplot() + 
   geom_point()
@@ -223,10 +223,10 @@ Not surprisingly, the centers of the groups are increasing with height.
 Furthermore, these centers appear to follow a linear relationship. Below we plot the averages of each group. If we take into account that these averages are random variables with standard errors, the data is consistent with these points following a straight line:
 
 ```{r conditional-averages-follow-line, echo=FALSE, fig.height = 3, fig.width = 3, out.width="40%"}
-galton_heights %>% 
-  mutate(father = round(father)) %>% 
-  group_by(father) %>%
-  summarize(son_conditional_avg = mean(son)) %>%
+galton_heights |> 
+  mutate(father = round(father)) |> 
+  group_by(father) |>
+  summarize(son_conditional_avg = mean(son)) |>
   ggplot(aes(father, son_conditional_avg)) + 
   geom_point()
 ```
@@ -265,7 +265,7 @@ s_x <- sd(galton_heights$father)
 s_y <- sd(galton_heights$son)
 r <- cor(galton_heights$father, galton_heights$son)
 
-galton_heights %>% 
+galton_heights |> 
   ggplot(aes(father, son)) + 
   geom_point(alpha = 0.5) +
   geom_abline(slope = r * s_y/s_x, intercept = mu_y - r * s_y/s_x * mu_x) 
@@ -274,7 +274,7 @@ galton_heights %>%
 The regression formula implies that if we first standardize the variables, that is subtract the average and divide by the standard deviation, then the regression line has intercept 0 and slope equal to the correlation $\rho$. You can make same plot, but using standard units like this:
 
 ```{r regression-line-standard-units, fig.height = 3, fig.width = 3, out.width="40%", eval=FALSE} 
-galton_heights %>% 
+galton_heights |> 
   ggplot(aes(scale(father), scale(son))) + 
   geom_point(alpha = 0.5) +
   geom_abline(intercept = 0, slope = r) 
@@ -297,8 +297,8 @@ N <- 50
 set.seed(1983)
 conditional_avg <- replicate(B, {
   dat <- sample_n(galton_heights, N)
-  dat %>% filter(round(father) == 72) %>% 
-    summarize(avg = mean(son)) %>% 
+  dat |> filter(round(father) == 72) |> 
+    summarize(avg = mean(son)) |> 
     pull(avg)
   })
 
@@ -348,7 +348,7 @@ sim_data <- lapply(cors,function(r) MASS::mvrnorm(n,c(0,0), matrix(c(1,r,r,1),2,
 sim_data <- Reduce(rbind, sim_data)
 sim_data <- cbind( rep(cors, each=n), sim_data)
 colnames(sim_data) <- c("r","x","y")
-as.data.frame(sim_data) %>% ggplot(aes(x,y)) +facet_wrap(~r) + geom_point() +geom_vline(xintercept = 0,lty=2) + geom_hline(yintercept = 0,lty=2) 
+as.data.frame(sim_data) |> ggplot(aes(x,y)) +facet_wrap(~r) + geom_point() +geom_vline(xintercept = 0,lty=2) + geom_hline(yintercept = 0,lty=2) 
 ```
 -->
 
@@ -359,9 +359,9 @@ A more technical way to define the bivariate normal distribution is the followin
 If we think the height data is well approximated by the bivariate normal distribution, then we should see the normal approximation hold for each strata. Here we stratify the son heights by the standardized father heights and see that the assumption appears to hold:
 
 ```{r qqnorm-of-strata}
-galton_heights %>%
-  mutate(z_father = round((father - mean(father)) / sd(father))) %>%
-  filter(z_father %in% -2:2) %>%
+galton_heights |>
+  mutate(z_father = round((father - mean(father)) / sd(father))) |>
+  filter(z_father %in% -2:2) |>
   ggplot() +  
   stat_qq(aes(sample = son)) +
   facet_wrap( ~ z_father) 
@@ -431,7 +431,7 @@ So we get $\mbox{E}(X \mid Y=y) =$ `r round(b_2, 1)` + `r round(m_2, 2)`y. Again
 Here is a plot showing the two regression lines, with blue for the predicting son heights with father heights and red for predicting father heights with son heights:
 
 ```{r two-regression-lines, fig.height = 3, fig.width = 3, out.width="40%"}
-galton_heights %>% 
+galton_heights |> 
   ggplot(aes(father, son)) + 
   geom_point(alpha = 0.5) + 
   geom_abline(intercept = b_1, slope = m_1, col = "blue") +

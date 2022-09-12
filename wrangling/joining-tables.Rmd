@@ -35,8 +35,8 @@ The _join_ functions, described below, are designed to handle this challenge.
 The _join_ functions in the __dplyr__ package make sure that the tables are combined so that matching rows are together. If you know SQL, you will see that the approach and syntax is very similar. The general idea is that one needs to identify one or more columns that will serve to match the two tables. Then a new table with the combined information is returned. Notice what happens if we join the two tables above by state using `left_join` (we will remove the `others` column and rename `electoral_votes` so that the tables fit on the page):
 
 ```{r}
-tab <- left_join(murders, results_us_election_2016, by = "state") %>%
-  select(-others) %>% rename(ev = electoral_votes)
+tab <- left_join(murders, results_us_election_2016, by = "state") |>
+  select(-others) |> rename(ev = electoral_votes)
 head(tab)
 ```
 
@@ -44,7 +44,7 @@ The data has been successfully joined and we can now, for example, make a plot t
 
 ```{r ev-vs-population, message=FALSE, warning=FALSE}
 library(ggrepel)
-tab %>% ggplot(aes(population/10^6, ev, label = abb)) +
+tab |> ggplot(aes(population/10^6, ev, label = abb)) +
   geom_point() +
   geom_text_repel() + 
   scale_x_continuous(trans = "log2") +
@@ -58,12 +58,12 @@ We see the relationship is close to linear with about 2 electoral votes for ever
 In practice, it is not always the case that each row in one table has a matching row in the other. For this reason, we have several versions of join. To illustrate this challenge, we will take subsets of the tables above. We create the tables `tab1` and `tab2` so that they have some states in common but not all:
 
 ```{r}
-tab_1 <- slice(murders, 1:6) %>% select(state, population)
+tab_1 <- slice(murders, 1:6) |> select(state, population)
 tab_1
-tab_2 <- results_us_election_2016 %>% 
+tab_2 <- results_us_election_2016 |> 
   filter(state%in%c("Alabama", "Alaska", "Arizona", 
-                    "California", "Connecticut", "Delaware")) %>% 
-  select(state, electoral_votes) %>% rename(ev = electoral_votes)
+                    "California", "Connecticut", "Delaware")) |> 
+  select(state, electoral_votes) |> rename(ev = electoral_votes)
 tab_2
 ```
 
@@ -81,7 +81,7 @@ left_join(tab_1, tab_2, by = "state")
 Note that `NA`s are added to the two states not appearing in `tab_2`. Also, notice that this function, as well as all the other joins, can receive the first arguments through the pipe:
 
 ```{r, eval=FALSE}
-tab_1 %>% left_join(tab_2, by = "state")
+tab_1 |> left_join(tab_2, by = "state")
 ```
 
 
@@ -90,7 +90,7 @@ tab_1 %>% left_join(tab_2, by = "state")
 If instead of a table with the same rows as first table, we want one with the same rows as second table, we can use `right_join`:
 
 ```{r}
-tab_1 %>% right_join(tab_2, by = "state")
+tab_1 |> right_join(tab_2, by = "state")
 ```
 
 Now the NAs are in the column coming from `tab_1`.
@@ -268,18 +268,18 @@ The `Batting` data frame contains the offensive statistics for all players for m
 ```{r, eval=FALSE}
 library(Lahman)
 
-top <- Batting %>% 
-  filter(yearID == 2016) %>%
-  arrange(desc(HR)) %>%
+top <- Batting |> 
+  filter(yearID == 2016) |>
+  arrange(desc(HR)) |>
   slice(1:10)
 
-top %>% as_tibble()
+top |> as_tibble()
 ```
 
 But who are these players? We see an ID, but not the names. The player names are in this table
 
 ```{r, eval=FALSE}
-Master %>% as_tibble()
+Master |> as_tibble()
 ```
 
 We can see column names `nameFirst` and `nameLast`. Use the `left_join` function to create a table of the top home run hitters. The table should have `playerID`, first name, last name, and number of home runs (HR).  Rewrite the object `top` with this new table.
@@ -294,10 +294,10 @@ We can see column names `nameFirst` and `nameLast`. Use the `left_join` function
 
 
 ```{r, eval=FALSE}
-co2_wide <- data.frame(matrix(co2, ncol = 12, byrow = TRUE)) %>% 
-  setNames(1:12) %>%
-  mutate(year = 1959:1997) %>%
-  pivot_longer(-year, names_to = "month", values_to = "co2") %>%
+co2_wide <- data.frame(matrix(co2, ncol = 12, byrow = TRUE)) |> 
+  setNames(1:12) |>
+  mutate(year = 1959:1997) |>
+  pivot_longer(-year, names_to = "month", values_to = "co2") |>
   mutate(month = as.numeric(month))
 ```
 

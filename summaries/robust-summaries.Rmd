@@ -1,12 +1,10 @@
-# Robust summaries {#robust-summaries}
+## Robust summaries {#robust-summaries}
 
-
-
-## Outliers
+### Outliers
 
 We previously described how boxplots show _outliers_, but we did not provide a precise definition. Here we discuss outliers, approaches that can help detect them, and summaries that take into account their presence.
 
-Outliers are very common in data science. Data recording can be complex and it is common to observe data points generated in error. For example, an old monitoring device may read out nonsensical measurements before completely failing. Human error is also a source of outliers, in particular when data entry is done manually. An individual, for instance, may mistakenly enter their height in centimeters instead of inches or put the decimal in the wrong place.  
+Outliers are very common in real-world data anlysis. Data recording can be complex and it is common to observe data points generated in error. For example, an old monitoring device may read out nonsensical measurements before completely failing. Human error is also a source of outliers, in particular when data entry is done manually. An individual, for instance, may mistakenly enter their height in centimeters instead of inches or put the decimal in the wrong place.  
 
 How do we distinguish an outlier from measurements that were too big or too small simply due to expected variability? This is not always an easy question to answer, but we try to provide some guidance. Let's begin with a simple case.
 
@@ -19,14 +17,14 @@ data(outlier_example)
 str(outlier_example)
 ```
 
-Our colleague uses the fact that heights are usually well approximated by a normal distribution and summarizes the data with average and standard deviation:
+Our colleague uses the fact that heights are usually well approximated by a normal distribution and summarizes the data with average and standard deviation
 
 ```{r}
 mean(outlier_example)
 sd(outlier_example)
 ```
 
-and writes a report on the interesting fact that this group of males is much taller than usual. The average height is over six feet tall! Using your data science skills, however, you notice something else that is unexpected: the standard deviation is over 7 feet. Adding and subtracting two standard deviations, you note that 95% of this population will have heights between `r mean(outlier_example) + c(-2, 2)*sd(outlier_example)` feet, which does not make sense. A quick plot reveals the problem:
+and writes a report on the interesting fact that this group of males is much taller than usual. The average height is over six feet tall! Using your data analysis skills, however, you notice something else that is unexpected: the standard deviation is over 7 feet. Adding and subtracting two standard deviations, you note that 95% of this population will have heights between `r mean(outlier_example) + c(-2, 2)*sd(outlier_example)` feet, which does not make sense. A quick plot reveals the problem:
 
 <!--
 ```{r histogram-reveals-outliers}
@@ -45,7 +43,7 @@ boxplot(outlier_example)
 
 There appears to be at least one value that is nonsensical, since we know that a height of `r max(outlier_example)` feet is impossible. The boxplot detects this point as an outlier.
 
-## Median
+### Median
 
 When we have an outlier like this, the average can become very large. Mathematically, we can make the average as large as we want by simply changing one number: with `r length(outlier_example)` data points, we can increase the average by any amount $\Delta$ by adding $\Delta \times$ `r length(outlier_example)` to a single number. The median, defined as the value for which half the values are smaller and the other half are bigger, is robust to such outliers. No matter how large we make the largest point, the median remains the same. 
 
@@ -58,7 +56,7 @@ which is about `r floor(median(outlier_example))` feet and `r round(12*(median(o
 
 The median is what boxplots display as a horizontal line.
 
-## The inter quartile range (IQR)
+### The inter quartile range (IQR)
 
 The box in boxplots is defined by the first and third quartile. These are meant to provide an idea of the variability in the data: 50% of the data is within this range. The difference between the 3rd and 1st quartile (or 75th and 25th percentiles) is referred to as the inter quartile range (IQR). As is the case with the median, this quantity will be robust to outliers as large values do not affect it. We can do some math to see that for normally distributed data, the IQR / 1.349 approximates the standard deviation of the data had an outlier not been present. We can see that this works well in our example since we get a standard deviation estimate of: 
 
@@ -69,9 +67,9 @@ IQR(outlier_example) / 1.349
 which is about `r round(IQR(outlier_example)/1.349*12)` inches.
 
 
-## Tukey's definition of an outlier
+### Tukey's definition of an outlier
 
-In R, points falling outside the whiskers of the boxplot are referred to as _outliers_. This definition of outlier was introduced by Tukey. The top whisker ends at the 75th percentile plus 1.5 $\times$ IQR. Similarly the bottom whisker ends at the 25th percentile minus 1.5$\times$ IQR. If we define the first and third quartiles as $Q_1$ and $Q_3$, respectively, then an outlier is anything outside the range: 
+In R, points falling outside the whiskers of the boxplot are referred to as _outliers_. This definition of outlier was introduced by John Tukey. The top whisker ends at the 75th percentile plus 1.5 $\times$ IQR. Similarly the bottom whisker ends at the 25th percentile minus 1.5$\times$ IQR. If we define the first and third quartiles as $Q_1$ and $Q_3$, respectively, then an outlier is anything outside the range: 
 
 $$[Q_1 - 1.5 \times (Q_3 - Q1), Q_3 + 1.5 \times (Q_3 - Q1)].$$ 
 
@@ -87,7 +85,7 @@ r
 
 Using the `pnorm` function, we see that `r round(pnorm(r[2]) - pnorm(r[1]),3)*100`% of the data falls in this interval.
 
-Keep in mind that this is not such an extreme event: if we have 1000 data points that are normally distributed, we expect to see about 7 outside of this range. But these would not be outliers since we expect to see them under the typical variation. 
+Keep in mind that this is not such an extreme event: if we have 1,000 data points that are normally distributed, we expect to see about 7 outside of this range. But these would not be outliers since we expect to see them under the typical variation. 
 
 If we want an outlier to be rarer, we can increase the 1.5 to a larger number. Tukey also used 3 and called these _far out_ outliers. With a normal distribution, 
 `r r <- c(q1 - 3*iqr , q3 + 3*iqr); round((pnorm(r[2]) - pnorm(r[1]))*100, 4)`% 
@@ -116,7 +114,7 @@ qqline(x)
 ```
 
 
-## Median absolute deviation
+### Median absolute deviation
 
 Another way to robustly estimate the standard deviation in the presence of outliers is to use the median absolute deviation (MAD). To compute the MAD, we first compute the median, and then for each value we compute the distance between that value and the median. The MAD is defined as the median of these distances. For technical reasons not discussed here, this quantity needs to be multiplied by 1.4826 to assure it approximates the actual standard deviation. The `mad` function already incorporates this correction. For the height data, we get a MAD of:
 
@@ -175,7 +173,7 @@ d. A scatterplot would show high levels of measurement error.
 
 8\. How much can the average accidentally grow with mistakes like this? Write a function called `error_avg` that takes a value `k` and returns the average of the vector `x` after the first entry changed to `k`. Show the results for `k=10000` and `k=-10000`.
 
-## Case study: self-reported student heights 
+### Case study: self-reported student heights  
 
 The heights we have been looking at are not the original heights reported by students. The original reported heights are also included in the __dslabs__ package and can be loaded like this:
 
@@ -187,7 +185,7 @@ data("reported_heights")
 Height is a character vector so we create a new column with the numeric version:
 
 ```{r}
-reported_heights <- reported_heights %>%
+reported_heights <- reported_heights |>
   mutate(original_heights = height, height = as.numeric(height))
 ```
 
@@ -195,7 +193,7 @@ Note that we get a warning about NAs. This is because some of the self reported 
 We can see why we get these: 
 
 ```{r, warning=FALSE}
-reported_heights %>% filter(is.na(height)) %>%  head()
+reported_heights |> filter(is.na(height)) |>  head()
 ```
 
 Some students self-reported their heights using feet and inches rather than just inches. Others used centimeters and others were just trolling. For now we will remove these entries:
@@ -208,8 +206,8 @@ reported_heights <- filter(reported_heights, !is.na(height))
 If we compute the average and standard deviation, we notice that we obtain strange results. The average and standard deviation are different from the median and MAD:
 
 ```{r}
-reported_heights %>% 
-  group_by(sex) %>%
+reported_heights |> 
+  group_by(sex) |>
   summarize(average = mean(height), sd = sd(height),
             median = median(height), MAD = mad(height))
 ```
@@ -217,7 +215,7 @@ reported_heights %>%
 This suggests that we have outliers, which is confirmed by creating a boxplot:
 
 ```{r height-outlier-ggplot, echo=FALSE}
-reported_heights %>% 
+reported_heights |> 
   ggplot(aes(sex, height)) + 
   geom_boxplot()
 ``` 
@@ -225,7 +223,7 @@ reported_heights %>%
 We can see some rather extreme values. To see what these values are, we can quickly look at the largest values using the `arrange` function:
 
 ```{r}
-reported_heights %>% arrange(desc(height)) %>% top_n(10, height)
+reported_heights |> arrange(desc(height)) |> top_n(10, height)
 ```
 
 The first seven entries look like strange errors. However, the next few look like they were entered as centimeters instead of inches. Since 184 cm is equivalent to six feet tall, we suspect that 184 was actually meant to be 72 inches. 
@@ -236,12 +234,14 @@ We can review all the nonsensical answers by looking at the data considered to b
 whisker <- 3*IQR(reported_heights$height)
 max_height <- quantile(reported_heights$height, .75) + whisker
 min_height <- quantile(reported_heights$height, .25) - whisker
-reported_heights %>% 
-  filter(!between(height, min_height, max_height)) %>% 
-  select(original_heights) %>%
-  head(n=10) %>% pull(original_heights)
+reported_heights |> 
+  filter(!between(height, min_height, max_height)) |> 
+  select(original_heights) |>
+  head(n=10) |> pull(original_heights)
 ```
 
 Examining these heights carefully, we see two common mistakes: entries in centimeters, which turn out to be too large, and entries of the form `x.y` with `x` and `y` representing feet and inches, respectively, which turn out to be too small. Some of the even smaller values, such as 1.6, could be entries in meters.
 
-In the Data Wrangling part of this book we will learn techniques for correcting these values and converting them into inches. Here we were able to detect this problem using careful data exploration to uncover issues with the data: the first step in the great majority of data science projects.
+<!--
+In the Data Wrangling of volume I we describe techniques for correcting these values and converting them into inches. Here we were able to detect this problem using careful data exploration to uncover issues with the data: the first step in the great majority of data science projects.
+--->

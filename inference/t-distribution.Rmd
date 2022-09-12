@@ -5,13 +5,13 @@ library(tidyverse)
 library(dslabs)
 data("polls_us_election_2016")
 ds_theme_set()
-polls <- polls_us_election_2016 %>% 
+polls <- polls_us_election_2016 |> 
   filter(state == "U.S." & enddate >= "2016-10-31" &
-           (grade %in% c("A+","A","A-","B+") | is.na(grade))) %>% 
+           (grade %in% c("A+","A","A-","B+") | is.na(grade))) |> 
   mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
 
-one_poll_per_pollster <- polls %>% group_by(pollster) %>% 
-  filter(enddate == max(enddate)) %>%
+one_poll_per_pollster <- polls |> group_by(pollster) |> 
+  filter(enddate == max(enddate)) |>
   ungroup()
 ```
 
@@ -34,12 +34,12 @@ This is referred to a _t-statistic_. By substituting $\sigma$ with $s$ we introd
 
 ```{r t-distribution-examples, echo=FALSE}
 x <- seq(-5,5, len=100)
-data.frame(x=x, Normal = dnorm(x, 0, 1), t_03 = dt(x,3), t_05 = dt(x,5), t_15=dt(x,15)) %>% gather(distribution, f, -x) %>% ggplot(aes(x,f, color = distribution)) + geom_line() +ylab("f(x)")
+data.frame(x=x, Normal = dnorm(x, 0, 1), t_03 = dt(x,3), t_05 = dt(x,5), t_15=dt(x,15)) |> gather(distribution, f, -x) |> ggplot(aes(x,f, color = distribution)) + geom_line() +ylab("f(x)")
 ```
 
 If we are willing to assume the pollster effect data is normally distributed, based on the sample data $X_1, \dots, X_N$,  
 ```{r poll-spread-qq}
-one_poll_per_pollster %>%
+one_poll_per_pollster |>
   ggplot(aes(sample=spread)) + stat_qq()
 ```
 then $t$ follows a t-distribution with $N-1$ degrees of freedom. So perhaps a better confidence interval for $d$ is:
@@ -47,8 +47,8 @@ then $t$ follows a t-distribution with $N-1$ degrees of freedom. So perhaps a be
 
 ```{r}
 z <- qt(0.975,  nrow(one_poll_per_pollster)-1)
-one_poll_per_pollster %>% 
-  summarize(avg = mean(spread), moe = z*sd(spread)/sqrt(length(spread))) %>% 
+one_poll_per_pollster |> 
+  summarize(avg = mean(spread), moe = z*sd(spread)/sqrt(length(spread))) |> 
   mutate(start = avg - moe, end = avg + moe) 
 ```
 
@@ -70,16 +70,16 @@ The t-distribution can also be used to model errors in bigger deviations that ar
 
 ```{r}
 data("polls_us_election_2016")
-polls_us_election_2016 %>%
+polls_us_election_2016 |>
   filter(state =="Wisconsin" &
            enddate >="2016-10-31" & 
-           (grade %in% c("A+","A","A-","B+") | is.na(grade))) %>%
-  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) %>%
-  mutate(state = as.character(state)) %>%
-  left_join(results_us_election_2016, by = "state") %>%
-  mutate(actual = clinton/100 - trump/100) %>%
+           (grade %in% c("A+","A","A-","B+") | is.na(grade))) |>
+  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) |>
+  mutate(state = as.character(state)) |>
+  left_join(results_us_election_2016, by = "state") |>
+  mutate(actual = clinton/100 - trump/100) |>
   summarize(actual = first(actual), avg = mean(spread), 
-            sd = sd(spread), n = n()) %>%
+            sd = sd(spread), n = n()) |>
   select(actual, avg, sd, n)
 ```
 

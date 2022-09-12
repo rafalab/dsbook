@@ -23,16 +23,16 @@ We create a temporary object `dat` that stores only the measles data, includes a
 
 ```{r}
 the_disease <- "Measles"
-dat <- us_contagious_diseases %>%
-  filter(!state%in%c("Hawaii","Alaska") & disease == the_disease) %>%
-  mutate(rate = count / population * 10000 * 52 / weeks_reporting) %>% 
+dat <- us_contagious_diseases |>
+  filter(!state%in%c("Hawaii","Alaska") & disease == the_disease) |>
+  mutate(rate = count / population * 10000 * 52 / weeks_reporting) |> 
   mutate(state = reorder(state, rate)) 
 ```
 
 We can now easily plot disease rates per year. Here are the measles data from California:
 
 ```{r california-measles-time-series}
-dat %>% filter(state == "California" & !is.na(rate)) %>%
+dat |> filter(state == "California" & !is.na(rate)) |>
   ggplot(aes(year, rate)) +
   geom_line() + 
   ylab("Cases per 10,000")  + 
@@ -48,7 +48,7 @@ In our example, we want to use a sequential palette since there is no meaningful
 We use the geometry `geom_tile` to tile the region with colors representing disease rates. We use a square root transformation to avoid having the really high counts dominate the plot. Notice that missing values are shown in grey. Note that once a disease was pretty much eradicated, some states stopped reporting cases all together. This is why we see so much grey after 1980.
 
 ```{r vaccines-plot, out.width="100%", fig.height=5}
-dat %>% ggplot(aes(year, state, fill = rate)) +
+dat |> ggplot(aes(year, state, fill = rate)) +
   geom_tile(color = "grey50") +
   scale_x_continuous(expand=c(0,0)) +
   scale_fill_gradientn(colors = brewer.pal(9, "Reds"), trans = "sqrt") +
@@ -64,16 +64,16 @@ dat %>% ggplot(aes(year, state, fill = rate)) +
 This plot makes a very striking argument for the contribution of vaccines. However, one limitation of this plot is that it uses color to represent quantity, which we earlier explained makes it harder to know exactly how high values are going. Position and lengths are better cues. If we are willing to lose state information, we can make a version of the plot that shows the values with position. We can also show the average for the US, which we compute like this:
 
 ```{r}
-avg <- us_contagious_diseases %>%
-  filter(disease==the_disease) %>% group_by(year) %>%
+avg <- us_contagious_diseases |>
+  filter(disease==the_disease) |> group_by(year) |>
   summarize(us_rate = sum(count, na.rm = TRUE) / 
               sum(population, na.rm = TRUE) * 10000)
 ```
 
 Now to make the plot we simply use the `geom_line` geometry:
 ```{r time-series-vaccines-plot}
-dat %>% 
-  filter(!is.na(rate)) %>%
+dat |> 
+  filter(!is.na(rate)) |>
     ggplot() +
   geom_line(aes(year, rate, group = state),  color = "grey50", 
             show.legend = FALSE, alpha = 0.2, size = 1) +

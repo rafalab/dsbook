@@ -23,10 +23,12 @@ library(tidyverse)
 library(rvest)
 url <- "http://www.stevetheump.com/Payrolls.htm"
 h <- read_html(url) 
-i <- h %>% html_nodes(".style3") %>% html_text() %>% stringr::str_which("2002")
-h %>% html_nodes("table") %>% .[[i]] %>% html_table(header = TRUE) %>%  
-  mutate(Payroll = parse_number(Payroll)/10^6) %>%
-  mutate(Team = reorder(Team, Payroll)) %>%
+i <- h |> html_nodes(".style3") |> html_text() |> stringr::str_which("2002")
+h |> html_nodes("table") |> 
+  (\(x) x[[i]])() |> 
+  html_table(header = TRUE) |>  
+  mutate(Payroll = parse_number(Payroll)/10^6) |>
+  mutate(Team = reorder(Team, Payroll)) |>
   ggplot(aes(Team, Payroll)) +
   geom_bar(stat = "identity") +
   ylab("Payroll in Millions") + 
@@ -94,13 +96,13 @@ One of Bill James' first important insights is that the batting average ignores 
 
 One of the challenges in this analysis is that it is not obvious how to determine if a player produces runs because so much depends on his teammates. We do keep track of the number of runs scored by a player. However, remember that if a player X bats right before someone who hits many HRs, batter X will score many runs. But these runs don't necessarily happen if we hire player X but not his HR hitting teammate.  However, we can examine team-level statistics. How do teams with many SB compare to teams with few? How about BB? We have data! Let's examine some. 
 
-Let's start with an obvious one: HRs. Do teams that hit more home runs score more runs? We examine data from 1961 to 2001. The visualization of choice when exploring the relationship between two variables, such as HRs and wins, is a scatterplot:
+Let's start with an obvious one: HRs. Do teams that hit more home runs score more runs? We examine data from 1962, the first year all teams played 162 games (like today) instead of 154, to 2001, the year before the year for which we will construct a team. The visualization of choice when exploring the relationship between two variables, such as HRs and wins, is a scatterplot:
 
 ```{r runs-vs-hrs, message=FALSE, warning=FALSE}
 library(Lahman)
 
-Teams %>% filter(yearID %in% 1961:2001) %>%
-  mutate(HR_per_game = HR / G, R_per_game = R / G) %>%
+Teams |> filter(yearID %in% 1962:2001) |>
+  mutate(HR_per_game = HR / G, R_per_game = R / G) |>
   ggplot(aes(HR_per_game, R_per_game)) + 
   geom_point(alpha = 0.5)
 ```
@@ -108,8 +110,8 @@ Teams %>% filter(yearID %in% 1961:2001) %>%
 The plot shows a strong association: teams with more HRs tend to score more runs. Now let's examine the relationship between stolen bases and runs:
 
 ```{r runs-vs-sb}
-Teams %>% filter(yearID %in% 1961:2001) %>%
-  mutate(SB_per_game = SB / G, R_per_game = R / G) %>%
+Teams |> filter(yearID %in% 1962:2001) |>
+  mutate(SB_per_game = SB / G, R_per_game = R / G) |>
   ggplot(aes(SB_per_game, R_per_game)) + 
   geom_point(alpha = 0.5)
 ```
@@ -117,8 +119,8 @@ Teams %>% filter(yearID %in% 1961:2001) %>%
 Here the relationship is not as clear. Finally, let's examine the relationship between BB and runs:
 
 ```{r runs-vs-bb}
-Teams %>% filter(yearID %in% 1961:2001) %>%
-  mutate(BB_per_game = BB/G, R_per_game = R/G) %>%
+Teams |> filter(yearID %in% 1962:2001) |>
+  mutate(BB_per_game = BB/G, R_per_game = R/G) |>
   ggplot(aes(BB_per_game, R_per_game)) + 
   geom_point(alpha = 0.5)
 ```
@@ -128,8 +130,8 @@ Here again we see a clear association. But does this mean that increasing a team
 In fact, it looks like BBs and HRs are also associated:
 
 ```{r bb-vs-hrs}
-Teams %>% filter(yearID %in% 1961:2001 ) %>%
-  mutate(HR_per_game = HR/G, BB_per_game = BB/G) %>%
+Teams |> filter(yearID %in% 1962:2001 ) |>
+  mutate(HR_per_game = HR/G, BB_per_game = BB/G) |>
   ggplot(aes(HR_per_game, BB_per_game)) + 
   geom_point(alpha = 0.5)
 ```
@@ -145,8 +147,8 @@ Can we use regression with these data? First, notice that the HR and Run data ap
 
 ```{r hr-runs-bivariate}
 library(Lahman)
-p <- Teams %>% filter(yearID %in% 1961:2001 ) %>%
-  mutate(HR_per_game = HR/G, R_per_game = R/G) %>%
+p <- Teams |> filter(yearID %in% 1962:2001 ) |>
+  mutate(HR_per_game = HR/G, R_per_game = R/G) |>
   ggplot(aes(HR_per_game, R_per_game)) + 
   geom_point(alpha = 0.5)
 p
@@ -156,10 +158,10 @@ p
 The qq-plots confirm that the normal approximation is useful here:
 
 ```{r hr-by-runs-qq}
-Teams %>% filter(yearID %in% 1961:2001 ) %>%
+Teams |> filter(yearID %in% 1962:2001 ) |>
   mutate(z_HR = round((HR - mean(HR))/sd(HR)), 
-         R_per_game = R/G) %>%
-  filter(z_HR %in% -2:3) %>%
+         R_per_game = R/G) |>
+  filter(z_HR %in% -2:3) |>
   ggplot() +  
   stat_qq(aes(sample=R_per_game)) +
   facet_wrap(~z_HR) 
@@ -168,9 +170,9 @@ Teams %>% filter(yearID %in% 1961:2001 ) %>%
 Now we are ready to use linear regression to predict the number of runs a team will score if we know how many home runs the team hits. All we need to do is compute the five summary statistics:
 
 ```{r}
-summary_stats <- Teams %>% 
-  filter(yearID %in% 1961:2001 ) %>%
-  mutate(HR_per_game = HR/G, R_per_game = R/G) %>%
+summary_stats <- Teams |> 
+  filter(yearID %in% 1962:2001 ) |>
+  mutate(HR_per_game = HR/G, R_per_game = R/G) |>
   summarize(avg_HR = mean(HR_per_game),
             s_HR = sd(HR_per_game),
             avg_R = mean(R_per_game),
@@ -182,7 +184,7 @@ summary_stats
 and use the formulas given above to create the regression lines:
 
 ```{r hr-versus-runs-regression}
-reg_line <- summary_stats %>% summarize(slope = r*s_R/s_HR,
+reg_line <- summary_stats |> summarize(slope = r*s_R/s_HR,
                             intercept = avg_R - slope*avg_HR)
 
 p + geom_abline(intercept = reg_line$intercept, slope = reg_line$slope)

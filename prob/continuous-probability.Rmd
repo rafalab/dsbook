@@ -1,10 +1,15 @@
 ## Continuous probability
 
-In Section \@ref(cdf-intro), we explained why when summarizing a list of numeric values, such as heights, it is not useful to construct a distribution that defines a proportion to each possible outcome. For example, if we measure every single person in a very large population of size $n$ with extremely high precision, since no two people are exactly the same height, we need to assign the proportion $1/n$ to each observed value and attain no useful summary at all. Similarly, when defining probability distributions, it is not useful to assign a very small probability to every single height.
+In Section \@ref(ecdf-intro), we explained why when summarizing a list of numeric values, such as heights, it is not useful to construct a distribution that defines a proportion to each possible outcome. Similarly, for a random variable that can take any value in a continuous set, it impossible to assign a positive probabilities to the infinite number of possible values. Here we describe how we mathematically define distributions for continuos random variables and useful approximations often used in  data analysis.
 
-Just as when using distributions to summarize numeric data, it is much more practical to define a function that operates on intervals rather than single values. The standard way of doing this is using the _cumulative distribution function_ (CDF).
 
-We described empirical cumulative distribution function (eCDF) in Section \@ref(cdf-intro) as a basic summary of a list of numeric values. As an example, we earlier defined the height distribution for adult male students. Here, we define the vector $x$ to contain these heights:
+
+
+### Cumulative distribution functions {#cdf-intro}
+
+
+We used the heights of adult male students as an example
+
 
 ```{r,  message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -13,32 +18,59 @@ data(heights)
 x <- heights %>% filter(sex=="Male") %>% pull(height)
 ```
 
-We defined the empirical distribution function as:
+and defined the empirical cumulative distribution function (eCDF) as 
 
 ```{r}
 F <- function(a) mean(x<=a)
 ```
 
-which, for any value `a`, gives the proportion of values in the list `x` that are smaller or equal than `a`. 
+which, for any value `a`, gives the proportion of values in the list `x` that are smaller or equal than `a`.
 
-Keep in mind that we have not yet introduced probability in the context of CDFs. Let's do this by asking the following: if I pick one of the male students at random, what is the chance that he is taller than 70.5 inches? Because every student has the same chance of being picked, the answer to this is equivalent to the proportion of students that are taller than 70.5 inches. Using the CDF we obtain an answer by typing:
+Let's connect the eCDF to probability by asking: if I pick one of the male students at random, what is the chance that he is taller than 70.5 inches? Because every student has the same chance of being picked, the answer to this is equivalent to the proportion of students that are taller than 70.5 inches. Using the eCDF we obtain an answer by typing:
 
 ```{r}
 1 - F(70)
 ```
 
-Once a CDF is defined, we can use this to compute the probability of any subset. For instance, the probability of a student being between height `a` and height `b` is:
+The CDF is a version of the eCDF that assigns theoretical probabilities for each $a$ rather than proportions computed from data. Although, as we just demonstrated, proportions computed from data can be used to define probabilities for a random variable.
+Specifically, the CDF for a random outcome $X$ defines, for any number $a$, the probability of observing a value larger than $a$. 
 
-```{r, eval=FALSE}
-F(b)-F(a)
+$$ F(a) = \mbox{Pr}(X \leq a) $$
+
+Once a CDF is defined, we can use it to compute the probability of any subset of values. For instance, the probability of a student being between height `a` and height `b` is:
+
+$$
+\mbox{Pr}(a < X \leq b) = F(b)-F(a)
+$$
+
+Because we can compute the probability for any possible event this way, the CDF defines the probability distribution.
+
+### Probability density function
+
+A mathematical result that is actually very useful in practice is that for most CDFs we can define a function, call it $f(x)$, that permits us to construct the CDF using Calculus, like this:
+
+$$
+F(b) - F(a) = \int_a^b f(x)\,dx
+$$
+$f(x)$ is referred to as the _probability density function_. The intuition is that even for continuous outcomes we can define tiny intervals, that are almost as small as points, that have positive probabilities. If we think of the size of these intervals as the base of a rectangle,the probability density function $f$ determines the height of the rectangle so that the summing up the area of these rectangles approximate the probability  $F(b) - F(a)$. This sum can be written as Reimann sum that is approximated by an integral:
+
+```{r echo=FALSE}
+cont <- data.frame(x=seq(0,5, len = 300), y=dgamma(seq(0,5, len = 300), 2, 2))
+disc <- data.frame(x=seq(0, 5, 0.075), y=dgamma(seq(0, 5, 0.075), 2, 2))
+ggplot(mapping = aes(x,y)) +
+  geom_col(data =  disc) +
+  geom_line(data = cont) +
+  ylab("f(x)")
 ```
 
-Because we can compute the probability for any possible event this way, the cumulative probability function defines the probability distribution for picking a height at random from our vector of heights `x`. 
+
+An example of such a continuous distribution is the normal distribution. As we saw in \@ref(normal-distribution), the probability density function is given by:
 
 
-## Theoretical continuous distributions
+$$f(x) = e^{-\frac{1}{2}\left( \frac{x-m}{s} \right)^2} $$
 
-In Section \@ref(normal-distribution) we introduced the normal distribution as a useful approximation to many naturally occurring distributions, including that of height. The cumulative distribution for the normal distribution is defined by a mathematical formula which in R can be obtained with the function `pnorm`. We say that a random quantity is normally distributed with average `m` and standard deviation `s` if its probability distribution is defined by:
+
+The cumulative distribution for the normal distribution is defined by a mathematical formula which in R can be obtained with the function `pnorm`. We say that a random quantity is normally distributed with average `m` and standard deviation `s` if its probability distribution is defined by:
 
 ```{r, eval=FALSE}
 F(a) = pnorm(a, m, s)
@@ -97,7 +129,7 @@ In general, we call this situation _discretization_. Although the true height di
 
 ### The probability density
 
-For categorical distributions, we can define the probability of a category. For example, a roll of a die, let's call it $X$, can be 1,2,3,4,5 or 6. The probability of 4 is defined as:
+For categorical distributions, we can define the probability of a category. For example, a roll of a die, let's call it $X$, can be 1, 2, 3, 4, 5 or 6. The probability of 4 is defined as:
 
 $$
 \mbox{Pr}(X=4) = 1/6
@@ -140,6 +172,7 @@ The curve you see is the probability density for the normal distribution. In R, 
 
 Although it may not be immediately obvious why knowing about probability densities is useful, understanding this concept will be essential to those wanting to fit models to data for which predefined functions are not available.
 
+
 ## Monte Carlo simulations for continuous variables
 
 R provides functions to generate normally distributed outcomes. Specifically, the `rnorm` function takes three arguments: size, average (defaults to 0), and standard deviation (defaults to 1) and produces random numbers. Here is an example of how we could generate data that looks like our reported heights:
@@ -154,7 +187,7 @@ simulated_heights <- rnorm(n, m, s)
 Not surprisingly, the distribution looks normal:
 
 ```{r simulated-heights, echo=FALSE}
-data.frame(simulated_heights = simulated_heights) %>%
+data.frame(simulated_heights = simulated_heights) |>
   ggplot(aes(simulated_heights)) + 
   geom_histogram(color="black", binwidth = 1) 
 ```
@@ -180,7 +213,7 @@ mean(tallest >= 7*12)
 Here is the resulting distribution:
 
 ```{r simulated-tallest-height, echo=FALSE}
-data.frame(tallest = tallest) %>% ggplot(aes(tallest)) + 
+data.frame(tallest = tallest) |> ggplot(aes(tallest)) + 
   geom_histogram(color="black", binwidth = 1) 
 ```
 
@@ -188,7 +221,6 @@ Note that it does not look normal.
 
 ## Continuous distributions
 
-We introduced the normal distribution in Section \@ref(normal-distribution) and used it as an example above.
 The normal distribution is not the only useful theoretical distribution.  Other continuous distributions that we may encounter are the student-t, Chi-square, exponential, gamma, beta, and beta-binomial. R provides functions to compute the density, the quantiles, the cumulative distribution functions and to generate Monte Carlo simulations. R uses a convention that lets us remember the names, namely using the letters `d`, `q`, `p`, and `r` in front of a shorthand for the distribution. We have already seen the functions `dnorm`, `pnorm`, and `rnorm` for the normal distribution. The functions `qnorm` gives us the quantiles. We can therefore draw a distribution like this:
 
 ```{r normal-density, eval=FALSE}
