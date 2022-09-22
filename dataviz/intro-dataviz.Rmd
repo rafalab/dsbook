@@ -52,16 +52,20 @@ data(us_contagious_diseases)
 the_disease <- "Measles"
 dat <- us_contagious_diseases |>
   filter(!state%in%c("Hawaii","Alaska") & disease == the_disease) |>
-  mutate(rate = count / population * 10000 * 52 / weeks_reporting) |>
+  mutate(rate = count / population * 100000 * 52 / weeks_reporting) |>
   mutate(state = reorder(state, rate))
 
 jet.colors <-
 colorRampPalette(c("#F0FFFF", "cyan", "#007FFF", "yellow", "#FFBF00", "orange", "red", "#7F0000"), bias = 2.25)
-
+the_breaks <- seq(0, 4000, 1000)
 dat |> ggplot(aes(year, state, fill = rate)) +
   geom_tile(color = "white", size=0.35) +
   scale_x_continuous(expand=c(0,0)) +
-  scale_fill_gradientn(colors = jet.colors(16), na.value = 'white') +
+  scale_fill_gradientn(colors = jet.colors(16), na.value = 'white',
+                       breaks = the_breaks, 
+                       labels = paste0(round(the_breaks/1000),"k"),
+                       limits = range(the_breaks),
+                       name = "") +
   geom_vline(xintercept=1963, col = "black") +
   theme_minimal() + 
   theme(panel.grid = element_blank()) +
@@ -118,9 +122,6 @@ Data visualization is also now pervasive in philanthropic and educational organi
 html_flag <- knitr::is_html_output()
 fh <- knitr::opts_chunk$get("fig.height")
 fw <- knitr::opts_chunk$get("fig.width")
-print(html_flag)
-print(fh)
-print(fw)
 ```
 
 

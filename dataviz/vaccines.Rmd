@@ -25,7 +25,7 @@ We create a temporary object `dat` that stores only the measles data, includes a
 the_disease <- "Measles"
 dat <- us_contagious_diseases |>
   filter(!state%in%c("Hawaii","Alaska") & disease == the_disease) |>
-  mutate(rate = count / population * 10000 * 52 / weeks_reporting) |> 
+  mutate(rate = count / population * 100000 * 52 / weeks_reporting) |> 
   mutate(state = reorder(state, rate)) 
 ```
 
@@ -35,7 +35,7 @@ We can now easily plot disease rates per year. Here are the measles data from Ca
 dat |> filter(state == "California" & !is.na(rate)) |>
   ggplot(aes(year, rate)) +
   geom_line() + 
-  ylab("Cases per 10,000")  + 
+  ylab("Cases per 100,000")  + 
   geom_vline(xintercept=1963, col = "blue")
 ```
 
@@ -50,15 +50,14 @@ We use the geometry `geom_tile` to tile the region with colors representing dise
 ```{r vaccines-plot, out.width="100%", fig.height=5}
 dat |> ggplot(aes(year, state, fill = rate)) +
   geom_tile(color = "grey50") +
-  scale_x_continuous(expand=c(0,0)) +
+  scale_x_continuous(expand = c(0,0)) +
   scale_fill_gradientn(colors = brewer.pal(9, "Reds"), trans = "sqrt") +
-  geom_vline(xintercept=1963, col = "blue") +
+  geom_vline(xintercept = 1963, col = "blue") +
   theme_minimal() +  
   theme(panel.grid = element_blank(), 
         legend.position="bottom", 
         text = element_text(size = 8)) +
-  ggtitle(the_disease) + 
-  ylab("") + xlab("")
+  labs(title = the_disease, x = "", y = "")
 ```
 
 This plot makes a very striking argument for the contribution of vaccines. However, one limitation of this plot is that it uses color to represent quantity, which we earlier explained makes it harder to know exactly how high values are going. Position and lengths are better cues. If we are willing to lose state information, we can make a version of the plot that shows the values with position. We can also show the average for the US, which we compute like this:
@@ -67,7 +66,7 @@ This plot makes a very striking argument for the contribution of vaccines. Howev
 avg <- us_contagious_diseases |>
   filter(disease==the_disease) |> group_by(year) |>
   summarize(us_rate = sum(count, na.rm = TRUE) / 
-              sum(population, na.rm = TRUE) * 10000)
+              sum(population, na.rm = TRUE) * 100000)
 ```
 
 Now to make the plot we simply use the `geom_line` geometry:
@@ -78,8 +77,8 @@ dat |>
   geom_line(aes(year, rate, group = state),  color = "grey50", 
             show.legend = FALSE, alpha = 0.2, size = 1) +
   geom_line(mapping = aes(year, us_rate),  data = avg, size = 1) +
-  scale_y_continuous(trans = "sqrt", breaks = c(5, 25, 125, 300)) + 
-  ggtitle("Cases per 10,000 by state") + 
+  scale_y_continuous(trans = "sqrt", breaks = c(50, 250, 1250, 3000)) + 
+  ggtitle("Cases per 100,000 by state") + 
   xlab("") + ylab("") +
   geom_text(data = data.frame(x = 1955, y = 50), 
             mapping = aes(x, y, label="US average"), 

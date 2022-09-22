@@ -1063,9 +1063,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="web-scraping" class="section level1 hasAnchor" number="23">
 <h1><span class="header-section-number">Chapter 23</span> Web scraping<a href="web-scraping.html#web-scraping" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>The data we need to answer a question is not always in a spreadsheet ready for us to read. For example, the US murders dataset we used in the R Basics chapter originally comes from this Wikipedia page:</p>
-<div class="sourceCode" id="cb819"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb819-1"><a href="web-scraping.html#cb819-1" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;https://en.wikipedia.org/w/index.php?title=&quot;</span>,</span>
-<span id="cb819-2"><a href="web-scraping.html#cb819-2" aria-hidden="true" tabindex="-1"></a>              <span class="st">&quot;Gun_violence_in_the_United_States_by_state&quot;</span>,</span>
-<span id="cb819-3"><a href="web-scraping.html#cb819-3" aria-hidden="true" tabindex="-1"></a>              <span class="st">&quot;&amp;direction=prev&amp;oldid=810166167&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb818"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb818-1"><a href="web-scraping.html#cb818-1" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;https://en.wikipedia.org/w/index.php?title=&quot;</span>,</span>
+<span id="cb818-2"><a href="web-scraping.html#cb818-2" aria-hidden="true" tabindex="-1"></a>              <span class="st">&quot;Gun_violence_in_the_United_States_by_state&quot;</span>,</span>
+<span id="cb818-3"><a href="web-scraping.html#cb818-3" aria-hidden="true" tabindex="-1"></a>              <span class="st">&quot;&amp;direction=prev&amp;oldid=810166167&quot;</span>)</span></code></pre></div>
 <p>You can see the data table when you visit the webpage:</p>
 <p><img src="wrangling/img/murders-data-wiki-page.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>(Web page courtesy of Wikipedia<a href="#fn76" class="footnote-ref" id="fnref76"><sup>76</sup></a>. CC-BY-SA-3.0 license<a href="#fn77" class="footnote-ref" id="fnref77"><sup>77</sup></a>. Screenshot of part of the page.)</p>
@@ -1114,49 +1114,49 @@ title=&quot;List of U.S. states and territories by population&quot;&gt;Populatio
 <div id="the-rvest-package" class="section level2 hasAnchor" number="23.2">
 <h2><span class="header-section-number">23.2</span> The rvest package<a href="web-scraping.html#the-rvest-package" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The <strong>tidyverse</strong> provides a web harvesting package called <strong>rvest</strong>. The first step using this package is to import the webpage into R. The package makes this quite simple:</p>
-<div class="sourceCode" id="cb821"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb821-1"><a href="web-scraping.html#cb821-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb821-2"><a href="web-scraping.html#cb821-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rvest)</span>
-<span id="cb821-3"><a href="web-scraping.html#cb821-3" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">read_html</span>(url)</span></code></pre></div>
+<div class="sourceCode" id="cb820"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb820-1"><a href="web-scraping.html#cb820-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb820-2"><a href="web-scraping.html#cb820-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rvest)</span>
+<span id="cb820-3"><a href="web-scraping.html#cb820-3" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">read_html</span>(url)</span></code></pre></div>
 <p>Note that the entire Murders in the US Wikipedia webpage is now contained in <code>h</code>. The class of this object is:</p>
-<div class="sourceCode" id="cb822"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb822-1"><a href="web-scraping.html#cb822-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(h)</span>
-<span id="cb822-2"><a href="web-scraping.html#cb822-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;xml_document&quot; &quot;xml_node&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb821"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb821-1"><a href="web-scraping.html#cb821-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(h)</span>
+<span id="cb821-2"><a href="web-scraping.html#cb821-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;xml_document&quot; &quot;xml_node&quot;</span></span></code></pre></div>
 <p>The <strong>rvest</strong> package is actually more general; it handles XML documents. XML is a general markup language (that’s what the ML stands for) that can be used to represent any kind of data. HTML is a specific type of XML specifically developed for representing webpages. Here we focus on HTML documents.</p>
 <p>Now, how do we extract the table from the object <code>h</code>? If we print <code>h</code>, we don’t really see much:</p>
-<div class="sourceCode" id="cb823"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb823-1"><a href="web-scraping.html#cb823-1" aria-hidden="true" tabindex="-1"></a>h</span>
-<span id="cb823-2"><a href="web-scraping.html#cb823-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; {html_document}</span></span>
-<span id="cb823-3"><a href="web-scraping.html#cb823-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;html class=&quot;client-nojs&quot; lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;</span></span>
-<span id="cb823-4"><a href="web-scraping.html#cb823-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &lt;head&gt;\n&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; chars ...</span></span>
-<span id="cb823-5"><a href="web-scraping.html#cb823-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [2] &lt;body class=&quot;mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns- ...</span></span></code></pre></div>
+<div class="sourceCode" id="cb822"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb822-1"><a href="web-scraping.html#cb822-1" aria-hidden="true" tabindex="-1"></a>h</span>
+<span id="cb822-2"><a href="web-scraping.html#cb822-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; {html_document}</span></span>
+<span id="cb822-3"><a href="web-scraping.html#cb822-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;html class=&quot;client-nojs&quot; lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;</span></span>
+<span id="cb822-4"><a href="web-scraping.html#cb822-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &lt;head&gt;\n&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; chars ...</span></span>
+<span id="cb822-5"><a href="web-scraping.html#cb822-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [2] &lt;body class=&quot;mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns- ...</span></span></code></pre></div>
 <p>We can see all the code that defines the downloaded webpage using the <code>html_text</code> function like this:</p>
-<div class="sourceCode" id="cb824"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb824-1"><a href="web-scraping.html#cb824-1" aria-hidden="true" tabindex="-1"></a><span class="fu">html_text</span>(h)</span></code></pre></div>
+<div class="sourceCode" id="cb823"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb823-1"><a href="web-scraping.html#cb823-1" aria-hidden="true" tabindex="-1"></a><span class="fu">html_text</span>(h)</span></code></pre></div>
 <p>We don’t show the output here because it includes thousands of characters, but if we look at it, we can see the data we are after are stored in an HTML table: you can see this in this line of the HTML code above <code>&lt;table class="wikitable sortable"&gt;</code>. The different parts of an HTML document, often defined with a message in between <code>&lt;</code> and <code>&gt;</code> are referred to as <em>nodes</em>. The <strong>rvest</strong> package includes functions to extract nodes of an HTML document: <code>html_nodes</code> extracts all nodes of different types and <code>html_node</code> extracts the first one. To extract the tables from the html code we use:</p>
-<div class="sourceCode" id="cb825"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb825-1"><a href="web-scraping.html#cb825-1" aria-hidden="true" tabindex="-1"></a>tab <span class="ot">&lt;-</span> h <span class="sc">|&gt;</span> <span class="fu">html_nodes</span>(<span class="st">&quot;table&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb824"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb824-1"><a href="web-scraping.html#cb824-1" aria-hidden="true" tabindex="-1"></a>tab <span class="ot">&lt;-</span> h <span class="sc">|&gt;</span> <span class="fu">html_nodes</span>(<span class="st">&quot;table&quot;</span>)</span></code></pre></div>
 <p>Now, instead of the entire webpage, we just have the html code for the tables in the page:</p>
-<div class="sourceCode" id="cb826"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb826-1"><a href="web-scraping.html#cb826-1" aria-hidden="true" tabindex="-1"></a>tab</span>
-<span id="cb826-2"><a href="web-scraping.html#cb826-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; {xml_nodeset (2)}</span></span>
-<span id="cb826-3"><a href="web-scraping.html#cb826-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &lt;table class=&quot;wikitable sortable&quot;&gt;&lt;tbody&gt;\n&lt;tr&gt;\n&lt;th&gt;State\n&lt;/th&gt; ...</span></span>
-<span id="cb826-4"><a href="web-scraping.html#cb826-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [2] &lt;table class=&quot;nowraplinks hlist mw-collapsible mw-collapsed navbo ...</span></span></code></pre></div>
+<div class="sourceCode" id="cb825"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb825-1"><a href="web-scraping.html#cb825-1" aria-hidden="true" tabindex="-1"></a>tab</span>
+<span id="cb825-2"><a href="web-scraping.html#cb825-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; {xml_nodeset (2)}</span></span>
+<span id="cb825-3"><a href="web-scraping.html#cb825-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &lt;table class=&quot;wikitable sortable&quot;&gt;&lt;tbody&gt;\n&lt;tr&gt;\n&lt;th&gt;State\n&lt;/th&gt; ...</span></span>
+<span id="cb825-4"><a href="web-scraping.html#cb825-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [2] &lt;table class=&quot;nowraplinks hlist mw-collapsible mw-collapsed navbo ...</span></span></code></pre></div>
 <p>The table we are interested is the first one:</p>
-<div class="sourceCode" id="cb827"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb827-1"><a href="web-scraping.html#cb827-1" aria-hidden="true" tabindex="-1"></a>tab[[<span class="dv">1</span>]]</span>
-<span id="cb827-2"><a href="web-scraping.html#cb827-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; {html_node}</span></span>
-<span id="cb827-3"><a href="web-scraping.html#cb827-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;table class=&quot;wikitable sortable&quot;&gt;</span></span>
-<span id="cb827-4"><a href="web-scraping.html#cb827-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &lt;tbody&gt;\n&lt;tr&gt;\n&lt;th&gt;State\n&lt;/th&gt;\n&lt;th&gt;\n&lt;a href=&quot;/wiki/List_of_U.S ...</span></span></code></pre></div>
+<div class="sourceCode" id="cb826"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb826-1"><a href="web-scraping.html#cb826-1" aria-hidden="true" tabindex="-1"></a>tab[[<span class="dv">1</span>]]</span>
+<span id="cb826-2"><a href="web-scraping.html#cb826-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; {html_node}</span></span>
+<span id="cb826-3"><a href="web-scraping.html#cb826-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;table class=&quot;wikitable sortable&quot;&gt;</span></span>
+<span id="cb826-4"><a href="web-scraping.html#cb826-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &lt;tbody&gt;\n&lt;tr&gt;\n&lt;th&gt;State\n&lt;/th&gt;\n&lt;th&gt;\n&lt;a href=&quot;/wiki/List_of_U.S ...</span></span></code></pre></div>
 <p>This is clearly not a tidy dataset, not even a data frame. In the code above, you can definitely see a pattern and writing code to extract just the data is very doable. In fact, <strong>rvest</strong> includes a function just for converting HTML tables into data frames:</p>
-<div class="sourceCode" id="cb828"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb828-1"><a href="web-scraping.html#cb828-1" aria-hidden="true" tabindex="-1"></a>tab <span class="ot">&lt;-</span> tab[[<span class="dv">1</span>]] <span class="sc">|&gt;</span> <span class="fu">html_table</span>()</span>
-<span id="cb828-2"><a href="web-scraping.html#cb828-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(tab)</span>
-<span id="cb828-3"><a href="web-scraping.html#cb828-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb827"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb827-1"><a href="web-scraping.html#cb827-1" aria-hidden="true" tabindex="-1"></a>tab <span class="ot">&lt;-</span> tab[[<span class="dv">1</span>]] <span class="sc">|&gt;</span> <span class="fu">html_table</span>()</span>
+<span id="cb827-2"><a href="web-scraping.html#cb827-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(tab)</span>
+<span id="cb827-3"><a href="web-scraping.html#cb827-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</span></span></code></pre></div>
 <p>We are now much closer to having a usable data table:</p>
-<div class="sourceCode" id="cb829"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb829-1"><a href="web-scraping.html#cb829-1" aria-hidden="true" tabindex="-1"></a>tab <span class="ot">&lt;-</span> tab <span class="sc">|&gt;</span> <span class="fu">setNames</span>(<span class="fu">c</span>(<span class="st">&quot;state&quot;</span>, <span class="st">&quot;population&quot;</span>, <span class="st">&quot;total&quot;</span>, <span class="st">&quot;murder_rate&quot;</span>)) </span>
-<span id="cb829-2"><a href="web-scraping.html#cb829-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tab)</span>
-<span id="cb829-3"><a href="web-scraping.html#cb829-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 4</span></span>
-<span id="cb829-4"><a href="web-scraping.html#cb829-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   state      population total murder_rate</span></span>
-<span id="cb829-5"><a href="web-scraping.html#cb829-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;       &lt;dbl&gt;</span></span>
-<span id="cb829-6"><a href="web-scraping.html#cb829-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 Alabama    4,853,875  348           7.2</span></span>
-<span id="cb829-7"><a href="web-scraping.html#cb829-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 Alaska     737,709    59            8  </span></span>
-<span id="cb829-8"><a href="web-scraping.html#cb829-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 Arizona    6,817,565  309           4.5</span></span>
-<span id="cb829-9"><a href="web-scraping.html#cb829-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 Arkansas   2,977,853  181           6.1</span></span>
-<span id="cb829-10"><a href="web-scraping.html#cb829-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 California 38,993,940 1,861         4.8</span></span>
-<span id="cb829-11"><a href="web-scraping.html#cb829-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 1 more row</span></span></code></pre></div>
+<div class="sourceCode" id="cb828"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb828-1"><a href="web-scraping.html#cb828-1" aria-hidden="true" tabindex="-1"></a>tab <span class="ot">&lt;-</span> tab <span class="sc">|&gt;</span> <span class="fu">setNames</span>(<span class="fu">c</span>(<span class="st">&quot;state&quot;</span>, <span class="st">&quot;population&quot;</span>, <span class="st">&quot;total&quot;</span>, <span class="st">&quot;murder_rate&quot;</span>)) </span>
+<span id="cb828-2"><a href="web-scraping.html#cb828-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tab)</span>
+<span id="cb828-3"><a href="web-scraping.html#cb828-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 4</span></span>
+<span id="cb828-4"><a href="web-scraping.html#cb828-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   state      population total murder_rate</span></span>
+<span id="cb828-5"><a href="web-scraping.html#cb828-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;       &lt;dbl&gt;</span></span>
+<span id="cb828-6"><a href="web-scraping.html#cb828-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 Alabama    4,853,875  348           7.2</span></span>
+<span id="cb828-7"><a href="web-scraping.html#cb828-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 Alaska     737,709    59            8  </span></span>
+<span id="cb828-8"><a href="web-scraping.html#cb828-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 Arizona    6,817,565  309           4.5</span></span>
+<span id="cb828-9"><a href="web-scraping.html#cb828-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 Arkansas   2,977,853  181           6.1</span></span>
+<span id="cb828-10"><a href="web-scraping.html#cb828-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 California 38,993,940 1,861         4.8</span></span>
+<span id="cb828-11"><a href="web-scraping.html#cb828-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 1 more row</span></span></code></pre></div>
 <p>We still have some wrangling to do. For example, we need to remove the commas and turn characters into numbers. Before continuing with this, we will learn a more general approach to extracting information from web sites.</p>
 </div>
 <div id="css-selectors" class="section level2 hasAnchor" number="23.3">
@@ -1202,16 +1202,16 @@ vignette<a href="#fn81" class="footnote-ref" id="fnref81"><sup>81</sup></a> and 
 #&gt;   }
 #&gt; ]</code></pre>
 <p>The file above actually represents a data frame. To read it, we can use the function <code>fromJSON</code> from the <strong>jsonlite</strong> package. Note that JSON files are often made available via the internet. Several organizations provide a JSON API or a web service that you can connect directly to and obtain data. Here is an example providing information Nobel prize winners:</p>
-<div class="sourceCode" id="cb831"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb831-1"><a href="web-scraping.html#cb831-1" aria-hidden="true" tabindex="-1"></a>nobel <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(<span class="st">&quot;http://api.nobelprize.org/v1/prize.json&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb830"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb830-1"><a href="web-scraping.html#cb830-1" aria-hidden="true" tabindex="-1"></a>nobel <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(<span class="st">&quot;http://api.nobelprize.org/v1/prize.json&quot;</span>)</span></code></pre></div>
 <p>This downloads a list. The first argument is a table with information about Nobel prize winners:</p>
-<div class="sourceCode" id="cb832"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb832-1"><a href="web-scraping.html#cb832-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(nobel<span class="sc">$</span>prize, category <span class="sc">==</span> <span class="st">&quot;literature&quot;</span> <span class="sc">&amp;</span> year <span class="sc">==</span> <span class="st">&quot;1971&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">pull</span>(laureates)</span>
-<span id="cb832-2"><a href="web-scraping.html#cb832-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [[1]]</span></span>
-<span id="cb832-3"><a href="web-scraping.html#cb832-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    id firstname surname</span></span>
-<span id="cb832-4"><a href="web-scraping.html#cb832-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 645     Pablo  Neruda</span></span>
-<span id="cb832-5"><a href="web-scraping.html#cb832-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                                                                                motivation</span></span>
-<span id="cb832-6"><a href="web-scraping.html#cb832-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 &quot;for a poetry that with the action of an elemental force brings alive a continent&#39;s destiny and dreams&quot;</span></span>
-<span id="cb832-7"><a href="web-scraping.html#cb832-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   share</span></span>
-<span id="cb832-8"><a href="web-scraping.html#cb832-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1     1</span></span></code></pre></div>
+<div class="sourceCode" id="cb831"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb831-1"><a href="web-scraping.html#cb831-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(nobel<span class="sc">$</span>prize, category <span class="sc">==</span> <span class="st">&quot;literature&quot;</span> <span class="sc">&amp;</span> year <span class="sc">==</span> <span class="st">&quot;1971&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">pull</span>(laureates)</span>
+<span id="cb831-2"><a href="web-scraping.html#cb831-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb831-3"><a href="web-scraping.html#cb831-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    id firstname surname</span></span>
+<span id="cb831-4"><a href="web-scraping.html#cb831-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 645     Pablo  Neruda</span></span>
+<span id="cb831-5"><a href="web-scraping.html#cb831-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                                                                                motivation</span></span>
+<span id="cb831-6"><a href="web-scraping.html#cb831-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 &quot;for a poetry that with the action of an elemental force brings alive a continent&#39;s destiny and dreams&quot;</span></span>
+<span id="cb831-7"><a href="web-scraping.html#cb831-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   share</span></span>
+<span id="cb831-8"><a href="web-scraping.html#cb831-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1     1</span></span></code></pre></div>
 <p>You can learn much more by examining tutorials and help files from the <strong>jsonlite</strong> package. This package is intended for relatively simple tasks such as converting data into tables. For more flexibility, we recommend <code>rjson</code>.</p>
 </div>
 <div id="exercises-43" class="section level2 hasAnchor" number="23.5">
@@ -1220,10 +1220,10 @@ vignette<a href="#fn81" class="footnote-ref" id="fnref81"><sup>81</sup></a> and 
 <p>Notice there are several tables. Say we are interested in comparing the payrolls of teams across the years. The next few exercises take us through the steps needed to do this.</p>
 <p>Start by applying what you learned to read in the website into an object called <code>h</code>.</p>
 <p>2. Note that, although not very useful, we can actually see the content of the page by typing:</p>
-<div class="sourceCode" id="cb833"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb833-1"><a href="web-scraping.html#cb833-1" aria-hidden="true" tabindex="-1"></a><span class="fu">html_text</span>(h)</span></code></pre></div>
+<div class="sourceCode" id="cb832"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb832-1"><a href="web-scraping.html#cb832-1" aria-hidden="true" tabindex="-1"></a><span class="fu">html_text</span>(h)</span></code></pre></div>
 <p>The next step is to extract the tables. For this, we can use the <code>html_nodes</code> function. We learned that tables in html are associated with the <code>table</code> node. Use the <code>html_nodes</code> function and the <code>table</code> node to extract the first table. Store it in an object <code>nodes</code>.</p>
 <p>3. The <code>html_nodes</code> function returns a list of objects of class <code>xml_node</code>. We can see the content of each one using, for example, the <code>html_text</code> function. You can see the content for an arbitrarily picked component like this:</p>
-<div class="sourceCode" id="cb834"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb834-1"><a href="web-scraping.html#cb834-1" aria-hidden="true" tabindex="-1"></a><span class="fu">html_text</span>(nodes[[<span class="dv">8</span>]])</span></code></pre></div>
+<div class="sourceCode" id="cb833"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb833-1"><a href="web-scraping.html#cb833-1" aria-hidden="true" tabindex="-1"></a><span class="fu">html_text</span>(nodes[[<span class="dv">8</span>]])</span></code></pre></div>
 <p>If the content of this object is an html table, we can use the <code>html_table</code> function to convert it to a data frame. Use the <code>html_table</code> function to convert the 8th entry of <code>nodes</code> into a table.</p>
 <p>4. Repeat the above for the first 4 components of <code>nodes</code>. Which of the following are payroll tables:</p>
 <ol style="list-style-type: lower-alpha">
@@ -1247,8 +1247,8 @@ Remove the first component and then use <code>sapply</code> and <code>html_table
 <p>10. Use a <code>full_join</code> function to combine these two tables. Before you do this you will have to fix the missing header problem. You will also need to make the names match.</p>
 <p>11. After joining the tables, you see several NAs. This is because some teams are in one table and not the other. Use the <code>anti_join</code> function to get a better idea of why this is happening.</p>
 <p>12. We see see that one of the problems is that Yankees are listed as both <em>N.Y. Yankees</em> and <em>NY Yankees</em>. In the next section, we will learn efficient approaches to fixing problems like this. Here we can do it “by hand” as follows:</p>
-<div class="sourceCode" id="cb835"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb835-1"><a href="web-scraping.html#cb835-1" aria-hidden="true" tabindex="-1"></a>tab_1 <span class="ot">&lt;-</span> tab_1 <span class="sc">|&gt;</span></span>
-<span id="cb835-2"><a href="web-scraping.html#cb835-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Team =</span> <span class="fu">ifelse</span>(Team <span class="sc">==</span> <span class="st">&quot;N.Y. Yankees&quot;</span>, <span class="st">&quot;NY Yankees&quot;</span>, Team))</span></code></pre></div>
+<div class="sourceCode" id="cb834"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb834-1"><a href="web-scraping.html#cb834-1" aria-hidden="true" tabindex="-1"></a>tab_1 <span class="ot">&lt;-</span> tab_1 <span class="sc">|&gt;</span></span>
+<span id="cb834-2"><a href="web-scraping.html#cb834-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Team =</span> <span class="fu">ifelse</span>(Team <span class="sc">==</span> <span class="st">&quot;N.Y. Yankees&quot;</span>, <span class="st">&quot;NY Yankees&quot;</span>, Team))</span></code></pre></div>
 <p>Now join the tables and show only Oakland and the Yankees and the payroll columns.</p>
 <p>13. Advanced: extract the titles of the movies that won Best Picture from this website: <a href="https://m.imdb.com/chart/bestpicture/">https://m.imdb.com/chart/bestpicture/</a></p>
 
