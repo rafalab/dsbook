@@ -1,0 +1,275 @@
+#' chapter to slides
+#' 
+#' Convert a bookdown chapter Rmd file to Rmd slides 
+#'
+#' The function converts Rmd chapters from the Intro to Data Science book into Rmd ready 
+#' to be compiled in slides. It is somewhat hard-wired to the style used in this book.
+#' It turns every sentence into an entry in a bullet point with a new page automatically started 
+#' after predetermined number o lines or characters is reached. If a section has titled exercise the section is 
+#' saved in a separate file and omitted from slides. The R chunks that do not include plotting functions
+#' are preserved. Chunks that plot and do not include either eval=FALSE or echo=FALSE are copied twice 
+#' so that code shows in one page and the plot in another. 
+#' 
+#' Note that the yml header is hard wired. If you want to change, edit the line where `start` is defined.
+#' 
+#' @author Rafael A. Irizarry
+#' 
+#' @param input Input Rmd file to be converted.
+#' @param output Name of output file without extension. Extension defaults to Rmd
+#' @param output.exercise Name of output file for exercises. Defaults to -exercise appended to output.
+#' @param suffix File extension. Defaults to Rmd
+#' @param title Title for slides. Defaults to output with dash replaced by spaces and title case. 
+#' @param author Author for the slides
+#' @param max.lines Number of lines per slide
+#' @param chars.per.line Number of characters that define a line.
+#' @param max.section.title.length If the section number is bigger than this it gets cut-off. Defaults to infinity.
+#' 
+#' @return A data frame with counts for each group for each date with population sizes, if demo was provided.
+#' 
+#' @examples
+#' \dontrun{
+#' rmd_to_slides("inference/models", "../lectures/inference/models")
+#' }
+#' @export
+#' @import stringr
+
+
+chapter_to_slides <- function(input, 
+                          output = "tmp", 
+                          output.exercises = NULL,
+                          suffix = "Rmd",
+                          title = NULL,
+                          author = "Rafael A. Irizarry",
+                          max.lines = 10,
+                          chars.per.line = 60,
+                          max.section.title.length = NULL){
+  ## Version: 0.0.1
+  ## License: Artistic-2.0
+  ## Author: Rafael A. Irizarry
+  
+  library(stringr)
+  
+  ## define filename for extracted exercises if not provided
+  if(is.null(output.exercises)){
+    output.exercises <- paste0(output, "-exercises")
+  }
+  
+  ## add suffix to filenames
+  file_name <- str_c(output, ".", suffix)
+  exercise_file_name <- str_c(output.exercises, ".", suffix)
+  
+  ## define title if not provided
+  if(is.null(title)){
+    title <- str_replace_all(basename(input), "-", " ") |> str_to_title() 
+  }
+  
+  if(is.null(max.section.title.length)) max.section.title.length <- -1L
+  ## read-in input line by line
+  x <- readLines(input)
+  ## Remove empty lines
+  x <- x[!str_trim(x)==""]
+  ## Remove comments
+  x <- x[!str_detect(x, "<!--")]
+  
+  ## The following code is only needed for files
+  ## that check for knitr format to make tables
+  ## this is very specific to files from the book
+  table_index <- str_which(x, "if\\(knitr::is_html_output\\(\\)\\)\\{")
+  if(length(table_index)>0){
+    out <- c()
+    for(i in table_index){
+      tab_name <- str_match(x[i+1], "kable\\(([a-z|A-Z|0-9|_].*),.*[latex|html].*")[1,2] ## grab name of table object 
+      x[i] <- str_c("    knitr::kable(", tab_name, ")")
+      out <- c(out,i)
+      j <- i
+      ends <- 0
+      while(ends<1){
+        j <- j+1
+        out <- c(out,j)
+        if(str_detect(x[j], "\\}")) ends <- ends + 1
+        if(str_detect(x[j], "\\{")) ends <- ends - 1
+      }
+    }    
+  }
+  x <- x[-out]
+  
+  ##line_type will store, for each line of x, what kind of line it is
+  ##options are 
+  ## section header
+  ## prose
+  ## rchunk start inside or end
+  ## exercise_start
+  ## plot rchunk start inside or end
+  ## quotes
+  line_type <- rep("prose", length(x))
+  
+  ## find section starts
+  section_starts <- str_which(x, "^\\#+\\s+")
+  
+  ## clean up section start names and cut if longer than certain size
+  x[section_starts] <- x[section_starts] |> 
+    str_remove("\\{.*\\}") |>
+    str_replace_all("#+", "##") |>
+    str_trim() |>
+    str_sub(1L, max.section.title.length)
+  
+  line_type[section_starts] <- "section"
+  
+  ## find exercise section starts
+  exercise_starts <- str_which(x, "## [Ee]xercise")
+  line_type[exercise_starts] <- "exercise_start"
+  
+  ## find the rchunk start and ends
+  rchunk_start <- str_which(x, "^```\\{r")
+  rchunk_end <- str_which(x, "^```$")
+  
+  line_type[rchunk_start] <- "rchunk_start"
+  line_type[rchunk_end] <- "rchunk_end"
+  
+  ## Check if R chunk is a plot chunk and change if it is
+  rchunk_inds <- cbind(rchunk_start, rchunk_end)
+  plot_inds <- which(apply(rchunk_inds, 1, function(ind){
+    any(str_detect(x[ind[1]:ind[2]], "plot|hist"))
+  }))
+  
+  plot_rchunk_start <- rchunk_start[plot_inds]
+  plot_rchunk_end <- rchunk_end[plot_inds]
+  
+  line_type[plot_rchunk_start] <- "plot_rchunk_start"
+  line_type[plot_rchunk_end] <- "plot_rchunk_end"
+  
+  ## find quotes
+  quote_index <- str_which(x, "^>>.*")
+  line_type[quote_index] <- "quote"
+  
+  ## find the insider of r chunks
+  for(i in seq_along(rchunk_start)){
+    ind <- (rchunk_start[i]+1):(rchunk_end[i]-1)
+    if(length(ind)>0) line_type[ind] <- "rchunk_inside"
+  }
+  
+  ## find the inside of plot r chunks
+  for(i in seq_along(plot_rchunk_start)){
+    ind <- (plot_rchunk_start[i]+1):(plot_rchunk_end[i]-1)
+    if(length(ind)>0) line_type[ind] <- "plot_rchunk_inside"
+  }
+  
+  the_section <- ""
+  ## the start is hard wired
+  start <- '---\ntitle: "LECTURETITLE"\nauthor: "THEAUTHORNAME"\ndate: "`r lubridate::today()`"\noutput:\n\tioslides_presentation:\n\t\tfig_caption: no\n\t\tfig_height: 5\n\t\tfig_width: 7\n\t\tout_width: "70%"\n\tbeamer_presentation: default\n\tslidy_presentation: default\n---\n\n```{r setup, include=FALSE}\nlibrary(tidyverse)\nlibrary(dslabs)\nlibrary(gridExtra)\nlibrary(ggthemes)\nds_theme_set()\noptions(digits = 3)\nknitr::opts_chunk$set(\n\tcomment = "#>",\n\tcollapse = TRUE,\n\tcache = TRUE,\n\tout.width = "70%",\n\tfig.align = "center",\n\tfig.width = 6,\n\tfig.asp = 0.618,  # 1 / phi\n\tfig.show = "hold"\n)\n\nimg_path <- "img"\n```'
+  start <- str_replace(start, "LECTURETITLE", title)
+  start <- str_replace(start, "THEAUTHORNAME", author)
+  
+  ## start filling in the file
+  cat(start, file = file_name)
+  
+  ## if there is at lease one exercise section starti filling in file
+  if(any(line_type=="exercise_start")) cat("", file = exercise_file_name)
+  exercise_flag <- FALSE
+  
+  ## initialize values
+  chars <- 0
+  lines <- 0
+  ## start going line by line
+  for(i in seq_along(x)){
+    ## if line is start of section, start section and initialize counts
+    ## and turn of exercise flag (if previously true, exercise section has ended)
+    if(line_type[i]=="section"){
+      the_section <- x[i]
+      exercise_flag <- FALSE
+      chars <- 0
+      lines <- 0
+      cat("\n", x[i], "\n\n", sep = "", file = file_name, append = TRUE)
+    } else{
+      ## if exercise start, turn on flag and start just printing out exercises to 
+      ## new file
+      if(line_type[i]=="exercise_start" | exercise_flag){
+        exercise_flag <- TRUE
+        cat(x[i], "\n", file = exercise_file_name, append = TRUE)
+      } else{
+        ## if its a quote add to slides
+        if(line_type[i] == "quote"){
+          chars <- chars + nchar(x[i])
+          lines <- lines + ceiling(chars/chars.per.line) + 1
+          cat(x[i], "\n\n", file = file_name, append = TRUE)
+        } else{
+          ## R chunks that are not plots are just added to output
+          if(line_type[i] %in% c("rchunk_end", "rchunk_inside","rchunk_start",
+                                 "plot_rchunk_end", "plot_rchunk_inside")){
+            if(str_detect(line_type[i], "inside")) lines <- lines + 1
+            cat(x[i], "\n", file = file_name, append = TRUE)
+          } else{
+            ## If r chunk includes a plot we will add it twice
+            ## one with eval=FALSE and once with echo=FALSE
+            ## unless the code already specifies it's echo or eval
+            if(line_type[i] == "plot_rchunk_start"){
+              ## if echo nor eval are defined
+              ## we include the code twice, first with eval=FALSE,
+              ## which is what the while lopp does,
+              ## then after the while loop it adds a sectio header,
+              ##the first line with echo=FALSE, and in the next
+              ## iteration of the i for loop will continue adding the lines
+              ## to see why, look at the previous if statement
+              if(!str_detect(x[i], "echo|eval")){ 
+                y <- str_replace(x[i], "\\}", ", eval=FALSE}")
+                cat(y, "\n", file = file_name, append = TRUE)
+                j <- i
+                while(line_type[j]!="plot_rchunk_end"){
+                  j <- j + 1
+                  lines <- lines + 1
+                  cat(x[j], "\n", file = file_name, append = TRUE)
+                }
+                lines <- lines + 1
+                cat("\n", the_section, "\n", sep = "", 
+                    file = file_name, append = TRUE)
+                y <- str_replace(x[i], "\\}", ", echo=FALSE}")
+                cat(y, "\n", file = file_name, append = TRUE)
+              } else{
+                cat(x[i], "\n", file = file_name, append = TRUE)
+              }
+            } else{
+              ## if we entry is a sentnce, we will split by periods
+              ## and put each sentences as a bullet point
+              ## the first three lines are two avoid spliting
+              ## decimals, and abberviated titles.. might need more
+              ## the trick is to covert points to commans, then convert back
+              ## after the split
+              if(line_type[i] == "prose"){
+                x[i] <- str_trim(x[i])
+                x[i] <- str_replace_all(x[i], "(\\d)\\.(\\d)", "\\1,\\2")
+                x[i] <- str_replace_all(x[i], "(Mr|Ms|Dr)\\.", "\\1,")
+                
+                y <- str_split(x[i], "\\.\\s+")[[1]]
+                
+                for(j in seq_along(y)){
+                  ## convert back to periods
+                  y[j] <- str_replace_all(y[j], "(\\d),(\\d)", "\\1.\\2")
+                  y[j] <- str_replace_all(y[j], "(Mr|Ms|Dr),", "\\1.")
+                  y[j] <- str_trim(y[j])
+                  
+                  chars <- chars + nchar(y[j])
+                  lines <- lines + ceiling(chars/chars.per.line) + 1
+                  
+                  ## if we have gone past max lines start a new section
+                  if(lines > max.lines){
+                    cat("\n\n", the_section, "\n\n", sep = "", 
+                        file = file_name, append = TRUE)
+                    lines <- 0 
+                    chars <- 0
+                  }
+                  ## add a period at end of bullet point unless we already have
+                  ## punctuation
+                  if(!str_sub(y[j], nchar(y[j]), nchar(y[j])) %in% c(".","?",":",",")){
+                    y[j] <- y[j] <- str_c(y[j],".")
+                  } 
+                  cat("- ", y[j], "\n\n", sep = "", 
+                      file = file_name, append = TRUE)
+                }
+              } 
+            }
+          }
+        }
+      }
+    }
+  }
+}
