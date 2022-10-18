@@ -139,26 +139,29 @@ chapter_to_slides <- function(input,
   if(length(latex_inds) %% 2 > 0){
     warning("Detected unclosed latex. Check output carefully.")
     latex_inds <- c(latex_inds, last(latex_inds))
-  }
-  latex_start <-latex_inds[seq(1,length(latex_inds),2)]
-  latex_end <- latex_inds[seq(2,length(latex_inds),2)]
-  latex_size <- rep(0, length(x)) ## used to decide if start new section
-  latex_size[latex_start] <- pmax(1, latex_end - latex_start - 2)
   
-  ## if start and end in same line make it the end
-  line_type[latex_start] <- "latex_start"
-  line_type[latex_end] <- "latex_end"
+    latex_start <-latex_inds[seq(1,length(latex_inds),2)]
+    latex_end <- latex_inds[seq(2,length(latex_inds),2)]
+    latex_size <- rep(0, length(x)) ## used to decide if start new section
+    latex_size[latex_start] <- pmax(1, latex_end - latex_start - 2)
   
-  ## find the insider of latex
-  for(i in seq_along(latex_start)){
-    st <- latex_start[i]
-    en <- latex_end[i]
-    if(st==en){ 
-      line_type[st] <- "latex_start_and_end" ## if onle line of latex use this
-    } else{
-      ind <- (st+1):(en-1)
-      if(length(ind)>0){
-        line_type[ind] <- "latex_inside"
+  
+    ## if start and end in same line make it the end
+    line_type[latex_start] <- "latex_start"
+    line_type[latex_end] <- "latex_end"
+  
+    
+    ## find the insider of latex
+    for(i in seq_along(latex_start)){
+      st <- latex_start[i]
+      en <- latex_end[i]
+      if(st==en){ 
+        line_type[st] <- "latex_start_and_end" ## if onle line of latex use this
+      } else{
+        ind <- (st+1):(en-1)
+        if(length(ind)>0){
+          line_type[ind] <- "latex_inside"
+        }
       }
     }
   }
@@ -277,11 +280,11 @@ chapter_to_slides <- function(input,
                                    "latex_inside")){
               if(str_detect(line_type[i], "inside")) lines <- lines + 1
               if(line_type[i] == "latex_inside") lines <- lines + 1 ## add one more for latex
-              cat(x[i], "\n", file = file_name, append = TRUE)
               if(line_type[i] == "rchunk_start"){
                 if(lines + rchunk_size[i] > max.lines) start_section()
               }
               if(line_type[i] == "plot_rchunk_end") start_section()
+              cat(x[i], "\n", file = file_name, append = TRUE)
             } else{
               ## If r chunk includes a plot we will add it twice
               ## one with eval=FALSE and once with echo=FALSE
@@ -303,7 +306,8 @@ chapter_to_slides <- function(input,
                     cat(x[j], "\n", file = file_name, append = TRUE)
                   }
                   start_section()
-                  y <- str_replace(x[i], "\\}", ", echo=FALSE}")
+                  y <- str_replace(x[i], "```\\{r\\s+([a-z|\\-|A-Z|0-9]*),", "```\\{r \\1-code,")
+                  y <- str_replace(y, "\\}", ", echo=FALSE}")
                   cat(y, "\n", file = file_name, append = TRUE)
                 } else{
                   if(lines>2) start_section()
@@ -318,15 +322,15 @@ chapter_to_slides <- function(input,
                 ## after the split
                 if(line_type[i] == "prose"){
                   x[i] <- str_trim(x[i])
-                  x[i] <- str_replace_all(x[i], "(\\d)\\.(\\d)", "\\1,\\2")
-                  x[i] <- str_replace_all(x[i], "(Mr|Ms|Dr)\\.", "\\1,")
+                  x[i] <- str_replace_all(x[i], "(\\d)\\.(\\d)", "\\1PERIOD\\2")
+                  x[i] <- str_replace_all(x[i], "(Mr|Ms|Dr)\\.", "\\1PERIOD")
                   
                   y <- str_split(x[i], "\\.\\s+")[[1]]
                   
                   for(j in seq_along(y)){
                     ## convert back to periods
-                    y[j] <- str_replace_all(y[j], "(\\d),(\\d)", "\\1.\\2")
-                    y[j] <- str_replace_all(y[j], "(Mr|Ms|Dr),", "\\1.")
+                    y[j] <- str_replace_all(y[j], "(\\d)PERIOD(\\d)", "\\1.\\2")
+                    y[j] <- str_replace_all(y[j], "(Mr|Ms|Dr)PERIOD", "\\1.")
                     y[j] <- str_trim(y[j])
                     
                     lines <- lines + ceiling(nchar(y[j])/chars.per.line) + 1
