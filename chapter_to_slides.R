@@ -284,6 +284,7 @@ chapter_to_slides <- function(input,
                 if(lines + rchunk_size[i] > max.lines) start_section()
               }
               cat(x[i], "\n", file = file_name, append = TRUE)
+              if(line_type[i] == "rchunk_end") cat("\n")
               if(line_type[i] == "plot_rchunk_end") start_section()
             } else{
               ## If r chunk includes a plot we will add it twice
