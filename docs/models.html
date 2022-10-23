@@ -751,7 +751,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="24.5.6" data-path="string-processing.html"><a href="string-processing.html#white-space-s"><i class="fa fa-check"></i><b>24.5.6</b> White space <code>\s</code></a></li>
 <li class="chapter" data-level="24.5.7" data-path="string-processing.html"><a href="string-processing.html#quantifiers-1"><i class="fa fa-check"></i><b>24.5.7</b> Quantifiers: <code>*</code>, <code>?</code>, <code>+</code></a></li>
 <li class="chapter" data-level="24.5.8" data-path="string-processing.html"><a href="string-processing.html#not"><i class="fa fa-check"></i><b>24.5.8</b> Not</a></li>
-<li class="chapter" data-level="24.5.9" data-path="string-processing.html"><a href="string-processing.html#groups"><i class="fa fa-check"></i><b>24.5.9</b> Groups</a></li>
+<li class="chapter" data-level="24.5.9" data-path="string-processing.html"><a href="string-processing.html#lookarounds"><i class="fa fa-check"></i><b>24.5.9</b> Lookarounds</a></li>
+<li class="chapter" data-level="24.5.10" data-path="string-processing.html"><a href="string-processing.html#groups"><i class="fa fa-check"></i><b>24.5.10</b> Groups</a></li>
 </ul></li>
 <li class="chapter" data-level="24.6" data-path="string-processing.html"><a href="string-processing.html#search-and-replace-with-regex"><i class="fa fa-check"></i><b>24.6</b> Search and replace with regex</a>
 <ul>
@@ -1781,16 +1782,22 @@ Since the same <span class="math inline">\(b\)</span> is in every measurement, t
 <div class="sourceCode" id="cb649"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb649-1"><a href="models.html#cb649-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> results <span class="sc">|&gt;</span></span>
 <span id="cb649-2"><a href="models.html#cb649-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sd =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(sd), <span class="fu">median</span>(results<span class="sc">$</span>sd, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), sd))</span></code></pre></div>
 <p>To make probabilistic arguments, we will use a Monte Carlo simulation. For each state, we apply the Bayesian approach to generate an election day <span class="math inline">\(d\)</span>. We could construct the priors for each state based on recent history. However, to keep it simple, we assign a prior to each state that assumes we know nothing about what will happen. Since from election year to election year the results from a specific state don’t change that much, we will assign a standard deviation of 2% or <span class="math inline">\(\tau=0.02\)</span>. For now, we will assume, incorrectly, that the poll results from each state are independent. The code for the Bayesian calculation under these assumptions looks like this:</p>
-<pre><code>#&gt; # A tibble: 47 × 12
-#&gt;   state          avg       sd     n electoral_votes clinton trump others
-#&gt;   &lt;chr&gt;        &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;           &lt;int&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
-#&gt; 1 Alabama    -0.149  0.0253       3               9    34.4  62.1    3.6
-#&gt; 2 Arizona    -0.0326 0.0270       9              11    45.1  48.7    6.2
-#&gt; 3 Arkansas   -0.151  0.000990     2               6    33.7  60.6    5.8
-#&gt; 4 California  0.260  0.0387       5              55    61.7  31.6    6.7
-#&gt; 5 Colorado    0.0452 0.0295       7               9    48.2  43.3    8.6
-#&gt; # … with 42 more rows, and 4 more variables: sigma &lt;dbl&gt;, B &lt;dbl&gt;,
-#&gt; #   posterior_mean &lt;dbl&gt;, posterior_se &lt;dbl&gt;</code></pre>
+<div class="sourceCode" id="cb650"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb650-1"><a href="models.html#cb650-1" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb650-2"><a href="models.html#cb650-2" aria-hidden="true" tabindex="-1"></a>tau <span class="ot">&lt;-</span> <span class="fl">0.02</span></span>
+<span id="cb650-3"><a href="models.html#cb650-3" aria-hidden="true" tabindex="-1"></a>results <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">sigma =</span> sd<span class="sc">/</span><span class="fu">sqrt</span>(n), </span>
+<span id="cb650-4"><a href="models.html#cb650-4" aria-hidden="true" tabindex="-1"></a>                   <span class="at">B =</span> sigma<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (sigma<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> tau<span class="sc">^</span><span class="dv">2</span>),</span>
+<span id="cb650-5"><a href="models.html#cb650-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">posterior_mean =</span> B <span class="sc">*</span> mu <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> B) <span class="sc">*</span> avg,</span>
+<span id="cb650-6"><a href="models.html#cb650-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">posterior_se =</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span> (<span class="dv">1</span><span class="sc">/</span>sigma<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>tau<span class="sc">^</span><span class="dv">2</span>)))</span>
+<span id="cb650-7"><a href="models.html#cb650-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 47 × 12</span></span>
+<span id="cb650-8"><a href="models.html#cb650-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   state          avg       sd     n electoral_votes clinton trump others</span></span>
+<span id="cb650-9"><a href="models.html#cb650-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;        &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;           &lt;int&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;</span></span>
+<span id="cb650-10"><a href="models.html#cb650-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 Alabama    -0.149  0.0253       3               9    34.4  62.1    3.6</span></span>
+<span id="cb650-11"><a href="models.html#cb650-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 Arizona    -0.0326 0.0270       9              11    45.1  48.7    6.2</span></span>
+<span id="cb650-12"><a href="models.html#cb650-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 Arkansas   -0.151  0.000990     2               6    33.7  60.6    5.8</span></span>
+<span id="cb650-13"><a href="models.html#cb650-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 California  0.260  0.0387       5              55    61.7  31.6    6.7</span></span>
+<span id="cb650-14"><a href="models.html#cb650-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 Colorado    0.0452 0.0295       7               9    48.2  43.3    8.6</span></span>
+<span id="cb650-15"><a href="models.html#cb650-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 42 more rows, and 4 more variables: sigma &lt;dbl&gt;, B &lt;dbl&gt;,</span></span>
+<span id="cb650-16"><a href="models.html#cb650-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   posterior_mean &lt;dbl&gt;, posterior_se &lt;dbl&gt;</span></span></code></pre></div>
 <p>The estimates based on posterior do move the estimates towards 0, although the states with many polls are influenced less. This is expected as the more poll data we collect, the more we trust those results:</p>
 <p><img src="book_files/figure-html/posterior-versus-original-estimates-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>Now we repeat this 10,000 times and generate an outcome from the posterior. In each iteration, we keep track of the total number of electoral votes for Clinton. Remember that Trump gets 270 minus the votes for Clinton. Also note that the reason we add 7 in the code is to account for Rhode Island and D.C.:</p>

@@ -414,6 +414,7 @@ knitr::include_graphics(file.path(img_path,"str_view-2.png"))
 
 There are many other special characters. We will learn some others below, but you can see most or all of them in the cheat sheet^[https://www.rstudio.com/wp-content/uploads/2016/09/RegExCheatsheet.pdf] mentioned earlier. 
 
+Finally, a useful special character is `\w` which stands for _word character_ and it matches any letter, number, or underscore. It is equivalent to `[a-zA-Z0-9_]`. 
 
 ### Character classes
 
@@ -567,6 +568,22 @@ str_detect(no, pattern)
 ```
 
 Another way to generate a pattern that searches for _everything except_ is to use the upper case of the special character. For example `\\D` means anything other than a digit, `\\S` means anything except a space, and so on.
+
+### Lookarounds
+
+Lookarounds provide a way to ask for one or more conditions to be satisfied without moving the search forward or matching it. For example, you might want to check for multiple conditions and if they are matched, then return the pattern or part of the pattern that matched. An example: check if a string satisfies the conditions for a password and if it does return the password. Suppose the conditions are 1) 8-16 word characters, 2) starts with a letter, and 3) has at least one digit.
+
+There are four types of lookarounds: lookahead `(?=pattern)`, lookbehind `(?<=pattern)`, negative lookahead `(?!pattern)`, and negative lookbehind `(?<!pattern)`. You can concatenate them to check for multiple conditions so for our example we can write it like this:
+
+```{r}
+pattern <- "(?=\\w{8,16})(?=^[a-z|A-Z].*)(?=.*\\d+.*).*"
+yes <- c("Ihatepasswords1", "password1234")
+no <- c("sh0rt", "Ihaterpasswords", "7X%9,N`yrYG92b7")
+str_detect(yes, pattern)
+str_detect(no, pattern)
+str_extract(yes, pattern)
+```
+
 
 ### Groups {#groups}
 
