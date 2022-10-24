@@ -40,6 +40,7 @@
 
 chapter_to_slides <- function(input, 
                           output = NULL, 
+                          output.dir = getwd(),
                           output.exercises = NULL,
                           suffix = "Rmd",
                           title = NULL,
@@ -58,6 +59,7 @@ chapter_to_slides <- function(input,
     output <- basename(input)
     output <- gsub("\\.[a-z|A-Z|0-9]+$", "", output)
   }
+  output <- file.path(output.dir, output)
   file_name <- str_c(output, ".", suffix)
   if(file.exists(file_name)) stop(file_name, " file exists. Pick a different filename or remove the file.")
   
