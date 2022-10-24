@@ -54,8 +54,10 @@ chapter_to_slides <- function(input,
   
   library(stringr)
   
-  if(is.null(output)) output <- basename(input)
-    
+  if(is.null(output)){
+    output <- basename(input)
+    output <- gsub("\\.[a-z|A-Z|0-9]+$", "", output)
+  }
   file_name <- str_c(output, ".", suffix)
   if(file.exists(file_name)) stop(file_name, " file exists. Pick a different filename or remove the file.")
   
