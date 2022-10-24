@@ -19,7 +19,7 @@
 #' @author Rafael A. Irizarry
 #' 
 #' @param input Input Rmd file to be converted.
-#' @param output Name of output file without extension. Extension defaults to Rmd
+#' @param output Name of output file without extension. Defaults to same as input. 
 #' @param output.exercise Name of output file for exercises. Defaults to -exercise appended to output.
 #' @param suffix File extension. Defaults to Rmd
 #' @param title Title for slides. Defaults to output with dash replaced by spaces and title case. 
@@ -39,7 +39,7 @@
 #' @import stringr
 
 chapter_to_slides <- function(input, 
-                          output = "tmp", 
+                          output = NULL, 
                           output.exercises = NULL,
                           suffix = "Rmd",
                           title = NULL,
@@ -54,6 +54,11 @@ chapter_to_slides <- function(input,
   
   library(stringr)
   
+  if(is.null(output)) output <- basename(input)
+    
+  file_name <- str_c(output, ".", suffix)
+  if(file.exists(file_name)) stop(file_name, " file exists. Pick a different filename or remove the file.")
+  
   start_section <- function(start.lines = 0, env = parent.frame()){
     cat("\n\n", env$the_section, "\n\n", sep = "", 
         file = env$file_name, append = TRUE)
@@ -67,7 +72,6 @@ chapter_to_slides <- function(input,
   }
   
   ## add suffix to filenames
-  file_name <- str_c(output, ".", suffix)
   exercise_file_name <- str_c(output.exercises, ".", suffix)
   
   ## define title if not provided
@@ -168,16 +172,29 @@ chapter_to_slides <- function(input,
   
   ## find start of tables
   line_type[str_detect(str_trim(x), "^\\|")] <- "table"
+  rchunk_start <- c()
+  rchunk_end <- c()
   
-  ## find the rchunk start and ends
-  rchunk_start <- str_which(x, "^```\\{r")
-  rchunk_end <- str_which(x, "^```$")
-  
-  line_type[rchunk_start] <- "rchunk_start"
-  line_type[rchunk_end] <- "rchunk_end"
+  ## find the code chunk start and ends
+  start_flag <- TRUE
+  for(i in seq_along(x)){
+    if(str_detect(x[i], "^```")){
+      if(start_flag){
+        rchunk_start <- c(rchunk_start, i)
+        line_type[i] <- "rchunk_start"
+        start_flag <- FALSE
+      } else{
+        rchunk_end <- c(rchunk_end, i)
+        line_type[i] <- "rchunk_end"
+        start_flag <- TRUE
+      }
+    }
+  }
   
   rchunk_size <- rep(0, length(x)) ## used to decide if start new section
-  rchunk_size[rchunk_start] <- pmax(1, rchunk_end - rchunk_start - 2)
+  if(length(rchunk_start)){
+    rchunk_size[rchunk_start] <- pmax(1, rchunk_end - rchunk_start - 2)
+  }
   
   ## Check if R chunk is a plot chunk and change if it is
   rchunk_inds <- cbind(rchunk_start, rchunk_end)
@@ -284,7 +301,7 @@ chapter_to_slides <- function(input,
                 if(lines + rchunk_size[i] > max.lines) start_section()
               }
               cat(x[i], "\n", file = file_name, append = TRUE)
-              if(line_type[i] == "rchunk_end") cat("\n")
+              if(line_type[i] == "rchunk_end") cat("\n", file = file_name, append = TRUE)
               if(line_type[i] == "plot_rchunk_end") start_section()
             } else{
               ## If r chunk includes a plot we will add it twice
@@ -307,7 +324,7 @@ chapter_to_slides <- function(input,
                     cat(x[j], "\n", file = file_name, append = TRUE)
                   }
                   start_section()
-                  y <- str_replace(x[i], "```\\{r\\s+([a-z|\\-|A-Z|0-9]*),", "```\\{r \\1-code,")
+                  y <- str_replace(x[i], "```\\{r\\s+([\\w|\\-]+),", "```\\{r \\1-code,")
                   y <- str_replace(y, "\\}", ", echo=FALSE}")
                   cat(y, "\n", file = file_name, append = TRUE)
                 } else{
