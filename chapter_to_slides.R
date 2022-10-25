@@ -212,10 +212,14 @@ chapter_to_slides <- function(input,
   }
   
   ## Check if R chunk is a plot chunk and change if it is
-  rchunk_inds <- cbind(rchunk_start, rchunk_end)
-  plot_inds <- which(apply(rchunk_inds, 1, function(ind){
-    any(str_detect(x[ind[1]:ind[2]], "plot|hist"))
-  }))
+  if(length(rchunk_start)){
+    rchunk_inds <- cbind(rchunk_start, rchunk_end)
+    plot_inds <- which(apply(rchunk_inds, 1, function(ind){
+      any(str_detect(x[ind[1]:ind[2]], "plot|hist"))
+    }))
+  } else{
+    plot_inds <- NULL
+  }
   
   plot_rchunk_start <- rchunk_start[plot_inds]
   plot_rchunk_end <- rchunk_end[plot_inds]
