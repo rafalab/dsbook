@@ -1412,19 +1412,18 @@ Data scientist David Robinson conducted an analysis<a href="#fn91" class="footno
 <p><img src="book_files/figure-html/tweets-log-odds-ratio-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>We see that the disgust, anger, negative, sadness, and fear sentiments are associated with the Android in a way that is hard to explain by chance alone. Words not associated to a sentiment were strongly associated with the iPhone source, which is in agreement with the original claim about hyperbolic tweets.</p>
 <p>If we are interested in exploring which specific words are driving these differences, we can refer back to our <code>android_iphone_or</code> object:</p>
-<div class="sourceCode" id="cb1013"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1013-1"><a href="text-mining.html#cb1013-1" aria-hidden="true" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">inner_join</span>(nrc) <span class="sc">|&gt;</span></span>
+<div class="sourceCode" id="cb1013"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1013-1"><a href="text-mining.html#cb1013-1" aria-hidden="true" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">inner_join</span>(nrc, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>) <span class="sc">|&gt;</span></span>
 <span id="cb1013-2"><a href="text-mining.html#cb1013-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(sentiment <span class="sc">==</span> <span class="st">&quot;disgust&quot;</span> <span class="sc">&amp;</span> Android <span class="sc">+</span> iPhone <span class="sc">&gt;</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
 <span id="cb1013-3"><a href="text-mining.html#cb1013-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(or))</span>
-<span id="cb1013-4"><a href="text-mining.html#cb1013-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Joining, by = &quot;word&quot;</span></span>
-<span id="cb1013-5"><a href="text-mining.html#cb1013-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 20 × 5</span></span>
-<span id="cb1013-6"><a href="text-mining.html#cb1013-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   word     Android iPhone    or sentiment</span></span>
-<span id="cb1013-7"><a href="text-mining.html#cb1013-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;      &lt;int&gt;  &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;    </span></span>
-<span id="cb1013-8"><a href="text-mining.html#cb1013-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 mess          13      2  4.62 disgust  </span></span>
-<span id="cb1013-9"><a href="text-mining.html#cb1013-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 finally       12      2  4.28 disgust  </span></span>
-<span id="cb1013-10"><a href="text-mining.html#cb1013-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 unfair        12      2  4.28 disgust  </span></span>
-<span id="cb1013-11"><a href="text-mining.html#cb1013-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 bad          104     26  3.39 disgust  </span></span>
-<span id="cb1013-12"><a href="text-mining.html#cb1013-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 terrible      31      8  3.17 disgust  </span></span>
-<span id="cb1013-13"><a href="text-mining.html#cb1013-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 15 more rows</span></span></code></pre></div>
+<span id="cb1013-4"><a href="text-mining.html#cb1013-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 20 × 5</span></span>
+<span id="cb1013-5"><a href="text-mining.html#cb1013-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   word     Android iPhone    or sentiment</span></span>
+<span id="cb1013-6"><a href="text-mining.html#cb1013-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;      &lt;int&gt;  &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb1013-7"><a href="text-mining.html#cb1013-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 mess          13      2  4.62 disgust  </span></span>
+<span id="cb1013-8"><a href="text-mining.html#cb1013-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 finally       12      2  4.28 disgust  </span></span>
+<span id="cb1013-9"><a href="text-mining.html#cb1013-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 unfair        12      2  4.28 disgust  </span></span>
+<span id="cb1013-10"><a href="text-mining.html#cb1013-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 bad          104     26  3.39 disgust  </span></span>
+<span id="cb1013-11"><a href="text-mining.html#cb1013-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 terrible      31      8  3.17 disgust  </span></span>
+<span id="cb1013-12"><a href="text-mining.html#cb1013-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 15 more rows</span></span></code></pre></div>
 <p>and we can make a graph:</p>
 <div class="sourceCode" id="cb1014"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1014-1"><a href="text-mining.html#cb1014-1" aria-hidden="true" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">inner_join</span>(nrc, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>) <span class="sc">|&gt;</span></span>
 <span id="cb1014-2"><a href="text-mining.html#cb1014-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sentiment =</span> <span class="fu">factor</span>(sentiment, <span class="at">levels =</span> log_or<span class="sc">$</span>sentiment)) <span class="sc">|&gt;</span></span>
