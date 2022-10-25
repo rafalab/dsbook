@@ -20,6 +20,8 @@
 #' 
 #' @param input Input Rmd file to be converted.
 #' @param output Name of output file without extension. Defaults to same as input. 
+#' @param output.dir Directory in which to save output file. Defaults to working directory.
+#' @param img.dir Directory to look for images in. Defaults to ./img
 #' @param output.exercise Name of output file for exercises. Defaults to -exercise appended to output.
 #' @param suffix File extension. Defaults to Rmd
 #' @param title Title for slides. Defaults to output with dash replaced by spaces and title case. 
@@ -43,9 +45,10 @@ chapter_to_slides <- function(input,
                           output.dir = getwd(),
                           output.exercises = NULL,
                           suffix = "Rmd",
+                          img.dir = "img",
                           title = NULL,
                           author = "Rafael A. Irizarry",
-                          max.lines = 18,
+                          max.lines = 15,
                           chars.per.line = 60,
                           max.section.title.length = NULL,
                           verbose=FALSE){
@@ -90,7 +93,7 @@ chapter_to_slides <- function(input,
   x <- x[!str_trim(x)==""]
   ## Remove comments
   x <- x[!str_detect(x, "<!--")]
-  
+  x <- x[!str_detect(x, "img_path\\s+<-")]
   ## The following code is only needed for files
   ## that check for knitr format to make tables
   ## this is very specific to files from the book
@@ -195,6 +198,10 @@ chapter_to_slides <- function(input,
     }
   }
   
+  no_code <- which(rchunk_end - rchunk_start==1)
+  line_type[rchunk_start[no_code]] <- "dont_print"
+  line_type[rchunk_end[no_code]] <- "dont_print"
+  
   rchunk_size <- rep(0, length(x)) ## used to decide if start new section
   if(length(rchunk_start)){
     rchunk_size[rchunk_start] <- pmax(1, rchunk_end - rchunk_start - 2)
@@ -234,7 +241,7 @@ chapter_to_slides <- function(input,
   
   the_section <- ""
   ## the start is hard wired
-  start <- '---\ntitle: "LECTURETITLE"\nauthor: "THEAUTHORNAME"\ndate: "`r lubridate::today()`"\noutput:\n  ioslides_presentation:\n    fig_caption: no\n    fig_height: 5\n    fig_width: 7\n    out_width: "70%"\n  beamer_presentation: default\n  slidy_presentation: default\n---\n\n```{r setup, include=FALSE}\nlibrary(tidyverse)\nlibrary(dslabs)\nlibrary(gridExtra)\nlibrary(ggthemes)\nds_theme_set()\noptions(digits = 3)\nknitr::opts_chunk$set(\n  comment = "#>",\n  collapse = TRUE,\n  cache = TRUE,\n  out.width = "70%",\n  fig.align = "center",\n  fig.width = 6,\n  fig.asp = 0.618,  # 1 / phi\n  fig.show = "hold"\n)\n\nimg_path <- "img"\n```'
+  start <- paste0('---\ntitle: "LECTURETITLE"\nauthor: "THEAUTHORNAME"\ndate: "`r lubridate::today()`"\noutput:\n  ioslides_presentation:\n    fig_caption: no\n    fig_height: 5\n    fig_width: 7\n    out_width: "70%"\n  beamer_presentation: default\n  slidy_presentation: default\n---\n\n```{r setup, include=FALSE}\nlibrary(tidyverse)\nlibrary(dslabs)\nlibrary(gridExtra)\nlibrary(ggthemes)\nds_theme_set()\noptions(digits = 3)\nknitr::opts_chunk$set(\n  comment = "#>",\n  collapse = TRUE,\n  cache = TRUE,\n  out.width = "70%",\n  fig.align = "center",\n  fig.width = 6,\n  fig.asp = 0.618,  # 1 / phi\n  fig.show = "hold"\n)\n\nimg_path <- "', img,'"\n```')
   start <- str_replace(start, "LECTURETITLE", title)
   start <- str_replace(start, "THEAUTHORNAME", author)
   
