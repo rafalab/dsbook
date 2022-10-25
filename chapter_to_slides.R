@@ -21,14 +21,15 @@
 #' @param input Input Rmd file to be converted.
 #' @param output Name of output file without extension. Defaults to same as input. 
 #' @param output.dir Directory in which to save output file. Defaults to working directory.
-#' @param img.dir Directory to look for images in. Defaults to ./img
 #' @param output.exercise Name of output file for exercises. Defaults to -exercise appended to output.
 #' @param suffix File extension. Defaults to Rmd
+#' @param img.dir Directory to look for images in. Defaults to ./img
 #' @param title Title for slides. Defaults to output with dash replaced by spaces and title case. 
 #' @param author Author for the slides
 #' @param max.lines Number of lines per slide
 #' @param chars.per.line Number of characters that define a line.
 #' @param max.section.title.length If the section number is bigger than this it gets cut-off. Defaults to infinity.
+#' @param save,exercises If true saves a separate file with exercises.
 #' @param verbose If TRUE show information about line being processed.
 #' 
 #' @return A data frame with counts for each group for each date with population sizes, if demo was provided.
@@ -51,6 +52,7 @@ chapter_to_slides <- function(input,
                           max.lines = 15,
                           chars.per.line = 60,
                           max.section.title.length = NULL,
+                          save.exercises = TRUE,
                           verbose=FALSE){
   ## Version: 0.0.1
   ## License: Artistic-2.0
@@ -142,7 +144,7 @@ chapter_to_slides <- function(input,
   line_type[section_starts] <- "section"
   
   ## find exercise section starts
-  exercise_starts <- str_which(x, "## [Ee]xercise")
+  exercise_starts <- str_which(x, "## [Ee]xercise|## [Ee]jercicio")
   line_type[exercise_starts] <- "exercise_start"
   
   ## find the latex start and ends
@@ -201,6 +203,8 @@ chapter_to_slides <- function(input,
   no_code <- which(rchunk_end - rchunk_start==1)
   line_type[rchunk_start[no_code]] <- "dont_print"
   line_type[rchunk_end[no_code]] <- "dont_print"
+  rchunk_start <- setdiff(rchunk_start, rchunk_start[no_code])
+  rchunk_end <- setdiff(rchunk_end, rchunk_end[no_code])
   
   rchunk_size <- rep(0, length(x)) ## used to decide if start new section
   if(length(rchunk_start)){
@@ -241,7 +245,7 @@ chapter_to_slides <- function(input,
   
   the_section <- ""
   ## the start is hard wired
-  start <- paste0('---\ntitle: "LECTURETITLE"\nauthor: "THEAUTHORNAME"\ndate: "`r lubridate::today()`"\noutput:\n  ioslides_presentation:\n    fig_caption: no\n    fig_height: 5\n    fig_width: 7\n    out_width: "70%"\n  beamer_presentation: default\n  slidy_presentation: default\n---\n\n```{r setup, include=FALSE}\nlibrary(tidyverse)\nlibrary(dslabs)\nlibrary(gridExtra)\nlibrary(ggthemes)\nds_theme_set()\noptions(digits = 3)\nknitr::opts_chunk$set(\n  comment = "#>",\n  collapse = TRUE,\n  cache = TRUE,\n  out.width = "70%",\n  fig.align = "center",\n  fig.width = 6,\n  fig.asp = 0.618,  # 1 / phi\n  fig.show = "hold"\n)\n\nimg_path <- "', img,'"\n```')
+  start <- paste0('---\ntitle: "LECTURETITLE"\nauthor: "THEAUTHORNAME"\ndate: "`r lubridate::today()`"\noutput:\n  ioslides_presentation:\n    fig_caption: no\n    fig_height: 5\n    fig_width: 7\n    out_width: "70%"\n  beamer_presentation: default\n  slidy_presentation: default\n---\n\n```{r setup, include=FALSE}\nlibrary(tidyverse)\nlibrary(dslabs)\nlibrary(gridExtra)\nlibrary(ggthemes)\nds_theme_set()\noptions(digits = 3)\nknitr::opts_chunk$set(\n  comment = "#>",\n  collapse = TRUE,\n  cache = TRUE,\n  out.width = "70%",\n  fig.align = "center",\n  fig.width = 6,\n  fig.asp = 0.618,  # 1 / phi\n  fig.show = "hold"\n)\n\nimg_path <- "', img.dir,'"\n```')
   start <- str_replace(start, "LECTURETITLE", title)
   start <- str_replace(start, "THEAUTHORNAME", author)
   
@@ -249,7 +253,7 @@ chapter_to_slides <- function(input,
   cat(start, file = file_name)
   
   ## if there is at lease one exercise section starti filling in file
-  if(any(line_type=="exercise_start")) cat("", file = exercise_file_name)
+  if(any(line_type=="exercise_start") & save.exercises) cat("", file = exercise_file_name)
   exercise_flag <- FALSE
   
   table_flag <- FALSE
@@ -278,7 +282,7 @@ chapter_to_slides <- function(input,
       ## new file
       if(line_type[i]=="exercise_start" | exercise_flag){
         exercise_flag <- TRUE
-        cat(x[i], "\n", file = exercise_file_name, append = TRUE)
+        if(save.exercises) cat(x[i], "\n", file = exercise_file_name, append = TRUE)
       } else{
         if(line_type[i]=="table" | table_flag){
           if(table_start){ 
@@ -335,7 +339,7 @@ chapter_to_slides <- function(input,
                     cat(x[j], "\n", file = file_name, append = TRUE)
                   }
                   start_section()
-                  y <- str_replace(x[i], "```\\{r\\s+([\\w|\\-]+),", "```\\{r \\1-code,")
+                  y <- str_replace(x[i], "```\\{r,*\\s+([\\w|\\-]+)", "```\\{r \\1-run")
                   y <- str_replace(y, "\\}", ", echo=FALSE}")
                   cat(y, "\n", file = file_name, append = TRUE)
                 } else{
@@ -351,6 +355,7 @@ chapter_to_slides <- function(input,
                 ## after the split
                 if(line_type[i] == "prose"){
                   x[i] <- str_trim(x[i])
+                  x[i] <- str_replace_all(x[i], "^(\\d+)\\.\\s+", "\\1PERIOD ")
                   x[i] <- str_replace_all(x[i], "(\\d)\\.(\\d)", "\\1PERIOD\\2")
                   x[i] <- str_replace_all(x[i], "(Mr|Ms|Dr)\\.", "\\1PERIOD")
                   
@@ -358,6 +363,8 @@ chapter_to_slides <- function(input,
                   
                   for(j in seq_along(y)){
                     ## convert back to periods
+                    
+                    y[j] <- str_replace_all(y[j], "^(\\d+)PERIOD ", "\\1. ")
                     y[j] <- str_replace_all(y[j], "(\\d)PERIOD(\\d)", "\\1.\\2")
                     y[j] <- str_replace_all(y[j], "(Mr|Ms|Dr)PERIOD", "\\1.")
                     y[j] <- str_trim(y[j])
@@ -373,8 +380,13 @@ chapter_to_slides <- function(input,
                     if(!str_sub(y[j], nchar(y[j]), nchar(y[j])) %in% c(".","?",":",",")){
                       y[j] <- y[j] <- str_c(y[j],".")
                     } 
-                    cat("- ", y[j], "\n\n", sep = "", 
-                        file = file_name, append = TRUE)
+                    if(str_detect(y[j], "^\\d+\\.")){
+                      cat("  ", y[j], "\n\n", sep = "", 
+                          file = file_name, append = TRUE)  
+                    } else{
+                      cat("- ", y[j], "\n\n", sep = "", 
+                          file = file_name, append = TRUE)  
+                    }
                   }
                 } else{
                   if(line_type[i] == "latex_start"){
