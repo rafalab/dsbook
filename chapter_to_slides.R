@@ -99,11 +99,18 @@ chapter_to_slides <- function(input,
   ## The following code is only needed for files
   ## that check for knitr format to make tables
   ## this is very specific to files from the book
+  
+  ### CHECK, knitr::kable is not being inserted
+  ### CHECK WITH intro-ml
+  ## REMOVE <!---  comments
+  ## Sectiong are starting inside latex
+  
+  ## CHEKC ALSO LATEX... turingin into prose. check confusionmatrix
   table_index <- str_which(x, "if\\(knitr::is_html_output\\(\\)\\)\\{")
   if(length(table_index)>0){
     out <- c()
     for(i in table_index){
-      tab_name <- str_match(x[i+1], "kable\\(([a-z|A-Z|0-9|_].*),.*[latex|html].*")[1,2] ## grab name of table object 
+      tab_name <- str_match(x[i+1], "kable\\((\\w.*),.*[latex|html].*")[1,2] ## grab name of table object 
       x[i] <- str_c("    knitr::kable(", tab_name, ")")
       out <- c(out,i)
       j <- i
@@ -149,10 +156,18 @@ chapter_to_slides <- function(input,
   
   ## find the latex start and ends
   latex_inds <- str_which(x, "\\$\\$")
-  if(length(latex_inds) %% 2 > 0){
-    warning("Detected unclosed latex. Check output carefully.")
-    latex_inds <- c(latex_inds, last(latex_inds))
+  oneline_latex_inds <- str_which(x, "\\$\\$.+\\$\\$")
+  if(length(oneline_latex_inds)){ 
+    latex_inds <- setdiff(latex_inds, oneline_latex_inds)
+    line_type[oneline_latex_inds] <- "oneline_latex"
+  }
   
+  if(length(latex_inds) %% 2 > 0){
+    warning("Detected unclosed latex on lines. Check output carefully.")
+    latex_inds <- c(latex_inds, dplyr::last(latex_inds))
+  }
+  
+  if(length(latex_inds)>0){
     latex_start <-latex_inds[seq(1,length(latex_inds),2)]
     latex_end <- latex_inds[seq(2,length(latex_inds),2)]
     latex_size <- rep(0, length(x)) ## used to decide if start new section
@@ -215,7 +230,7 @@ chapter_to_slides <- function(input,
   if(length(rchunk_start)){
     rchunk_inds <- cbind(rchunk_start, rchunk_end)
     plot_inds <- which(apply(rchunk_inds, 1, function(ind){
-      any(str_detect(x[ind[1]:ind[2]], "plot|hist"))
+      any(str_detect(x[ind[1]:ind[2]], "plot|hist|include_graphics"))
     }))
   } else{
     plot_inds <- NULL
@@ -306,7 +321,7 @@ chapter_to_slides <- function(input,
           }
         } else{
           ## if its a quote add to slides
-          if(line_type[i] == "quote"){
+          if(line_type[i] %in% c("oneline_latex", "quote")){
             lines <- lines + ceiling(nchar(x[i])/chars.per.line) + 1
             cat(x[i], "\n\n", file = file_name, append = TRUE)
           } else{
