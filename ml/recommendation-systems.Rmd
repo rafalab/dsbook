@@ -7,7 +7,7 @@ Netflix uses a recommendation system to predict how many _stars_ a user will giv
 In October 2006, Netflix offered a challenge to the data science community: improve our recommendation algorithm by 10% and win a million dollars. In September 2009, 
 the winners were announced^[http://bits.blogs.nytimes.com/2009/09/21/netflix-awards-1-million-prize-and-starts-a-new-contest/]. You can read a good summary of how the winning algorithm was put together here: [http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/](http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/) 
 and a more detailed explanation here: 
-[http://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf](http://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf).  We will now show you some of the data analysis strategies used by the winning team.
+[https://www2.seas.gwu.edu/~simhaweb/champalg/cf/papers/KorenBellKor2009.pdf](https://www2.seas.gwu.edu/~simhaweb/champalg/cf/papers/KorenBellKor2009.pdf).  We will now show you some of the data analysis strategies used by the winning team.
 
 ### Movielens data
 
@@ -104,15 +104,22 @@ gridExtra::grid.arrange(p1, p2, ncol = 2)
 
 ### Recommendation systems as a machine learning challenge
 
-To see how this is a type of machine learning, notice that we need to build an algorithm with data we have collected that will then be applied outside our control, as users look for movie recommendations. So let's create a test set to assess the accuracy of the models we implement.
+To see how this is a type of machine learning, notice that we need to build an algorithm with data we have collected that will then be applied outside our control, as users look for movie recommendations. So let's create a test set to assess the accuracy of the models we implement. We only consider movies rated five times or more, and users that have rated more than 100 of these movies.
 
 ```{r, message=FALSE, warning=FALSE}
-library(caret)
-set.seed(755)
-test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.2, 
-                                  list = FALSE)
-train_set <- movielens[-test_index,]
-test_set <- movielens[test_index,]
+dat <- movielens |> group_by(movieId) |> mutate(n=n()) |> ungroup() |> filter(n >= 5) |> 
+  group_by(userId) |> mutate(n=n()) |> ungroup() |> filter(n >= 100) |>select(-n) 
+```
+
+We then split the data into a training set and test set by assiging 20% of the ratings made by each user to the test set:
+
+```{r, message=FALSE, warning=FALSE}
+set.seed(2006)
+indexes <- split(1:nrow(dat), dat$userId)
+test_ind <- sapply(indexes, function(ind) sample(ind, ceiling(length(ind)*.2))) |>
+  unlist(use.names = TRUE) |> sort()
+test_set <- dat[test_ind,]
+train_set <- dat[-test_ind,]
 ```
 
 To make sure we don't include users and movies in the test set that do not appear in the training set, we remove these entries using the `semi_join` function:
@@ -123,6 +130,21 @@ test_set <- test_set |>
   semi_join(train_set, by = "userId")
 ```
 
+Finally we use `pivto_wider` to make a matrix with users represented by rows and movies by the columns
+
+```{r}
+mat <- select(train_set, movieId, userId, rating) |>
+  pivot_wider(names_from = movieId, values_from = rating) 
+rnames <- mat$userId
+mat <- as.matrix(mat[,-1])
+rownames(mat) <- rnames
+```
+
+along with a table to map movie ids to titles:
+
+```{r}
+movie_map <- train_set |> select(movieId, title) |> distinct(movieId, .keep_all = TRUE)
+```
 
 ### Loss function {#netflix-loss-function}
 
@@ -155,14 +177,14 @@ $$
 with $\varepsilon_{i,u}$ independent errors sampled from the same distribution centered at 0 and $\mu$ the "true" rating for all movies. We know that the estimate that minimizes the RMSE is the least squares estimate of $\mu$ and, in this case, is the average of all ratings:
 
 ```{r}
-mu_hat <- mean(train_set$rating)
-mu_hat
+mu <- mean(mat, na.rm = TRUE)
+mu
 ```
 
 If we predict all unknown ratings with $\hat{\mu}$ we obtain the following RMSE: 
 
 ```{r}
-naive_rmse <- RMSE(test_set$rating, mu_hat)
+naive_rmse <- RMSE(test_set$rating, mu)
 naive_rmse
 ```
 
@@ -191,7 +213,7 @@ $$
 Y_{u,i} = \mu + b_i + \varepsilon_{u,i}
 $$
 
-Statistics textbooks refer to the $b$s as effects. However, in the Netflix challenge papers, they refer to them as "bias", thus the $b$ notation.
+Statistics textbooks refer to the $b$s as effects. However, in the Netflix challenge papers, they refer to them as _bias_, thus the $b$ notation.
 
 We can again use least squares to estimate the $b_i$ in the following way:
 
@@ -202,16 +224,13 @@ fit <- lm(rating ~ as.factor(movieId), data = movielens)
 Because there are thousands of $b_i$ as each movie gets one, the `lm()` function will be very slow here. We therefore don't recommend running the code above. But in this particular situation, we know that the least squares estimate $\hat{b}_i$ is just the average of $Y_{u,i} - \hat{\mu}$ for each movie $i$. So we can compute them this way (we will drop the `hat` notation in the code to represent estimates going forward):
 
 ```{r}
-mu <- mean(train_set$rating) 
-movie_avgs <- train_set |> 
-  group_by(movieId) |> 
-  summarize(b_i = mean(rating - mu))
+b_i <- colMeans(mat - mu, na.rm = TRUE)
 ```
 
 We can see that these estimates vary substantially:
 
 ```{r movie-effects}
-qplot(b_i, data = movie_avgs, bins = 10, color = I("black"))
+qplot(b_i, bins = 10, color = I("black"))
 ```
 
 Remember $\hat{\mu}=3.5$ so a $b_i = 1.5$ implies a perfect five star rating.
@@ -219,14 +238,18 @@ Remember $\hat{\mu}=3.5$ so a $b_i = 1.5$ implies a perfect five star rating.
 Let's see how much our prediction improves once we use $\hat{y}_{u,i} = \hat{\mu} + \hat{b}_i$:
 
 ```{r}
-predicted_ratings <- mu + test_set |> 
-  left_join(movie_avgs, by='movieId') |>
-  pull(b_i)
-RMSE(predicted_ratings, test_set$rating)
+fit_movies <- data.frame(movieId = as.integer(colnames(mat)), 
+                         mu = mu, b_i = b_i)
+left_join(test_set, fit_movies, by = "movieId") |> 
+  mutate(pred = mu + b_i) |> 
+  summarize(rmse = RMSE(rating, pred))
 ```
 
 ```{r echo=FALSE}
-model_1_rmse <- RMSE(predicted_ratings, test_set$rating)
+model_1_rmse <- left_join(test_set, fit_movies, by = "movieId") |> 
+  mutate(pred = mu + b_i) |> 
+  summarize(rmse = RMSE(rating, pred)) |>
+  pull(rmse)
 rmse_results <- bind_rows(rmse_results,
                           tibble(method="Movie Effect Model",  
                                  RMSE = model_1_rmse))
@@ -234,17 +257,15 @@ rmse_results <- bind_rows(rmse_results,
 
 We already see an improvement. But can we make it better?
 
+
+
 ### User effects
 
 Let's compute the average rating for user $u$ for those that have rated 100 or more movies: 
 
 ```{r user-effect-hist}
-train_set |> 
-  group_by(userId) |> 
-  filter(n()>=100) |>
-  summarize(b_u = mean(rating)) |> 
-  ggplot(aes(b_u)) + 
-  geom_histogram(bins = 30, color = "black")
+b_u <- rowMeans(mat, na.rm = TRUE)
+qplot(b_u, bins = 30, color = I("black"))
 ```
 
 Notice that there is substantial variability across users 
@@ -266,25 +287,26 @@ lm(rating ~ as.factor(movieId) + as.factor(userId))
 but, for the reasons described earlier, we won't. Instead, we will compute an approximation by computing $\hat{\mu}$ and $\hat{b}_i$ and estimating $\hat{b}_u$ as the average of $y_{u,i} - \hat{\mu} - \hat{b}_i$:
 
 ```{r}
-user_avgs <- train_set |> 
-  left_join(movie_avgs, by='movieId') |>
-  group_by(userId) |>
-  summarize(b_u = mean(rating - mu - b_i))
+b_u <- rowMeans(sweep(mat - mu, 2, b_i), na.rm = TRUE)
 ```
 
 We can now construct predictors and see how much the RMSE improves:
 
 ```{r}
-predicted_ratings <- test_set |> 
-  left_join(movie_avgs, by='movieId') |>
-  left_join(user_avgs, by='userId') |>
-  mutate(pred = mu + b_i + b_u) |>
-  pull(pred)
-RMSE(predicted_ratings, test_set$rating)
+fit_users <- data.frame(userId = as.integer(rownames(mat)), b_u = b_u)
+
+left_join(test_set, fit_movies, by = "movieId") |> 
+  left_join(fit_users, by = "userId") |> 
+  mutate(pred = mu + b_i + b_u) |> 
+  summarize(rmse = RMSE(rating, pred))
 ```
 
 ```{r echo=FALSE}
-model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
+model_2_rmse <- left_join(test_set, fit_movies, by = "movieId") |> 
+  left_join(fit_users, by = "userId") |> 
+  mutate(pred = mu + b_i + b_u) |> 
+  summarize(rmse = RMSE(rating, pred)) |> 
+  pull(rmse)
 rmse_results <- bind_rows(rmse_results,
                           tibble(method="Movie + User Effects Model",  
                                  RMSE = model_2_rmse))
@@ -352,63 +374,31 @@ d. $Y_{u,i} = \mu + b_i + b_u + f(d_{u,i}) + \varepsilon_{u,i}$, with $f$ a smoo
 
 ### Motivation
 
-Despite the large movie to movie variation, our improvement in RMSE was only about 5%. Let's explore where we made mistakes in our first model, using only movie effects $b_i$. Here are the 10 largest mistakes:
+Let's look at the top 3 movies, based on our estimates of the movie effect $b_i$, along 
+with the number of ratings this rating was based on.
 
+```{r}
+n <-  colSums(!is.na(mat))
+fit_movies$n <- n
+best <- fit_movies |> left_join(movie_map, by = "movieId") |> 
+  top_n(3, b_i) |> 
+  arrange(desc(b_i)) |>
+  mutate(average_rating = mu + b_i)
+best |>  select(title, average_rating, n) 
+```
+
+These all seem like obscure movies. Do we really think these are the top 3 movies in our database? Will this prediction hold on the test set? Note that all lower in the test, some considerable lower:
 
 ```{r}
 test_set |> 
-  left_join(movie_avgs, by='movieId') |>
-  mutate(residual = rating - (mu + b_i)) |>
-  arrange(desc(abs(residual))) |>  
-  slice(1:10) |> 
-  pull(title)
+  group_by(movieId) |>
+  summarize(averge_rating_test = mean(rating)) |>
+  right_join(best, by = "movieId") |>
+  select(title, average_rating, averge_rating_test, n) 
 ```
 
-These all seem like obscure movies. Many of them have large predictions. Let's look at the top 10 worst and best movies based on $\hat{b}_i$. First, let's create a database that connects `movieId` to movie title:
 
-```{r}
-movie_titles <- movielens |> 
-  select(movieId, title) |>
-  distinct()
-```
-
-Here are the 10 best movies according to our estimate:
-
-```{r}
-movie_avgs |> left_join(movie_titles, by="movieId") |>
-  arrange(desc(b_i)) |> 
-  slice(1:10)  |> 
-  pull(title)
-```
-
-And here are the 10 worst:
-
-```{r}
-movie_avgs |> left_join(movie_titles, by="movieId") |>
-  arrange(b_i) |> 
-  slice(1:10)  |> 
-  pull(title)
-```
-
-They all seem to be quite obscure. Let's look at how often they are rated.
-
-```{r}
-train_set |> count(movieId) |> 
-  left_join(movie_avgs, by="movieId") |>
-  left_join(movie_titles, by="movieId") |>
-  arrange(desc(b_i)) |> 
-  slice(1:10) |> 
-  pull(n)
- 
-train_set |> count(movieId) |> 
-  left_join(movie_avgs) |>
-  left_join(movie_titles, by="movieId") |>
-  arrange(b_i) |> 
-  slice(1:10) |> 
-  pull(n)
-```
-
-The supposed "best" and "worst" movies were rated by very few users, in most cases just 1. These movies were mostly obscure ones. This is because with just a few users, we have more uncertainty. Therefore, larger estimates of $b_i$, negative or positive, are more likely. 
+Note that these estimates are based on a small number of ratings. The supposed _best_  movies were rated by very few users. Note that the small sample sizes lead to uncertainty. Therefore, larger estimates of $b_i$, negative or positive, are more likely. 
 
 These are noisy estimates that we should not trust, 
 especially when it comes to prediction. Large errors can 
@@ -440,142 +430,87 @@ $$
 
 where $n_i$ is the number of ratings made for movie $i$. This approach will have our desired effect: when our sample size $n_i$ is very large, a case which will give us a stable estimate, then the penalty $\lambda$ is effectively ignored since $n_i+\lambda \approx n_i$. However, when the $n_i$ is small, then the estimate $\hat{b}_i(\lambda)$ is shrunken towards 0. The larger $\lambda$, the more we shrink.
 
-Let's compute these regularized estimates of $b_i$ using 
-$\lambda=3$. Later, we will see why we picked 3. 
+To select $\lambda$, we can use cross validation:
 
 ```{r}
-lambda <- 3
-mu <- mean(train_set$rating)
-movie_reg_avgs <- train_set |> 
-  group_by(movieId) |> 
-  summarize(b_i = sum(rating - mu)/(n()+lambda), n_i = n()) 
+lambdas <- seq(0, 10, 0.25)
+
+rmses <- sapply(lambdas, function(lambda){
+  b_i <- colSums(mat - mu, na.rm = TRUE) / (n + lambda)
+  fit <- data.frame(movieId = as.integer(colnames(mat)), mu = mu, b_i = b_i)
+  left_join(test_set, fit, by = "movieId") |> mutate(pred = mu + b_i) |> 
+    summarize(rmse = RMSE(rating, pred)) |>
+    pull(rmse)
+})
 ```
+
+We can then select the value that minimizes the RMSE:
+
+```{r best-penalty}
+qplot(lambdas, rmses)
+
+lambda <- lambdas[which.min(rmses)]
+
+print(lambda)
+```
+
+Once we select a $\lambda$ we can compute the regularized estimates:
+
+```{r}
+b_i <- colSums(mat - mu, na.rm = TRUE) / (n + lambda)
+```
+
 
 To see how the estimates shrink, let's make a plot of the regularized estimates versus the least squares estimates.
 
-```{r regularization-shrinkage}
-tibble(original = movie_avgs$b_i, 
-       regularlized = movie_reg_avgs$b_i, 
-       n = movie_reg_avgs$n_i) |>
+```{r regularization-shrinkage, fig.asp=1, echo=FALSE}
+tibble(original = fit_movies$b_i, 
+       regularlized = b_i, 
+       n = n) |>
   ggplot(aes(original, regularlized, size=sqrt(n))) + 
-  geom_point(shape=1, alpha=0.5)
+  geom_point(shape=1, alpha=0.5) +
+  geom_abline()
 ```
 
-Now, let's look at the top 10 best movies based on the penalized estimates $\hat{b}_i(\lambda)$:
+Now, let's look at the top 3 best movies based on the penalized estimates $\hat{b}_i(\lambda)$:
 
-```{r}
-train_set |>
-  count(movieId) |> 
-  left_join(movie_reg_avgs, by = "movieId") |>
-  left_join(movie_titles, by = "movieId") |>
-  arrange(desc(b_i)) |> 
-  slice(1:10) |> 
-  pull(title)
+```{r, echo=FALSE}
+fit_reg_movies <- data.frame(movieId = as.integer(colnames(mat)), mu = mu, b_i = b_i, n = n)
+best <- fit_reg_movies |> left_join(movie_map, by = "movieId") |> top_n(3, b_i) |> 
+  arrange(desc(b_i)) |>
+  mutate(average_rating = mu + b_i)
+
+test_set |> 
+  group_by(movieId) |>
+  summarize(averge_rating_test = mean(rating)) |>
+  right_join(best, by = "movieId") |>
+  select(title, average_rating, averge_rating_test, n) 
 ```
 
-These make much more sense! These movies are watched more and have more ratings. Here are the top 10 worst movies:
+These make much more sense! These movies are watched more and have more ratings. 
+
+Do we improve our results? Let's estimate the user effects with the new movie effect estimates and compute the new RMSE:
 
 ```{r}
-train_set |>
-  count(movieId) |> 
-  left_join(movie_reg_avgs, by = "movieId") |>
-  left_join(movie_titles, by="movieId") |>
-  arrange(b_i) |> 
-  select(title, b_i, n) |> 
-  slice(1:10) |> 
-  pull(title)
-```
-
-Do we improve our results?
-
-```{r}
-predicted_ratings <- test_set |> 
-  left_join(movie_reg_avgs, by = "movieId") |>
-  mutate(pred = mu + b_i) |>
-  pull(pred)
-RMSE(predicted_ratings, test_set$rating)
+fit_users$b_u <- rowMeans(sweep(mat - mu, 2, b_i), na.rm = TRUE)
+left_join(test_set, fit_reg_movies, by = "movieId") |> 
+  left_join(fit_users, by = "userId") |> 
+  mutate(pred = mu + b_i + b_u) |> 
+  summarize(rmse = RMSE(rating, pred))
 ```
 
 ```{r echo=FALSE}
-model_3_rmse <- RMSE(predicted_ratings, test_set$rating)
+model_3_rmse <- left_join(test_set, fit_reg_movies, by = "movieId") |> 
+  left_join(fit_users, by = "userId") |> 
+  mutate(pred = mu + b_i + b_u) |> 
+  summarize(rmse = RMSE(rating, pred)) |> 
+  pull(rmse)
 rmse_results <- bind_rows(rmse_results,
-                          tibble(method="Regularized Movie Effect Model",  
+                          tibble(method="Regularized Movie + User Effect Model",  
                                  RMSE = model_3_rmse))
-rmse_results 
 ```
 
-The penalized estimates provide a large improvement over the least squares estimates.
-
-### Choosing the penalty terms
-
-Note that $\lambda$ is a tuning parameter. We can use cross-validation to choose it.
-
-```{r best-penalty}
-lambdas <- seq(0, 10, 0.25)
-
-mu <- mean(train_set$rating)
-just_the_sum <- train_set |> 
-  group_by(movieId) |> 
-  summarize(s = sum(rating - mu), n_i = n())
-
-rmses <- sapply(lambdas, function(l){
-  predicted_ratings <- test_set |> 
-    left_join(just_the_sum, by='movieId') |> 
-    mutate(b_i = s/(n_i+l)) |>
-    mutate(pred = mu + b_i) |>
-    pull(pred)
-  return(RMSE(predicted_ratings, test_set$rating))
-})
-qplot(lambdas, rmses)  
-lambdas[which.min(rmses)]
-```
-
-However, while we show this as an illustration, in practice we should be using full cross-validation just on the train set, without using the test set until the final assessment. The test set should never be used for tuning.
-
-We can use regularization for the estimate user effects as well. We are minimizing:
-
-$$
-\sum_{u,i} \left(y_{u,i} - \mu - b_i - b_u \right)^2 + 
-\lambda \left(\sum_{i} b_i^2 + \sum_{u} b_u^2\right)
-$$
-
-The estimates that minimize this can be found similarly to what we did above. Here we use cross-validation to pick a $\lambda$:
-
-```{r best-lambdas}
-lambdas <- seq(0, 10, 0.25)
-
-rmses <- sapply(lambdas, function(l){
-
-  mu <- mean(train_set$rating)
-  
-  b_i <- train_set |> 
-    group_by(movieId) |>
-    summarize(b_i = sum(rating - mu)/(n()+l))
-  
-  b_u <- train_set |> 
-    left_join(b_i, by="movieId") |>
-    group_by(userId) |>
-    summarize(b_u = sum(rating - b_i - mu)/(n()+l))
-
-  predicted_ratings <- 
-    test_set |> 
-    left_join(b_i, by = "movieId") |>
-    left_join(b_u, by = "userId") |>
-    mutate(pred = mu + b_i + b_u) |>
-    pull(pred)
-  
-    return(RMSE(predicted_ratings, test_set$rating))
-})
-
-qplot(lambdas, rmses)  
-```
-
-For the full model, the optimal $\lambda$ is:
-
-```{r}
-lambda <- lambdas[which.min(rmses)]
-lambda
-```
+The penalized estimates provide an improvement over the least squares estimates:
 
 
 ```{r, echo=FALSE}
@@ -676,55 +611,27 @@ $$
 r_{u,i} = y_{u,i} - \hat{b}_i - \hat{b}_u
 $$
 
-To see this, we will convert the data into a matrix so that each user gets a row, each movie gets a column, and $y_{u,i}$ is the entry in row $u$ and column $i$. For illustrative purposes, we will only consider a small subset of movies with many ratings and users that have rated many movies. We also keep Scent of a Woman (`movieId == 3252`) because we use it for a specific example:
+
+We can compute these residuals for the model we fit in the previous section:
 
 ```{r}
-train_small <- movielens |> 
-  group_by(movieId) |>
-  filter(n() >= 50 | movieId == 3252) |> ungroup() |> 
-  group_by(userId) |>
-  filter(n() >= 50) |> ungroup()
-
-y <- train_small |> 
-  select(userId, movieId, rating) |>
-  pivot_wider(names_from = "movieId", values_from = "rating") |>
-  as.matrix()
+r <- sweep(mat - mu, 2, fit_reg_movies$b_i) - fit_users$b_u
+colnames(r) <- with(movie_map, title[match(colnames(r), movieId)])
 ```
 
-We add row names and column names:
+If the movie and user effect model explains all the signal, and the $\varepsilon$ are just noise, then the residuals for different movies should be independent from each other. But they are not. Here are some examples:
 
-```{r}
-rownames(y)<- y[,1]
-y <- y[,-1]
-
-movie_titles <- movielens |> 
-  select(movieId, title) |>
-  distinct()
-
-colnames(y) <- with(movie_titles, title[match(colnames(y), movieId)])
-```
-
-and convert them to residuals by removing the column and row effects:
-
-```{r}
-y <- sweep(y, 2, colMeans(y, na.rm=TRUE))
-y <- sweep(y, 1, rowMeans(y, na.rm=TRUE))
-```
-
-If the model above explains all the signals, and the $\varepsilon$ are just noise, then the residuals for different movies should be independent from each other. But they are not. Here are some examples:
-
-```{r movie-cor, warning=FALSE, message=FALSE, out.width="100%", fig.width=9, fig.height=3}
+```{r movie-cor, echo=FALSE, warning=FALSE, message=FALSE, out.width="100%", fig.width=9, fig.height=3}
 m_1 <- "Godfather, The"
 m_2 <- "Godfather: Part II, The"
-p1 <- qplot(y[ ,m_1], y[,m_2], xlab = m_1, ylab = m_2)
+p1 <- qplot(r[ ,m_1], r[,m_2], xlab = m_1, ylab = m_2)
 
-m_1 <- "Godfather, The"
 m_3 <- "Goodfellas"
-p2 <- qplot(y[ ,m_1], y[,m_3], xlab = m_1, ylab = m_3)
+p2 <- qplot(r[ ,m_1], r[,m_3], xlab = m_1, ylab = m_3)
 
 m_4 <- "You've Got Mail" 
 m_5 <- "Sleepless in Seattle" 
-p3 <- qplot(y[ ,m_4], y[,m_5], xlab = m_4, ylab = m_5)
+p3 <- qplot(r[ ,m_4], r[,m_5], xlab = m_4, ylab = m_5)
 
 gridExtra::grid.arrange(p1, p2 ,p3, ncol = 3)
 ```
@@ -733,8 +640,8 @@ This plot says that users that liked The Godfather more than what the model expe
 
 By looking at the correlation between movies, we can see a pattern (we rename the columns to save print space):
 
-```{r}
-x <- y[, c(m_1, m_2, m_3, m_4, m_5)]
+```{r, echo=FALSE}
+x <- r[, c(m_1, m_2, m_3, m_4, m_5)]
 short_names <- c("Godfather", "Godfather2", "Goodfellas",
                  "You've Got", "Sleepless")
 colnames(x) <- short_names
@@ -818,16 +725,20 @@ round(r, 1)
 ```
 
 By exploring the correlation structure of this new dataset
-```{r}
+```{r, echo=FALSE}
 colnames(r)[4:6] <- c("YGM", "SS", "SW")
 cor(r)
 ```
 We note that we perhaps need a second factor to account for the fact that some users like Al Pacino, while others dislike him or don't care. Notice that the overall structure of the correlation obtained from the simulated data is not that far off the real correlation:
 
-```{r}
+```{r, echo=FALSE}
+cnames <- colnames(r)
+r <- sweep(mat - mu, 2, fit_reg_movies$b_i) - fit_users$b_u
+colnames(r) <- with(movie_map, title[match(colnames(r), movieId)])
+
 six_movies <- c(m_1, m_2, m_3, m_4, m_5, m_6)
-x <- y[, six_movies]
-colnames(x) <- colnames(r)
+x <- r[, six_movies]
+colnames(x) <- cnames
 cor(x, use="pairwise.complete")
 ```
 
@@ -867,12 +778,52 @@ r_{u,i} = p_{u,1} q_{1,i} + p_{u,2} q_{2,i} + \dots + p_{u,n} q_{n,i}
 $$
 
 with the variability of each term decreasing and with the $p$s uncorrelated. The algorithm also computes this variability so that we can know how much of the matrices, total variability is explained as we add new terms. This may permit us to see that, with just a few terms, we can explain most of the variability.
-
-Let's see an example with the movie data. To compute the decomposition, we will make the residuals with NAs equal to 0:
+To illustrate this we will only consider a small subset of movies with many ratings and users that have rated many movies:
 
 ```{r}
-y[is.na(y)] <- 0
-pca <- prcomp(y)
+keep <- c("Godfather, The", "Godfather: Part II, The", "Goodfellas", "Ghost", "Titanic", 
+          "Scent of a Woman")
+dat <- movielens  |> 
+  group_by(userId) |>
+  filter(n() >= 250) |> 
+  ungroup() |>
+  group_by(movieId) |>
+  filter(n() >= 50 | title %in% keep) |> 
+  ungroup() 
+
+y <- select(dat, movieId, userId, rating) |>
+  pivot_wider(names_from = movieId, values_from = rating) 
+y <- as.matrix(y[,-1])
+
+colnames(y) <- dat |> select(movieId, title) |> 
+  distinct(movieId, .keep_all = TRUE) |>
+  right_join(data.frame(movieId=as.integer(colnames(y))), by = "movieId") |>
+  pull(title)
+```
+
+
+We first remove the overall movie and user effects as we are interested in the variability not explained by these. We start by removing the movie effects:
+
+```{r}
+r <- sweep(y, 2, colMeans(y, na.rm=TRUE))
+```
+
+Because for the techniques shown here we can't have missing values we need to replace the missing ratings. There are advanced techniques for doing this, some are exaplined in the description of the winning entry for the Netflix competition. Here we will use a simple approach: replace with a constant. Now because an unrated movie is more likely to be a movie the user does not like, we will replace the missing ratings with -1 rather than a 0, which represents a neutral rating.
+
+```{r}
+r[is.na(r)] <- -1
+```
+
+Finally we will remove the overall user effect:
+
+```{r}
+r <- r - rowMeans(r)
+```
+
+Now we can perform principal component analysis:
+
+```{r}
+pca <- prcomp(r)
 ```
 
 The $q$ vectors are called the principal components and they are stored in this matrix:
@@ -890,7 +841,7 @@ dim(pca$x)
 We can see the variability of each of the vectors:
 
 ```{r, pca-sds}
-qplot(1:nrow(x), pca$sdev, xlab = "PC")
+qplot(1:nrow(pca$x), pca$sdev, xlab = "PC")
 ```
 
 <!--
@@ -917,25 +868,25 @@ pcs |>  ggplot(aes(PC1, PC2)) + geom_point() +
                   data = highlight, size = 2)
 ```
 
-Just by looking at the top 10 in each direction, we see a meaningful pattern. The first PC shows the difference between critically acclaimed movies on one side:
+Just by looking at the top 10 in each direction, we see a meaningful pattern. The first PC shows the difference between Hollywood blockbusters on one side:
 
 ```{r, echo=FALSE}
 pcs |> select(name, PC1) |> arrange(PC1) |> slice(1:10) |> pull(name)
 ```
 
-and Hollywood blockbusters on the other:
+and  critically acclaimed movies on the other:
 
 ```{r, echo=FALSE}
-pcs |> select(name, PC1) |> arrange(desc(PC1)) |> slice(1:10)  |> pull(name)
+pcs |> select(name, PC1) |> arrange(desc(PC1)) |> slice(1:10) |> pull(name)
 ```
 
-While the second PC seems to go from artsy, independent films:
+While the second PC seems to be related to  on one side:
 
 ```{r, echo=FALSE}
 pcs |> select(name, PC2) |> arrange(PC2) |> slice(1:10) |> pull(name)
 ```
 
-to nerd favorites:
+to romantic movies:
 
 ```{r, echo=FALSE}
 pcs |> select(name, PC2) |> arrange(desc(PC2)) |> slice(1:10) |> pull(name)
