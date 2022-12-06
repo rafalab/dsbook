@@ -166,38 +166,19 @@ train_rf <-  train(x[, col_index], y,
                    trControl = control,
                    tuneGrid = grid,
                    nSamp = 5000)
-
-set.seed(1982)
-library(Rborist)
-control <- trainControl(method="cv", number = 10, p = .9)
-grid <- expand.grid(predFixed = c(5, 10, 15, 25), 
-                    minNode = c(1, 3))
-train_rf <-  train(x[, col_index], y, 
-                   method = 'Rborist',
-                   nTree = 150,
-                   trControl = control,
-                   tuneGrid = grid,
-                   verbose = TRUE)
-
 ```
 
 Now that we have optimized our algorithm, we are ready to fit our final model:
 
 ```{r, eval=FALSE}
 fit_rf <- randomForest(x[, col_index], y, 
-                       minNode = train_rf$bestTune$mtry)
+                       mtry = train_rf$bestTune$mtry)
 ```
 
 ```{r, echo=FALSE}
 ## we hard wire to 10 do make book compilation faster.
 ## we ran previous code once to determin 10 was the best
-fit_rf <- randomForest(x[, col_index], y, 
-                       minNode = train_rf$bestTune$mtry)
-
-fit_rf <- Rborist(x[, col_index], y,  minNode = 3, predFixed = 12, nTree = 100)
-fit_rf <- randomForest::randomForest(x[, col_index], y, 
-                       minNode = 3, mtry = 12)
-
+fit_rf <- randomForest(x[, col_index], y,  mtry = 15)
 ```
 
 To check that we ran enough trees we can use the plot function:
@@ -209,7 +190,6 @@ plot(fit_rf)
 We see that we achieve high accuracy:
 
 ```{r}
-y_hat_rf <- predict(fit_rf, x_test[ ,col_index])$yPred
 y_hat_rf <- predict(fit_rf, x_test[ ,col_index])
 cm <- confusionMatrix(y_hat_rf, y_test)
 cm$overall["Accuracy"]
