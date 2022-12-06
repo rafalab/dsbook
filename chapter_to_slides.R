@@ -104,6 +104,7 @@ chapter_to_slides <- function(input,
   ### CHECK WITH intro-ml
   ## REMOVE <!---  comments
   ## Sectiong are starting inside latex
+  ## inline R should not be now line
   
   ## CHEKC ALSO LATEX... turingin into prose. check confusionmatrix
   table_index <- str_which(x, "if\\(knitr::is_html_output\\(\\)\\)\\{")
