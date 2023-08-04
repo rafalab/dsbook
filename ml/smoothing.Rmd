@@ -505,8 +505,9 @@ dat <- map_df(str_split(pdf_text(fn), "\n"), function(s){
   n <- str_count(s, "\\d+")
   out <- c(1:header_index, which(n == 1), 
            which(n >= 28), tail_index:length(s))
-  s[-out] |>  str_remove_all("[^\\d\\s]") |> str_trim() |>
-    str_split_fixed("\\s+", n = 6) |> .[,1:5] |> as_tibble() |> 
+  s <- s[-out] |>  str_remove_all("[^\\d\\s]") |> str_trim() |>
+    str_split_fixed("\\s+", n = 6) 
+  s[,1:5] |> as_tibble() |> 
     setNames(c("day", header)) |>
     mutate(month = month, day = as.numeric(day)) |>
     pivot_longer(-c(day, month), names_to = "year", values_to = "deaths") |>

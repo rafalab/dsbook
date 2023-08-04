@@ -126,22 +126,13 @@ campaign_tweets[i,] |>
   pull(word) 
 ```
 
-Note that the function tries to convert tokens into words. To do this, however, it strips characters that are important in the context of twitter. Namely, the function removes all the `#` and `@`. A _token_ in the context of Twitter is not the same as in the context of spoken or written English. For this reason, instead of using the default, words, we use the `tweets` token includes patterns that start with @ and #:
-
-
-```{r, message=FALSE, warning=FALSE}
-campaign_tweets[i,] |> 
-  unnest_tokens(word, text, token = "tweets") |>
-  pull(word)
-```
-
-Another minor adjustment we want to make is to remove the links to pictures:
+Note that the function tries to convert tokens into words. A minor adjustment is to remove the links to pictures:
 
 ```{r, message=FALSE, warning=FALSE}
 links <- "https://t.co/[A-Za-z\\d]+|&amp;"
 campaign_tweets[i,] |> 
   mutate(text = str_replace_all(text, links, ""))  |>
-  unnest_tokens(word, text, token = "tweets") |>
+  unnest_tokens(word, text) |>
   pull(word)
 ```
 
@@ -150,7 +141,7 @@ Now we are now ready to extract the words for all our tweets.
 ```{r, message=FALSE, warning=FALSE}
 tweet_words <- campaign_tweets |> 
   mutate(text = str_replace_all(text, links, ""))  |>
-  unnest_tokens(word, text, token = "tweets")
+  unnest_tokens(word, text)
 ```
 
 
@@ -173,7 +164,7 @@ If we filter out rows representing stop words with `filter(!word %in% stop_words
 ```{r, message=FALSE, warning=FALSE}
 tweet_words <- campaign_tweets |> 
   mutate(text = str_replace_all(text, links, ""))  |>
-  unnest_tokens(word, text, token = "tweets") |>
+  unnest_tokens(word, text) |>
   filter(!word %in% stop_words$word ) 
 ```
 
@@ -193,7 +184,7 @@ Some exploration of the resulting words (not shown here) reveals a couple of unw
 ```{r, message=FALSE, warning=FALSE}
 tweet_words <- campaign_tweets |> 
   mutate(text = str_replace_all(text, links, ""))  |>
-  unnest_tokens(word, text, token = "tweets") |>
+  unnest_tokens(word, text) |>
   filter(!word %in% stop_words$word &
            !str_detect(word, "^\\d+$")) |>
   mutate(word = str_replace(word, "^'", ""))
@@ -278,7 +269,7 @@ We can combine the words and sentiments using `inner_join`, which will only keep
 
 
 ```{r}
-tweet_words |> inner_join(nrc, by = "word") |> 
+tweet_words |> inner_join(nrc, by = "word", relationship = "many-to-many") |> 
   select(source, word, sentiment) |> 
   sample_n(5)
 ```
@@ -288,7 +279,7 @@ Now we are ready to perform a quantitative analysis comparing Android and iPhone
 
 ```{r}
 sentiment_counts <- tweet_words |>
-  left_join(nrc, by = "word") |>
+  left_join(nrc, by = "word", relationship = "many-to-many") |>
   count(source, sentiment) |>
   pivot_wider(names_from = "source", values_from = "n") |>
   mutate(sentiment = replace_na(sentiment, replace = "none"))
@@ -338,7 +329,7 @@ We see that the disgust, anger, negative, sadness, and fear sentiments are assoc
 If we are interested in exploring which specific words are driving these differences, we can refer  back to our `android_iphone_or` object:
 
 ```{r}
-android_iphone_or |> inner_join(nrc, by = "word") |>
+android_iphone_or |> inner_join(nrc) |>
   filter(sentiment == "disgust" & Android + iPhone > 10) |>
   arrange(desc(or))
 ``` 
