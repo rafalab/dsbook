@@ -1,9 +1,12 @@
-This is the code for the [Introduction to Data Science](https://rafalab.github.io/dsbook/) class notes used in the
- [HarvardX Data Science Series](https://www.edx.org/professional-certificate/harvardx-data-science).
+This is the code repository for the first edition of Introduction to Data Science.
 
-[Book web page](https://rafalab.github.io/dsbook/)
+**This repository is now out-of-date**. We recommend using the second edition which is now divided in two parts:
 
-[PDF version](https://leanpub.com/datasciencebook)
+* Introduction to Data Science [[Web page](https://rafalab.github.io/dsbook-part-1)|[Repository](https://github.com/rafalab/dsbook-part-1)]
+* Advanced Data Science [[Web page](https://rafalab.github.io/dsbook-part-2)|[Repository](https://github.com/rafalab/dsbook-part-2)]
+
+The book web page for the [first edition](https://rafalab.github.io/dsbook/) 
+and a [PDF version](https://leanpub.com/datasciencebook) are still available.
 
 For updates follow
 <a class="twitter-follow-button"

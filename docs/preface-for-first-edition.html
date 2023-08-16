@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Chapter 19 Association is not causation | Introduction to Data Science</title>
+  <title>Preface for first edition | Introduction to Data Science</title>
   <meta name="description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown." />
   <meta name="generator" content="bookdown 0.33 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Chapter 19 Association is not causation | Introduction to Data Science" />
+  <meta property="og:title" content="Preface for first edition | Introduction to Data Science" />
   <meta property="og:type" content="book" />
   
   <meta property="og:description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown." />
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Chapter 19 Association is not causation | Introduction to Data Science" />
+  <meta name="twitter:title" content="Preface for first edition | Introduction to Data Science" />
   
   <meta name="twitter:description" content="This book introduces concepts and skills that can help you tackle real-world data analysis challenges. It covers concepts from probability, statistical inference, linear regression and machine learning and helps you develop skills such as R programming, data wrangling with dplyr, data visualization with ggplot2, file organization with UNIX/Linux shell, version control with GitHub, and reproducible document preparation with R markdown." />
   
@@ -29,8 +29,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="linear-models.html"/>
-<link rel="next" href="introduction-to-data-wrangling.html"/>
+<link rel="prev" href="index.html"/>
+<link rel="next" href="acknowledgments.html"/>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -1061,264 +1061,28 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="association-is-not-causation" class="section level1 hasAnchor" number="19">
-<h1><span class="header-section-number">Chapter 19</span> Association is not causation<a href="association-is-not-causation.html#association-is-not-causation" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p><em>Association is not causation</em> is perhaps the most important lesson one learns in a statistics class. <em>Correlation is not causation</em> is another way to say this. Throughout the Statistics part of the book, we have described tools useful for quantifying associations between variables. However, we must be careful not to over-interpret these associations.</p>
-<p>There are many reasons that a variable <span class="math inline">\(X\)</span> can be correlated with a variable <span class="math inline">\(Y\)</span> without having any direct effect on <span class="math inline">\(Y\)</span>. Here we examine four common ways that can lead to misinterpreting data.</p>
-<div id="spurious-correlation" class="section level2 hasAnchor" number="19.1">
-<h2><span class="header-section-number">19.1</span> Spurious correlation<a href="association-is-not-causation.html#spurious-correlation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The following comical example underscores that correlation is not causation. It shows a very strong correlation between divorce rates and margarine consumption.</p>
-<p><img src="book_files/figure-html/divorce-versus-margarine-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>Does this mean that margarine causes divorces? Or do divorces cause people to eat more margarine? Of course the answer to both these questions is no. This is just an example of what we call a <em>spurious correlation</em>.</p>
-<p>You can see many more absurd examples on the Spurious Correlations website<a href="#fn70" class="footnote-ref" id="fnref70"><sup>70</sup></a>.</p>
-<p>The cases presented in the spurious correlation site are all instances of what is generally called <em>data dredging</em>, <em>data fishing</em>, or <em>data snooping</em>. It’s basically a form of what in the US they call <em>cherry picking</em>. An example of data dredging would be if you look through many results produced by a random process and pick the one that shows a relationship that supports a theory you want to defend.</p>
-<p>A Monte Carlo simulation can be used to show how data dredging can result in finding high correlations among uncorrelated variables. We will save the results of our simulation into a tibble:</p>
-<div class="sourceCode" id="cb747"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb747-1"><a href="association-is-not-causation.html#cb747-1" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">25</span></span>
-<span id="cb747-2"><a href="association-is-not-causation.html#cb747-2" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="dv">1000000</span></span>
-<span id="cb747-3"><a href="association-is-not-causation.html#cb747-3" tabindex="-1"></a>sim_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">group =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>g, <span class="at">each=</span>N), </span>
-<span id="cb747-4"><a href="association-is-not-causation.html#cb747-4" tabindex="-1"></a>                   <span class="at">x =</span> <span class="fu">rnorm</span>(N <span class="sc">*</span> g), </span>
-<span id="cb747-5"><a href="association-is-not-causation.html#cb747-5" tabindex="-1"></a>                   <span class="at">y =</span> <span class="fu">rnorm</span>(N <span class="sc">*</span> g))</span></code></pre></div>
-<p>The first column denotes group. We created groups and for each one we generated a pair of independent vectors, <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, with 25 observations each, stored in the second and third columns. Because we constructed the simulation, we know that <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are not correlated.</p>
-<p>Next, we compute the correlation between <code>X</code> and <code>Y</code> for each group and look at the max:</p>
-<div class="sourceCode" id="cb748"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb748-1"><a href="association-is-not-causation.html#cb748-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> sim_data <span class="sc">|&gt;</span> </span>
-<span id="cb748-2"><a href="association-is-not-causation.html#cb748-2" tabindex="-1"></a>  <span class="fu">group_by</span>(group) <span class="sc">|&gt;</span> </span>
-<span id="cb748-3"><a href="association-is-not-causation.html#cb748-3" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">r =</span> <span class="fu">cor</span>(x, y)) <span class="sc">|&gt;</span> </span>
-<span id="cb748-4"><a href="association-is-not-causation.html#cb748-4" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(r))</span>
-<span id="cb748-5"><a href="association-is-not-causation.html#cb748-5" tabindex="-1"></a>res</span>
-<span id="cb748-6"><a href="association-is-not-causation.html#cb748-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1,000,000 × 2</span></span>
-<span id="cb748-7"><a href="association-is-not-causation.html#cb748-7" tabindex="-1"></a><span class="co">#&gt;    group     r</span></span>
-<span id="cb748-8"><a href="association-is-not-causation.html#cb748-8" tabindex="-1"></a><span class="co">#&gt;    &lt;int&gt; &lt;dbl&gt;</span></span>
-<span id="cb748-9"><a href="association-is-not-causation.html#cb748-9" tabindex="-1"></a><span class="co">#&gt; 1 210993 0.798</span></span>
-<span id="cb748-10"><a href="association-is-not-causation.html#cb748-10" tabindex="-1"></a><span class="co">#&gt; 2 555129 0.789</span></span>
-<span id="cb748-11"><a href="association-is-not-causation.html#cb748-11" tabindex="-1"></a><span class="co">#&gt; 3 106063 0.787</span></span>
-<span id="cb748-12"><a href="association-is-not-causation.html#cb748-12" tabindex="-1"></a><span class="co">#&gt; 4 313955 0.780</span></span>
-<span id="cb748-13"><a href="association-is-not-causation.html#cb748-13" tabindex="-1"></a><span class="co">#&gt; 5 179357 0.770</span></span>
-<span id="cb748-14"><a href="association-is-not-causation.html#cb748-14" tabindex="-1"></a><span class="co">#&gt; # ℹ 999,995 more rows</span></span></code></pre></div>
-<p>We see a maximum correlation of 0.798 and if you just plot the data from the group achieving this correlation, it shows a convincing plot that <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are in fact correlated:</p>
-<div class="sourceCode" id="cb749"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb749-1"><a href="association-is-not-causation.html#cb749-1" tabindex="-1"></a>sim_data <span class="sc">|&gt;</span> <span class="fu">filter</span>(group <span class="sc">==</span> res<span class="sc">$</span>group[<span class="fu">which.max</span>(res<span class="sc">$</span>r)]) <span class="sc">|&gt;</span></span>
-<span id="cb749-2"><a href="association-is-not-causation.html#cb749-2" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
-<span id="cb749-3"><a href="association-is-not-causation.html#cb749-3" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
-<span id="cb749-4"><a href="association-is-not-causation.html#cb749-4" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&quot;lm&quot;</span>)</span>
-<span id="cb749-5"><a href="association-is-not-causation.html#cb749-5" tabindex="-1"></a><span class="co">#&gt; `geom_smooth()` using formula = &#39;y ~ x&#39;</span></span></code></pre></div>
-<p><img src="book_files/figure-html/dredging-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>Remember that the correlation summary is a random variable. Here is the distribution generated by the Monte Carlo simulation:</p>
-<div class="sourceCode" id="cb750"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb750-1"><a href="association-is-not-causation.html#cb750-1" tabindex="-1"></a>res <span class="sc">|&gt;</span> <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>r)) <span class="sc">+</span> <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="fl">0.1</span>, <span class="at">color =</span> <span class="st">&quot;black&quot;</span>)</span></code></pre></div>
-<p><img src="book_files/figure-html/null-corr-hist-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>It’s just a mathematical fact that if we observe random correlations that are expected to be 0, but have a standard error of 0.204, the largest one will be close to 1.</p>
-<p>If we performed regression on this group and interpreted the p-value, we would incorrectly claim this was a statistically significant relation:</p>
-<div class="sourceCode" id="cb751"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb751-1"><a href="association-is-not-causation.html#cb751-1" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
-<span id="cb751-2"><a href="association-is-not-causation.html#cb751-2" tabindex="-1"></a>sim_data <span class="sc">|&gt;</span> </span>
-<span id="cb751-3"><a href="association-is-not-causation.html#cb751-3" tabindex="-1"></a>  <span class="fu">filter</span>(group <span class="sc">==</span> res<span class="sc">$</span>group[<span class="fu">which.max</span>(res<span class="sc">$</span>r)]) <span class="sc">|&gt;</span></span>
-<span id="cb751-4"><a href="association-is-not-causation.html#cb751-4" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">tidy</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x))) <span class="sc">|&gt;</span> </span>
-<span id="cb751-5"><a href="association-is-not-causation.html#cb751-5" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">&quot;x&quot;</span>)</span>
-<span id="cb751-6"><a href="association-is-not-causation.html#cb751-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 5</span></span>
-<span id="cb751-7"><a href="association-is-not-causation.html#cb751-7" tabindex="-1"></a><span class="co">#&gt;   term  estimate std.error statistic    p.value</span></span>
-<span id="cb751-8"><a href="association-is-not-causation.html#cb751-8" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;</span></span>
-<span id="cb751-9"><a href="association-is-not-causation.html#cb751-9" tabindex="-1"></a><span class="co">#&gt; 1 x        0.845     0.133      6.35 0.00000178</span></span></code></pre></div>
-<p>This particular form of data dredging is referred to as <em>p-hacking</em>. P-hacking is a topic of much discussion because it is a problem in scientific publications. Because publishers tend to reward statistically significant results over negative results, there is an incentive to report significant results. In epidemiology and the social sciences, for example, researchers may look for associations between an adverse outcome and several exposures and report only the one exposure that resulted in a small p-value. Furthermore, they might try fitting several different models to account for confounding and pick the one that yields the smallest p-value. In experimental disciplines, an experiment might be repeated more than once, yet only the results of the one experiment with a small p-value reported. This does not necessarily happen due to unethical behavior, but rather as a result of statistical ignorance or wishful thinking. In advanced statistics courses, you can learn methods to adjust for these multiple comparisons.</p>
+<div id="preface-for-first-edition" class="section level1 unnumbered hasAnchor">
+<h1>Preface for first edition<a href="preface-for-first-edition.html#preface-for-first-edition" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div style="float:right;position: relative; middle: -80px;box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);">
+<a href="https://leanpub.com/datasciencebook"><img src = "logo.png" width = "250"></a>
 </div>
-<div id="outliers-1" class="section level2 hasAnchor" number="19.2">
-<h2><span class="header-section-number">19.2</span> Outliers<a href="association-is-not-causation.html#outliers-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Suppose we take measurements from two independent outcomes, <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, and we standardize the measurements. However, imagine we make a mistake and forget to standardize entry 23. We can simulate such data using:</p>
-<div class="sourceCode" id="cb752"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb752-1"><a href="association-is-not-causation.html#cb752-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1985</span>)</span>
-<span id="cb752-2"><a href="association-is-not-causation.html#cb752-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">100</span>,<span class="dv">100</span>,<span class="dv">1</span>)</span>
-<span id="cb752-3"><a href="association-is-not-causation.html#cb752-3" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">100</span>,<span class="dv">84</span>,<span class="dv">1</span>)</span>
-<span id="cb752-4"><a href="association-is-not-causation.html#cb752-4" tabindex="-1"></a>x[<span class="sc">-</span><span class="dv">23</span>] <span class="ot">&lt;-</span> <span class="fu">scale</span>(x[<span class="sc">-</span><span class="dv">23</span>])</span>
-<span id="cb752-5"><a href="association-is-not-causation.html#cb752-5" tabindex="-1"></a>y[<span class="sc">-</span><span class="dv">23</span>] <span class="ot">&lt;-</span> <span class="fu">scale</span>(y[<span class="sc">-</span><span class="dv">23</span>])</span></code></pre></div>
-<p>The data look like this:</p>
-<div class="sourceCode" id="cb753"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb753-1"><a href="association-is-not-causation.html#cb753-1" tabindex="-1"></a><span class="fu">qplot</span>(x, y)</span></code></pre></div>
-<p><img src="book_files/figure-html/outlier-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>Not surprisingly, the correlation is very high:</p>
-<div class="sourceCode" id="cb754"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb754-1"><a href="association-is-not-causation.html#cb754-1" tabindex="-1"></a><span class="fu">cor</span>(x,y)</span>
-<span id="cb754-2"><a href="association-is-not-causation.html#cb754-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.988</span></span></code></pre></div>
-<p>But this is driven by the one outlier. If we remove this outlier, the correlation is greatly reduced to almost 0, which is what it should be:</p>
-<div class="sourceCode" id="cb755"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb755-1"><a href="association-is-not-causation.html#cb755-1" tabindex="-1"></a><span class="fu">cor</span>(x[<span class="sc">-</span><span class="dv">23</span>], y[<span class="sc">-</span><span class="dv">23</span>])</span>
-<span id="cb755-2"><a href="association-is-not-causation.html#cb755-2" tabindex="-1"></a><span class="co">#&gt; [1] -0.0442</span></span></code></pre></div>
-<p>There is an alternative to the sample correlation for estimating the population correlation that is robust to outliers. It is called <em>Spearman correlation</em>. The idea is simple: compute the correlation on the ranks of the values. Here is a plot of the ranks plotted against each other:</p>
-<div class="sourceCode" id="cb756"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb756-1"><a href="association-is-not-causation.html#cb756-1" tabindex="-1"></a><span class="fu">qplot</span>(<span class="fu">rank</span>(x), <span class="fu">rank</span>(y))</span></code></pre></div>
-<p><img src="book_files/figure-html/scatter-plot-of-ranks-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>The outlier is no longer associated with a very large value and the correlation comes way down:</p>
-<div class="sourceCode" id="cb757"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb757-1"><a href="association-is-not-causation.html#cb757-1" tabindex="-1"></a><span class="fu">cor</span>(<span class="fu">rank</span>(x), <span class="fu">rank</span>(y))</span>
-<span id="cb757-2"><a href="association-is-not-causation.html#cb757-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.00251</span></span></code></pre></div>
-<p>Spearman correlation can also be calculated like this:</p>
-<div class="sourceCode" id="cb758"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb758-1"><a href="association-is-not-causation.html#cb758-1" tabindex="-1"></a><span class="fu">cor</span>(x, y, <span class="at">method =</span> <span class="st">&quot;spearman&quot;</span>)</span>
-<span id="cb758-2"><a href="association-is-not-causation.html#cb758-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.00251</span></span></code></pre></div>
-<p>There are also methods for robust fitting of linear models which you can learn about in, for instance, this book: Robust Statistics: Edition 2 by Peter J. Huber &amp; Elvezio M. Ronchetti.</p>
-</div>
-<div id="reversing-cause-and-effect" class="section level2 hasAnchor" number="19.3">
-<h2><span class="header-section-number">19.3</span> Reversing cause and effect<a href="association-is-not-causation.html#reversing-cause-and-effect" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Another way association is confused with causation is when the cause and effect are reversed. An example of this is claiming that tutoring makes students perform worse because they test lower than peers that are not tutored. In this case, the tutoring is not causing the low test scores, but the other way around.</p>
-<p>A form of this claim actually made it into an op-ed in the New York Times titled Parental Involvement Is Overrated<a href="#fn71" class="footnote-ref" id="fnref71"><sup>71</sup></a>. Consider this quote from the article:</p>
-<blockquote>
-<blockquote>
-<p>When we examined whether regular help with homework had a positive impact on children’s academic performance, we were quite startled by what we found. Regardless of a family’s social class, racial or ethnic background, or a child’s grade level, consistent homework help almost never improved test scores or grades… Even more surprising to us was that when parents regularly helped with homework, kids usually performed worse.</p>
-</blockquote>
-</blockquote>
-<p>A very likely possibility is that the children needing regular parental help, receive this help because they don’t perform well in school.</p>
-<p>We can easily construct an example of cause and effect reversal using the father and son height data. If we fit the model:</p>
-<p><span class="math display">\[X_i = \beta_0 + \beta_1 y_i + \varepsilon_i, i=1, \dots, N\]</span></p>
-<p>to the father and son height data, with <span class="math inline">\(X_i\)</span> the father height and <span class="math inline">\(y_i\)</span> the son height, we do get a statistically significant result. We use the <code>galton_heights</code> dataset defined in Section <a href="regression.html#galton">17.1</a>:</p>
-<div class="sourceCode" id="cb759"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb759-1"><a href="association-is-not-causation.html#cb759-1" tabindex="-1"></a>galton_heights <span class="sc">|&gt;</span> <span class="fu">summarize</span>(<span class="fu">tidy</span>(<span class="fu">lm</span>(father <span class="sc">~</span> son)))</span>
-<span id="cb759-2"><a href="association-is-not-causation.html#cb759-2" tabindex="-1"></a><span class="co">#&gt; Warning: Returning more (or less) than 1 row per `summarise()` group was deprecated in dplyr</span></span>
-<span id="cb759-3"><a href="association-is-not-causation.html#cb759-3" tabindex="-1"></a><span class="co">#&gt; 1.1.0.</span></span>
-<span id="cb759-4"><a href="association-is-not-causation.html#cb759-4" tabindex="-1"></a><span class="co">#&gt; ℹ Please use `reframe()` instead.</span></span>
-<span id="cb759-5"><a href="association-is-not-causation.html#cb759-5" tabindex="-1"></a><span class="co">#&gt; ℹ When switching from `summarise()` to `reframe()`, remember that `reframe()` always</span></span>
-<span id="cb759-6"><a href="association-is-not-causation.html#cb759-6" tabindex="-1"></a><span class="co">#&gt;   returns an ungrouped data frame and adjust accordingly.</span></span>
-<span id="cb759-7"><a href="association-is-not-causation.html#cb759-7" tabindex="-1"></a><span class="co">#&gt; Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</span></span>
-<span id="cb759-8"><a href="association-is-not-causation.html#cb759-8" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 5</span></span>
-<span id="cb759-9"><a href="association-is-not-causation.html#cb759-9" tabindex="-1"></a><span class="co">#&gt;   term        estimate std.error statistic  p.value</span></span>
-<span id="cb759-10"><a href="association-is-not-causation.html#cb759-10" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span></span>
-<span id="cb759-11"><a href="association-is-not-causation.html#cb759-11" tabindex="-1"></a><span class="co">#&gt; 1 (Intercept)   40.9      4.40        9.29 5.47e-17</span></span>
-<span id="cb759-12"><a href="association-is-not-causation.html#cb759-12" tabindex="-1"></a><span class="co">#&gt; 2 son            0.407    0.0636      6.40 1.36e- 9</span></span></code></pre></div>
-<p>The model fits the data very well. If we look at the mathematical formulation of the model above, it could easily be incorrectly interpreted so as to suggest that the son being tall caused the father to be tall. But given what we know about genetics and biology, we know it’s the other way around. The model is technically correct. The estimates and p-values were obtained correctly as well. What is wrong here is the interpretation.</p>
-</div>
-<div id="confounders" class="section level2 hasAnchor" number="19.4">
-<h2><span class="header-section-number">19.4</span> Confounders<a href="association-is-not-causation.html#confounders" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Confounders are perhaps the most common reason that leads to associations begin misinterpreted.</p>
-<p>If <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are correlated, we call <span class="math inline">\(Z\)</span> a <em>confounder</em> if changes in <span class="math inline">\(Z\)</span> causes changes in both <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>. Earlier, when studying baseball data, we saw how Home Runs was a confounder that resulted in a higher correlation than expected when studying the relationship between Bases on Balls and Runs. In some cases, we can use linear models to account for confounders. However, this is not always the case.</p>
-<p>Incorrect interpretation due to confounders is ubiquitous in the lay press and they are often hard to detect. Here, we present a widely used example related to college admissions.</p>
-<div id="example-uc-berkeley-admissions" class="section level3 hasAnchor" number="19.4.1">
-<h3><span class="header-section-number">19.4.1</span> Example: UC Berkeley admissions<a href="association-is-not-causation.html#example-uc-berkeley-admissions" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>Admission data from six U.C. Berkeley majors, from 1973, showed that more men were being admitted than women: 44% men were admitted compared to 30% women. PJ Bickel, EA Hammel, and JW O’Connell. Science (1975). We can load the data and
-<!--compute the percent of men and women that were accepted like this:
-
-
-```r
-data(admissions)
-admissions |> group_by(gender) |> 
-  summarize(percentage = 
-              round(sum(admitted*applicants)/sum(applicants),1))
-#> # A tibble: 2 × 2
-#>   gender percentage
-#>   <chr>       <dbl>
-#> 1 men          44.5
-#> 2 women        30.3
-```
--->
-a statistical test, which clearly rejects the hypothesis that gender and admission are independent:</p>
-<div class="sourceCode" id="cb760"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb760-1"><a href="association-is-not-causation.html#cb760-1" tabindex="-1"></a><span class="fu">data</span>(admissions)</span>
-<span id="cb760-2"><a href="association-is-not-causation.html#cb760-2" tabindex="-1"></a>two_by_two <span class="ot">&lt;-</span> admissions <span class="sc">|&gt;</span> <span class="fu">group_by</span>(gender) <span class="sc">|&gt;</span> </span>
-<span id="cb760-3"><a href="association-is-not-causation.html#cb760-3" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">total_admitted =</span> <span class="fu">round</span>(<span class="fu">sum</span>(admitted <span class="sc">/</span> <span class="dv">100</span> <span class="sc">*</span> applicants)), </span>
-<span id="cb760-4"><a href="association-is-not-causation.html#cb760-4" tabindex="-1"></a>            <span class="at">not_admitted =</span> <span class="fu">sum</span>(applicants) <span class="sc">-</span> <span class="fu">sum</span>(total_admitted)) <span class="sc">|&gt;</span></span>
-<span id="cb760-5"><a href="association-is-not-causation.html#cb760-5" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>gender) </span>
-<span id="cb760-6"><a href="association-is-not-causation.html#cb760-6" tabindex="-1"></a>  </span>
-<span id="cb760-7"><a href="association-is-not-causation.html#cb760-7" tabindex="-1"></a><span class="fu">chisq.test</span>(two_by_two)<span class="sc">$</span>p.value</span>
-<span id="cb760-8"><a href="association-is-not-causation.html#cb760-8" tabindex="-1"></a><span class="co">#&gt; [1] 1.06e-21</span></span></code></pre></div>
-<p>But closer inspection shows a paradoxical result. Here are the percent admissions by major:</p>
-<div class="sourceCode" id="cb761"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb761-1"><a href="association-is-not-causation.html#cb761-1" tabindex="-1"></a>admissions <span class="sc">|&gt;</span> <span class="fu">select</span>(major, gender, admitted) <span class="sc">|&gt;</span></span>
-<span id="cb761-2"><a href="association-is-not-causation.html#cb761-2" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">&quot;gender&quot;</span>, <span class="at">values_from =</span> <span class="st">&quot;admitted&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb761-3"><a href="association-is-not-causation.html#cb761-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">women_minus_men =</span> women <span class="sc">-</span> men)</span>
-<span id="cb761-4"><a href="association-is-not-causation.html#cb761-4" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 4</span></span>
-<span id="cb761-5"><a href="association-is-not-causation.html#cb761-5" tabindex="-1"></a><span class="co">#&gt;   major   men women women_minus_men</span></span>
-<span id="cb761-6"><a href="association-is-not-causation.html#cb761-6" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt;           &lt;dbl&gt;</span></span>
-<span id="cb761-7"><a href="association-is-not-causation.html#cb761-7" tabindex="-1"></a><span class="co">#&gt; 1 A        62    82              20</span></span>
-<span id="cb761-8"><a href="association-is-not-causation.html#cb761-8" tabindex="-1"></a><span class="co">#&gt; 2 B        63    68               5</span></span>
-<span id="cb761-9"><a href="association-is-not-causation.html#cb761-9" tabindex="-1"></a><span class="co">#&gt; 3 C        37    34              -3</span></span>
-<span id="cb761-10"><a href="association-is-not-causation.html#cb761-10" tabindex="-1"></a><span class="co">#&gt; 4 D        33    35               2</span></span>
-<span id="cb761-11"><a href="association-is-not-causation.html#cb761-11" tabindex="-1"></a><span class="co">#&gt; 5 E        28    24              -4</span></span>
-<span id="cb761-12"><a href="association-is-not-causation.html#cb761-12" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more row</span></span></code></pre></div>
-<p>Four out of the six majors favor women. More importantly, all the differences are much smaller than the 14.2 difference that we see when examining the totals.</p>
-<p>The paradox is that analyzing the totals suggests a dependence between admission and gender, but when the data is grouped by major, this dependence seems to disappear. What’s going on? This actually can happen if an uncounted confounder is driving most of the variability.</p>
-<p>So let’s define three variables: <span class="math inline">\(X\)</span> is 1 for men and 0 for women, <span class="math inline">\(Y\)</span> is 1 for those admitted and 0 otherwise, and <span class="math inline">\(Z\)</span> quantifies the selectivity of the major. A gender bias claim would be based on the fact that <span class="math inline">\(\mbox{Pr}(Y=1 | X = x)\)</span> is higher for <span class="math inline">\(x=1\)</span> than <span class="math inline">\(x=0\)</span>. However, <span class="math inline">\(Z\)</span> is an important confounder to consider. Clearly <span class="math inline">\(Z\)</span> is associated with <span class="math inline">\(Y\)</span>, as the more selective a major, the lower <span class="math inline">\(\mbox{Pr}(Y=1 | Z = z)\)</span>. But is major selectivity <span class="math inline">\(Z\)</span> associated with gender <span class="math inline">\(X\)</span>?</p>
-<p>One way to see this is to plot the total percent admitted to a major versus the percent of women that made up the applicants:</p>
-<div class="sourceCode" id="cb762"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb762-1"><a href="association-is-not-causation.html#cb762-1" tabindex="-1"></a>admissions <span class="sc">|&gt;</span> </span>
-<span id="cb762-2"><a href="association-is-not-causation.html#cb762-2" tabindex="-1"></a>  <span class="fu">group_by</span>(major) <span class="sc">|&gt;</span> </span>
-<span id="cb762-3"><a href="association-is-not-causation.html#cb762-3" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">major_selectivity =</span> <span class="fu">sum</span>(admitted <span class="sc">*</span> applicants)<span class="sc">/</span><span class="fu">sum</span>(applicants),</span>
-<span id="cb762-4"><a href="association-is-not-causation.html#cb762-4" tabindex="-1"></a>            <span class="at">percent_women_applicants =</span> <span class="fu">sum</span>(applicants <span class="sc">*</span> (gender<span class="sc">==</span><span class="st">&quot;women&quot;</span>)) <span class="sc">/</span></span>
-<span id="cb762-5"><a href="association-is-not-causation.html#cb762-5" tabindex="-1"></a>                                             <span class="fu">sum</span>(applicants) <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
-<span id="cb762-6"><a href="association-is-not-causation.html#cb762-6" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(major_selectivity, percent_women_applicants, <span class="at">label =</span> major)) <span class="sc">+</span></span>
-<span id="cb762-7"><a href="association-is-not-causation.html#cb762-7" tabindex="-1"></a>  <span class="fu">geom_text</span>()</span></code></pre></div>
-<p><img src="book_files/figure-html/uc-berkeley-majors-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>There seems to be association. The plot suggests that women were much more likely to apply to the two “hard” majors: gender and major’s selectivity are confounded. Compare, for example, major B and major E. Major E is much harder to enter than major B and over 60% of applicants to major E were women, while less than 30% of the applicants of major B were women.</p>
-</div>
-<div id="confounding-explained-graphically" class="section level3 hasAnchor" number="19.4.2">
-<h3><span class="header-section-number">19.4.2</span> Confounding explained graphically<a href="association-is-not-causation.html#confounding-explained-graphically" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>The following plot shows the number of applicants that were admitted and those that were not by major:</p>
-<p><img src="book_files/figure-html/confounding-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<!--
-
-```r
-admissions |> 
-  mutate(percent_admitted = admitted * applicants/sum(applicants)) |>
-  ggplot(aes(gender, y = percent_admitted, fill = major)) +
-  geom_bar(stat = "identity", position = "stack")
-```
-
-<img src="book_files/figure-html/confounding-2-1.png" width="70%" style="display: block; margin: auto;" />
--->
-<p>It also breaks down the acceptances by major. This breakdown allows us to see that the majority of accepted men came from two majors: A and B. It also lets us see that few women applied to these majors.</p>
-</div>
-<div id="average-after-stratifying" class="section level3 hasAnchor" number="19.4.3">
-<h3><span class="header-section-number">19.4.3</span> Average after stratifying<a href="association-is-not-causation.html#average-after-stratifying" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>In this plot, we can see that if we condition or stratify by major, and then look at differences, we control for the confounder and this effect goes away:</p>
-<div class="sourceCode" id="cb763"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb763-1"><a href="association-is-not-causation.html#cb763-1" tabindex="-1"></a>admissions <span class="sc">|&gt;</span> </span>
-<span id="cb763-2"><a href="association-is-not-causation.html#cb763-2" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(major, admitted, <span class="at">col =</span> gender, <span class="at">size =</span> applicants)) <span class="sc">+</span></span>
-<span id="cb763-3"><a href="association-is-not-causation.html#cb763-3" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span></code></pre></div>
-<p><img src="book_files/figure-html/admission-by-major-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>Now we see that major by major, there is not much difference. The size of the dot represents the number of applicants, and explains the paradox: we see large red dots and small blue dots for the easiest majors, A and B.</p>
-<p>If we average the difference by major, we find that the percent is actually 3.5% higher for women.</p>
-<div class="sourceCode" id="cb764"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb764-1"><a href="association-is-not-causation.html#cb764-1" tabindex="-1"></a>admissions <span class="sc">|&gt;</span>  <span class="fu">group_by</span>(gender) <span class="sc">|&gt;</span> <span class="fu">summarize</span>(<span class="at">average =</span> <span class="fu">mean</span>(admitted))</span>
-<span id="cb764-2"><a href="association-is-not-causation.html#cb764-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 2</span></span>
-<span id="cb764-3"><a href="association-is-not-causation.html#cb764-3" tabindex="-1"></a><span class="co">#&gt;   gender average</span></span>
-<span id="cb764-4"><a href="association-is-not-causation.html#cb764-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;    &lt;dbl&gt;</span></span>
-<span id="cb764-5"><a href="association-is-not-causation.html#cb764-5" tabindex="-1"></a><span class="co">#&gt; 1 men       38.2</span></span>
-<span id="cb764-6"><a href="association-is-not-causation.html#cb764-6" tabindex="-1"></a><span class="co">#&gt; 2 women     41.7</span></span></code></pre></div>
-</div>
-</div>
-<div id="simpsons-paradox" class="section level2 hasAnchor" number="19.5">
-<h2><span class="header-section-number">19.5</span> Simpson’s paradox<a href="association-is-not-causation.html#simpsons-paradox" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The case we have just covered is an example of Simpson’s paradox. It is called a paradox because we see the sign of the correlation flip when comparing the entire publication and specific strata. As an illustrative example, suppose you have three random variables <span class="math inline">\(X\)</span>, <span class="math inline">\(Y\)</span>, and <span class="math inline">\(Z\)</span> and that we observe realizations of these. Here is a plot of simulated observations for <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> along with the sample correlation:</p>
-<p><img src="book_files/figure-html/simpsons-paradox-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>You can see that <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are negatively correlated. However, once we stratify by <span class="math inline">\(Z\)</span> (shown in different colors below) another pattern emerges:</p>
-<p><img src="book_files/figure-html/simpsons-paradox-explained-1.png" width="70%" style="display: block; margin: auto;" /></p>
-<p>It is really <span class="math inline">\(Z\)</span> that is negatively correlated with <span class="math inline">\(X\)</span>. If we stratify by <span class="math inline">\(Z\)</span>, the <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are actually positively correlated as seen in the plot above.</p>
-</div>
-<div id="exercises-40" class="section level2 hasAnchor" number="19.6">
-<h2><span class="header-section-number">19.6</span> Exercises<a href="association-is-not-causation.html#exercises-40" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>For the next set of exercises, we examine the data from a 2014 PNAS paper<a href="#fn72" class="footnote-ref" id="fnref72"><sup>72</sup></a> that analyzed success rates from funding agencies in the Netherlands and concluded:</p>
-<blockquote>
-<p>Our results reveal gender bias favoring male applicants over female applicants in the prioritization of their “quality of researcher” (but not “quality of proposal”) evaluations and success rates, as well as in the language used in instructional and evaluation materials.</p>
-</blockquote>
-<p>A response<a href="#fn73" class="footnote-ref" id="fnref73"><sup>73</sup></a> was published a few months later titled <em>No evidence that gender contributes to personal research funding success in The Netherlands: A reaction to Van der Lee and Ellemers</em> which concluded:</p>
-<blockquote>
-<p>However, the overall gender effect borders on statistical significance, despite the large sample. Moreover, their conclusion could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines (i.e., with low application success rates for both men and women), then an analysis across all disciplines could incorrectly show “evidence” of gender inequality.</p>
-</blockquote>
-<p>Who is right here? The original paper or the response? Here, you will examine the data and come to your own conclusion.</p>
-<p>1. The main evidence for the conclusion of the original paper comes down to a comparison of the percentages. Table S1 in the paper includes the information we need:</p>
-<div class="sourceCode" id="cb765"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb765-1"><a href="association-is-not-causation.html#cb765-1" tabindex="-1"></a><span class="fu">library</span>(dslabs)</span>
-<span id="cb765-2"><a href="association-is-not-causation.html#cb765-2" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;research_funding_rates&quot;</span>)</span>
-<span id="cb765-3"><a href="association-is-not-causation.html#cb765-3" tabindex="-1"></a>research_funding_rates</span></code></pre></div>
-<p>Construct the two-by-two table used for the conclusion about differences in awards by gender.</p>
-<p>2. Compute the difference in percentage from the two-by-two table.</p>
-<p>3. In the previous exercise, we noticed that the success rate is lower for women. But is it significant? Compute a p-value using a Chi-square test.</p>
-<p>4. We see that the p-value is about 0.05. So there appears to be some evidence of an association. But can we infer causation here? Is gender bias causing this observed difference? The response to the original paper claims that what we see here is similar to the UC Berkeley admissions example. Specifically they state that this “could be a prime example of Simpson’s paradox; if a higher percentage of women apply for grants in more competitive scientific disciplines, then an analysis across all disciplines could incorrectly show ‘evidence’ of gender inequality.” To settle this dispute, create a dataset with number of applications, awards, and success rate for each gender. Re-order the disciplines by their overall success rate. Hint: use the <code>reorder</code> function to re-order the disciplines in a first step, then use <code>pivot_longer</code>, <code>separate</code>, and <code>pivot_wider</code> to create the desired table.</p>
-<p>5. To check if this is a case of Simpson’s paradox, plot the success rates versus disciplines, which have been ordered by overall success, with colors to denote the genders and size to denote the number of applications.</p>
-<p>6. We definitely do not see the same level of confounding as in the UC Berkeley example. It is hard to say there is a confounder here. However, we do see that, based on the observed rates, some fields favor men and others favor women and we do see that the two fields with the largest difference favoring men are also the fields with the most applications. But, unlike the UC Berkeley example, women are not more likely to apply for the harder subjects. So perhaps some of the selection committees are biased and others are not.</p>
-<p>But, before we conclude this, we must check if these differences are any different than what we get by chance. Are any of the differences seen above statistically significant? Keep in mind that even when there is no bias, we will see differences due to random variability in the review process as well as random variability across candidates. Perform a Chi-square test for each discipline. Hint: define a function that receives the total of a two-by-two table and returns a data frame with the p-value. Use the 0.5 correction. Then use the <code>summarize</code> function.</p>
-<p>7. For the medical sciences, there appears to be a statistically significant difference. But is this a spurious correlation? We performed 9 tests. Reporting only the one case with a p-value less than 0.05 might be considered an example of cherry picking.
-Repeat the exercise above, but instead of a p-value, compute a log odds ratio divided by their standard error. Then use qq-plot to see how much these log odds ratios deviate from the normal distribution we would expect: a standard normal distribution.</p>
-
-</div>
-</div>
-
-
-
-<div class="footnotes">
-<hr />
-<ol start="70">
-<li id="fn70"><p><a href="http://tylervigen.com/spurious-correlations" class="uri">http://tylervigen.com/spurious-correlations</a><a href="association-is-not-causation.html#fnref70" class="footnote-back">↩︎</a></p></li>
-<li id="fn71"><p><a href="https://opinionator.blogs.nytimes.com/2014/04/12/parental-involvement-is-overrated" class="uri">https://opinionator.blogs.nytimes.com/2014/04/12/parental-involvement-is-overrated</a><a href="association-is-not-causation.html#fnref71" class="footnote-back">↩︎</a></p></li>
-<li id="fn72"><p><a href="http://www.pnas.org/content/112/40/12349.abstract" class="uri">http://www.pnas.org/content/112/40/12349.abstract</a><a href="association-is-not-causation.html#fnref72" class="footnote-back">↩︎</a></p></li>
-<li id="fn73"><p><a href="http://www.pnas.org/content/112/51/E7036.extract" class="uri">http://www.pnas.org/content/112/51/E7036.extract</a><a href="association-is-not-causation.html#fnref73" class="footnote-back">↩︎</a></p></li>
-</ol>
+<p>This book started out as the class notes used in the
+HarvardX <a href="https://www.edx.org/professional-certificate/harvardx-data-science">Data Science Series</a><!--^[https://www.edx.org/professional-certificate/harvardx-data-science]. --></p>
+<p>A <strong>hardcopy</strong> version of the book is available from <a href="https://www.routledge.com/Introduction-to-Data-Science-Data-Analysis-and-Prediction-Algorithms-with/Irizarry/p/book/9780367357986?utm_source=author&amp;utm_medium=shared_link&amp;utm_campaign=B043135_jm1_5ll_6rm_t081_1al_introductiontodatascienceauthorshare">CRC Press</a><!--^[https://www.crcpress.com/Introduction-to-Data-Science-Data-Analysis-and-Prediction-Algorithms-with/Irizarry/p/book/9780367357986]. --></p>
+<p>A <strong>free PDF</strong> of the October 24, 2019 version of the book is available from <a href="https://leanpub.com/datasciencebook">Leanpub</a><!--^[https://leanpub.com/datasciencebook].--></p>
+<p>A version in <strong>Spanish</strong> is available from <a href="https://rafalab.github.io/dslibro/">https://rafalab.github.io/dslibro</a>.</p>
+<p>This book was published with <a href="https://github.com/rstudio/bookdown">bookdown</a>. The <strong>R markdown code</strong> used to generate the book is available on <a href="https://github.com/rafalab/dsbook">GitHub</a><!--^[https://github.com/rafalab/dsbook]-->. Note that, the graphical theme used for plots throughout the book can be recreated using the <code>ds_theme_set()</code> function from <strong>dslabs</strong> package.</p>
+<p>This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.</p>
+<p>We make announcements related to the book on Twitter. For updates follow <a href="https://twitter.com/rafalab">@rafalab</a>.</p>
+<p>Last update: 2023-08-16 16:52:41</p>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-<a href="linear-models.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="introduction-to-data-wrangling.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="index.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="acknowledgments.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -1349,7 +1113,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/rafalab/dsbook/edit/master/regression/association-not-causation.Rmd",
+"link": "https://github.com/rafalab/dsbook/edit/master/index.Rmd",
 "text": "Edit"
 },
 "history": {
