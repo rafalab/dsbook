@@ -645,7 +645,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="18.1" data-path="linear-models.html"><a href="linear-models.html#case-study-moneyball"><i class="fa fa-check"></i><b>18.1</b> Case study: Moneyball</a>
 <ul>
-<li class="chapter" data-level="18.1.1" data-path="linear-models.html"><a href="linear-models.html#sabermetics"><i class="fa fa-check"></i><b>18.1.1</b> Sabermetics</a></li>
+<li class="chapter" data-level="18.1.1" data-path="linear-models.html"><a href="linear-models.html#sabermetrics"><i class="fa fa-check"></i><b>18.1.1</b> Sabermetrics</a></li>
 <li class="chapter" data-level="18.1.2" data-path="linear-models.html"><a href="linear-models.html#baseball-basics"><i class="fa fa-check"></i><b>18.1.2</b> Baseball basics</a></li>
 <li class="chapter" data-level="18.1.3" data-path="linear-models.html"><a href="linear-models.html#no-awards-for-bb"><i class="fa fa-check"></i><b>18.1.3</b> No awards for BB</a></li>
 <li class="chapter" data-level="18.1.4" data-path="linear-models.html"><a href="linear-models.html#base-on-balls-or-stolen-bases"><i class="fa fa-check"></i><b>18.1.4</b> Base on balls or stolen bases?</a></li>
@@ -1069,61 +1069,61 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>During the 2016 US presidential election, then candidate Donald J. Trump used his twitter account as a way to communicate with potential voters. On August 6, 2016, Todd Vaziri tweeted<a href="#fn90" class="footnote-ref" id="fnref90"><sup>90</sup></a> about Trump that “Every non-hyperbolic tweet is from iPhone (his staff). Every hyperbolic tweet is from Android (from him).”
 Data scientist David Robinson conducted an analysis<a href="#fn91" class="footnote-ref" id="fnref91"><sup>91</sup></a> to determine if data supported this assertion. Here, we go through David’s analysis to learn some of the basics of text mining. To learn more about text mining in R, we recommend the Text Mining with R book<a href="#fn92" class="footnote-ref" id="fnref92"><sup>92</sup></a> by Julia Silge and David Robinson.</p>
 <p>We will use the following libraries:</p>
-<div class="sourceCode" id="cb980"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb980-1"><a href="text-mining.html#cb980-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb980-2"><a href="text-mining.html#cb980-2" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
-<span id="cb980-3"><a href="text-mining.html#cb980-3" tabindex="-1"></a><span class="fu">library</span>(scales)</span></code></pre></div>
+<div class="sourceCode" id="cb979"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb979-1"><a href="text-mining.html#cb979-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb979-2"><a href="text-mining.html#cb979-2" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb979-3"><a href="text-mining.html#cb979-3" tabindex="-1"></a><span class="fu">library</span>(scales)</span></code></pre></div>
 <p>In general, we can extract data directly from Twitter using the <strong>rtweet</strong> package. However, in this case, a group has already compiled data for us and made it available at <a href="http://www.trumptwitterarchive.com">http://www.trumptwitterarchive.com</a>. We can get the data from their JSON API using a script like this:</p>
-<div class="sourceCode" id="cb981"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb981-1"><a href="text-mining.html#cb981-1" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">&#39;http://www.trumptwitterarchive.com/data/realdonaldtrump/%s.json&#39;</span></span>
-<span id="cb981-2"><a href="text-mining.html#cb981-2" tabindex="-1"></a>trump_tweets <span class="ot">&lt;-</span> <span class="fu">map</span>(<span class="dv">2009</span><span class="sc">:</span><span class="dv">2017</span>, <span class="sc">~</span><span class="fu">sprintf</span>(url, .x)) <span class="sc">|&gt;</span></span>
-<span id="cb981-3"><a href="text-mining.html#cb981-3" tabindex="-1"></a>  <span class="fu">map_df</span>(jsonlite<span class="sc">::</span>fromJSON, <span class="at">simplifyDataFrame =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb981-4"><a href="text-mining.html#cb981-4" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>is_retweet <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">str_detect</span>(text, <span class="st">&#39;^&quot;&#39;</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb981-5"><a href="text-mining.html#cb981-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">created_at =</span> <span class="fu">parse_date_time</span>(created_at, </span>
-<span id="cb981-6"><a href="text-mining.html#cb981-6" tabindex="-1"></a>                                      <span class="at">orders =</span> <span class="st">&quot;a b! d! H!:M!:S! z!* Y!&quot;</span>,</span>
-<span id="cb981-7"><a href="text-mining.html#cb981-7" tabindex="-1"></a>                                      <span class="at">tz=</span><span class="st">&quot;EST&quot;</span>)) </span></code></pre></div>
+<div class="sourceCode" id="cb980"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb980-1"><a href="text-mining.html#cb980-1" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">&#39;http://www.trumptwitterarchive.com/data/realdonaldtrump/%s.json&#39;</span></span>
+<span id="cb980-2"><a href="text-mining.html#cb980-2" tabindex="-1"></a>trump_tweets <span class="ot">&lt;-</span> <span class="fu">map</span>(<span class="dv">2009</span><span class="sc">:</span><span class="dv">2017</span>, <span class="sc">~</span><span class="fu">sprintf</span>(url, .x)) <span class="sc">|&gt;</span></span>
+<span id="cb980-3"><a href="text-mining.html#cb980-3" tabindex="-1"></a>  <span class="fu">map_df</span>(jsonlite<span class="sc">::</span>fromJSON, <span class="at">simplifyDataFrame =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb980-4"><a href="text-mining.html#cb980-4" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>is_retweet <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">str_detect</span>(text, <span class="st">&#39;^&quot;&#39;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb980-5"><a href="text-mining.html#cb980-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">created_at =</span> <span class="fu">parse_date_time</span>(created_at, </span>
+<span id="cb980-6"><a href="text-mining.html#cb980-6" tabindex="-1"></a>                                      <span class="at">orders =</span> <span class="st">&quot;a b! d! H!:M!:S! z!* Y!&quot;</span>,</span>
+<span id="cb980-7"><a href="text-mining.html#cb980-7" tabindex="-1"></a>                                      <span class="at">tz=</span><span class="st">&quot;EST&quot;</span>)) </span></code></pre></div>
 <p>For convenience, we include the result of the code above in the <strong>dslabs</strong> package:</p>
-<div class="sourceCode" id="cb982"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb982-1"><a href="text-mining.html#cb982-1" tabindex="-1"></a><span class="fu">library</span>(dslabs)</span>
-<span id="cb982-2"><a href="text-mining.html#cb982-2" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;trump_tweets&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb981"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb981-1"><a href="text-mining.html#cb981-1" tabindex="-1"></a><span class="fu">library</span>(dslabs)</span>
+<span id="cb981-2"><a href="text-mining.html#cb981-2" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;trump_tweets&quot;</span>)</span></code></pre></div>
 <p>You can see the data frame with information about the tweets by typing</p>
-<div class="sourceCode" id="cb983"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb983-1"><a href="text-mining.html#cb983-1" tabindex="-1"></a><span class="fu">head</span>(trump_tweets)</span></code></pre></div>
+<div class="sourceCode" id="cb982"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb982-1"><a href="text-mining.html#cb982-1" tabindex="-1"></a><span class="fu">head</span>(trump_tweets)</span></code></pre></div>
 <p>with the following variables included:</p>
-<div class="sourceCode" id="cb984"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb984-1"><a href="text-mining.html#cb984-1" tabindex="-1"></a><span class="fu">names</span>(trump_tweets)</span>
-<span id="cb984-2"><a href="text-mining.html#cb984-2" tabindex="-1"></a><span class="co">#&gt; [1] &quot;source&quot;                  &quot;id_str&quot;                 </span></span>
-<span id="cb984-3"><a href="text-mining.html#cb984-3" tabindex="-1"></a><span class="co">#&gt; [3] &quot;text&quot;                    &quot;created_at&quot;             </span></span>
-<span id="cb984-4"><a href="text-mining.html#cb984-4" tabindex="-1"></a><span class="co">#&gt; [5] &quot;retweet_count&quot;           &quot;in_reply_to_user_id_str&quot;</span></span>
-<span id="cb984-5"><a href="text-mining.html#cb984-5" tabindex="-1"></a><span class="co">#&gt; [7] &quot;favorite_count&quot;          &quot;is_retweet&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb983"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb983-1"><a href="text-mining.html#cb983-1" tabindex="-1"></a><span class="fu">names</span>(trump_tweets)</span>
+<span id="cb983-2"><a href="text-mining.html#cb983-2" tabindex="-1"></a><span class="co">#&gt; [1] &quot;source&quot;                  &quot;id_str&quot;                 </span></span>
+<span id="cb983-3"><a href="text-mining.html#cb983-3" tabindex="-1"></a><span class="co">#&gt; [3] &quot;text&quot;                    &quot;created_at&quot;             </span></span>
+<span id="cb983-4"><a href="text-mining.html#cb983-4" tabindex="-1"></a><span class="co">#&gt; [5] &quot;retweet_count&quot;           &quot;in_reply_to_user_id_str&quot;</span></span>
+<span id="cb983-5"><a href="text-mining.html#cb983-5" tabindex="-1"></a><span class="co">#&gt; [7] &quot;favorite_count&quot;          &quot;is_retweet&quot;</span></span></code></pre></div>
 <p>The help file <code>?trump_tweets</code> provides details on what each variable represents. The tweets are represented by the <code>text</code> variable:</p>
-<div class="sourceCode" id="cb985"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb985-1"><a href="text-mining.html#cb985-1" tabindex="-1"></a>trump_tweets<span class="sc">$</span>text[<span class="dv">16413</span>] <span class="sc">|&gt;</span> <span class="fu">str_wrap</span>(<span class="at">width =</span> <span class="fu">options</span>()<span class="sc">$</span>width) <span class="sc">|&gt;</span> <span class="fu">cat</span>()</span>
-<span id="cb985-2"><a href="text-mining.html#cb985-2" tabindex="-1"></a><span class="co">#&gt; Great to be back in Iowa! #TBT with @JerryJrFalwell joining me in</span></span>
-<span id="cb985-3"><a href="text-mining.html#cb985-3" tabindex="-1"></a><span class="co">#&gt; Davenport- this past winter. #MAGA https://t.co/A5IF0QHnic</span></span></code></pre></div>
+<div class="sourceCode" id="cb984"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb984-1"><a href="text-mining.html#cb984-1" tabindex="-1"></a>trump_tweets<span class="sc">$</span>text[<span class="dv">16413</span>] <span class="sc">|&gt;</span> <span class="fu">str_wrap</span>(<span class="at">width =</span> <span class="fu">options</span>()<span class="sc">$</span>width) <span class="sc">|&gt;</span> <span class="fu">cat</span>()</span>
+<span id="cb984-2"><a href="text-mining.html#cb984-2" tabindex="-1"></a><span class="co">#&gt; Great to be back in Iowa! #TBT with @JerryJrFalwell joining me in</span></span>
+<span id="cb984-3"><a href="text-mining.html#cb984-3" tabindex="-1"></a><span class="co">#&gt; Davenport- this past winter. #MAGA https://t.co/A5IF0QHnic</span></span></code></pre></div>
 <p>and the source variable tells us which device was used to compose and upload each tweet:</p>
-<div class="sourceCode" id="cb986"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb986-1"><a href="text-mining.html#cb986-1" tabindex="-1"></a>trump_tweets <span class="sc">|&gt;</span> <span class="fu">count</span>(source) <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(n)) <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="dv">5</span>)</span>
-<span id="cb986-2"><a href="text-mining.html#cb986-2" tabindex="-1"></a><span class="co">#&gt;                source     n</span></span>
-<span id="cb986-3"><a href="text-mining.html#cb986-3" tabindex="-1"></a><span class="co">#&gt; 1  Twitter Web Client 10718</span></span>
-<span id="cb986-4"><a href="text-mining.html#cb986-4" tabindex="-1"></a><span class="co">#&gt; 2 Twitter for Android  4652</span></span>
-<span id="cb986-5"><a href="text-mining.html#cb986-5" tabindex="-1"></a><span class="co">#&gt; 3  Twitter for iPhone  3962</span></span>
-<span id="cb986-6"><a href="text-mining.html#cb986-6" tabindex="-1"></a><span class="co">#&gt; 4           TweetDeck   468</span></span>
-<span id="cb986-7"><a href="text-mining.html#cb986-7" tabindex="-1"></a><span class="co">#&gt; 5     TwitLonger Beta   288</span></span></code></pre></div>
+<div class="sourceCode" id="cb985"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb985-1"><a href="text-mining.html#cb985-1" tabindex="-1"></a>trump_tweets <span class="sc">|&gt;</span> <span class="fu">count</span>(source) <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(n)) <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="dv">5</span>)</span>
+<span id="cb985-2"><a href="text-mining.html#cb985-2" tabindex="-1"></a><span class="co">#&gt;                source     n</span></span>
+<span id="cb985-3"><a href="text-mining.html#cb985-3" tabindex="-1"></a><span class="co">#&gt; 1  Twitter Web Client 10718</span></span>
+<span id="cb985-4"><a href="text-mining.html#cb985-4" tabindex="-1"></a><span class="co">#&gt; 2 Twitter for Android  4652</span></span>
+<span id="cb985-5"><a href="text-mining.html#cb985-5" tabindex="-1"></a><span class="co">#&gt; 3  Twitter for iPhone  3962</span></span>
+<span id="cb985-6"><a href="text-mining.html#cb985-6" tabindex="-1"></a><span class="co">#&gt; 4           TweetDeck   468</span></span>
+<span id="cb985-7"><a href="text-mining.html#cb985-7" tabindex="-1"></a><span class="co">#&gt; 5     TwitLonger Beta   288</span></span></code></pre></div>
 <p>We are interested in what happened during the campaign, so for this analysis we will focus on what was tweeted between the day Trump announced his campaign and election day. We define the following table containing just the tweets from that time period. Note that we use <code>extract</code> to remove the <code>Twitter for</code> part of the source and filter out retweets.</p>
-<div class="sourceCode" id="cb987"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb987-1"><a href="text-mining.html#cb987-1" tabindex="-1"></a>campaign_tweets <span class="ot">&lt;-</span> trump_tweets <span class="sc">|&gt;</span> </span>
-<span id="cb987-2"><a href="text-mining.html#cb987-2" tabindex="-1"></a>  <span class="fu">extract</span>(source, <span class="st">&quot;source&quot;</span>, <span class="st">&quot;Twitter for (.*)&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb987-3"><a href="text-mining.html#cb987-3" tabindex="-1"></a>  <span class="fu">filter</span>(source <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;Android&quot;</span>, <span class="st">&quot;iPhone&quot;</span>) <span class="sc">&amp;</span></span>
-<span id="cb987-4"><a href="text-mining.html#cb987-4" tabindex="-1"></a>           created_at <span class="sc">&gt;=</span> <span class="fu">ymd</span>(<span class="st">&quot;2015-06-17&quot;</span>) <span class="sc">&amp;</span> </span>
-<span id="cb987-5"><a href="text-mining.html#cb987-5" tabindex="-1"></a>           created_at <span class="sc">&lt;</span> <span class="fu">ymd</span>(<span class="st">&quot;2016-11-08&quot;</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb987-6"><a href="text-mining.html#cb987-6" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>is_retweet) <span class="sc">|&gt;</span></span>
-<span id="cb987-7"><a href="text-mining.html#cb987-7" tabindex="-1"></a>  <span class="fu">arrange</span>(created_at) <span class="sc">|&gt;</span> </span>
-<span id="cb987-8"><a href="text-mining.html#cb987-8" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb986"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb986-1"><a href="text-mining.html#cb986-1" tabindex="-1"></a>campaign_tweets <span class="ot">&lt;-</span> trump_tweets <span class="sc">|&gt;</span> </span>
+<span id="cb986-2"><a href="text-mining.html#cb986-2" tabindex="-1"></a>  <span class="fu">extract</span>(source, <span class="st">&quot;source&quot;</span>, <span class="st">&quot;Twitter for (.*)&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb986-3"><a href="text-mining.html#cb986-3" tabindex="-1"></a>  <span class="fu">filter</span>(source <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;Android&quot;</span>, <span class="st">&quot;iPhone&quot;</span>) <span class="sc">&amp;</span></span>
+<span id="cb986-4"><a href="text-mining.html#cb986-4" tabindex="-1"></a>           created_at <span class="sc">&gt;=</span> <span class="fu">ymd</span>(<span class="st">&quot;2015-06-17&quot;</span>) <span class="sc">&amp;</span> </span>
+<span id="cb986-5"><a href="text-mining.html#cb986-5" tabindex="-1"></a>           created_at <span class="sc">&lt;</span> <span class="fu">ymd</span>(<span class="st">&quot;2016-11-08&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb986-6"><a href="text-mining.html#cb986-6" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>is_retweet) <span class="sc">|&gt;</span></span>
+<span id="cb986-7"><a href="text-mining.html#cb986-7" tabindex="-1"></a>  <span class="fu">arrange</span>(created_at) <span class="sc">|&gt;</span> </span>
+<span id="cb986-8"><a href="text-mining.html#cb986-8" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span></code></pre></div>
 <p>We can now use data visualization to explore the possibility that two different groups were tweeting from these devices. For each tweet, we will extract the hour, East Coast time (EST), it was tweeted and then compute the proportion of tweets tweeted at each hour for each device:</p>
-<div class="sourceCode" id="cb988"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb988-1"><a href="text-mining.html#cb988-1" tabindex="-1"></a>campaign_tweets <span class="sc">|&gt;</span></span>
-<span id="cb988-2"><a href="text-mining.html#cb988-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">hour =</span> <span class="fu">hour</span>(<span class="fu">with_tz</span>(created_at, <span class="st">&quot;EST&quot;</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb988-3"><a href="text-mining.html#cb988-3" tabindex="-1"></a>  <span class="fu">count</span>(source, hour) <span class="sc">|&gt;</span></span>
-<span id="cb988-4"><a href="text-mining.html#cb988-4" tabindex="-1"></a>  <span class="fu">group_by</span>(source) <span class="sc">|&gt;</span></span>
-<span id="cb988-5"><a href="text-mining.html#cb988-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">percent =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">|&gt;</span></span>
-<span id="cb988-6"><a href="text-mining.html#cb988-6" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
-<span id="cb988-7"><a href="text-mining.html#cb988-7" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(hour, percent, <span class="at">color =</span> source)) <span class="sc">+</span></span>
-<span id="cb988-8"><a href="text-mining.html#cb988-8" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb988-9"><a href="text-mining.html#cb988-9" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb988-10"><a href="text-mining.html#cb988-10" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">percent_format</span>()) <span class="sc">+</span></span>
-<span id="cb988-11"><a href="text-mining.html#cb988-11" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Hour of day (EST)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;% of tweets&quot;</span>, <span class="at">color =</span> <span class="st">&quot;&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb987"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb987-1"><a href="text-mining.html#cb987-1" tabindex="-1"></a>campaign_tweets <span class="sc">|&gt;</span></span>
+<span id="cb987-2"><a href="text-mining.html#cb987-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">hour =</span> <span class="fu">hour</span>(<span class="fu">with_tz</span>(created_at, <span class="st">&quot;EST&quot;</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb987-3"><a href="text-mining.html#cb987-3" tabindex="-1"></a>  <span class="fu">count</span>(source, hour) <span class="sc">|&gt;</span></span>
+<span id="cb987-4"><a href="text-mining.html#cb987-4" tabindex="-1"></a>  <span class="fu">group_by</span>(source) <span class="sc">|&gt;</span></span>
+<span id="cb987-5"><a href="text-mining.html#cb987-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">percent =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">|&gt;</span></span>
+<span id="cb987-6"><a href="text-mining.html#cb987-6" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb987-7"><a href="text-mining.html#cb987-7" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(hour, percent, <span class="at">color =</span> source)) <span class="sc">+</span></span>
+<span id="cb987-8"><a href="text-mining.html#cb987-8" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb987-9"><a href="text-mining.html#cb987-9" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb987-10"><a href="text-mining.html#cb987-10" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">percent_format</span>()) <span class="sc">+</span></span>
+<span id="cb987-11"><a href="text-mining.html#cb987-11" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Hour of day (EST)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;% of tweets&quot;</span>, <span class="at">color =</span> <span class="st">&quot;&quot;</span>)</span></code></pre></div>
 <p><img src="book_files/figure-html/tweets-by-time-by-device-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>We notice a big peak for the Android in the early hours of the morning, between 6 and 8 AM. There seems to be a clear difference in these patterns. We will therefore assume that two different entities are using these two devices.</p>
 <p>We will now study how the tweets differ when we compare Android to iPhone. To do this, we introduce the <strong>tidytext</strong> package.</p>
@@ -1131,296 +1131,296 @@ Data scientist David Robinson conducted an analysis<a href="#fn91" class="footno
 <div id="text-as-data" class="section level2 hasAnchor" number="26.2">
 <h2><span class="header-section-number">26.2</span> Text as data<a href="text-mining.html#text-as-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The <strong>tidytext</strong> package helps us convert free form text into a tidy table. Having the data in this format greatly facilitates data visualization and the use of statistical techniques.</p>
-<div class="sourceCode" id="cb989"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb989-1"><a href="text-mining.html#cb989-1" tabindex="-1"></a><span class="fu">library</span>(tidytext)</span></code></pre></div>
+<div class="sourceCode" id="cb988"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb988-1"><a href="text-mining.html#cb988-1" tabindex="-1"></a><span class="fu">library</span>(tidytext)</span></code></pre></div>
 <p>The main function needed to achieve this is <code>unnest_tokens</code>. A <em>token</em> refers to a unit that we are considering to be a data point. The most common <em>token</em> will be words, but they can also be single characters, ngrams, sentences, lines, or a pattern defined by a regex. The functions will take a vector of strings and extract the tokens so that each one gets a row in the new table. Here is a simple example:</p>
-<div class="sourceCode" id="cb990"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb990-1"><a href="text-mining.html#cb990-1" tabindex="-1"></a>poem <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Roses are red,&quot;</span>, <span class="st">&quot;Violets are blue,&quot;</span>, </span>
-<span id="cb990-2"><a href="text-mining.html#cb990-2" tabindex="-1"></a>          <span class="st">&quot;Sugar is sweet,&quot;</span>, <span class="st">&quot;And so are you.&quot;</span>)</span>
-<span id="cb990-3"><a href="text-mining.html#cb990-3" tabindex="-1"></a>example <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">line =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>),</span>
-<span id="cb990-4"><a href="text-mining.html#cb990-4" tabindex="-1"></a>                      <span class="at">text =</span> poem)</span>
-<span id="cb990-5"><a href="text-mining.html#cb990-5" tabindex="-1"></a>example</span>
-<span id="cb990-6"><a href="text-mining.html#cb990-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 2</span></span>
-<span id="cb990-7"><a href="text-mining.html#cb990-7" tabindex="-1"></a><span class="co">#&gt;    line text             </span></span>
-<span id="cb990-8"><a href="text-mining.html#cb990-8" tabindex="-1"></a><span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;            </span></span>
-<span id="cb990-9"><a href="text-mining.html#cb990-9" tabindex="-1"></a><span class="co">#&gt; 1     1 Roses are red,   </span></span>
-<span id="cb990-10"><a href="text-mining.html#cb990-10" tabindex="-1"></a><span class="co">#&gt; 2     2 Violets are blue,</span></span>
-<span id="cb990-11"><a href="text-mining.html#cb990-11" tabindex="-1"></a><span class="co">#&gt; 3     3 Sugar is sweet,  </span></span>
-<span id="cb990-12"><a href="text-mining.html#cb990-12" tabindex="-1"></a><span class="co">#&gt; 4     4 And so are you.</span></span>
-<span id="cb990-13"><a href="text-mining.html#cb990-13" tabindex="-1"></a>example <span class="sc">|&gt;</span> <span class="fu">unnest_tokens</span>(word, text)</span>
-<span id="cb990-14"><a href="text-mining.html#cb990-14" tabindex="-1"></a><span class="co">#&gt; # A tibble: 13 × 2</span></span>
-<span id="cb990-15"><a href="text-mining.html#cb990-15" tabindex="-1"></a><span class="co">#&gt;    line word   </span></span>
-<span id="cb990-16"><a href="text-mining.html#cb990-16" tabindex="-1"></a><span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;  </span></span>
-<span id="cb990-17"><a href="text-mining.html#cb990-17" tabindex="-1"></a><span class="co">#&gt; 1     1 roses  </span></span>
-<span id="cb990-18"><a href="text-mining.html#cb990-18" tabindex="-1"></a><span class="co">#&gt; 2     1 are    </span></span>
-<span id="cb990-19"><a href="text-mining.html#cb990-19" tabindex="-1"></a><span class="co">#&gt; 3     1 red    </span></span>
-<span id="cb990-20"><a href="text-mining.html#cb990-20" tabindex="-1"></a><span class="co">#&gt; 4     2 violets</span></span>
-<span id="cb990-21"><a href="text-mining.html#cb990-21" tabindex="-1"></a><span class="co">#&gt; 5     2 are    </span></span>
-<span id="cb990-22"><a href="text-mining.html#cb990-22" tabindex="-1"></a><span class="co">#&gt; # ℹ 8 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb989"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb989-1"><a href="text-mining.html#cb989-1" tabindex="-1"></a>poem <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Roses are red,&quot;</span>, <span class="st">&quot;Violets are blue,&quot;</span>, </span>
+<span id="cb989-2"><a href="text-mining.html#cb989-2" tabindex="-1"></a>          <span class="st">&quot;Sugar is sweet,&quot;</span>, <span class="st">&quot;And so are you.&quot;</span>)</span>
+<span id="cb989-3"><a href="text-mining.html#cb989-3" tabindex="-1"></a>example <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">line =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>),</span>
+<span id="cb989-4"><a href="text-mining.html#cb989-4" tabindex="-1"></a>                      <span class="at">text =</span> poem)</span>
+<span id="cb989-5"><a href="text-mining.html#cb989-5" tabindex="-1"></a>example</span>
+<span id="cb989-6"><a href="text-mining.html#cb989-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 2</span></span>
+<span id="cb989-7"><a href="text-mining.html#cb989-7" tabindex="-1"></a><span class="co">#&gt;    line text             </span></span>
+<span id="cb989-8"><a href="text-mining.html#cb989-8" tabindex="-1"></a><span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;            </span></span>
+<span id="cb989-9"><a href="text-mining.html#cb989-9" tabindex="-1"></a><span class="co">#&gt; 1     1 Roses are red,   </span></span>
+<span id="cb989-10"><a href="text-mining.html#cb989-10" tabindex="-1"></a><span class="co">#&gt; 2     2 Violets are blue,</span></span>
+<span id="cb989-11"><a href="text-mining.html#cb989-11" tabindex="-1"></a><span class="co">#&gt; 3     3 Sugar is sweet,  </span></span>
+<span id="cb989-12"><a href="text-mining.html#cb989-12" tabindex="-1"></a><span class="co">#&gt; 4     4 And so are you.</span></span>
+<span id="cb989-13"><a href="text-mining.html#cb989-13" tabindex="-1"></a>example <span class="sc">|&gt;</span> <span class="fu">unnest_tokens</span>(word, text)</span>
+<span id="cb989-14"><a href="text-mining.html#cb989-14" tabindex="-1"></a><span class="co">#&gt; # A tibble: 13 × 2</span></span>
+<span id="cb989-15"><a href="text-mining.html#cb989-15" tabindex="-1"></a><span class="co">#&gt;    line word   </span></span>
+<span id="cb989-16"><a href="text-mining.html#cb989-16" tabindex="-1"></a><span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;  </span></span>
+<span id="cb989-17"><a href="text-mining.html#cb989-17" tabindex="-1"></a><span class="co">#&gt; 1     1 roses  </span></span>
+<span id="cb989-18"><a href="text-mining.html#cb989-18" tabindex="-1"></a><span class="co">#&gt; 2     1 are    </span></span>
+<span id="cb989-19"><a href="text-mining.html#cb989-19" tabindex="-1"></a><span class="co">#&gt; 3     1 red    </span></span>
+<span id="cb989-20"><a href="text-mining.html#cb989-20" tabindex="-1"></a><span class="co">#&gt; 4     2 violets</span></span>
+<span id="cb989-21"><a href="text-mining.html#cb989-21" tabindex="-1"></a><span class="co">#&gt; 5     2 are    </span></span>
+<span id="cb989-22"><a href="text-mining.html#cb989-22" tabindex="-1"></a><span class="co">#&gt; # ℹ 8 more rows</span></span></code></pre></div>
 <p>Now let’s look at an example from the tweets. We will look at tweet number 3008 because it will later permit us to illustrate a couple of points:</p>
-<div class="sourceCode" id="cb991"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb991-1"><a href="text-mining.html#cb991-1" tabindex="-1"></a>i <span class="ot">&lt;-</span> <span class="dv">3008</span></span>
-<span id="cb991-2"><a href="text-mining.html#cb991-2" tabindex="-1"></a>campaign_tweets<span class="sc">$</span>text[i] <span class="sc">|&gt;</span> <span class="fu">str_wrap</span>(<span class="at">width =</span> <span class="dv">65</span>) <span class="sc">|&gt;</span> <span class="fu">cat</span>()</span>
-<span id="cb991-3"><a href="text-mining.html#cb991-3" tabindex="-1"></a><span class="co">#&gt; Great to be back in Iowa! #TBT with @JerryJrFalwell joining me in</span></span>
-<span id="cb991-4"><a href="text-mining.html#cb991-4" tabindex="-1"></a><span class="co">#&gt; Davenport- this past winter. #MAGA https://t.co/A5IF0QHnic</span></span>
-<span id="cb991-5"><a href="text-mining.html#cb991-5" tabindex="-1"></a>campaign_tweets[i,] <span class="sc">|&gt;</span> </span>
-<span id="cb991-6"><a href="text-mining.html#cb991-6" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text) <span class="sc">|&gt;</span></span>
-<span id="cb991-7"><a href="text-mining.html#cb991-7" tabindex="-1"></a>  <span class="fu">pull</span>(word) </span>
-<span id="cb991-8"><a href="text-mining.html#cb991-8" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;great&quot;          &quot;to&quot;             &quot;be&quot;             &quot;back&quot;          </span></span>
-<span id="cb991-9"><a href="text-mining.html#cb991-9" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;in&quot;             &quot;iowa&quot;           &quot;tbt&quot;            &quot;with&quot;          </span></span>
-<span id="cb991-10"><a href="text-mining.html#cb991-10" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;jerryjrfalwell&quot; &quot;joining&quot;        &quot;me&quot;             &quot;in&quot;            </span></span>
-<span id="cb991-11"><a href="text-mining.html#cb991-11" tabindex="-1"></a><span class="co">#&gt; [13] &quot;davenport&quot;      &quot;this&quot;           &quot;past&quot;           &quot;winter&quot;        </span></span>
-<span id="cb991-12"><a href="text-mining.html#cb991-12" tabindex="-1"></a><span class="co">#&gt; [17] &quot;maga&quot;           &quot;https&quot;          &quot;t.co&quot;           &quot;a5if0qhnic&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb990"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb990-1"><a href="text-mining.html#cb990-1" tabindex="-1"></a>i <span class="ot">&lt;-</span> <span class="dv">3008</span></span>
+<span id="cb990-2"><a href="text-mining.html#cb990-2" tabindex="-1"></a>campaign_tweets<span class="sc">$</span>text[i] <span class="sc">|&gt;</span> <span class="fu">str_wrap</span>(<span class="at">width =</span> <span class="dv">65</span>) <span class="sc">|&gt;</span> <span class="fu">cat</span>()</span>
+<span id="cb990-3"><a href="text-mining.html#cb990-3" tabindex="-1"></a><span class="co">#&gt; Great to be back in Iowa! #TBT with @JerryJrFalwell joining me in</span></span>
+<span id="cb990-4"><a href="text-mining.html#cb990-4" tabindex="-1"></a><span class="co">#&gt; Davenport- this past winter. #MAGA https://t.co/A5IF0QHnic</span></span>
+<span id="cb990-5"><a href="text-mining.html#cb990-5" tabindex="-1"></a>campaign_tweets[i,] <span class="sc">|&gt;</span> </span>
+<span id="cb990-6"><a href="text-mining.html#cb990-6" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text) <span class="sc">|&gt;</span></span>
+<span id="cb990-7"><a href="text-mining.html#cb990-7" tabindex="-1"></a>  <span class="fu">pull</span>(word) </span>
+<span id="cb990-8"><a href="text-mining.html#cb990-8" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;great&quot;          &quot;to&quot;             &quot;be&quot;             &quot;back&quot;          </span></span>
+<span id="cb990-9"><a href="text-mining.html#cb990-9" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;in&quot;             &quot;iowa&quot;           &quot;tbt&quot;            &quot;with&quot;          </span></span>
+<span id="cb990-10"><a href="text-mining.html#cb990-10" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;jerryjrfalwell&quot; &quot;joining&quot;        &quot;me&quot;             &quot;in&quot;            </span></span>
+<span id="cb990-11"><a href="text-mining.html#cb990-11" tabindex="-1"></a><span class="co">#&gt; [13] &quot;davenport&quot;      &quot;this&quot;           &quot;past&quot;           &quot;winter&quot;        </span></span>
+<span id="cb990-12"><a href="text-mining.html#cb990-12" tabindex="-1"></a><span class="co">#&gt; [17] &quot;maga&quot;           &quot;https&quot;          &quot;t.co&quot;           &quot;a5if0qhnic&quot;</span></span></code></pre></div>
 <p>Note that the function tries to convert tokens into words. A minor adjustment is to remove the links to pictures:</p>
-<div class="sourceCode" id="cb992"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb992-1"><a href="text-mining.html#cb992-1" tabindex="-1"></a>links <span class="ot">&lt;-</span> <span class="st">&quot;https://t.co/[A-Za-z</span><span class="sc">\\</span><span class="st">d]+|&amp;amp;&quot;</span></span>
-<span id="cb992-2"><a href="text-mining.html#cb992-2" tabindex="-1"></a>campaign_tweets[i,] <span class="sc">|&gt;</span> </span>
-<span id="cb992-3"><a href="text-mining.html#cb992-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">text =</span> <span class="fu">str_replace_all</span>(text, links, <span class="st">&quot;&quot;</span>))  <span class="sc">|&gt;</span></span>
-<span id="cb992-4"><a href="text-mining.html#cb992-4" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text) <span class="sc">|&gt;</span></span>
-<span id="cb992-5"><a href="text-mining.html#cb992-5" tabindex="-1"></a>  <span class="fu">pull</span>(word)</span>
-<span id="cb992-6"><a href="text-mining.html#cb992-6" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;great&quot;          &quot;to&quot;             &quot;be&quot;             &quot;back&quot;          </span></span>
-<span id="cb992-7"><a href="text-mining.html#cb992-7" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;in&quot;             &quot;iowa&quot;           &quot;tbt&quot;            &quot;with&quot;          </span></span>
-<span id="cb992-8"><a href="text-mining.html#cb992-8" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;jerryjrfalwell&quot; &quot;joining&quot;        &quot;me&quot;             &quot;in&quot;            </span></span>
-<span id="cb992-9"><a href="text-mining.html#cb992-9" tabindex="-1"></a><span class="co">#&gt; [13] &quot;davenport&quot;      &quot;this&quot;           &quot;past&quot;           &quot;winter&quot;        </span></span>
-<span id="cb992-10"><a href="text-mining.html#cb992-10" tabindex="-1"></a><span class="co">#&gt; [17] &quot;maga&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb991"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb991-1"><a href="text-mining.html#cb991-1" tabindex="-1"></a>links <span class="ot">&lt;-</span> <span class="st">&quot;https://t.co/[A-Za-z</span><span class="sc">\\</span><span class="st">d]+|&amp;amp;&quot;</span></span>
+<span id="cb991-2"><a href="text-mining.html#cb991-2" tabindex="-1"></a>campaign_tweets[i,] <span class="sc">|&gt;</span> </span>
+<span id="cb991-3"><a href="text-mining.html#cb991-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">text =</span> <span class="fu">str_replace_all</span>(text, links, <span class="st">&quot;&quot;</span>))  <span class="sc">|&gt;</span></span>
+<span id="cb991-4"><a href="text-mining.html#cb991-4" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text) <span class="sc">|&gt;</span></span>
+<span id="cb991-5"><a href="text-mining.html#cb991-5" tabindex="-1"></a>  <span class="fu">pull</span>(word)</span>
+<span id="cb991-6"><a href="text-mining.html#cb991-6" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;great&quot;          &quot;to&quot;             &quot;be&quot;             &quot;back&quot;          </span></span>
+<span id="cb991-7"><a href="text-mining.html#cb991-7" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;in&quot;             &quot;iowa&quot;           &quot;tbt&quot;            &quot;with&quot;          </span></span>
+<span id="cb991-8"><a href="text-mining.html#cb991-8" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;jerryjrfalwell&quot; &quot;joining&quot;        &quot;me&quot;             &quot;in&quot;            </span></span>
+<span id="cb991-9"><a href="text-mining.html#cb991-9" tabindex="-1"></a><span class="co">#&gt; [13] &quot;davenport&quot;      &quot;this&quot;           &quot;past&quot;           &quot;winter&quot;        </span></span>
+<span id="cb991-10"><a href="text-mining.html#cb991-10" tabindex="-1"></a><span class="co">#&gt; [17] &quot;maga&quot;</span></span></code></pre></div>
 <p>Now we are now ready to extract the words for all our tweets.</p>
-<div class="sourceCode" id="cb993"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb993-1"><a href="text-mining.html#cb993-1" tabindex="-1"></a>tweet_words <span class="ot">&lt;-</span> campaign_tweets <span class="sc">|&gt;</span> </span>
-<span id="cb993-2"><a href="text-mining.html#cb993-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">text =</span> <span class="fu">str_replace_all</span>(text, links, <span class="st">&quot;&quot;</span>))  <span class="sc">|&gt;</span></span>
-<span id="cb993-3"><a href="text-mining.html#cb993-3" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text)</span></code></pre></div>
+<div class="sourceCode" id="cb992"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb992-1"><a href="text-mining.html#cb992-1" tabindex="-1"></a>tweet_words <span class="ot">&lt;-</span> campaign_tweets <span class="sc">|&gt;</span> </span>
+<span id="cb992-2"><a href="text-mining.html#cb992-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">text =</span> <span class="fu">str_replace_all</span>(text, links, <span class="st">&quot;&quot;</span>))  <span class="sc">|&gt;</span></span>
+<span id="cb992-3"><a href="text-mining.html#cb992-3" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text)</span></code></pre></div>
 <p>And we can now answer questions such as “what are the most commonly used words?”:</p>
-<div class="sourceCode" id="cb994"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb994-1"><a href="text-mining.html#cb994-1" tabindex="-1"></a>tweet_words <span class="sc">|&gt;</span> </span>
-<span id="cb994-2"><a href="text-mining.html#cb994-2" tabindex="-1"></a>  <span class="fu">count</span>(word) <span class="sc">|&gt;</span></span>
-<span id="cb994-3"><a href="text-mining.html#cb994-3" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n))</span>
-<span id="cb994-4"><a href="text-mining.html#cb994-4" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6,264 × 2</span></span>
-<span id="cb994-5"><a href="text-mining.html#cb994-5" tabindex="-1"></a><span class="co">#&gt;   word      n</span></span>
-<span id="cb994-6"><a href="text-mining.html#cb994-6" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt; &lt;int&gt;</span></span>
-<span id="cb994-7"><a href="text-mining.html#cb994-7" tabindex="-1"></a><span class="co">#&gt; 1 the    2330</span></span>
-<span id="cb994-8"><a href="text-mining.html#cb994-8" tabindex="-1"></a><span class="co">#&gt; 2 to     1413</span></span>
-<span id="cb994-9"><a href="text-mining.html#cb994-9" tabindex="-1"></a><span class="co">#&gt; 3 and    1245</span></span>
-<span id="cb994-10"><a href="text-mining.html#cb994-10" tabindex="-1"></a><span class="co">#&gt; 4 in     1190</span></span>
-<span id="cb994-11"><a href="text-mining.html#cb994-11" tabindex="-1"></a><span class="co">#&gt; 5 i      1151</span></span>
-<span id="cb994-12"><a href="text-mining.html#cb994-12" tabindex="-1"></a><span class="co">#&gt; # ℹ 6,259 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb993"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb993-1"><a href="text-mining.html#cb993-1" tabindex="-1"></a>tweet_words <span class="sc">|&gt;</span> </span>
+<span id="cb993-2"><a href="text-mining.html#cb993-2" tabindex="-1"></a>  <span class="fu">count</span>(word) <span class="sc">|&gt;</span></span>
+<span id="cb993-3"><a href="text-mining.html#cb993-3" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n))</span>
+<span id="cb993-4"><a href="text-mining.html#cb993-4" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6,264 × 2</span></span>
+<span id="cb993-5"><a href="text-mining.html#cb993-5" tabindex="-1"></a><span class="co">#&gt;   word      n</span></span>
+<span id="cb993-6"><a href="text-mining.html#cb993-6" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt; &lt;int&gt;</span></span>
+<span id="cb993-7"><a href="text-mining.html#cb993-7" tabindex="-1"></a><span class="co">#&gt; 1 the    2330</span></span>
+<span id="cb993-8"><a href="text-mining.html#cb993-8" tabindex="-1"></a><span class="co">#&gt; 2 to     1413</span></span>
+<span id="cb993-9"><a href="text-mining.html#cb993-9" tabindex="-1"></a><span class="co">#&gt; 3 and    1245</span></span>
+<span id="cb993-10"><a href="text-mining.html#cb993-10" tabindex="-1"></a><span class="co">#&gt; 4 in     1190</span></span>
+<span id="cb993-11"><a href="text-mining.html#cb993-11" tabindex="-1"></a><span class="co">#&gt; 5 i      1151</span></span>
+<span id="cb993-12"><a href="text-mining.html#cb993-12" tabindex="-1"></a><span class="co">#&gt; # ℹ 6,259 more rows</span></span></code></pre></div>
 <p>It is not surprising that these are the top words. The top words are not informative. The <em>tidytext</em> package has a database of these commonly used words, referred to as <em>stop words</em>, in text mining:</p>
-<div class="sourceCode" id="cb995"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb995-1"><a href="text-mining.html#cb995-1" tabindex="-1"></a>stop_words</span>
-<span id="cb995-2"><a href="text-mining.html#cb995-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1,149 × 2</span></span>
-<span id="cb995-3"><a href="text-mining.html#cb995-3" tabindex="-1"></a><span class="co">#&gt;   word  lexicon</span></span>
-<span id="cb995-4"><a href="text-mining.html#cb995-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt; &lt;chr&gt;  </span></span>
-<span id="cb995-5"><a href="text-mining.html#cb995-5" tabindex="-1"></a><span class="co">#&gt; 1 a     SMART  </span></span>
-<span id="cb995-6"><a href="text-mining.html#cb995-6" tabindex="-1"></a><span class="co">#&gt; 2 a&#39;s   SMART  </span></span>
-<span id="cb995-7"><a href="text-mining.html#cb995-7" tabindex="-1"></a><span class="co">#&gt; 3 able  SMART  </span></span>
-<span id="cb995-8"><a href="text-mining.html#cb995-8" tabindex="-1"></a><span class="co">#&gt; 4 about SMART  </span></span>
-<span id="cb995-9"><a href="text-mining.html#cb995-9" tabindex="-1"></a><span class="co">#&gt; 5 above SMART  </span></span>
-<span id="cb995-10"><a href="text-mining.html#cb995-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 1,144 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb994"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb994-1"><a href="text-mining.html#cb994-1" tabindex="-1"></a>stop_words</span>
+<span id="cb994-2"><a href="text-mining.html#cb994-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1,149 × 2</span></span>
+<span id="cb994-3"><a href="text-mining.html#cb994-3" tabindex="-1"></a><span class="co">#&gt;   word  lexicon</span></span>
+<span id="cb994-4"><a href="text-mining.html#cb994-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt; &lt;chr&gt;  </span></span>
+<span id="cb994-5"><a href="text-mining.html#cb994-5" tabindex="-1"></a><span class="co">#&gt; 1 a     SMART  </span></span>
+<span id="cb994-6"><a href="text-mining.html#cb994-6" tabindex="-1"></a><span class="co">#&gt; 2 a&#39;s   SMART  </span></span>
+<span id="cb994-7"><a href="text-mining.html#cb994-7" tabindex="-1"></a><span class="co">#&gt; 3 able  SMART  </span></span>
+<span id="cb994-8"><a href="text-mining.html#cb994-8" tabindex="-1"></a><span class="co">#&gt; 4 about SMART  </span></span>
+<span id="cb994-9"><a href="text-mining.html#cb994-9" tabindex="-1"></a><span class="co">#&gt; 5 above SMART  </span></span>
+<span id="cb994-10"><a href="text-mining.html#cb994-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 1,144 more rows</span></span></code></pre></div>
 <p>If we filter out rows representing stop words with <code>filter(!word %in% stop_words$word)</code>:</p>
-<div class="sourceCode" id="cb996"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb996-1"><a href="text-mining.html#cb996-1" tabindex="-1"></a>tweet_words <span class="ot">&lt;-</span> campaign_tweets <span class="sc">|&gt;</span> </span>
-<span id="cb996-2"><a href="text-mining.html#cb996-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">text =</span> <span class="fu">str_replace_all</span>(text, links, <span class="st">&quot;&quot;</span>))  <span class="sc">|&gt;</span></span>
-<span id="cb996-3"><a href="text-mining.html#cb996-3" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text) <span class="sc">|&gt;</span></span>
-<span id="cb996-4"><a href="text-mining.html#cb996-4" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>word <span class="sc">%in%</span> stop_words<span class="sc">$</span>word ) </span></code></pre></div>
+<div class="sourceCode" id="cb995"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb995-1"><a href="text-mining.html#cb995-1" tabindex="-1"></a>tweet_words <span class="ot">&lt;-</span> campaign_tweets <span class="sc">|&gt;</span> </span>
+<span id="cb995-2"><a href="text-mining.html#cb995-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">text =</span> <span class="fu">str_replace_all</span>(text, links, <span class="st">&quot;&quot;</span>))  <span class="sc">|&gt;</span></span>
+<span id="cb995-3"><a href="text-mining.html#cb995-3" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text) <span class="sc">|&gt;</span></span>
+<span id="cb995-4"><a href="text-mining.html#cb995-4" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>word <span class="sc">%in%</span> stop_words<span class="sc">$</span>word ) </span></code></pre></div>
 <p>we end up with a much more informative set of top 10 tweeted words:</p>
-<div class="sourceCode" id="cb997"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb997-1"><a href="text-mining.html#cb997-1" tabindex="-1"></a>tweet_words <span class="sc">|&gt;</span> </span>
-<span id="cb997-2"><a href="text-mining.html#cb997-2" tabindex="-1"></a>  <span class="fu">count</span>(word) <span class="sc">|&gt;</span></span>
-<span id="cb997-3"><a href="text-mining.html#cb997-3" tabindex="-1"></a>  <span class="fu">top_n</span>(<span class="dv">10</span>, n) <span class="sc">|&gt;</span></span>
-<span id="cb997-4"><a href="text-mining.html#cb997-4" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">reorder</span>(word, n)) <span class="sc">|&gt;</span></span>
-<span id="cb997-5"><a href="text-mining.html#cb997-5" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n))</span>
-<span id="cb997-6"><a href="text-mining.html#cb997-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 10 × 2</span></span>
-<span id="cb997-7"><a href="text-mining.html#cb997-7" tabindex="-1"></a><span class="co">#&gt;   word                      n</span></span>
-<span id="cb997-8"><a href="text-mining.html#cb997-8" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;                 &lt;int&gt;</span></span>
-<span id="cb997-9"><a href="text-mining.html#cb997-9" tabindex="-1"></a><span class="co">#&gt; 1 trump2016               415</span></span>
-<span id="cb997-10"><a href="text-mining.html#cb997-10" tabindex="-1"></a><span class="co">#&gt; 2 hillary                 407</span></span>
-<span id="cb997-11"><a href="text-mining.html#cb997-11" tabindex="-1"></a><span class="co">#&gt; 3 people                  304</span></span>
-<span id="cb997-12"><a href="text-mining.html#cb997-12" tabindex="-1"></a><span class="co">#&gt; 4 makeamericagreatagain   298</span></span>
-<span id="cb997-13"><a href="text-mining.html#cb997-13" tabindex="-1"></a><span class="co">#&gt; 5 america                 255</span></span>
-<span id="cb997-14"><a href="text-mining.html#cb997-14" tabindex="-1"></a><span class="co">#&gt; # ℹ 5 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb996"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb996-1"><a href="text-mining.html#cb996-1" tabindex="-1"></a>tweet_words <span class="sc">|&gt;</span> </span>
+<span id="cb996-2"><a href="text-mining.html#cb996-2" tabindex="-1"></a>  <span class="fu">count</span>(word) <span class="sc">|&gt;</span></span>
+<span id="cb996-3"><a href="text-mining.html#cb996-3" tabindex="-1"></a>  <span class="fu">top_n</span>(<span class="dv">10</span>, n) <span class="sc">|&gt;</span></span>
+<span id="cb996-4"><a href="text-mining.html#cb996-4" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">reorder</span>(word, n)) <span class="sc">|&gt;</span></span>
+<span id="cb996-5"><a href="text-mining.html#cb996-5" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n))</span>
+<span id="cb996-6"><a href="text-mining.html#cb996-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 10 × 2</span></span>
+<span id="cb996-7"><a href="text-mining.html#cb996-7" tabindex="-1"></a><span class="co">#&gt;   word                      n</span></span>
+<span id="cb996-8"><a href="text-mining.html#cb996-8" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;                 &lt;int&gt;</span></span>
+<span id="cb996-9"><a href="text-mining.html#cb996-9" tabindex="-1"></a><span class="co">#&gt; 1 trump2016               415</span></span>
+<span id="cb996-10"><a href="text-mining.html#cb996-10" tabindex="-1"></a><span class="co">#&gt; 2 hillary                 407</span></span>
+<span id="cb996-11"><a href="text-mining.html#cb996-11" tabindex="-1"></a><span class="co">#&gt; 3 people                  304</span></span>
+<span id="cb996-12"><a href="text-mining.html#cb996-12" tabindex="-1"></a><span class="co">#&gt; 4 makeamericagreatagain   298</span></span>
+<span id="cb996-13"><a href="text-mining.html#cb996-13" tabindex="-1"></a><span class="co">#&gt; 5 america                 255</span></span>
+<span id="cb996-14"><a href="text-mining.html#cb996-14" tabindex="-1"></a><span class="co">#&gt; # ℹ 5 more rows</span></span></code></pre></div>
 <p>Some exploration of the resulting words (not shown here) reveals a couple of unwanted characteristics in our tokens. First, some of our tokens are just numbers (years, for example). We want to remove these and we can find them using the regex <code>^\d+$</code>. Second, some of our tokens come from a quote and they start with <code>'</code>. We want to remove the <code>'</code> when it is at the start of a word so we will just <code>str_replace</code>. We add these two lines to the code above to generate our final table:</p>
-<div class="sourceCode" id="cb998"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb998-1"><a href="text-mining.html#cb998-1" tabindex="-1"></a>tweet_words <span class="ot">&lt;-</span> campaign_tweets <span class="sc">|&gt;</span> </span>
-<span id="cb998-2"><a href="text-mining.html#cb998-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">text =</span> <span class="fu">str_replace_all</span>(text, links, <span class="st">&quot;&quot;</span>))  <span class="sc">|&gt;</span></span>
-<span id="cb998-3"><a href="text-mining.html#cb998-3" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text) <span class="sc">|&gt;</span></span>
-<span id="cb998-4"><a href="text-mining.html#cb998-4" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>word <span class="sc">%in%</span> stop_words<span class="sc">$</span>word <span class="sc">&amp;</span></span>
-<span id="cb998-5"><a href="text-mining.html#cb998-5" tabindex="-1"></a>           <span class="sc">!</span><span class="fu">str_detect</span>(word, <span class="st">&quot;^</span><span class="sc">\\</span><span class="st">d+$&quot;</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb998-6"><a href="text-mining.html#cb998-6" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">str_replace</span>(word, <span class="st">&quot;^&#39;&quot;</span>, <span class="st">&quot;&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb997"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb997-1"><a href="text-mining.html#cb997-1" tabindex="-1"></a>tweet_words <span class="ot">&lt;-</span> campaign_tweets <span class="sc">|&gt;</span> </span>
+<span id="cb997-2"><a href="text-mining.html#cb997-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">text =</span> <span class="fu">str_replace_all</span>(text, links, <span class="st">&quot;&quot;</span>))  <span class="sc">|&gt;</span></span>
+<span id="cb997-3"><a href="text-mining.html#cb997-3" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text) <span class="sc">|&gt;</span></span>
+<span id="cb997-4"><a href="text-mining.html#cb997-4" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>word <span class="sc">%in%</span> stop_words<span class="sc">$</span>word <span class="sc">&amp;</span></span>
+<span id="cb997-5"><a href="text-mining.html#cb997-5" tabindex="-1"></a>           <span class="sc">!</span><span class="fu">str_detect</span>(word, <span class="st">&quot;^</span><span class="sc">\\</span><span class="st">d+$&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb997-6"><a href="text-mining.html#cb997-6" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">str_replace</span>(word, <span class="st">&quot;^&#39;&quot;</span>, <span class="st">&quot;&quot;</span>))</span></code></pre></div>
 <p>Now that we have all our words in a table, along with information about what device was used to compose the tweet they came from, we can start exploring which words are more common when comparing Android to iPhone.</p>
 <p>For each word, we want to know if it is more likely to come from an Android tweet or an iPhone tweet. Odds ratio are a summary statistic useful for quantifying these differences. .For each device and a given word, let’s call it <code>y</code>, we compute the odds or the ratio between the proportion of words that are <code>y</code> and not <code>y</code> and compute the ratio of those odds. Here we will have many proportions that are 0, so we use the 0.5 correction. You can learn more about odds ratio in an statistics or epidemiology textbook.</p>
-<div class="sourceCode" id="cb999"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb999-1"><a href="text-mining.html#cb999-1" tabindex="-1"></a>android_iphone_or <span class="ot">&lt;-</span> tweet_words <span class="sc">|&gt;</span></span>
-<span id="cb999-2"><a href="text-mining.html#cb999-2" tabindex="-1"></a>  <span class="fu">count</span>(word, source) <span class="sc">|&gt;</span></span>
-<span id="cb999-3"><a href="text-mining.html#cb999-3" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">&quot;source&quot;</span>, <span class="at">values_from =</span> <span class="st">&quot;n&quot;</span>, <span class="at">values_fill =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb999-4"><a href="text-mining.html#cb999-4" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">or =</span> (Android <span class="sc">+</span> <span class="fl">0.5</span>) <span class="sc">/</span> (<span class="fu">sum</span>(Android) <span class="sc">-</span> Android <span class="sc">+</span> <span class="fl">0.5</span>) <span class="sc">/</span> </span>
-<span id="cb999-5"><a href="text-mining.html#cb999-5" tabindex="-1"></a>           ( (iPhone <span class="sc">+</span> <span class="fl">0.5</span>) <span class="sc">/</span> (<span class="fu">sum</span>(iPhone) <span class="sc">-</span> iPhone <span class="sc">+</span> <span class="fl">0.5</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb998"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb998-1"><a href="text-mining.html#cb998-1" tabindex="-1"></a>android_iphone_or <span class="ot">&lt;-</span> tweet_words <span class="sc">|&gt;</span></span>
+<span id="cb998-2"><a href="text-mining.html#cb998-2" tabindex="-1"></a>  <span class="fu">count</span>(word, source) <span class="sc">|&gt;</span></span>
+<span id="cb998-3"><a href="text-mining.html#cb998-3" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">&quot;source&quot;</span>, <span class="at">values_from =</span> <span class="st">&quot;n&quot;</span>, <span class="at">values_fill =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb998-4"><a href="text-mining.html#cb998-4" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">or =</span> (Android <span class="sc">+</span> <span class="fl">0.5</span>) <span class="sc">/</span> (<span class="fu">sum</span>(Android) <span class="sc">-</span> Android <span class="sc">+</span> <span class="fl">0.5</span>) <span class="sc">/</span> </span>
+<span id="cb998-5"><a href="text-mining.html#cb998-5" tabindex="-1"></a>           ( (iPhone <span class="sc">+</span> <span class="fl">0.5</span>) <span class="sc">/</span> (<span class="fu">sum</span>(iPhone) <span class="sc">-</span> iPhone <span class="sc">+</span> <span class="fl">0.5</span>)))</span></code></pre></div>
 <p>Here are the highest odds ratios for Android</p>
-<div class="sourceCode" id="cb1000"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1000-1"><a href="text-mining.html#cb1000-1" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(or))</span>
-<span id="cb1000-2"><a href="text-mining.html#cb1000-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5,607 × 4</span></span>
-<span id="cb1000-3"><a href="text-mining.html#cb1000-3" tabindex="-1"></a><span class="co">#&gt;   word  Android iPhone    or</span></span>
-<span id="cb1000-4"><a href="text-mining.html#cb1000-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;   &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;</span></span>
-<span id="cb1000-5"><a href="text-mining.html#cb1000-5" tabindex="-1"></a><span class="co">#&gt; 1 a.m        65      0 113. </span></span>
-<span id="cb1000-6"><a href="text-mining.html#cb1000-6" tabindex="-1"></a><span class="co">#&gt; 2 p.m        39      0  68.0</span></span>
-<span id="cb1000-7"><a href="text-mining.html#cb1000-7" tabindex="-1"></a><span class="co">#&gt; 3 mails      22      0  38.7</span></span>
-<span id="cb1000-8"><a href="text-mining.html#cb1000-8" tabindex="-1"></a><span class="co">#&gt; 4 poor       13      0  23.2</span></span>
-<span id="cb1000-9"><a href="text-mining.html#cb1000-9" tabindex="-1"></a><span class="co">#&gt; 5 t.v        13      0  23.2</span></span>
-<span id="cb1000-10"><a href="text-mining.html#cb1000-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 5,602 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb999"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb999-1"><a href="text-mining.html#cb999-1" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(or))</span>
+<span id="cb999-2"><a href="text-mining.html#cb999-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5,607 × 4</span></span>
+<span id="cb999-3"><a href="text-mining.html#cb999-3" tabindex="-1"></a><span class="co">#&gt;   word  Android iPhone    or</span></span>
+<span id="cb999-4"><a href="text-mining.html#cb999-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;   &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;</span></span>
+<span id="cb999-5"><a href="text-mining.html#cb999-5" tabindex="-1"></a><span class="co">#&gt; 1 a.m        65      0 113. </span></span>
+<span id="cb999-6"><a href="text-mining.html#cb999-6" tabindex="-1"></a><span class="co">#&gt; 2 p.m        39      0  68.0</span></span>
+<span id="cb999-7"><a href="text-mining.html#cb999-7" tabindex="-1"></a><span class="co">#&gt; 3 mails      22      0  38.7</span></span>
+<span id="cb999-8"><a href="text-mining.html#cb999-8" tabindex="-1"></a><span class="co">#&gt; 4 poor       13      0  23.2</span></span>
+<span id="cb999-9"><a href="text-mining.html#cb999-9" tabindex="-1"></a><span class="co">#&gt; 5 t.v        13      0  23.2</span></span>
+<span id="cb999-10"><a href="text-mining.html#cb999-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 5,602 more rows</span></span></code></pre></div>
 <p>and the top for iPhone:</p>
-<div class="sourceCode" id="cb1001"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1001-1"><a href="text-mining.html#cb1001-1" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">arrange</span>(or)</span>
-<span id="cb1001-2"><a href="text-mining.html#cb1001-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5,607 × 4</span></span>
-<span id="cb1001-3"><a href="text-mining.html#cb1001-3" tabindex="-1"></a><span class="co">#&gt;   word                  Android iPhone      or</span></span>
-<span id="cb1001-4"><a href="text-mining.html#cb1001-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                   &lt;int&gt;  &lt;int&gt;   &lt;dbl&gt;</span></span>
-<span id="cb1001-5"><a href="text-mining.html#cb1001-5" tabindex="-1"></a><span class="co">#&gt; 1 makeamericagreatagain       0    298 0.00141</span></span>
-<span id="cb1001-6"><a href="text-mining.html#cb1001-6" tabindex="-1"></a><span class="co">#&gt; 2 americafirst                0     71 0.00598</span></span>
-<span id="cb1001-7"><a href="text-mining.html#cb1001-7" tabindex="-1"></a><span class="co">#&gt; 3 draintheswamp               0     63 0.00673</span></span>
-<span id="cb1001-8"><a href="text-mining.html#cb1001-8" tabindex="-1"></a><span class="co">#&gt; 4 trump2016                   3    412 0.00707</span></span>
-<span id="cb1001-9"><a href="text-mining.html#cb1001-9" tabindex="-1"></a><span class="co">#&gt; 5 votetrump                   0     56 0.00757</span></span>
-<span id="cb1001-10"><a href="text-mining.html#cb1001-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 5,602 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb1000"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1000-1"><a href="text-mining.html#cb1000-1" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">arrange</span>(or)</span>
+<span id="cb1000-2"><a href="text-mining.html#cb1000-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5,607 × 4</span></span>
+<span id="cb1000-3"><a href="text-mining.html#cb1000-3" tabindex="-1"></a><span class="co">#&gt;   word                  Android iPhone      or</span></span>
+<span id="cb1000-4"><a href="text-mining.html#cb1000-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                   &lt;int&gt;  &lt;int&gt;   &lt;dbl&gt;</span></span>
+<span id="cb1000-5"><a href="text-mining.html#cb1000-5" tabindex="-1"></a><span class="co">#&gt; 1 makeamericagreatagain       0    298 0.00141</span></span>
+<span id="cb1000-6"><a href="text-mining.html#cb1000-6" tabindex="-1"></a><span class="co">#&gt; 2 americafirst                0     71 0.00598</span></span>
+<span id="cb1000-7"><a href="text-mining.html#cb1000-7" tabindex="-1"></a><span class="co">#&gt; 3 draintheswamp               0     63 0.00673</span></span>
+<span id="cb1000-8"><a href="text-mining.html#cb1000-8" tabindex="-1"></a><span class="co">#&gt; 4 trump2016                   3    412 0.00707</span></span>
+<span id="cb1000-9"><a href="text-mining.html#cb1000-9" tabindex="-1"></a><span class="co">#&gt; 5 votetrump                   0     56 0.00757</span></span>
+<span id="cb1000-10"><a href="text-mining.html#cb1000-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 5,602 more rows</span></span></code></pre></div>
 <p>Given that several of these words are overall low frequency words, we can impose a filter based on the total frequency like this:</p>
-<div class="sourceCode" id="cb1002"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1002-1"><a href="text-mining.html#cb1002-1" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">filter</span>(Android<span class="sc">+</span>iPhone <span class="sc">&gt;</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1002-2"><a href="text-mining.html#cb1002-2" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(or))</span>
-<span id="cb1002-3"><a href="text-mining.html#cb1002-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 30 × 4</span></span>
-<span id="cb1002-4"><a href="text-mining.html#cb1002-4" tabindex="-1"></a><span class="co">#&gt;   word        Android iPhone    or</span></span>
-<span id="cb1002-5"><a href="text-mining.html#cb1002-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;         &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;</span></span>
-<span id="cb1002-6"><a href="text-mining.html#cb1002-6" tabindex="-1"></a><span class="co">#&gt; 1 bad             104     26  3.40</span></span>
-<span id="cb1002-7"><a href="text-mining.html#cb1002-7" tabindex="-1"></a><span class="co">#&gt; 2 crooked         156     49  2.73</span></span>
-<span id="cb1002-8"><a href="text-mining.html#cb1002-8" tabindex="-1"></a><span class="co">#&gt; 3 cnn             116     37  2.68</span></span>
-<span id="cb1002-9"><a href="text-mining.html#cb1002-9" tabindex="-1"></a><span class="co">#&gt; 4 ted              86     28  2.62</span></span>
-<span id="cb1002-10"><a href="text-mining.html#cb1002-10" tabindex="-1"></a><span class="co">#&gt; 5 interviewed      76     25  2.59</span></span>
-<span id="cb1002-11"><a href="text-mining.html#cb1002-11" tabindex="-1"></a><span class="co">#&gt; # ℹ 25 more rows</span></span>
-<span id="cb1002-12"><a href="text-mining.html#cb1002-12" tabindex="-1"></a></span>
-<span id="cb1002-13"><a href="text-mining.html#cb1002-13" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">filter</span>(Android<span class="sc">+</span>iPhone <span class="sc">&gt;</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1002-14"><a href="text-mining.html#cb1002-14" tabindex="-1"></a>  <span class="fu">arrange</span>(or)</span>
-<span id="cb1002-15"><a href="text-mining.html#cb1002-15" tabindex="-1"></a><span class="co">#&gt; # A tibble: 30 × 4</span></span>
-<span id="cb1002-16"><a href="text-mining.html#cb1002-16" tabindex="-1"></a><span class="co">#&gt;   word                  Android iPhone      or</span></span>
-<span id="cb1002-17"><a href="text-mining.html#cb1002-17" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                   &lt;int&gt;  &lt;int&gt;   &lt;dbl&gt;</span></span>
-<span id="cb1002-18"><a href="text-mining.html#cb1002-18" tabindex="-1"></a><span class="co">#&gt; 1 makeamericagreatagain       0    298 0.00141</span></span>
-<span id="cb1002-19"><a href="text-mining.html#cb1002-19" tabindex="-1"></a><span class="co">#&gt; 2 trump2016                   3    412 0.00707</span></span>
-<span id="cb1002-20"><a href="text-mining.html#cb1002-20" tabindex="-1"></a><span class="co">#&gt; 3 join                        1    157 0.00809</span></span>
-<span id="cb1002-21"><a href="text-mining.html#cb1002-21" tabindex="-1"></a><span class="co">#&gt; 4 tomorrow                   24    101 0.206  </span></span>
-<span id="cb1002-22"><a href="text-mining.html#cb1002-22" tabindex="-1"></a><span class="co">#&gt; 5 vote                       46     67 0.591  </span></span>
-<span id="cb1002-23"><a href="text-mining.html#cb1002-23" tabindex="-1"></a><span class="co">#&gt; # ℹ 25 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb1001"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1001-1"><a href="text-mining.html#cb1001-1" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">filter</span>(Android<span class="sc">+</span>iPhone <span class="sc">&gt;</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1001-2"><a href="text-mining.html#cb1001-2" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(or))</span>
+<span id="cb1001-3"><a href="text-mining.html#cb1001-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 30 × 4</span></span>
+<span id="cb1001-4"><a href="text-mining.html#cb1001-4" tabindex="-1"></a><span class="co">#&gt;   word        Android iPhone    or</span></span>
+<span id="cb1001-5"><a href="text-mining.html#cb1001-5" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;         &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;</span></span>
+<span id="cb1001-6"><a href="text-mining.html#cb1001-6" tabindex="-1"></a><span class="co">#&gt; 1 bad             104     26  3.40</span></span>
+<span id="cb1001-7"><a href="text-mining.html#cb1001-7" tabindex="-1"></a><span class="co">#&gt; 2 crooked         156     49  2.73</span></span>
+<span id="cb1001-8"><a href="text-mining.html#cb1001-8" tabindex="-1"></a><span class="co">#&gt; 3 cnn             116     37  2.68</span></span>
+<span id="cb1001-9"><a href="text-mining.html#cb1001-9" tabindex="-1"></a><span class="co">#&gt; 4 ted              86     28  2.62</span></span>
+<span id="cb1001-10"><a href="text-mining.html#cb1001-10" tabindex="-1"></a><span class="co">#&gt; 5 interviewed      76     25  2.59</span></span>
+<span id="cb1001-11"><a href="text-mining.html#cb1001-11" tabindex="-1"></a><span class="co">#&gt; # ℹ 25 more rows</span></span>
+<span id="cb1001-12"><a href="text-mining.html#cb1001-12" tabindex="-1"></a></span>
+<span id="cb1001-13"><a href="text-mining.html#cb1001-13" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">filter</span>(Android<span class="sc">+</span>iPhone <span class="sc">&gt;</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1001-14"><a href="text-mining.html#cb1001-14" tabindex="-1"></a>  <span class="fu">arrange</span>(or)</span>
+<span id="cb1001-15"><a href="text-mining.html#cb1001-15" tabindex="-1"></a><span class="co">#&gt; # A tibble: 30 × 4</span></span>
+<span id="cb1001-16"><a href="text-mining.html#cb1001-16" tabindex="-1"></a><span class="co">#&gt;   word                  Android iPhone      or</span></span>
+<span id="cb1001-17"><a href="text-mining.html#cb1001-17" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                   &lt;int&gt;  &lt;int&gt;   &lt;dbl&gt;</span></span>
+<span id="cb1001-18"><a href="text-mining.html#cb1001-18" tabindex="-1"></a><span class="co">#&gt; 1 makeamericagreatagain       0    298 0.00141</span></span>
+<span id="cb1001-19"><a href="text-mining.html#cb1001-19" tabindex="-1"></a><span class="co">#&gt; 2 trump2016                   3    412 0.00707</span></span>
+<span id="cb1001-20"><a href="text-mining.html#cb1001-20" tabindex="-1"></a><span class="co">#&gt; 3 join                        1    157 0.00809</span></span>
+<span id="cb1001-21"><a href="text-mining.html#cb1001-21" tabindex="-1"></a><span class="co">#&gt; 4 tomorrow                   24    101 0.206  </span></span>
+<span id="cb1001-22"><a href="text-mining.html#cb1001-22" tabindex="-1"></a><span class="co">#&gt; 5 vote                       46     67 0.591  </span></span>
+<span id="cb1001-23"><a href="text-mining.html#cb1001-23" tabindex="-1"></a><span class="co">#&gt; # ℹ 25 more rows</span></span></code></pre></div>
 <p>We already see somewhat of a pattern in the types of words that are being tweeted more from one device versus the other. However, we are not interested in specific words but rather in the tone. Vaziri’s assertion is that the Android tweets are more hyperbolic. So how can we check this with data? <em>Hyperbolic</em> is a hard sentiment to extract from words as it relies on interpreting phrases. However, words can be associated to more basic sentiment such as anger, fear, joy, and surprise. In the next section, we demonstrate basic sentiment analysis.</p>
 </div>
 <div id="sentiment-analysis" class="section level2 hasAnchor" number="26.3">
 <h2><span class="header-section-number">26.3</span> Sentiment analysis<a href="text-mining.html#sentiment-analysis" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>In sentiment analysis, we assign a word to one or more “sentiments”. Although this approach will miss context-dependent sentiments, such as sarcasm, when performed on large numbers of words, summaries can provide insights.</p>
 <p>The first step in sentiment analysis is to assign a sentiment to each word. As we demonstrate, the <strong>tidytext</strong> package includes several maps or lexicons. We will also be using the <strong>textdata</strong> package.</p>
-<div class="sourceCode" id="cb1003"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1003-1"><a href="text-mining.html#cb1003-1" tabindex="-1"></a><span class="fu">library</span>(tidytext)</span>
-<span id="cb1003-2"><a href="text-mining.html#cb1003-2" tabindex="-1"></a><span class="fu">library</span>(textdata)</span></code></pre></div>
+<div class="sourceCode" id="cb1002"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1002-1"><a href="text-mining.html#cb1002-1" tabindex="-1"></a><span class="fu">library</span>(tidytext)</span>
+<span id="cb1002-2"><a href="text-mining.html#cb1002-2" tabindex="-1"></a><span class="fu">library</span>(textdata)</span></code></pre></div>
 <p>The <code>bing</code> lexicon divides words into <code>positive</code> and <code>negative</code> sentiments. We can see this using the <em>tidytext</em> function <code>get_sentiments</code>:</p>
-<div class="sourceCode" id="cb1004"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1004-1"><a href="text-mining.html#cb1004-1" tabindex="-1"></a><span class="fu">get_sentiments</span>(<span class="st">&quot;bing&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1003"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1003-1"><a href="text-mining.html#cb1003-1" tabindex="-1"></a><span class="fu">get_sentiments</span>(<span class="st">&quot;bing&quot;</span>)</span></code></pre></div>
 <p>The <code>AFINN</code> lexicon assigns a score between -5 and 5, with -5 the most negative and 5 the most positive. Note that this lexicon needs to be downloaded the first time you call the function <code>get_sentiment</code>:</p>
-<div class="sourceCode" id="cb1005"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1005-1"><a href="text-mining.html#cb1005-1" tabindex="-1"></a><span class="fu">get_sentiments</span>(<span class="st">&quot;afinn&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1004"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1004-1"><a href="text-mining.html#cb1004-1" tabindex="-1"></a><span class="fu">get_sentiments</span>(<span class="st">&quot;afinn&quot;</span>)</span></code></pre></div>
 <p>The <code>loughran</code> and <code>nrc</code> lexicons provide several different sentiments. Note that these also have to be downloaded the first time you use them.</p>
-<div class="sourceCode" id="cb1006"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1006-1"><a href="text-mining.html#cb1006-1" tabindex="-1"></a><span class="fu">get_sentiments</span>(<span class="st">&quot;loughran&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">count</span>(sentiment)</span>
-<span id="cb1006-2"><a href="text-mining.html#cb1006-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 2</span></span>
+<div class="sourceCode" id="cb1005"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1005-1"><a href="text-mining.html#cb1005-1" tabindex="-1"></a><span class="fu">get_sentiments</span>(<span class="st">&quot;loughran&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">count</span>(sentiment)</span>
+<span id="cb1005-2"><a href="text-mining.html#cb1005-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 2</span></span>
+<span id="cb1005-3"><a href="text-mining.html#cb1005-3" tabindex="-1"></a><span class="co">#&gt;   sentiment        n</span></span>
+<span id="cb1005-4"><a href="text-mining.html#cb1005-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;        &lt;int&gt;</span></span>
+<span id="cb1005-5"><a href="text-mining.html#cb1005-5" tabindex="-1"></a><span class="co">#&gt; 1 constraining   184</span></span>
+<span id="cb1005-6"><a href="text-mining.html#cb1005-6" tabindex="-1"></a><span class="co">#&gt; 2 litigious      904</span></span>
+<span id="cb1005-7"><a href="text-mining.html#cb1005-7" tabindex="-1"></a><span class="co">#&gt; 3 negative      2355</span></span>
+<span id="cb1005-8"><a href="text-mining.html#cb1005-8" tabindex="-1"></a><span class="co">#&gt; 4 positive       354</span></span>
+<span id="cb1005-9"><a href="text-mining.html#cb1005-9" tabindex="-1"></a><span class="co">#&gt; 5 superfluous     56</span></span>
+<span id="cb1005-10"><a href="text-mining.html#cb1005-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more row</span></span></code></pre></div>
+<div class="sourceCode" id="cb1006"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1006-1"><a href="text-mining.html#cb1006-1" tabindex="-1"></a><span class="fu">get_sentiments</span>(<span class="st">&quot;nrc&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">count</span>(sentiment)</span>
+<span id="cb1006-2"><a href="text-mining.html#cb1006-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 10 × 2</span></span>
 <span id="cb1006-3"><a href="text-mining.html#cb1006-3" tabindex="-1"></a><span class="co">#&gt;   sentiment        n</span></span>
 <span id="cb1006-4"><a href="text-mining.html#cb1006-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;        &lt;int&gt;</span></span>
-<span id="cb1006-5"><a href="text-mining.html#cb1006-5" tabindex="-1"></a><span class="co">#&gt; 1 constraining   184</span></span>
-<span id="cb1006-6"><a href="text-mining.html#cb1006-6" tabindex="-1"></a><span class="co">#&gt; 2 litigious      904</span></span>
-<span id="cb1006-7"><a href="text-mining.html#cb1006-7" tabindex="-1"></a><span class="co">#&gt; 3 negative      2355</span></span>
-<span id="cb1006-8"><a href="text-mining.html#cb1006-8" tabindex="-1"></a><span class="co">#&gt; 4 positive       354</span></span>
-<span id="cb1006-9"><a href="text-mining.html#cb1006-9" tabindex="-1"></a><span class="co">#&gt; 5 superfluous     56</span></span>
-<span id="cb1006-10"><a href="text-mining.html#cb1006-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more row</span></span></code></pre></div>
-<div class="sourceCode" id="cb1007"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1007-1"><a href="text-mining.html#cb1007-1" tabindex="-1"></a><span class="fu">get_sentiments</span>(<span class="st">&quot;nrc&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">count</span>(sentiment)</span>
-<span id="cb1007-2"><a href="text-mining.html#cb1007-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 10 × 2</span></span>
-<span id="cb1007-3"><a href="text-mining.html#cb1007-3" tabindex="-1"></a><span class="co">#&gt;   sentiment        n</span></span>
-<span id="cb1007-4"><a href="text-mining.html#cb1007-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;        &lt;int&gt;</span></span>
-<span id="cb1007-5"><a href="text-mining.html#cb1007-5" tabindex="-1"></a><span class="co">#&gt; 1 anger         1245</span></span>
-<span id="cb1007-6"><a href="text-mining.html#cb1007-6" tabindex="-1"></a><span class="co">#&gt; 2 anticipation   837</span></span>
-<span id="cb1007-7"><a href="text-mining.html#cb1007-7" tabindex="-1"></a><span class="co">#&gt; 3 disgust       1056</span></span>
-<span id="cb1007-8"><a href="text-mining.html#cb1007-8" tabindex="-1"></a><span class="co">#&gt; 4 fear          1474</span></span>
-<span id="cb1007-9"><a href="text-mining.html#cb1007-9" tabindex="-1"></a><span class="co">#&gt; 5 joy            687</span></span>
-<span id="cb1007-10"><a href="text-mining.html#cb1007-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 5 more rows</span></span></code></pre></div>
+<span id="cb1006-5"><a href="text-mining.html#cb1006-5" tabindex="-1"></a><span class="co">#&gt; 1 anger         1245</span></span>
+<span id="cb1006-6"><a href="text-mining.html#cb1006-6" tabindex="-1"></a><span class="co">#&gt; 2 anticipation   837</span></span>
+<span id="cb1006-7"><a href="text-mining.html#cb1006-7" tabindex="-1"></a><span class="co">#&gt; 3 disgust       1056</span></span>
+<span id="cb1006-8"><a href="text-mining.html#cb1006-8" tabindex="-1"></a><span class="co">#&gt; 4 fear          1474</span></span>
+<span id="cb1006-9"><a href="text-mining.html#cb1006-9" tabindex="-1"></a><span class="co">#&gt; 5 joy            687</span></span>
+<span id="cb1006-10"><a href="text-mining.html#cb1006-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 5 more rows</span></span></code></pre></div>
 <p>For our analysis, we are interested in exploring the different sentiments of each tweet so we will use the <code>nrc</code> lexicon:</p>
-<div class="sourceCode" id="cb1008"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1008-1"><a href="text-mining.html#cb1008-1" tabindex="-1"></a>nrc <span class="ot">&lt;-</span> <span class="fu">get_sentiments</span>(<span class="st">&quot;nrc&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1008-2"><a href="text-mining.html#cb1008-2" tabindex="-1"></a>  <span class="fu">select</span>(word, sentiment)</span></code></pre></div>
+<div class="sourceCode" id="cb1007"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1007-1"><a href="text-mining.html#cb1007-1" tabindex="-1"></a>nrc <span class="ot">&lt;-</span> <span class="fu">get_sentiments</span>(<span class="st">&quot;nrc&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1007-2"><a href="text-mining.html#cb1007-2" tabindex="-1"></a>  <span class="fu">select</span>(word, sentiment)</span></code></pre></div>
 <p>We can combine the words and sentiments using <code>inner_join</code>, which will only keep words associated with a sentiment. Here are 10 random words extracted from the tweets:</p>
-<div class="sourceCode" id="cb1009"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1009-1"><a href="text-mining.html#cb1009-1" tabindex="-1"></a>tweet_words <span class="sc">|&gt;</span> <span class="fu">inner_join</span>(nrc, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>, <span class="at">relationship =</span> <span class="st">&quot;many-to-many&quot;</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb1009-2"><a href="text-mining.html#cb1009-2" tabindex="-1"></a>  <span class="fu">select</span>(source, word, sentiment) <span class="sc">|&gt;</span> </span>
-<span id="cb1009-3"><a href="text-mining.html#cb1009-3" tabindex="-1"></a>  <span class="fu">sample_n</span>(<span class="dv">5</span>)</span>
-<span id="cb1009-4"><a href="text-mining.html#cb1009-4" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 3</span></span>
-<span id="cb1009-5"><a href="text-mining.html#cb1009-5" tabindex="-1"></a><span class="co">#&gt;   source  word     sentiment   </span></span>
-<span id="cb1009-6"><a href="text-mining.html#cb1009-6" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;       </span></span>
-<span id="cb1009-7"><a href="text-mining.html#cb1009-7" tabindex="-1"></a><span class="co">#&gt; 1 Android enjoy    joy         </span></span>
-<span id="cb1009-8"><a href="text-mining.html#cb1009-8" tabindex="-1"></a><span class="co">#&gt; 2 iPhone  terrific sadness     </span></span>
-<span id="cb1009-9"><a href="text-mining.html#cb1009-9" tabindex="-1"></a><span class="co">#&gt; 3 iPhone  tactics  trust       </span></span>
-<span id="cb1009-10"><a href="text-mining.html#cb1009-10" tabindex="-1"></a><span class="co">#&gt; 4 Android clue     anticipation</span></span>
-<span id="cb1009-11"><a href="text-mining.html#cb1009-11" tabindex="-1"></a><span class="co">#&gt; 5 iPhone  change   fear</span></span></code></pre></div>
+<div class="sourceCode" id="cb1008"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1008-1"><a href="text-mining.html#cb1008-1" tabindex="-1"></a>tweet_words <span class="sc">|&gt;</span> <span class="fu">inner_join</span>(nrc, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>, <span class="at">relationship =</span> <span class="st">&quot;many-to-many&quot;</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb1008-2"><a href="text-mining.html#cb1008-2" tabindex="-1"></a>  <span class="fu">select</span>(source, word, sentiment) <span class="sc">|&gt;</span> </span>
+<span id="cb1008-3"><a href="text-mining.html#cb1008-3" tabindex="-1"></a>  <span class="fu">sample_n</span>(<span class="dv">5</span>)</span>
+<span id="cb1008-4"><a href="text-mining.html#cb1008-4" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 3</span></span>
+<span id="cb1008-5"><a href="text-mining.html#cb1008-5" tabindex="-1"></a><span class="co">#&gt;   source  word     sentiment   </span></span>
+<span id="cb1008-6"><a href="text-mining.html#cb1008-6" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;       </span></span>
+<span id="cb1008-7"><a href="text-mining.html#cb1008-7" tabindex="-1"></a><span class="co">#&gt; 1 Android enjoy    joy         </span></span>
+<span id="cb1008-8"><a href="text-mining.html#cb1008-8" tabindex="-1"></a><span class="co">#&gt; 2 iPhone  terrific sadness     </span></span>
+<span id="cb1008-9"><a href="text-mining.html#cb1008-9" tabindex="-1"></a><span class="co">#&gt; 3 iPhone  tactics  trust       </span></span>
+<span id="cb1008-10"><a href="text-mining.html#cb1008-10" tabindex="-1"></a><span class="co">#&gt; 4 Android clue     anticipation</span></span>
+<span id="cb1008-11"><a href="text-mining.html#cb1008-11" tabindex="-1"></a><span class="co">#&gt; 5 iPhone  change   fear</span></span></code></pre></div>
 <p>Now we are ready to perform a quantitative analysis comparing Android and iPhone by comparing the sentiments of the tweets posted from each device. Here we could perform a tweet-by-tweet analysis, assigning a sentiment to each tweet. However, this will be challenging since each tweet will have several sentiments attached to it, one for each word appearing in the lexicon. For illustrative purposes, we will perform a much simpler analysis: we will count and compare the frequencies of each sentiment appearing in each device.</p>
-<div class="sourceCode" id="cb1010"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1010-1"><a href="text-mining.html#cb1010-1" tabindex="-1"></a>sentiment_counts <span class="ot">&lt;-</span> tweet_words <span class="sc">|&gt;</span></span>
-<span id="cb1010-2"><a href="text-mining.html#cb1010-2" tabindex="-1"></a>  <span class="fu">left_join</span>(nrc, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>, <span class="at">relationship =</span> <span class="st">&quot;many-to-many&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1010-3"><a href="text-mining.html#cb1010-3" tabindex="-1"></a>  <span class="fu">count</span>(source, sentiment) <span class="sc">|&gt;</span></span>
-<span id="cb1010-4"><a href="text-mining.html#cb1010-4" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">&quot;source&quot;</span>, <span class="at">values_from =</span> <span class="st">&quot;n&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1010-5"><a href="text-mining.html#cb1010-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sentiment =</span> <span class="fu">replace_na</span>(sentiment, <span class="at">replace =</span> <span class="st">&quot;none&quot;</span>))</span>
-<span id="cb1010-6"><a href="text-mining.html#cb1010-6" tabindex="-1"></a>sentiment_counts</span>
-<span id="cb1010-7"><a href="text-mining.html#cb1010-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 3</span></span>
-<span id="cb1010-8"><a href="text-mining.html#cb1010-8" tabindex="-1"></a><span class="co">#&gt;   sentiment    Android iPhone</span></span>
-<span id="cb1010-9"><a href="text-mining.html#cb1010-9" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;          &lt;int&gt;  &lt;int&gt;</span></span>
-<span id="cb1010-10"><a href="text-mining.html#cb1010-10" tabindex="-1"></a><span class="co">#&gt; 1 anger            962    527</span></span>
-<span id="cb1010-11"><a href="text-mining.html#cb1010-11" tabindex="-1"></a><span class="co">#&gt; 2 anticipation     917    707</span></span>
-<span id="cb1010-12"><a href="text-mining.html#cb1010-12" tabindex="-1"></a><span class="co">#&gt; 3 disgust          639    314</span></span>
-<span id="cb1010-13"><a href="text-mining.html#cb1010-13" tabindex="-1"></a><span class="co">#&gt; 4 fear             799    486</span></span>
-<span id="cb1010-14"><a href="text-mining.html#cb1010-14" tabindex="-1"></a><span class="co">#&gt; 5 joy              695    536</span></span>
-<span id="cb1010-15"><a href="text-mining.html#cb1010-15" tabindex="-1"></a><span class="co">#&gt; # ℹ 6 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb1009"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1009-1"><a href="text-mining.html#cb1009-1" tabindex="-1"></a>sentiment_counts <span class="ot">&lt;-</span> tweet_words <span class="sc">|&gt;</span></span>
+<span id="cb1009-2"><a href="text-mining.html#cb1009-2" tabindex="-1"></a>  <span class="fu">left_join</span>(nrc, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>, <span class="at">relationship =</span> <span class="st">&quot;many-to-many&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1009-3"><a href="text-mining.html#cb1009-3" tabindex="-1"></a>  <span class="fu">count</span>(source, sentiment) <span class="sc">|&gt;</span></span>
+<span id="cb1009-4"><a href="text-mining.html#cb1009-4" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="st">&quot;source&quot;</span>, <span class="at">values_from =</span> <span class="st">&quot;n&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1009-5"><a href="text-mining.html#cb1009-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sentiment =</span> <span class="fu">replace_na</span>(sentiment, <span class="at">replace =</span> <span class="st">&quot;none&quot;</span>))</span>
+<span id="cb1009-6"><a href="text-mining.html#cb1009-6" tabindex="-1"></a>sentiment_counts</span>
+<span id="cb1009-7"><a href="text-mining.html#cb1009-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 3</span></span>
+<span id="cb1009-8"><a href="text-mining.html#cb1009-8" tabindex="-1"></a><span class="co">#&gt;   sentiment    Android iPhone</span></span>
+<span id="cb1009-9"><a href="text-mining.html#cb1009-9" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;          &lt;int&gt;  &lt;int&gt;</span></span>
+<span id="cb1009-10"><a href="text-mining.html#cb1009-10" tabindex="-1"></a><span class="co">#&gt; 1 anger            962    527</span></span>
+<span id="cb1009-11"><a href="text-mining.html#cb1009-11" tabindex="-1"></a><span class="co">#&gt; 2 anticipation     917    707</span></span>
+<span id="cb1009-12"><a href="text-mining.html#cb1009-12" tabindex="-1"></a><span class="co">#&gt; 3 disgust          639    314</span></span>
+<span id="cb1009-13"><a href="text-mining.html#cb1009-13" tabindex="-1"></a><span class="co">#&gt; 4 fear             799    486</span></span>
+<span id="cb1009-14"><a href="text-mining.html#cb1009-14" tabindex="-1"></a><span class="co">#&gt; 5 joy              695    536</span></span>
+<span id="cb1009-15"><a href="text-mining.html#cb1009-15" tabindex="-1"></a><span class="co">#&gt; # ℹ 6 more rows</span></span></code></pre></div>
 <p>For each sentiment, we can compute the odds of being in the device: proportion of words with sentiment versus proportion of words without, and then compute the odds ratio comparing the two devices.</p>
-<div class="sourceCode" id="cb1011"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1011-1"><a href="text-mining.html#cb1011-1" tabindex="-1"></a>sentiment_counts <span class="sc">|&gt;</span></span>
-<span id="cb1011-2"><a href="text-mining.html#cb1011-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Android =</span> Android <span class="sc">/</span> (<span class="fu">sum</span>(Android) <span class="sc">-</span> Android) , </span>
-<span id="cb1011-3"><a href="text-mining.html#cb1011-3" tabindex="-1"></a>         <span class="at">iPhone =</span> iPhone <span class="sc">/</span> (<span class="fu">sum</span>(iPhone) <span class="sc">-</span> iPhone), </span>
-<span id="cb1011-4"><a href="text-mining.html#cb1011-4" tabindex="-1"></a>         <span class="at">or =</span> Android<span class="sc">/</span>iPhone) <span class="sc">|&gt;</span></span>
-<span id="cb1011-5"><a href="text-mining.html#cb1011-5" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(or))</span>
-<span id="cb1011-6"><a href="text-mining.html#cb1011-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 4</span></span>
-<span id="cb1011-7"><a href="text-mining.html#cb1011-7" tabindex="-1"></a><span class="co">#&gt;   sentiment Android iPhone    or</span></span>
-<span id="cb1011-8"><a href="text-mining.html#cb1011-8" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;       &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;</span></span>
-<span id="cb1011-9"><a href="text-mining.html#cb1011-9" tabindex="-1"></a><span class="co">#&gt; 1 disgust    0.0299 0.0181  1.65</span></span>
-<span id="cb1011-10"><a href="text-mining.html#cb1011-10" tabindex="-1"></a><span class="co">#&gt; 2 anger      0.0457 0.0307  1.49</span></span>
-<span id="cb1011-11"><a href="text-mining.html#cb1011-11" tabindex="-1"></a><span class="co">#&gt; 3 negative   0.0814 0.0556  1.46</span></span>
-<span id="cb1011-12"><a href="text-mining.html#cb1011-12" tabindex="-1"></a><span class="co">#&gt; 4 sadness    0.0427 0.0300  1.42</span></span>
-<span id="cb1011-13"><a href="text-mining.html#cb1011-13" tabindex="-1"></a><span class="co">#&gt; 5 fear       0.0377 0.0283  1.33</span></span>
-<span id="cb1011-14"><a href="text-mining.html#cb1011-14" tabindex="-1"></a><span class="co">#&gt; # ℹ 6 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb1010"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1010-1"><a href="text-mining.html#cb1010-1" tabindex="-1"></a>sentiment_counts <span class="sc">|&gt;</span></span>
+<span id="cb1010-2"><a href="text-mining.html#cb1010-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Android =</span> Android <span class="sc">/</span> (<span class="fu">sum</span>(Android) <span class="sc">-</span> Android) , </span>
+<span id="cb1010-3"><a href="text-mining.html#cb1010-3" tabindex="-1"></a>         <span class="at">iPhone =</span> iPhone <span class="sc">/</span> (<span class="fu">sum</span>(iPhone) <span class="sc">-</span> iPhone), </span>
+<span id="cb1010-4"><a href="text-mining.html#cb1010-4" tabindex="-1"></a>         <span class="at">or =</span> Android<span class="sc">/</span>iPhone) <span class="sc">|&gt;</span></span>
+<span id="cb1010-5"><a href="text-mining.html#cb1010-5" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(or))</span>
+<span id="cb1010-6"><a href="text-mining.html#cb1010-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 4</span></span>
+<span id="cb1010-7"><a href="text-mining.html#cb1010-7" tabindex="-1"></a><span class="co">#&gt;   sentiment Android iPhone    or</span></span>
+<span id="cb1010-8"><a href="text-mining.html#cb1010-8" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;       &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span id="cb1010-9"><a href="text-mining.html#cb1010-9" tabindex="-1"></a><span class="co">#&gt; 1 disgust    0.0299 0.0181  1.65</span></span>
+<span id="cb1010-10"><a href="text-mining.html#cb1010-10" tabindex="-1"></a><span class="co">#&gt; 2 anger      0.0457 0.0307  1.49</span></span>
+<span id="cb1010-11"><a href="text-mining.html#cb1010-11" tabindex="-1"></a><span class="co">#&gt; 3 negative   0.0814 0.0556  1.46</span></span>
+<span id="cb1010-12"><a href="text-mining.html#cb1010-12" tabindex="-1"></a><span class="co">#&gt; 4 sadness    0.0427 0.0300  1.42</span></span>
+<span id="cb1010-13"><a href="text-mining.html#cb1010-13" tabindex="-1"></a><span class="co">#&gt; 5 fear       0.0377 0.0283  1.33</span></span>
+<span id="cb1010-14"><a href="text-mining.html#cb1010-14" tabindex="-1"></a><span class="co">#&gt; # ℹ 6 more rows</span></span></code></pre></div>
 <p>So we do see some differences and the order is interesting: the largest three sentiments are disgust, anger, and negative! But are these differences just due to chance? How does this compare if we are just assigning sentiments at random? To answer this question we can compute, for each sentiment, an odds ratio and a confidence interval. We will add the two values we need to form a two-by-two table and the odds ratio:</p>
-<div class="sourceCode" id="cb1012"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1012-1"><a href="text-mining.html#cb1012-1" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
-<span id="cb1012-2"><a href="text-mining.html#cb1012-2" tabindex="-1"></a>log_or <span class="ot">&lt;-</span> sentiment_counts <span class="sc">|&gt;</span></span>
-<span id="cb1012-3"><a href="text-mining.html#cb1012-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">log_or =</span> <span class="fu">log</span>((Android <span class="sc">/</span> (<span class="fu">sum</span>(Android) <span class="sc">-</span> Android)) <span class="sc">/</span> </span>
-<span id="cb1012-4"><a href="text-mining.html#cb1012-4" tabindex="-1"></a>      (iPhone <span class="sc">/</span> (<span class="fu">sum</span>(iPhone) <span class="sc">-</span> iPhone))),</span>
-<span id="cb1012-5"><a href="text-mining.html#cb1012-5" tabindex="-1"></a>          <span class="at">se =</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>Android <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>(<span class="fu">sum</span>(Android) <span class="sc">-</span> Android) <span class="sc">+</span> </span>
-<span id="cb1012-6"><a href="text-mining.html#cb1012-6" tabindex="-1"></a>                      <span class="dv">1</span><span class="sc">/</span>iPhone <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>(<span class="fu">sum</span>(iPhone) <span class="sc">-</span> iPhone)),</span>
-<span id="cb1012-7"><a href="text-mining.html#cb1012-7" tabindex="-1"></a>          <span class="at">conf.low =</span> log_or <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>)<span class="sc">*</span>se,</span>
-<span id="cb1012-8"><a href="text-mining.html#cb1012-8" tabindex="-1"></a>          <span class="at">conf.high =</span> log_or <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>)<span class="sc">*</span>se) <span class="sc">|&gt;</span></span>
-<span id="cb1012-9"><a href="text-mining.html#cb1012-9" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(log_or))</span>
-<span id="cb1012-10"><a href="text-mining.html#cb1012-10" tabindex="-1"></a>  </span>
-<span id="cb1012-11"><a href="text-mining.html#cb1012-11" tabindex="-1"></a>log_or</span>
-<span id="cb1012-12"><a href="text-mining.html#cb1012-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 7</span></span>
-<span id="cb1012-13"><a href="text-mining.html#cb1012-13" tabindex="-1"></a><span class="co">#&gt;   sentiment Android iPhone log_or     se conf.low conf.high</span></span>
-<span id="cb1012-14"><a href="text-mining.html#cb1012-14" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;       &lt;int&gt;  &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;</span></span>
-<span id="cb1012-15"><a href="text-mining.html#cb1012-15" tabindex="-1"></a><span class="co">#&gt; 1 disgust       639    314  0.502 0.0697    0.366     0.639</span></span>
-<span id="cb1012-16"><a href="text-mining.html#cb1012-16" tabindex="-1"></a><span class="co">#&gt; 2 anger         962    527  0.397 0.0552    0.288     0.505</span></span>
-<span id="cb1012-17"><a href="text-mining.html#cb1012-17" tabindex="-1"></a><span class="co">#&gt; 3 negative     1657    931  0.381 0.0423    0.298     0.464</span></span>
-<span id="cb1012-18"><a href="text-mining.html#cb1012-18" tabindex="-1"></a><span class="co">#&gt; 4 sadness       901    514  0.354 0.0562    0.244     0.464</span></span>
-<span id="cb1012-19"><a href="text-mining.html#cb1012-19" tabindex="-1"></a><span class="co">#&gt; 5 fear          799    486  0.287 0.0584    0.172     0.401</span></span>
-<span id="cb1012-20"><a href="text-mining.html#cb1012-20" tabindex="-1"></a><span class="co">#&gt; # ℹ 6 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb1011"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1011-1"><a href="text-mining.html#cb1011-1" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
+<span id="cb1011-2"><a href="text-mining.html#cb1011-2" tabindex="-1"></a>log_or <span class="ot">&lt;-</span> sentiment_counts <span class="sc">|&gt;</span></span>
+<span id="cb1011-3"><a href="text-mining.html#cb1011-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">log_or =</span> <span class="fu">log</span>((Android <span class="sc">/</span> (<span class="fu">sum</span>(Android) <span class="sc">-</span> Android)) <span class="sc">/</span> </span>
+<span id="cb1011-4"><a href="text-mining.html#cb1011-4" tabindex="-1"></a>      (iPhone <span class="sc">/</span> (<span class="fu">sum</span>(iPhone) <span class="sc">-</span> iPhone))),</span>
+<span id="cb1011-5"><a href="text-mining.html#cb1011-5" tabindex="-1"></a>          <span class="at">se =</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>Android <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>(<span class="fu">sum</span>(Android) <span class="sc">-</span> Android) <span class="sc">+</span> </span>
+<span id="cb1011-6"><a href="text-mining.html#cb1011-6" tabindex="-1"></a>                      <span class="dv">1</span><span class="sc">/</span>iPhone <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>(<span class="fu">sum</span>(iPhone) <span class="sc">-</span> iPhone)),</span>
+<span id="cb1011-7"><a href="text-mining.html#cb1011-7" tabindex="-1"></a>          <span class="at">conf.low =</span> log_or <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>)<span class="sc">*</span>se,</span>
+<span id="cb1011-8"><a href="text-mining.html#cb1011-8" tabindex="-1"></a>          <span class="at">conf.high =</span> log_or <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>)<span class="sc">*</span>se) <span class="sc">|&gt;</span></span>
+<span id="cb1011-9"><a href="text-mining.html#cb1011-9" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(log_or))</span>
+<span id="cb1011-10"><a href="text-mining.html#cb1011-10" tabindex="-1"></a>  </span>
+<span id="cb1011-11"><a href="text-mining.html#cb1011-11" tabindex="-1"></a>log_or</span>
+<span id="cb1011-12"><a href="text-mining.html#cb1011-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 11 × 7</span></span>
+<span id="cb1011-13"><a href="text-mining.html#cb1011-13" tabindex="-1"></a><span class="co">#&gt;   sentiment Android iPhone log_or     se conf.low conf.high</span></span>
+<span id="cb1011-14"><a href="text-mining.html#cb1011-14" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;       &lt;int&gt;  &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;</span></span>
+<span id="cb1011-15"><a href="text-mining.html#cb1011-15" tabindex="-1"></a><span class="co">#&gt; 1 disgust       639    314  0.502 0.0697    0.366     0.639</span></span>
+<span id="cb1011-16"><a href="text-mining.html#cb1011-16" tabindex="-1"></a><span class="co">#&gt; 2 anger         962    527  0.397 0.0552    0.288     0.505</span></span>
+<span id="cb1011-17"><a href="text-mining.html#cb1011-17" tabindex="-1"></a><span class="co">#&gt; 3 negative     1657    931  0.381 0.0423    0.298     0.464</span></span>
+<span id="cb1011-18"><a href="text-mining.html#cb1011-18" tabindex="-1"></a><span class="co">#&gt; 4 sadness       901    514  0.354 0.0562    0.244     0.464</span></span>
+<span id="cb1011-19"><a href="text-mining.html#cb1011-19" tabindex="-1"></a><span class="co">#&gt; 5 fear          799    486  0.287 0.0584    0.172     0.401</span></span>
+<span id="cb1011-20"><a href="text-mining.html#cb1011-20" tabindex="-1"></a><span class="co">#&gt; # ℹ 6 more rows</span></span></code></pre></div>
 <p>A graphical visualization shows some sentiments that are clearly overrepresented:</p>
-<div class="sourceCode" id="cb1013"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1013-1"><a href="text-mining.html#cb1013-1" tabindex="-1"></a>log_or <span class="sc">|&gt;</span></span>
-<span id="cb1013-2"><a href="text-mining.html#cb1013-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sentiment =</span> <span class="fu">reorder</span>(sentiment, log_or)) <span class="sc">|&gt;</span></span>
-<span id="cb1013-3"><a href="text-mining.html#cb1013-3" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> sentiment, <span class="at">ymin =</span> conf.low, <span class="at">ymax =</span> conf.high)) <span class="sc">+</span></span>
-<span id="cb1013-4"><a href="text-mining.html#cb1013-4" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>() <span class="sc">+</span></span>
-<span id="cb1013-5"><a href="text-mining.html#cb1013-5" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(sentiment, log_or)) <span class="sc">+</span></span>
-<span id="cb1013-6"><a href="text-mining.html#cb1013-6" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;Log odds ratio for association between Android and sentiment&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1013-7"><a href="text-mining.html#cb1013-7" tabindex="-1"></a>  <span class="fu">coord_flip</span>() </span></code></pre></div>
+<div class="sourceCode" id="cb1012"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1012-1"><a href="text-mining.html#cb1012-1" tabindex="-1"></a>log_or <span class="sc">|&gt;</span></span>
+<span id="cb1012-2"><a href="text-mining.html#cb1012-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sentiment =</span> <span class="fu">reorder</span>(sentiment, log_or)) <span class="sc">|&gt;</span></span>
+<span id="cb1012-3"><a href="text-mining.html#cb1012-3" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> sentiment, <span class="at">ymin =</span> conf.low, <span class="at">ymax =</span> conf.high)) <span class="sc">+</span></span>
+<span id="cb1012-4"><a href="text-mining.html#cb1012-4" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>() <span class="sc">+</span></span>
+<span id="cb1012-5"><a href="text-mining.html#cb1012-5" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(sentiment, log_or)) <span class="sc">+</span></span>
+<span id="cb1012-6"><a href="text-mining.html#cb1012-6" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;Log odds ratio for association between Android and sentiment&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1012-7"><a href="text-mining.html#cb1012-7" tabindex="-1"></a>  <span class="fu">coord_flip</span>() </span></code></pre></div>
 <p><img src="book_files/figure-html/tweets-log-odds-ratio-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p>We see that the disgust, anger, negative, sadness, and fear sentiments are associated with the Android in a way that is hard to explain by chance alone. Words not associated to a sentiment were strongly associated with the iPhone source, which is in agreement with the original claim about hyperbolic tweets.</p>
 <p>If we are interested in exploring which specific words are driving these differences, we can refer back to our <code>android_iphone_or</code> object:</p>
-<div class="sourceCode" id="cb1014"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1014-1"><a href="text-mining.html#cb1014-1" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">inner_join</span>(nrc) <span class="sc">|&gt;</span></span>
-<span id="cb1014-2"><a href="text-mining.html#cb1014-2" tabindex="-1"></a>  <span class="fu">filter</span>(sentiment <span class="sc">==</span> <span class="st">&quot;disgust&quot;</span> <span class="sc">&amp;</span> Android <span class="sc">+</span> iPhone <span class="sc">&gt;</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1014-3"><a href="text-mining.html#cb1014-3" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(or))</span>
-<span id="cb1014-4"><a href="text-mining.html#cb1014-4" tabindex="-1"></a><span class="co">#&gt; Joining with `by = join_by(word)`</span></span>
-<span id="cb1014-5"><a href="text-mining.html#cb1014-5" tabindex="-1"></a><span class="co">#&gt; # A tibble: 20 × 5</span></span>
-<span id="cb1014-6"><a href="text-mining.html#cb1014-6" tabindex="-1"></a><span class="co">#&gt;   word    Android iPhone    or sentiment</span></span>
-<span id="cb1014-7"><a href="text-mining.html#cb1014-7" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;    </span></span>
-<span id="cb1014-8"><a href="text-mining.html#cb1014-8" tabindex="-1"></a><span class="co">#&gt; 1 mess         15      2  5.33 disgust  </span></span>
-<span id="cb1014-9"><a href="text-mining.html#cb1014-9" tabindex="-1"></a><span class="co">#&gt; 2 finally      12      2  4.30 disgust  </span></span>
-<span id="cb1014-10"><a href="text-mining.html#cb1014-10" tabindex="-1"></a><span class="co">#&gt; 3 unfair       12      2  4.30 disgust  </span></span>
-<span id="cb1014-11"><a href="text-mining.html#cb1014-11" tabindex="-1"></a><span class="co">#&gt; 4 bad         104     26  3.40 disgust  </span></span>
-<span id="cb1014-12"><a href="text-mining.html#cb1014-12" tabindex="-1"></a><span class="co">#&gt; 5 lie          13      3  3.32 disgust  </span></span>
-<span id="cb1014-13"><a href="text-mining.html#cb1014-13" tabindex="-1"></a><span class="co">#&gt; # ℹ 15 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb1013"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1013-1"><a href="text-mining.html#cb1013-1" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">inner_join</span>(nrc) <span class="sc">|&gt;</span></span>
+<span id="cb1013-2"><a href="text-mining.html#cb1013-2" tabindex="-1"></a>  <span class="fu">filter</span>(sentiment <span class="sc">==</span> <span class="st">&quot;disgust&quot;</span> <span class="sc">&amp;</span> Android <span class="sc">+</span> iPhone <span class="sc">&gt;</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1013-3"><a href="text-mining.html#cb1013-3" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(or))</span>
+<span id="cb1013-4"><a href="text-mining.html#cb1013-4" tabindex="-1"></a><span class="co">#&gt; Joining with `by = join_by(word)`</span></span>
+<span id="cb1013-5"><a href="text-mining.html#cb1013-5" tabindex="-1"></a><span class="co">#&gt; # A tibble: 20 × 5</span></span>
+<span id="cb1013-6"><a href="text-mining.html#cb1013-6" tabindex="-1"></a><span class="co">#&gt;   word    Android iPhone    or sentiment</span></span>
+<span id="cb1013-7"><a href="text-mining.html#cb1013-7" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;    </span></span>
+<span id="cb1013-8"><a href="text-mining.html#cb1013-8" tabindex="-1"></a><span class="co">#&gt; 1 mess         15      2  5.33 disgust  </span></span>
+<span id="cb1013-9"><a href="text-mining.html#cb1013-9" tabindex="-1"></a><span class="co">#&gt; 2 finally      12      2  4.30 disgust  </span></span>
+<span id="cb1013-10"><a href="text-mining.html#cb1013-10" tabindex="-1"></a><span class="co">#&gt; 3 unfair       12      2  4.30 disgust  </span></span>
+<span id="cb1013-11"><a href="text-mining.html#cb1013-11" tabindex="-1"></a><span class="co">#&gt; 4 bad         104     26  3.40 disgust  </span></span>
+<span id="cb1013-12"><a href="text-mining.html#cb1013-12" tabindex="-1"></a><span class="co">#&gt; 5 lie          13      3  3.32 disgust  </span></span>
+<span id="cb1013-13"><a href="text-mining.html#cb1013-13" tabindex="-1"></a><span class="co">#&gt; # ℹ 15 more rows</span></span></code></pre></div>
 <p>and we can make a graph:</p>
-<div class="sourceCode" id="cb1015"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1015-1"><a href="text-mining.html#cb1015-1" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">inner_join</span>(nrc, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1015-2"><a href="text-mining.html#cb1015-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sentiment =</span> <span class="fu">factor</span>(sentiment, <span class="at">levels =</span> log_or<span class="sc">$</span>sentiment)) <span class="sc">|&gt;</span></span>
-<span id="cb1015-3"><a href="text-mining.html#cb1015-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">log_or =</span> <span class="fu">log</span>(or)) <span class="sc">|&gt;</span></span>
-<span id="cb1015-4"><a href="text-mining.html#cb1015-4" tabindex="-1"></a>  <span class="fu">filter</span>(Android <span class="sc">+</span> iPhone <span class="sc">&gt;</span> <span class="dv">10</span> <span class="sc">&amp;</span> <span class="fu">abs</span>(log_or)<span class="sc">&gt;</span><span class="dv">1</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1015-5"><a href="text-mining.html#cb1015-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">reorder</span>(word, log_or)) <span class="sc">|&gt;</span></span>
-<span id="cb1015-6"><a href="text-mining.html#cb1015-6" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(word, log_or, <span class="at">fill =</span> log_or <span class="sc">&lt;</span> <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb1015-7"><a href="text-mining.html#cb1015-7" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>sentiment, <span class="at">scales =</span> <span class="st">&quot;free_x&quot;</span>, <span class="at">nrow =</span> <span class="dv">2</span>) <span class="sc">+</span> </span>
-<span id="cb1015-8"><a href="text-mining.html#cb1015-8" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat=</span><span class="st">&quot;identity&quot;</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb1015-9"><a href="text-mining.html#cb1015-9" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">hjust =</span> <span class="dv">1</span>)) </span></code></pre></div>
+<div class="sourceCode" id="cb1014"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1014-1"><a href="text-mining.html#cb1014-1" tabindex="-1"></a>android_iphone_or <span class="sc">|&gt;</span> <span class="fu">inner_join</span>(nrc, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1014-2"><a href="text-mining.html#cb1014-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sentiment =</span> <span class="fu">factor</span>(sentiment, <span class="at">levels =</span> log_or<span class="sc">$</span>sentiment)) <span class="sc">|&gt;</span></span>
+<span id="cb1014-3"><a href="text-mining.html#cb1014-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">log_or =</span> <span class="fu">log</span>(or)) <span class="sc">|&gt;</span></span>
+<span id="cb1014-4"><a href="text-mining.html#cb1014-4" tabindex="-1"></a>  <span class="fu">filter</span>(Android <span class="sc">+</span> iPhone <span class="sc">&gt;</span> <span class="dv">10</span> <span class="sc">&amp;</span> <span class="fu">abs</span>(log_or)<span class="sc">&gt;</span><span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1014-5"><a href="text-mining.html#cb1014-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">reorder</span>(word, log_or)) <span class="sc">|&gt;</span></span>
+<span id="cb1014-6"><a href="text-mining.html#cb1014-6" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(word, log_or, <span class="at">fill =</span> log_or <span class="sc">&lt;</span> <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb1014-7"><a href="text-mining.html#cb1014-7" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>sentiment, <span class="at">scales =</span> <span class="st">&quot;free_x&quot;</span>, <span class="at">nrow =</span> <span class="dv">2</span>) <span class="sc">+</span> </span>
+<span id="cb1014-8"><a href="text-mining.html#cb1014-8" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat=</span><span class="st">&quot;identity&quot;</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb1014-9"><a href="text-mining.html#cb1014-9" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">hjust =</span> <span class="dv">1</span>)) </span></code></pre></div>
 <p><img src="book_files/figure-html/log-odds-by-word-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>This is just a simple example of the many analyses one can perform with tidytext.
 To learn more, we again recommend the Tidy Text Mining book<a href="#fn93" class="footnote-ref" id="fnref93"><sup>93</sup></a>.</p>
@@ -1429,10 +1429,10 @@ To learn more, we again recommend the Tidy Text Mining book<a href="#fn93" class
 <h2><span class="header-section-number">26.4</span> Exercises<a href="text-mining.html#exercises-46" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Project Gutenberg is a digital archive of public domain books. The R package <strong>gutenbergr</strong> facilitates the importation of these texts into R.</p>
 <p>You can install and load by typing:</p>
-<div class="sourceCode" id="cb1016"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1016-1"><a href="text-mining.html#cb1016-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;gutenbergr&quot;</span>)</span>
-<span id="cb1016-2"><a href="text-mining.html#cb1016-2" tabindex="-1"></a><span class="fu">library</span>(gutenbergr)</span></code></pre></div>
+<div class="sourceCode" id="cb1015"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1015-1"><a href="text-mining.html#cb1015-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;gutenbergr&quot;</span>)</span>
+<span id="cb1015-2"><a href="text-mining.html#cb1015-2" tabindex="-1"></a><span class="fu">library</span>(gutenbergr)</span></code></pre></div>
 <p>You can see the books that are available like this:</p>
-<div class="sourceCode" id="cb1017"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1017-1"><a href="text-mining.html#cb1017-1" tabindex="-1"></a>gutenberg_metadata</span></code></pre></div>
+<div class="sourceCode" id="cb1016"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1016-1"><a href="text-mining.html#cb1016-1" tabindex="-1"></a>gutenberg_metadata</span></code></pre></div>
 <p>1. Use <code>str_detect</code> to find the ID of the novel <em>Pride and Prejudice</em>.</p>
 <p>2. We notice that there are several versions. The <code>gutenberg_works()</code> function filters this table to remove replicates and include only English language works. Read the help file and use this function to find the ID for <em>Pride and Prejudice</em>.</p>
 <p>3. Use the <code>gutenberg_download</code> function to download the text for Pride and Prejudice. Save it to an object called <code>book</code>.</p>
